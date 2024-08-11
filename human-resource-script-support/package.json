@@ -1,0 +1,25 @@
+{
+  "name": "human-resource-script-support",
+  "displayName": "Human Resource Machine LazyCoder Support",
+  "description": "Language support for Human Resource Machine LazyCoder",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.92.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "hrl",
+      "aliases": ["Human Resource Machine LazyCoder", "hrl"],
+      "extensions": ["hrl"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "hrl",
+      "scopeName": "source.hrl",
+      "path": "./syntaxes/hrl.tmLanguage.json"
+    }]
+  }
+}
