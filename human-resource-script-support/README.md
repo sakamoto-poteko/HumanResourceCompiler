@@ -1,57 +1,47 @@
-# human-resource-script-support README
+# Human Resource Machine LazyCoder Language Support README
 
-This is the README for your extension "human-resource-script-support". After writing up a brief description, we recommend including the following sections.
+This is the README for your extension "Human Resource Machine LazyCoder Language Support". This extension provides specialized syntax highlighting and editing support for the Human Resource Machine LazyCoder Language (HRL), enhancing the coding experience for developers using this novel language.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+This extension provides syntax highlighting for HRL, making it easier to write, read, and understand HRL scripts directly in VSCode. Key features include:
+- Highlighting for keywords, function names, and comments.
+- Support for single-line comments and specialized keywords like `sub` and `function`.
+- Distinctive coloration for control structures, numeric literals, and function definitions.
 
-For example if there is an image subfolder under your extension project workspace:
+Example of syntax highlighting in action:
+![Syntax Highlighting](images/syntax-highlighting.png)
 
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+> Tip: Consider adding an animation to demonstrate real-time syntax checking or auto-completion features in future versions!
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+No specific requirements or dependencies are needed to run this extension. It operates entirely within the VSCode environment.
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+As of now, this extension does not add any configurable settings through VSCode. Future updates might include customizable themes or syntax color settings.
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+Currently, there are no reported issues. Should users encounter any bugs or unexpected behavior, they are encouraged to report these on the GitHub issue tracker linked in this document.
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
-
 ### 1.0.0
 
-Initial release of ...
+- Initial release of the Human Resource Machine LazyCoder Language Support.
+- Features basic syntax highlighting according to HRL language specifications.
 
 ### 1.0.1
 
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+- Minor bug fixes and performance improvements.
 
 ---
 
 ## Working with Markdown
 
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
+Markdown is supported natively in Visual Studio Code. Here are some useful editor keyboard shortcuts:
 
 * Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
 * Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
@@ -62,4 +52,4 @@ You can author your README using Visual Studio Code. Here are some useful editor
 * [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
 * [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
 
-**Enjoy!**
+**Enjoy coding in HRL with enhanced support!**
