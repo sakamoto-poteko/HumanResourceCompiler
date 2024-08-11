@@ -25,7 +25,7 @@
                 },
                 {
                     "name": "keyword.other.hrl",
-                    "match": "\\b(init|floor|inbox|outbox)\\b"
+                    "match": "\\b(init|floor|inbox|outbox|import|let)\\b"
                 }
             ]
         },
