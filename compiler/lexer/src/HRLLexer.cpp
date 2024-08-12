@@ -118,6 +118,7 @@ GCToken HRLLexer::tokenize()
     case CLOSE_BRACE:
     case OPEN_BRACKET:
     case CLOSE_BRACKET:
+    case COMMA:
         return std::make_shared<Token>(tokenId, lineno, colno, width, std::make_shared<std::string>(yytext));
 
     // tokens has some payloads

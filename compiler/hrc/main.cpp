@@ -9,20 +9,19 @@
 using namespace hrl::lexer;
 using namespace hrl::hrc;
 
-
 int main(int argc, char **argv)
 {
     spdlog::set_pattern("%^[%l]%$ %v");
     __tc.reset();
 
-    parse_arguments(argc, argv);
-    if (__compiler_options.verbose) {
+    CompilerOptions options = parse_arguments(argc, argv);
+    if (options.verbose) {
         spdlog::set_level(spdlog::level::debug);
     } else {
         spdlog::set_level(spdlog::level::warn);
     }
 
-    FileManager fileManager(__compiler_options.input_file, __compiler_options.output_file, __compiler_options.include_paths);
+    FileManager fileManager(options.input_file, options.output_file, options.include_paths);
 
     FILE *file = fileManager.open_input_file();
     if (file == nullptr) {
@@ -38,7 +37,7 @@ int main(int argc, char **argv)
         spdlog::error("Error occured during lexical analysis");
     }
 
-    // For now, let's write to stdout if there's no output file available.
+    // For now, let's write to stdout if there's no output file available, or output fails to open.
     // We have only lexer stage.
     // When it comes to AST it'll be complicated
     FILE *output = fileManager.open_output_file();

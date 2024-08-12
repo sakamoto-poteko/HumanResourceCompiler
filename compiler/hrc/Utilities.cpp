@@ -12,12 +12,33 @@ Utilities::~Utilities()
 
 void Utilities::write_token_list_to_file(FILE *file, const std::vector<GCToken> &tokens)
 {
+    int indent = 0;
     for (const GCToken &token : tokens) {
-        const char *name = token->get_token_name();
+        std::string name = token->get_token_name();
         if (name[0] == ';') {
             std::fprintf(file, ";\n");
+            for (int i = 0; i < indent; ++i) {
+                std::fprintf(file, " ");
+            }
             continue;
         }
+        if (name == "OPEN_BRACE") {
+            indent += 2;
+        }
+        if (name == "CLOSE_BRACE") {
+            indent -= 2;
+            if (indent < 0)
+                indent = 0;
+        }
+
+        if (name == "OPEN_BRACE" || name == "CLOSE_BRACE") {
+            std::fprintf(file, "%s\n", name.c_str());
+            for (int i = 0; i < indent; ++i) {
+                std::fprintf(file, " ");
+            }
+            continue;
+        }
+        
         std::fprintf(file, "%s ", token->get_token_name());
     }
 }

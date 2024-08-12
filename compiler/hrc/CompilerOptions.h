@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <optional>
 
 #include "hrc_global.h"
 
@@ -10,7 +11,7 @@ OPEN_HRC_NAMESPACE
 
 struct CompilerOptions {
     std::string input_file;
-    std::string output_file;
+    std::optional<std::string> output_file;
     int optimization_level = 0;  // Default is -O0
     std::vector<std::string> include_paths;
     bool verbose = false;
@@ -19,9 +20,7 @@ struct CompilerOptions {
     std::string stage;
 };
 
-void parse_arguments(int argc, char **argv);
-
-extern CompilerOptions __compiler_options;
+CompilerOptions parse_arguments(int argc, char **argv);
 
 CLOSE_HRC_NAMESPACE
 
