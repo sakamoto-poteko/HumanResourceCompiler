@@ -8,7 +8,7 @@ init floor_max = 10;
 // A function is defined, which takes an argument. 
 // Only one or zero argument is allowed.
 function countdown(a) {
-    for (let i = a; i >= 0; --i) {
+    for (let i = a, i >= 0, --i) {
         outbox(i);
     }
 
