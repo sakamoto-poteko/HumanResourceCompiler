@@ -14,14 +14,16 @@ public:
     HRLLexer();
     ~HRLLexer();
 
-    int lex(FILE *in, std::vector<GCToken> &result);
+    int lex(FILE *in, const std::string &filepath, std::vector<GCToken> &result);
 
 private:
-    int lexer_init(FILE *in);
+    int lexer_initialize(FILE *in);
     int lexer_finalize();
 
     GCToken tokenize();
-    void print_tokenization_error();
+    void print_tokenization_error(const std::string &filepath, int lineno, int colno, int width, const GCString &text, const std::vector<std::string> &lines);
+
+    void get_file_lines(FILE *in, std::vector<std::string> &rows);
 };
 
 CLOSE_LEXER_NAMESPACE

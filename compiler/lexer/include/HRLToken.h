@@ -52,6 +52,7 @@ enum TokenId : int {
     CLOSE_BRACE,
     OPEN_BRACKET,
     CLOSE_BRACKET,
+    COMMA,
 
     ERROR = -1,
 };
@@ -60,7 +61,7 @@ class Token {
 public:
     Token(TokenId tokenId, int row, int col, int width, GCString text)
         : _tokenId(tokenId)
-        , _row(row)
+        , _lineno(row)
         , _col(col)
         , _width(width)
         , _text(text)
@@ -68,10 +69,17 @@ public:
     }
     virtual ~Token() { }
 
+    const char *get_token_name();
+    TokenId get_token_id() { return _tokenId; }
+    GCString get_token_text() { return _text; }
+    int get_lineno() { return _lineno; }
+    int get_col() { return _col; }
+    int get_width() { return _width; }
+
 protected:
     TokenId _tokenId;
 
-    int _row;
+    int _lineno;
     int _col;
     int _width;
     GCString _text;

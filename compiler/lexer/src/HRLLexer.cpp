@@ -1,7 +1,9 @@
+#include <sstream>
+
 #include <spdlog/spdlog.h>
 
+#include "TerminalColor.h"
 #include "lexer_helper.h"
-
 #include "HRLLexer.h"
 
 extern int yyleng;
@@ -10,7 +12,6 @@ extern FILE *yyin;
 extern int yylineno;
 extern int yycolno;
 int yylex();
-static std::string __lex_filename;
 
 OPEN_LEXER_NAMESPACE
 
@@ -22,9 +23,13 @@ HRLLexer::~HRLLexer()
 {
 }
 
-int HRLLexer::lex(FILE *in, std::vector<GCToken> &result)
+int HRLLexer::lex(FILE *in, const std::string &filepath, std::vector<GCToken> &result)
 {
     lexer_finalize(); // clean up if there's previous lexing context
+    lexer_initialize(in);
+
+    std::vector<std::string> lines;
+    get_file_lines(in, lines);
 
     std::vector<GCToken> r;
 
@@ -33,6 +38,7 @@ int HRLLexer::lex(FILE *in, std::vector<GCToken> &result)
 
     do {
         GCToken token = tokenize();
+        currentTokenId = token->get_token_id();
         r.push_back(token);
     } while (currentTokenId > 0);
 
@@ -42,17 +48,21 @@ int HRLLexer::lex(FILE *in, std::vector<GCToken> &result)
     }
 
     if (currentTokenId == ERROR) {
+        const auto &token = r.back();
+        print_tokenization_error(filepath, token->get_lineno(), token->get_col(), token->get_width(), token->get_token_text(), lines);
         return -1;
     }
-
     // this is not supposed to happen. tokenization ended but not with either END or ERROR.
     // this must be a bug
     return -1;
 }
 
-int HRLLexer::lexer_init(FILE *in)
+int HRLLexer::lexer_initialize(FILE *in)
 {
     yyin = in;
+    __currentToken.boolean = false;
+    __currentToken.identifier = GCString();
+    __currentToken.integer = 0;
     return 0;
 }
 
@@ -66,7 +76,9 @@ GCToken HRLLexer::tokenize()
 {
     int val = yylex();
     TokenId tokenId = static_cast<TokenId>(val);
-    int lineno = yylineno;
+    int lineno = yylineno; // line starts from 1
+    int colno = yycolno - yyleng + 1; // colno starts from 1
+    int width = yyleng;
 
     switch (val) {
         // these are keywords and operators. no extra info stored in the token
@@ -106,23 +118,23 @@ GCToken HRLLexer::tokenize()
     case CLOSE_BRACE:
     case OPEN_BRACKET:
     case CLOSE_BRACKET:
-        return std::make_shared<Token>(tokenId, lineno, yycolno, yyleng, std::make_shared<std::string>(yytext));
+        return std::make_shared<Token>(tokenId, lineno, colno, width, std::make_shared<std::string>(yytext));
 
+    // tokens has some payloads
     case BOOLEAN:
-        return std::make_shared<BooleanToken>(tokenId, __currentToken.boolean, lineno, yycolno, yyleng, std::make_shared<std::string>(yytext));
+        return std::make_shared<BooleanToken>(tokenId, __currentToken.boolean, lineno, colno, width, std::make_shared<std::string>(yytext));
 
     case INTEGER:
-        return std::make_shared<IntegerToken>(tokenId, __currentToken.integer, lineno, yycolno, yyleng, std::make_shared<std::string>(yytext));
+        return std::make_shared<IntegerToken>(tokenId, __currentToken.integer, lineno, colno, width, std::make_shared<std::string>(yytext));
 
     case IDENTIFIER:
-        return std::make_shared<IdentifierToken>(tokenId, __currentToken.identifier, lineno, yycolno, yyleng, std::make_shared<std::string>(yytext));
+        return std::make_shared<IdentifierToken>(tokenId, __currentToken.identifier, lineno, colno, width, std::make_shared<std::string>(yytext));
 
     case END:
-        return std::make_shared<Token>(END, lineno, yycolno, yyleng, std::make_shared<std::string>(yytext));
+        return std::make_shared<Token>(END, lineno, colno, width, std::make_shared<std::string>(yytext));
 
     case ERROR:
-        print_tokenization_error();
-        return std::make_shared<Token>(ERROR, lineno, yycolno, yyleng, std::make_shared<std::string>(yytext));
+        return std::make_shared<Token>(ERROR, lineno, colno, width, std::make_shared<std::string>(yytext));
 
     default:
         spdlog::critical("bug: unreachable tokenize default");
@@ -132,9 +144,50 @@ GCToken HRLLexer::tokenize()
     return GCToken();
 }
 
-void HRLLexer::print_tokenization_error()
+void HRLLexer::print_tokenization_error(const std::string &filepath, int lineno, int colno, int width, const GCString &text, const std::vector<std::string> &lines)
 {
-    spdlog::error("Unrecognized token `%s'", yytext);
+    spdlog::error("{}:{}:{}:{}Unrecognized token `{}'{}", filepath, lineno, colno, __tc.COLOR_HIGHLIGHT, *(text.get()), __tc.COLOR_RESET);
+    spdlog::error(lines.at(lineno - 1)); // line starts from 1
+    std::stringstream ss;
+    for (int i = 1; i < colno; ++i) {
+        ss << ' ';
+    }
+    for (int i = 0; i < width; ++i) {
+        ss << '^';
+    }
+    spdlog::error("{}{}{}", __tc.COLOR_LIGHT_GREEN, ss.str(), __tc.COLOR_RESET);
+}
+
+void HRLLexer::get_file_lines(FILE *in, std::vector<std::string> &rows)
+{
+    std::vector<std::string> source_rows;
+
+    char buf[1024];
+    long current_pos = ftell(in);
+    char *line;
+    std::fseek(in, current_pos, SEEK_SET);
+
+    std::string current_line;
+    current_line.reserve(128);
+
+    while (!std::feof(in)) {
+        size_t bytes_read = fread(buf, 1, sizeof(buf), in);
+
+        for (size_t i = 0; i < bytes_read; ++i) {
+            if (buf[i] == '\n') {
+                source_rows.push_back(current_line);
+                current_line.clear();
+            } else {
+                current_line.push_back(buf[i]);
+            }
+        }
+    }
+
+    source_rows.push_back(current_line);
+
+    fseek(in, current_pos, SEEK_SET);
+
+    rows.swap(source_rows);
 }
 
 CLOSE_LEXER_NAMESPACE

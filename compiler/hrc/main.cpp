@@ -1,26 +1,52 @@
+#include <spdlog/spdlog.h>
+
+#include "CompilerOptions.h"
+#include "FileManager.h"
 #include "HRLLexer.h"
+#include "TerminalColor.h"
+#include "Utilities.h"
 
 using namespace hrl::lexer;
+using namespace hrl::hrc;
+
 
 int main(int argc, char **argv)
 {
-    HRLLexer lexer;
-    // FILE *file = fopen("/home/afa/projects/HumanResourceCompiler/design/lang.hrl", "r");
-    FILE *file = std::fopen("/home/afa/anna-lang/demo/sample.anna", "r");
+    spdlog::set_pattern("%^[%l]%$ %v");
+    __tc.reset();
 
-    if (file == NULL) {
-        perror("Error opening file");
-        return 1;
+    parse_arguments(argc, argv);
+    if (__compiler_options.verbose) {
+        spdlog::set_level(spdlog::level::debug);
+    } else {
+        spdlog::set_level(spdlog::level::warn);
     }
 
-    char str[100];
-    str[99] = 0;
-    fread(str, 10, 10, file);
-    printf("%s", str);
-    fseek(file, 0, SEEK_END);
+    FileManager fileManager(__compiler_options.input_file, __compiler_options.output_file, __compiler_options.include_paths);
 
+    FILE *file = fileManager.open_input_file();
+    if (file == nullptr) {
+        spdlog::error("Cannot open input file");
+        exit(EXIT_FAILURE);
+    }
+
+    HRLLexer lexer;
     std::vector<GCToken> tokens;
-    lexer.lex(file, tokens);
-    
+
+    int result = lexer.lex(file, fileManager.get_input_filename(), tokens);
+    if (result != 0) {
+        spdlog::error("Error occured during lexical analysis");
+    }
+
+    // For now, let's write to stdout if there's no output file available.
+    // We have only lexer stage.
+    // When it comes to AST it'll be complicated
+    FILE *output = fileManager.open_output_file();
+    if (output == nullptr) {
+        output = stdout;
+    }
+    Utilities::write_token_list_to_file(output, tokens);
+
     fclose(file);
+    return 0;
 }

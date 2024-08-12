@@ -39,7 +39,7 @@ selection_statement = if_statement;
 if_statement = IF, '(', expression, ')', embedded_statement, [ELSE, embedded_statement];
 iteration_statement = while_statement | for_statement;
 while_statement = WHILE, '(', expression, ')', embedded_statement;
-for_statement = FOR, '(', [variable_assignment | variable_declaration], ';', [expression], ';' , [expression], ')', embedded_statement;
+for_statement = FOR, '(', [variable_assignment | variable_declaration], ',', [expression], ',' , [expression], ')', embedded_statement;
 return_statement = RETURN, [expression], T;
 (* floor init only appear outside the functions. usually at the beginning of the file *)
 floor_box_init_statement = INIT, FLOOR, '[', INTEGER, ']', EQ, INTEGER, T;
