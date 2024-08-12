@@ -21,6 +21,7 @@ private:
     int lexer_finalize();
 
     GCToken tokenize();
+    void print_tokenization_error();
 };
 
 CLOSE_LEXER_NAMESPACE

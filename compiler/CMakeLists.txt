@@ -11,9 +11,11 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s")
 
 enable_testing()
 
+find_package(spdlog REQUIRED)
 find_package(FLEX 2.6 REQUIRED)
 
 include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/version)
 
 add_subdirectory(version)
 add_subdirectory(lexer)
+add_subdirectory(hrc)
