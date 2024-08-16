@@ -1,5 +1,5 @@
 (* end of statement *)
-T = ';';
+SEMICOMMA = ';';
 
 (* terminals and quasi terminals*)
 variable_name = IDENTIFIER;
@@ -13,38 +13,45 @@ variable_assignment = variable_name, EQ, expression;
 floor_assignment = floor_access, EQ, expression;
 
 (* Expression *)
+(* Arithmetic*)
+sum = sum ADD term | sum SUB term | term;
+term = term MUL factor | term DIV factor | term MOD factor | factor;
+factor = ADD factor | SUB factor | primary_expression;
+(* Comparison *)
+
 expression = binary_expression | unary_expression;
 binary_expression = (binary_expression | unary_expression), binary_operator, (binary_expression | unary_expression);
-unary_expression = primary_expression | increment_expression | decrement_expression | NOT, expression | ADD, expression | SUB, Expression;
+unary_expression = primary_expression | increment_expression | decrement_expression | not_expression;
 increment_expression = (ADDADD, variable_name) | (variable_name, ADDADD);
 decrement_expression = (SUBSUB, variable_name) | (variable_name, SUBSUB);
+not_expression = NOT, expression;
 floor_access = FLOOR, '[', expression ,']';
 primary_expression = literal | parenthesized_expression | invocation_expression | variable_name | floor_access;
-return_statement = RETURN, [expression], T;
+return_statement = RETURN, [expression], SEMICOMMA;
 parenthesized_expression = '(', expression, ')';
 invocation_expression = function_identifier,  '(', [function_argument], ')';
 function_argument = expression;
 
 (* Statement *)
-empty_statement = T;
-variable_declaration_statement = variable_declaration, T;
-variable_assignment_statement = variable_assignment, T;
-floor_assignment_statement = floor_assignment, T;
+empty_statement = SEMICOMMA;
+variable_declaration_statement = variable_declaration, SEMICOMMA;
+variable_assignment_statement = variable_assignment, SEMICOMMA;
+floor_assignment_statement = floor_assignment, SEMICOMMA;
 statement_block = '{', {statement}, '}';
 statement = variable_declaration_statement | variable_assignment_statement | floor_assignment_statement | embedded_statement;
 embedded_statement = statement_block | empty_statement | expression | iteration_statement | selection_statement | return_statement;
-expression_statement = statement_expression, T;
+expression_statement = statement_expression, SEMICOMMA;
 statement_expression = invocation_expression | assignment;
 selection_statement = if_statement;
 if_statement = IF, '(', expression, ')', embedded_statement, [ELSE, embedded_statement];
 iteration_statement = while_statement | for_statement;
 while_statement = WHILE, '(', expression, ')', embedded_statement;
 for_statement = FOR, '(', [variable_assignment | variable_declaration], ',', [expression], ',' , [expression], ')', embedded_statement;
-return_statement = RETURN, [expression], T;
+return_statement = RETURN, [expression], SEMICOMMA;
 (* floor init only appear outside the functions. usually at the beginning of the file *)
-floor_box_init_statement = INIT, FLOOR, '[', INTEGER, ']', EQ, INTEGER, T;
+floor_box_init_statement = INIT, FLOOR, '[', INTEGER, ']', EQ, INTEGER, SEMICOMMA;
 (* only one floor max allowed in a program *)
-floor_max_init_statement = INIT, FLOORMAX, EQ, INTEGER, T;
+floor_max_init_statement = INIT, FLOORMAX, EQ, INTEGER, SEMICOMMA;
 
 (* Function and subprocedure *)
 function_definition = function_header, function_body;
@@ -56,6 +63,6 @@ subproc_header = SUBWORD, function_name, '(', [formal_parameter_list], ')';
 function_body = statement_block;
 
 (* Compilation Unit *)
-import_directive = IMPORT, IDENTIFIER, T;
+import_directive = IMPORT, IDENTIFIER, SEMICOMMA;
 compilation_unit_nonordered = {import_directive | variable_declaration_statement | function_definition | subproc_definition | floor_box_init_statement};
 compilation_unit = compilation_unit_nonordered, [floor_max_init_statement], compilation_unit_nonordered
