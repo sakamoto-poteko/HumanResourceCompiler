@@ -1,6 +1,6 @@
 {
-    "scopeName": "source.hrl",
-    "name": "Human Resource Machine Language (HRL)",
+    "scopeName": "source.hrml",
+    "name": "Human Resource Machine Language (HRML)",
     "patterns": [
         {"include": "#comments"},
         {"include": "#keywords"},
@@ -12,7 +12,7 @@
         "comments": {
             "patterns": [
                 {
-                    "name": "comment.line.double-slash.hrl",
+                    "name": "comment.line.double-slash.hrml",
                     "match": "//.*$"
                 }
             ]
@@ -20,11 +20,11 @@
         "keywords": {
             "patterns": [
                 {
-                    "name": "keyword.control.hrl",
+                    "name": "keyword.control.hrml",
                     "match": "\\b(sub|function|return|if|else|for|while|true|false)\\b"
                 },
                 {
-                    "name": "keyword.other.hrl",
+                    "name": "keyword.other.hrml",
                     "match": "\\b(init|floor|floor_max|inbox|outbox|import|let)\\b"
                 }
             ]
@@ -32,7 +32,7 @@
         "functions": {
             "patterns": [
                 {
-                    "name": "entity.name.function.hrl",
+                    "name": "entity.name.function.hrml",
                     "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()"
                 }
             ]
@@ -40,7 +40,7 @@
         "strings": {
             "patterns": [
                 {
-                    "name": "string.quoted.double.hrl",
+                    "name": "string.quoted.double.hrml",
                     "begin": "\"",
                     "end": "\""
                 }
@@ -49,7 +49,7 @@
         "numbers": {
             "patterns": [
                 {
-                    "name": "constant.numeric.hrl",
+                    "name": "constant.numeric.hrml",
                     "match": "\\b[0-9]+\\b"
                 }
             ]

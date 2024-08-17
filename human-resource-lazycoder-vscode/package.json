@@ -1,0 +1,29 @@
+{
+  "name": "human-resource-lazycoder",
+  "displayName": "Human Resource Machine LazyCoder",
+  "description": "Language support for Human Resource Machine LazyCoder",
+  "version": "0.0.2",
+  "engines": {
+    "vscode": "^1.92.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "hrml",
+      "aliases": ["Human Resource Machine LazyCoder", "hrml"],
+      "extensions": ["hrml"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "hrml",
+      "scopeName": "source.hrml",
+      "path": "./syntaxes/hrml.tmLanguage.json"
+    }]
+  },
+  "publisher": "sakamoto-poteko",
+  "repository": {
+    "url": "https://github.com/sakamoto-poteko/HumanResourceCompiler"
+  }
+}
