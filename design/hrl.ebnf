@@ -3,6 +3,8 @@ T = ';';
 
 variable_name = IDENTIFIER;
 function_name = IDENTIFIER;
+binary_operator = AND | OR | GT | LT | ADD | SUB | MUL | DIV | MOD | GE | LE | EE | NE;
+literal = INTEGER | BOOLEAN;
 
 (* Variable *)
 variable_declaration = LET, variable_name, [EQ, expression];
@@ -10,14 +12,15 @@ variable_assignment = variable_name, EQ, expression;
 floor_assignment = floor_access, EQ, expression;
 
 (* Expression *)
-literal = INTEGER | BOOLEAN;
 expression = binary_expression | unary_expression;
 
+(* Left recursion *)
 binary_expression = (binary_expression | unary_expression), binary_operator, (binary_expression | unary_expression);
 unary_expression = primary_expression | increment_expression | decrement_expression | NOT, expression | ADD, expression | SUB, expression;
 increment_expression = ADDADD, variable_name;
 decrement_expression = SUBSUB, variable_name;
 floor_access = FLOOR, '[', expression ,']';
+(* invocation_expression and variable_name has FIRST/FIRST conflict *)
 primary_expression = literal | parenthesized_expression | invocation_expression | variable_name | floor_access;
 return_statement = RETURN, [expression], T;
 parenthesized_expression = '(', expression, ')';
@@ -57,4 +60,4 @@ function_body = statement_block;
 (* Compilation Unit *)
 import_directive = IMPORT, IDENTIFIER, T;
 compilation_unit_nonordered = {import_directive | variable_declaration_statement | function_definition | subproc_definition | floor_box_init_statement};
-compilation_unit = compilation_unit_nonordered, [floor_max_init_statement], compilation_unit_nonordered
+compilation_unit = compilation_unit_nonordered, [floor_max_init_statement], compilation_unit_nonordered;
