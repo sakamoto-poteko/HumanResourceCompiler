@@ -16,8 +16,8 @@ floor_assignment = floor_access, EQ, expression;
 expression = binary_expression | unary_expression;
 binary_expression = (binary_expression | unary_expression), binary_operator, (binary_expression | unary_expression);
 unary_expression = primary_expression | increment_expression | decrement_expression | NOT, expression | ADD, expression | SUB, Expression;
-increment_expression = (ADDADD, variable_name) | (variable_name, ADDADD);
-decrement_expression = (SUBSUB, variable_name) | (variable_name, SUBSUB);
+increment_expression = ADDADD, variable_name;
+decrement_expression = SUBSUB, variable_name;
 floor_access = FLOOR, '[', expression ,']';
 primary_expression = literal | parenthesized_expression | invocation_expression | variable_name | floor_access;
 return_statement = RETURN, [expression], T;
@@ -58,4 +58,4 @@ function_body = statement_block;
 (* Compilation Unit *)
 import_directive = IMPORT, IDENTIFIER, T;
 compilation_unit_nonordered = {import_directive | variable_declaration_statement | function_definition | subproc_definition | floor_box_init_statement};
-compilation_unit = compilation_unit_nonordered, [floor_max_init_statement], compilation_unit_nonordered
+compilation_unit = compilation_unit_nonordered, [floor_max_init_statement], compilation_unit_nonordered;
