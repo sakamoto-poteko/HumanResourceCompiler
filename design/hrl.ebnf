@@ -12,18 +12,19 @@ floor_assignment = floor_access, EQ, expression;
 (* Expression *)
 literal = INTEGER | BOOLEAN;
 expression = binary_expression | unary_expression;
+
 binary_expression = (binary_expression | unary_expression), binary_operator, (binary_expression | unary_expression);
-unary_expression = primary_expression | increment_expression | decrement_expression | not_expression;
-increment_expression = (ADDADD, variable_name) | (variable_name, ADDADD);
-decrement_expression = (SUBSUB, variable_name) | (variable_name, SUBSUB);
-not_expression = NOT, expression;
+unary_expression = primary_expression | increment_expression | decrement_expression | NOT, expression | ADD, expression | SUB, expression;
+increment_expression = ADDADD, variable_name;
+decrement_expression = SUBSUB, variable_name;
 floor_access = FLOOR, '[', expression ,']';
 primary_expression = literal | parenthesized_expression | invocation_expression | variable_name | floor_access;
 return_statement = RETURN, [expression], T;
 parenthesized_expression = '(', expression, ')';
-binary_operator = AND | OR | GT | LT | ADD | SUB | MUL | DIV | MOD | GE | LE | EE | NE;
-invocation_expression = function_identifier,  '(', [function_argument], ')';
+invocation_expression = function_name,  '(', [function_argument], ')';
 function_argument = expression;
+
+
 
 (* Statement *)
 empty_statement = T;
@@ -33,8 +34,6 @@ floor_assignment_statement = floor_assignment, T;
 statement_block = '{', {statement}, '}';
 statement = variable_declaration_statement | variable_assignment_statement | floor_assignment_statement | embedded_statement;
 embedded_statement = statement_block | empty_statement | expression | iteration_statement | selection_statement | return_statement;
-expression_statement = statement_expression, T;
-statement_expression = invocation_expression | assignment;
 selection_statement = if_statement;
 if_statement = IF, '(', expression, ')', embedded_statement, [ELSE, embedded_statement];
 iteration_statement = while_statement | for_statement;
