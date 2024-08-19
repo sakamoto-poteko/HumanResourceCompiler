@@ -188,7 +188,7 @@ class Grouped(Factor):
 
 # Parser class
 class Parser:
-    SKIPPED = "([SKIPPED])"
+    SKIPPED = "[SKIPPED]"
 
     def __init__(self, tokens: List[Token]):
         self.tokens = tokens
@@ -199,7 +199,7 @@ class Parser:
         self.identifiers: set[Token] = set()
         self.literals: set[Token] = set()
 
-        self.first_set: dict[str, list[str]] = dict()
+        self.first_set: dict[str, list[tuple[str,str]]] = dict()
 
     def current_token(self) -> Token:
         token = self.tokens[self.current_token_index]
@@ -235,18 +235,18 @@ class Parser:
         self.terminals = terminals
         return productions
 
-    def compute_first_follow(self, skip: set[str] = set()) -> None:
+    def compute_first_set(self, skip: set[str]) -> None:
         # must parse first
         first_set_unexploded: dict[str, set[str]] = dict()
         # Key is the production id, value is the set of FIRST but not exploded
-        first_set: dict[str, set[str]] = dict()
+        first_set: dict[str, list[tuple[str,str]]] = dict()
         for rule in self.rules:
             first_set_unexploded[rule.id.value] = rule.get_unexploded_first_set()
 
         for rule in first_set_unexploded:
-            print(f"DBG: PROD RULE '{rule}'")
+            # print(f"DBG: PROD RULE '{rule}'")
             if rule in skip:
-                first_set[rule] = [self.SKIPPED]
+                first_set[rule] = [(f"{self.SKIPPED} {rule}", self.SKIPPED)]
             else:
                 first_set[rule] = Parser.get_terminal_first(
                     rule, first_set_unexploded, self.terminals, set(), skip, None
@@ -261,25 +261,24 @@ class Parser:
         rule_id_seen: set[str],
         skip: set[str],
         root_rule_for_terminal: str | None,
-    ) -> set[str]:
+    ) -> list[tuple[str,str]]:
         if rule_id in rule_id_seen:
             raise exceptions.LeftRecursionError(
                 rule_id, f"'{rule_id}' is already seen. Left recursion?"
             )
         rule_id_seen.add(rule_id)
 
-        result: set[str] = set()
+        result: list[tuple[str,str]] = []
         if rule_id in terminals:
             # if rule_id is terminal
-            # FIXME: invoke_rule is the parsing method we want to jump to in the table
-            result.add(rule_id)
-            print(f"DBG: {root_rule_for_terminal}->{rule_id}")
+            result.append((rule_id, root_rule_for_terminal))
+            # print(f"DBG: {root_rule_for_terminal}->{rule_id}")
         else:
             # it's not terminal. we lookup every FIRST of it, and return
             unexploded_first = first_set_unexploded[rule_id]
             for first in unexploded_first:
                 if first in skip:
-                    result.update([Parser.SKIPPED])
+                    result.append((f"{Parser.SKIPPED} {first}", Parser.SKIPPED))
                     continue
 
                 this_rule_id_seen = set(rule_id_seen)
@@ -291,11 +290,11 @@ class Parser:
                     skip,
                     first if root_rule_for_terminal == None else root_rule_for_terminal,
                 )
-                if len(result.intersection(f)) > 0:
+                if len(set([r[0] for r in result]).intersection(set([ff[0] for ff in f]))) > 0:
                     raise exceptions.FirstFirstConflictError(
                         rule_id, f"'{rule_id}->{first} has FIRST/FIRST conflict"
                     )
-                result.update(f)
+                result.extend(f)
         return result
 
     # region Parsing
