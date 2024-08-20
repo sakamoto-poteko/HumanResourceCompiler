@@ -6,82 +6,112 @@
 #include <string>
 #include <vector>
 
-class ASTNodeVisitor;
+#include "ASTNodeVisitor.h"
 
-// Base class for all AST nodes
 class ASTNode {
-public:
-  virtual ~ASTNode() = default;
+  public:
+    virtual ~ASTNode() = default;
 
-  virtual void visit(ASTNodeVisitor *visitor){};
+    virtual void accept(ASTNodeVisitor *visitor) = 0;
 };
 
 using ASTNodePtr = std::shared_ptr<ASTNode>;
 
-// Syntax node (root of the AST)
 class SyntaxNode : public ASTNode {
-public:
-  std::vector<ASTNodePtr> productions;
+  public:
+    std::vector<ASTNodePtr> productions;
+
+    virtual void accept(ASTNodeVisitor *visitor) override {
+        visitor->accept(this);
+    };
 };
 
 // Production node
 class ProductionNode : public ASTNode {
-public:
-  std::string id;
-  ASTNodePtr expression;
+  public:
+    std::string id;
+    ASTNodePtr expression;
 
-  ProductionNode(std::string id, ASTNodePtr expr)
-      : id(std::move(id)), expression(std::move(expr)) {}
+    ProductionNode(std::string id, ASTNodePtr expr)
+        : id(std::move(id)), expression(std::move(expr)) {}
+
+    virtual void accept(ASTNodeVisitor *visitor) override {
+        visitor->accept(this);
+    };
 };
 
 // Expression node
 class ExpressionNode : public ASTNode {
-public:
-  std::vector<ASTNodePtr> terms;
+  public:
+    std::vector<ASTNodePtr> terms;
 
-  void addTerm(ASTNodePtr term) { terms.push_back(std::move(term)); }
+    void addTerm(ASTNodePtr term) { terms.push_back(std::move(term)); }
+
+    virtual void accept(ASTNodeVisitor *visitor) override {
+        visitor->accept(this);
+    };
 };
 
 // Term node
 class TermNode : public ASTNode {
-public:
-  std::vector<ASTNodePtr> factors;
+  public:
+    std::vector<ASTNodePtr> factors;
 
-  void addFactor(ASTNodePtr factor) { factors.push_back(std::move(factor)); }
+    void addFactor(ASTNodePtr factor) { factors.push_back(std::move(factor)); }
+
+    virtual void accept(ASTNodeVisitor *visitor) override {
+        visitor->accept(this);
+    };
 };
 
 // Factor node
 class FactorNode : public ASTNode {
-public:
-  std::string value;
-  ASTNodePtr value_node;
+  public:
+    std::string value;
+    ASTNodePtr value_node;
 
-  explicit FactorNode(std::string value) : value(std::move(value)) {}
-  explicit FactorNode(ASTNodePtr value) : value_node(value) {}
+    explicit FactorNode(std::string value) : value(std::move(value)) {}
+    explicit FactorNode(ASTNodePtr value) : value_node(value) {}
+
+    virtual void accept(ASTNodeVisitor *visitor) override {
+        visitor->accept(this);
+    };
 };
 
 // Optional node
 class OptionalNode : public ASTNode {
-public:
-  ASTNodePtr expression;
+  public:
+    ASTNodePtr expression;
 
-  explicit OptionalNode(ASTNodePtr expr) : expression(std::move(expr)) {}
+    explicit OptionalNode(ASTNodePtr expr) : expression(std::move(expr)) {}
+
+    virtual void accept(ASTNodeVisitor *visitor) override {
+        visitor->accept(this);
+    };
 };
 
 // Repeated node
 class RepeatedNode : public ASTNode {
-public:
-  ASTNodePtr expression;
+  public:
+    ASTNodePtr expression;
 
-  explicit RepeatedNode(ASTNodePtr expr) : expression(std::move(expr)) {}
+    explicit RepeatedNode(ASTNodePtr expr) : expression(std::move(expr)) {}
+
+    virtual void accept(ASTNodeVisitor *visitor) override {
+        visitor->accept(this);
+    };
 };
 
 // Grouped node
 class GroupedNode : public ASTNode {
-public:
-  ASTNodePtr expression;
+  public:
+    ASTNodePtr expression;
 
-  explicit GroupedNode(ASTNodePtr expr) : expression(std::move(expr)) {}
+    explicit GroupedNode(ASTNodePtr expr) : expression(std::move(expr)) {}
+
+    virtual void accept(ASTNodeVisitor *visitor) override {
+        visitor->accept(this);
+    };
 };
 
 #endif

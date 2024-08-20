@@ -18,6 +18,7 @@ add_executable(${PROJECT_NAME}
 main.cpp
 ASTNode.cpp
 ASTNodeVisitor.cpp
+ASTPrintVisitor.cpp
 ${LEXER_OUT}
 ${PARSER_OUT}
 )
