@@ -8,11 +8,23 @@
 
 #include "ASTNodeVisitor.h"
 
-class ASTNode {
+class ASTNode : public std::enable_shared_from_this<ASTNode> {
   public:
+    ASTNode(int lineno, int colno) : _lineno(lineno), _colno(colno) {}
     virtual ~ASTNode() = default;
 
     virtual void accept(ASTNodeVisitor *visitor) = 0;
+
+    int lineno() { return _lineno; }
+    int colno() { return _colno; }
+
+    template <typename T> std::shared_ptr<T> shared_from_this_casted() {
+        return std::static_pointer_cast<T>(shared_from_this());
+    }
+
+  protected:
+    int _lineno;
+    int _colno;
 };
 
 using ASTNodePtr = std::shared_ptr<ASTNode>;
@@ -21,8 +33,10 @@ class SyntaxNode : public ASTNode {
   public:
     std::vector<ASTNodePtr> productions;
 
+    explicit SyntaxNode(int lineno, int colno) : ASTNode(lineno, colno) {}
+
     virtual void accept(ASTNodeVisitor *visitor) override {
-        visitor->accept(this);
+        visitor->accept(shared_from_this_casted<SyntaxNode>());
     };
 };
 
@@ -32,11 +46,12 @@ class ProductionNode : public ASTNode {
     std::string id;
     ASTNodePtr expression;
 
-    ProductionNode(std::string id, ASTNodePtr expr)
-        : id(std::move(id)), expression(std::move(expr)) {}
+    ProductionNode(std::string id, ASTNodePtr expr, int lineno, int colno)
+        : ASTNode(lineno, colno), id(std::move(id)),
+          expression(std::move(expr)) {}
 
     virtual void accept(ASTNodeVisitor *visitor) override {
-        visitor->accept(this);
+        visitor->accept(shared_from_this_casted<ProductionNode>());
     };
 };
 
@@ -44,11 +59,12 @@ class ProductionNode : public ASTNode {
 class ExpressionNode : public ASTNode {
   public:
     std::vector<ASTNodePtr> terms;
+    explicit ExpressionNode(int lineno, int colno) : ASTNode(lineno, colno) {}
 
     void addTerm(ASTNodePtr term) { terms.push_back(std::move(term)); }
 
     virtual void accept(ASTNodeVisitor *visitor) override {
-        visitor->accept(this);
+        visitor->accept(shared_from_this_casted<ExpressionNode>());
     };
 };
 
@@ -56,11 +72,12 @@ class ExpressionNode : public ASTNode {
 class TermNode : public ASTNode {
   public:
     std::vector<ASTNodePtr> factors;
+    explicit TermNode(int lineno, int colno) : ASTNode(lineno, colno) {}
 
     void addFactor(ASTNodePtr factor) { factors.push_back(std::move(factor)); }
 
     virtual void accept(ASTNodeVisitor *visitor) override {
-        visitor->accept(this);
+        visitor->accept(shared_from_this_casted<TermNode>());
     };
 };
 
@@ -70,11 +87,13 @@ class FactorNode : public ASTNode {
     std::string value;
     ASTNodePtr value_node;
 
-    explicit FactorNode(std::string value) : value(std::move(value)) {}
-    explicit FactorNode(ASTNodePtr value) : value_node(value) {}
+    explicit FactorNode(std::string value, int lineno, int colno)
+        : ASTNode(lineno, colno), value(std::move(value)) {}
+    explicit FactorNode(ASTNodePtr value, int lineno, int colno)
+        : ASTNode(lineno, colno), value_node(value) {}
 
     virtual void accept(ASTNodeVisitor *visitor) override {
-        visitor->accept(this);
+        visitor->accept(shared_from_this_casted<FactorNode>());
     };
 };
 
@@ -83,10 +102,11 @@ class OptionalNode : public ASTNode {
   public:
     ASTNodePtr expression;
 
-    explicit OptionalNode(ASTNodePtr expr) : expression(std::move(expr)) {}
+    explicit OptionalNode(ASTNodePtr expr, int lineno, int colno)
+        : ASTNode(lineno, colno), expression(std::move(expr)) {}
 
     virtual void accept(ASTNodeVisitor *visitor) override {
-        visitor->accept(this);
+        visitor->accept(shared_from_this_casted<OptionalNode>());
     };
 };
 
@@ -95,10 +115,11 @@ class RepeatedNode : public ASTNode {
   public:
     ASTNodePtr expression;
 
-    explicit RepeatedNode(ASTNodePtr expr) : expression(std::move(expr)) {}
+    explicit RepeatedNode(ASTNodePtr expr, int lineno, int colno)
+        : ASTNode(lineno, colno), expression(std::move(expr)) {}
 
     virtual void accept(ASTNodeVisitor *visitor) override {
-        visitor->accept(this);
+        visitor->accept(shared_from_this_casted<RepeatedNode>());
     };
 };
 
@@ -107,10 +128,11 @@ class GroupedNode : public ASTNode {
   public:
     ASTNodePtr expression;
 
-    explicit GroupedNode(ASTNodePtr expr) : expression(std::move(expr)) {}
+    explicit GroupedNode(ASTNodePtr expr, int lineno, int colno)
+        : ASTNode(lineno, colno), expression(std::move(expr)) {}
 
     virtual void accept(ASTNodeVisitor *visitor) override {
-        visitor->accept(this);
+        visitor->accept(shared_from_this_casted<GroupedNode>());
     };
 };
 

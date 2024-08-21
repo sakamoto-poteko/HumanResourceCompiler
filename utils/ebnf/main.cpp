@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
     }
 
     ASTPrintVisitor visitor;
-    visitor.accept(root.get());
+    visitor.accept(root);
 
     fclose(yyin);
 

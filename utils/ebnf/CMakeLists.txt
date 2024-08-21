@@ -20,6 +20,7 @@ main.cpp
 ASTNode.cpp
 ASTNodeVisitor.cpp
 ASTPrintVisitor.cpp
+ASTDepGraphBuilderVisitor.cpp
 ${LEXER_OUT}
 ${PARSER_OUT}
 )

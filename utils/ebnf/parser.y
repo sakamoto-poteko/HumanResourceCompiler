@@ -17,7 +17,8 @@ std::shared_ptr<SyntaxNode> root; // This will hold the root of the AST
 
 %union {
     char* str;
-    ASTNode* node;
+    SyntaxNode* syntax;
+    ProductionNode* production;
     ExpressionNode* expression;
     TermNode* term;
     FactorNode* factor;
@@ -31,7 +32,8 @@ std::shared_ptr<SyntaxNode> root; // This will hold the root of the AST
 
 %token EQUALS SEMICOLON PIPE COMMA LBRACKET RBRACKET LPAREN RPAREN LBRACE RBRACE
 
-%type <node> syntax production
+%type <syntax> syntax 
+%type <production> production
 %type <expression> expression
 %type <term> term
 %type <factor> factor
@@ -42,7 +44,7 @@ std::shared_ptr<SyntaxNode> root; // This will hold the root of the AST
 %%
 syntax:
     /* empty */
-    { root = std::make_shared<SyntaxNode>(); }
+    { root = std::make_shared<SyntaxNode>(0, 0); }
     | syntax production
     {
         root->productions.push_back(ASTNodePtr($2));
@@ -52,14 +54,14 @@ syntax:
 production:
     ID EQUALS expression SEMICOLON
     {
-        $$ = new ProductionNode(std::string($1), ASTNodePtr($3));
+        $$ = new ProductionNode(std::string($1), ASTNodePtr($3), @1.first_line, @1.first_column);
     }
     ;
 
 expression:
     term
     {
-        $$ = new ExpressionNode();
+        $$ = new ExpressionNode(@1.first_line, @1.first_column);
         $$->addTerm(ASTNodePtr($1));
     }
     | expression PIPE term
@@ -72,7 +74,7 @@ expression:
 term:
     factor
     {
-        $$ = new TermNode();
+        $$ = new TermNode(@1.first_line, @1.first_column);
         $$->addFactor(ASTNodePtr($1));
     }
     | term COMMA factor
@@ -85,46 +87,46 @@ term:
 factor:
     ID
     {
-        $$ = new FactorNode(std::string($1));
+        $$ = new FactorNode(std::string($1), @1.first_line, @1.first_column);
         std::free($1);
     }
     | LITERAL
     {
-        $$ = new FactorNode(std::string($1));
+        $$ = new FactorNode(std::string($1), @1.first_line, @1.first_column);
         std::free($1);
     }
     | optional
     {
-        $$ = new FactorNode(ASTNodePtr($1));
+        $$ = new FactorNode(ASTNodePtr($1), @1.first_line, @1.first_column);
     }
     | repeated
     {
-        $$ = new FactorNode(ASTNodePtr($1));
+        $$ = new FactorNode(ASTNodePtr($1), @1.first_line, @1.first_column);
     }
     | grouped
     {
-        $$ = new FactorNode(ASTNodePtr($1));
+        $$ = new FactorNode(ASTNodePtr($1), @1.first_line, @1.first_column);
     }
     ;
 
 optional:
     LBRACKET expression RBRACKET
     {
-        $$ = new OptionalNode(ASTNodePtr($2));
+        $$ = new OptionalNode(ASTNodePtr($2), @2.first_line, @2.first_column);
     }
     ;
 
 repeated:
     LBRACE expression RBRACE
     {
-        $$ = new RepeatedNode(ASTNodePtr($2));
+        $$ = new RepeatedNode(ASTNodePtr($2), @2.first_line, @2.first_column);
     }
     ;
 
 grouped:
     LPAREN expression RPAREN
     {
-        $$ = new GroupedNode(ASTNodePtr($2));
+        $$ = new GroupedNode(ASTNodePtr($2), @2.first_line, @2.first_column);
     }
     ;
 %%
