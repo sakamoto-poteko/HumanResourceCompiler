@@ -15,6 +15,8 @@ void yyerror(const char *s);
 std::shared_ptr<SyntaxNode> root; // This will hold the root of the AST
 %}
 
+%locations
+
 %union {
     char* str;
     SyntaxNode* syntax;
@@ -47,14 +49,14 @@ syntax:
     { root = std::make_shared<SyntaxNode>(0, 0); }
     | syntax production
     {
-        root->productions.push_back(ASTNodePtr($2));
+        root->productions.push_back(ProductionNodePtr($2));
     }
     ;
 
 production:
     ID EQUALS expression SEMICOLON
     {
-        $$ = new ProductionNode(std::string($1), ASTNodePtr($3), @1.first_line, @1.first_column);
+        $$ = new ProductionNode(std::string($1), ExpressionNodePtr($3), @1.first_line, @1.first_column);
     }
     ;
 
@@ -62,11 +64,11 @@ expression:
     term
     {
         $$ = new ExpressionNode(@1.first_line, @1.first_column);
-        $$->addTerm(ASTNodePtr($1));
+        $$->addTerm(TermNodePtr($1));
     }
     | expression PIPE term
     {
-        $1->addTerm(ASTNodePtr($3));
+        $1->addTerm(TermNodePtr($3));
         $$ = $1;
     }
     ;
@@ -75,11 +77,16 @@ term:
     factor
     {
         $$ = new TermNode(@1.first_line, @1.first_column);
-        $$->addFactor(ASTNodePtr($1));
+        $$->addFactor(FactorNodePtr($1));
     }
     | term COMMA factor
     {
-        $1->addFactor(ASTNodePtr($3));
+        $1->addFactor(FactorNodePtr($3));
+        $$ = $1;
+    }
+    | term factor
+    {
+        $1->addFactor(FactorNodePtr($2));
         $$ = $1;
     }
     ;
@@ -87,13 +94,15 @@ term:
 factor:
     ID
     {
-        $$ = new FactorNode(std::string($1), @1.first_line, @1.first_column);
+        auto node = std::make_shared<IdentifierNode>(std::string($1), @1.first_line, @1.first_column);
         std::free($1);
+        $$ = new FactorNode(node, @1.first_line, @1.first_column);
     }
     | LITERAL
     {
-        $$ = new FactorNode(std::string($1), @1.first_line, @1.first_column);
+        auto node = std::make_shared<LiteralNode>(std::string($1), @1.first_line, @1.first_column);
         std::free($1);
+        $$ = new FactorNode(node, @1.first_line, @1.first_column);
     }
     | optional
     {

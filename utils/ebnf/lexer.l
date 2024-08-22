@@ -16,7 +16,9 @@ bool last_token_newline = false;
 #define YY_USER_ACTION \
 if (last_token_newline) { yycolno = 0; last_token_newline = false; } \
 yycolno += yyleng;  \
-for (int i = 0; i < yyleng; ++i) { if (yytext[i] == '\n') { last_token_newline = true; break; } }
+for (int i = 0; i < yyleng; ++i) { if (yytext[i] == '\n') { last_token_newline = true; break; } } \
+yylloc.first_line = yylineno; \
+yylloc.first_column = yycolno - yyleng + 1; 
 
 %}
 
@@ -26,11 +28,13 @@ for (int i = 0; i < yyleng; ++i) { if (yytext[i] == '\n') { last_token_newline =
 %option yylineno
 
 %%
-\(\*[^*]*\*\)	        { /* comments */    }
+\(\*[^*]*\*\)           { /* comments */    }
 [a-zA-Z_][a-zA-Z_0-9]*	{ yylval.str = strdup(yytext); return ID;        }
 \'[^\']*\'|\"[^\"]*\"	{ yylval.str = strdup(yytext); return LITERAL;   }
 "="	                    { return EQUALS;    }
-"::="	                { return EQUALS;    }
+":"	                    { return EQUALS;    }
+"->"                    { return EQUALS;    }
+"::="                   { return EQUALS;    }
 ";"	                    { return SEMICOLON; }
 "["	                    { return LBRACKET;  }
 "]"	                    { return RBRACKET;  }

@@ -6,19 +6,32 @@
 #include <string>
 #include <vector>
 
+#include "ASTNodeForward.h"
 #include "ASTNodeVisitor.h"
 
 class ASTNode : public std::enable_shared_from_this<ASTNode> {
   public:
-    ASTNode(int lineno, int colno) : _lineno(lineno), _colno(colno) {}
+    ASTNode(int lineno, int colno) : _lineno(lineno), _colno(colno)
+    {
+    }
     virtual ~ASTNode() = default;
 
     virtual void accept(ASTNodeVisitor *visitor) = 0;
 
-    int lineno() { return _lineno; }
-    int colno() { return _colno; }
+    int lineno()
+    {
+        return _lineno;
+    }
 
-    template <typename T> std::shared_ptr<T> shared_from_this_casted() {
+    int colno()
+    {
+        return _colno;
+    }
+
+    virtual const char *name() = 0;
+
+    template <typename T> std::shared_ptr<T> shared_from_this_casted()
+    {
         return std::static_pointer_cast<T>(shared_from_this());
     }
 
@@ -27,74 +40,165 @@ class ASTNode : public std::enable_shared_from_this<ASTNode> {
     int _colno;
 };
 
-using ASTNodePtr = std::shared_ptr<ASTNode>;
-
 class SyntaxNode : public ASTNode {
   public:
-    std::vector<ASTNodePtr> productions;
+    std::vector<ProductionNodePtr> productions;
 
-    explicit SyntaxNode(int lineno, int colno) : ASTNode(lineno, colno) {}
+    explicit SyntaxNode(int lineno, int colno) : ASTNode(lineno, colno)
+    {
+    }
 
-    virtual void accept(ASTNodeVisitor *visitor) override {
+    virtual void accept(ASTNodeVisitor *visitor) override
+    {
         visitor->accept(shared_from_this_casted<SyntaxNode>());
     };
+
+    const char *name() override
+    {
+        return "Syntax";
+    }
 };
 
 // Production node
 class ProductionNode : public ASTNode {
   public:
     std::string id;
-    ASTNodePtr expression;
+    ExpressionNodePtr expression;
 
-    ProductionNode(std::string id, ASTNodePtr expr, int lineno, int colno)
-        : ASTNode(lineno, colno), id(std::move(id)),
-          expression(std::move(expr)) {}
+    ProductionNode(std::string id, ExpressionNodePtr expr, int lineno,
+                   int colno)
+        : ASTNode(lineno, colno), id(std::move(id)), expression(std::move(expr))
+    {
+    }
 
-    virtual void accept(ASTNodeVisitor *visitor) override {
+    virtual void accept(ASTNodeVisitor *visitor) override
+    {
         visitor->accept(shared_from_this_casted<ProductionNode>());
     };
+
+    const char *name() override
+    {
+        return "Production";
+    }
 };
 
 // Expression node
 class ExpressionNode : public ASTNode {
   public:
-    std::vector<ASTNodePtr> terms;
-    explicit ExpressionNode(int lineno, int colno) : ASTNode(lineno, colno) {}
+    std::vector<TermNodePtr> terms;
+    explicit ExpressionNode(int lineno, int colno) : ASTNode(lineno, colno)
+    {
+    }
 
-    void addTerm(ASTNodePtr term) { terms.push_back(std::move(term)); }
+    void addTerm(TermNodePtr term)
+    {
+        terms.push_back(std::move(term));
+    }
 
-    virtual void accept(ASTNodeVisitor *visitor) override {
+    virtual void accept(ASTNodeVisitor *visitor) override
+    {
         visitor->accept(shared_from_this_casted<ExpressionNode>());
     };
+
+    const char *name() override
+    {
+        return "Expression";
+    }
 };
 
 // Term node
 class TermNode : public ASTNode {
   public:
-    std::vector<ASTNodePtr> factors;
-    explicit TermNode(int lineno, int colno) : ASTNode(lineno, colno) {}
+    std::vector<FactorNodePtr> factors;
+    explicit TermNode(int lineno, int colno) : ASTNode(lineno, colno)
+    {
+    }
 
-    void addFactor(ASTNodePtr factor) { factors.push_back(std::move(factor)); }
+    void addFactor(FactorNodePtr factor)
+    {
+        factors.push_back(std::move(factor));
+    }
 
-    virtual void accept(ASTNodeVisitor *visitor) override {
+    virtual void accept(ASTNodeVisitor *visitor) override
+    {
         visitor->accept(shared_from_this_casted<TermNode>());
     };
+
+    const char *name() override
+    {
+        return "Term";
+    }
 };
 
 // Factor node
 class FactorNode : public ASTNode {
   public:
-    std::string value;
-    ASTNodePtr value_node;
+    ASTNodePtr node;
+    LiteralNodePtr literal;
+    IdentifierNodePtr identifier;
 
-    explicit FactorNode(std::string value, int lineno, int colno)
-        : ASTNode(lineno, colno), value(std::move(value)) {}
+    explicit FactorNode(IdentifierNodePtr id, int lineno, int colno)
+        : ASTNode(lineno, colno), identifier(id)
+    {
+    }
+    explicit FactorNode(LiteralNodePtr lit, int lineno, int colno)
+        : ASTNode(lineno, colno), literal(lit)
+    {
+    }
     explicit FactorNode(ASTNodePtr value, int lineno, int colno)
-        : ASTNode(lineno, colno), value_node(value) {}
+        : ASTNode(lineno, colno), node(value)
+    {
+    }
 
-    virtual void accept(ASTNodeVisitor *visitor) override {
+    virtual void accept(ASTNodeVisitor *visitor) override
+    {
         visitor->accept(shared_from_this_casted<FactorNode>());
     };
+
+    const char *name() override
+    {
+        return "Factor";
+    }
+};
+
+class IdentifierNode : public ASTNode {
+  public:
+    std::string value;
+
+    explicit IdentifierNode(std::string value, int lineno, int colno)
+        : ASTNode(lineno, colno), value(std::move(value))
+    {
+    }
+
+    virtual void accept(ASTNodeVisitor *visitor) override
+    {
+        visitor->accept(shared_from_this_casted<IdentifierNode>());
+    };
+
+    const char *name() override
+    {
+        return "Identifier";
+    }
+};
+
+class LiteralNode : public ASTNode {
+  public:
+    std::string value;
+
+    explicit LiteralNode(std::string value, int lineno, int colno)
+        : ASTNode(lineno, colno), value(std::move(value))
+    {
+    }
+
+    virtual void accept(ASTNodeVisitor *visitor) override
+    {
+        visitor->accept(shared_from_this_casted<LiteralNode>());
+    };
+
+    const char *name() override
+    {
+        return "Literal";
+    }
 };
 
 // Optional node
@@ -103,11 +207,19 @@ class OptionalNode : public ASTNode {
     ASTNodePtr expression;
 
     explicit OptionalNode(ASTNodePtr expr, int lineno, int colno)
-        : ASTNode(lineno, colno), expression(std::move(expr)) {}
+        : ASTNode(lineno, colno), expression(std::move(expr))
+    {
+    }
 
-    virtual void accept(ASTNodeVisitor *visitor) override {
+    virtual void accept(ASTNodeVisitor *visitor) override
+    {
         visitor->accept(shared_from_this_casted<OptionalNode>());
     };
+
+    const char *name() override
+    {
+        return "Optional";
+    }
 };
 
 // Repeated node
@@ -116,11 +228,19 @@ class RepeatedNode : public ASTNode {
     ASTNodePtr expression;
 
     explicit RepeatedNode(ASTNodePtr expr, int lineno, int colno)
-        : ASTNode(lineno, colno), expression(std::move(expr)) {}
+        : ASTNode(lineno, colno), expression(std::move(expr))
+    {
+    }
 
-    virtual void accept(ASTNodeVisitor *visitor) override {
+    virtual void accept(ASTNodeVisitor *visitor) override
+    {
         visitor->accept(shared_from_this_casted<RepeatedNode>());
     };
+
+    const char *name() override
+    {
+        return "Optional";
+    }
 };
 
 // Grouped node
@@ -129,11 +249,19 @@ class GroupedNode : public ASTNode {
     ASTNodePtr expression;
 
     explicit GroupedNode(ASTNodePtr expr, int lineno, int colno)
-        : ASTNode(lineno, colno), expression(std::move(expr)) {}
+        : ASTNode(lineno, colno), expression(std::move(expr))
+    {
+    }
 
-    virtual void accept(ASTNodeVisitor *visitor) override {
+    virtual void accept(ASTNodeVisitor *visitor) override
+    {
         visitor->accept(shared_from_this_casted<GroupedNode>());
     };
+
+    const char *name() override
+    {
+        return "Grouped";
+    }
 };
 
 #endif

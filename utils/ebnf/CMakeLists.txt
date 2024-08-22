@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED YES)
 find_package(FLEX 2.6 REQUIRED)
 find_package(BISON 2.3 REQUIRED)
 find_package(spdlog REQUIRED)
-find_package(Boost 1.45.0 COMPONENTS graph)
+find_package(Boost 1.45.0 COMPONENTS graph format)
 
 set(LEXER_OUT "${CMAKE_CURRENT_BINARY_DIR}/lexer.cpp")
 set(PARSER_OUT "${CMAKE_CURRENT_BINARY_DIR}/parser.cpp")
@@ -20,7 +20,8 @@ main.cpp
 ASTNode.cpp
 ASTNodeVisitor.cpp
 ASTPrintVisitor.cpp
-ASTDepGraphBuilderVisitor.cpp
+DependencyGraphBuilder.cpp
+DependencyGraphSanityChecker.cpp
 ${LEXER_OUT}
 ${PARSER_OUT}
 )
