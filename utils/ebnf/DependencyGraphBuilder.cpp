@@ -77,7 +77,8 @@ bool DependencyGraphBuilder::write_graphviz(const std::string &path)
             else if (auto identifier =
                          std::dynamic_pointer_cast<IdentifierNode>(node)) {
                 out << "[label=\"" << escapeGraphviz(identifier->value)
-                    << "\" shape=cds "
+                    // << "\" shape=cds "
+                    << "\" shape=note "
                        "style=filled fillcolor=lightgrey "
                        "fontname=\"Helvetica\"]";
             }
@@ -183,51 +184,53 @@ int DependencyGraphBuilder::accept(ProductionNodePtr node)
 
 int DependencyGraphBuilder::accept(ExpressionNodePtr node)
 {
-    Vertex v = boost::add_vertex(node, _state->dependency_graph);
-    boost::add_edge(_state->vertices.top(), v, _state->dependency_graph);
-    _state->vertices.push(v);
+    // Vertex v = boost::add_vertex(node, _state->dependency_graph);
+    // boost::add_edge(_state->vertices.top(), v, _state->dependency_graph);
+    // _state->vertices.push(v);
 
     for (const auto &term : node->terms) {
         term->accept(this);
     }
 
-    _state->vertices.pop();
+    // _state->vertices.pop();
     return 0;
 }
 
 int DependencyGraphBuilder::accept(TermNodePtr node)
 {
-    Vertex v = boost::add_vertex(node, _state->dependency_graph);
-    boost::add_edge(_state->vertices.top(), v, _state->dependency_graph);
-    _state->vertices.push(v);
+    // Vertex v = boost::add_vertex(node, _state->dependency_graph);
+    // boost::add_edge(_state->vertices.top(), v, _state->dependency_graph);
+    // _state->vertices.push(v);
 
     for (const auto &factor : node->factors) {
         factor->accept(this);
     }
 
-    _state->vertices.pop();
+    // _state->vertices.pop();
     return 0;
 }
 
 int DependencyGraphBuilder::accept(FactorNodePtr node)
 {
-    Vertex v = boost::add_vertex(node, _state->dependency_graph);
-    boost::add_edge(_state->vertices.top(), v, _state->dependency_graph);
+    // don't add this node. useless
+
+    // Vertex v = boost::add_vertex(node, _state->dependency_graph);
+    // boost::add_edge(_state->vertices.top(), v, _state->dependency_graph);
 
     if (node->literal) {
-        _state->vertices.push(v);
+        // _state->vertices.push(v);
         node->literal->accept(this);
-        _state->vertices.pop();
+        // _state->vertices.pop();
     }
     else if (node->identifier) {
-        _state->vertices.push(v);
+        // _state->vertices.push(v);
         node->identifier->accept(this);
-        _state->vertices.pop();
+        // _state->vertices.pop();
     }
     else if (node->node) {
-        _state->vertices.push(v);
+        // _state->vertices.push(v);
         node->node->accept(this);
-        _state->vertices.pop();
+        // _state->vertices.pop();
     }
     else {
         throw;
