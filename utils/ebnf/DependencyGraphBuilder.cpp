@@ -76,7 +76,8 @@ bool DependencyGraphBuilder::write_graphviz(const std::string &path)
             }
             else if (auto identifier =
                          std::dynamic_pointer_cast<IdentifierNode>(node)) {
-                out << "[label=\"" << escapeGraphviz(identifier->value)
+                out << "[label=\""
+                    << escapeGraphviz(identifier->value)
                     // << "\" shape=cds "
                     << "\" shape=note "
                        "style=filled fillcolor=lightgrey "
@@ -120,7 +121,10 @@ bool DependencyGraphBuilder::write_graphviz(const std::string &path)
                        "fillcolor=lightcoral]";
             }
             else {
-                out << "[label=\"" << typeid(*node).name()
+                // expression with side effects will be evaluated despite being
+                // used as an operand to 'typeid'
+                auto &p = *node; // workaround
+                out << "[label=\"" << typeid(p).name()
                     << "\" shape=rect style=\"rounded,filled\" fillcolor=red]";
             }
         },
@@ -184,29 +188,38 @@ int DependencyGraphBuilder::accept(ProductionNodePtr node)
 
 int DependencyGraphBuilder::accept(ExpressionNodePtr node)
 {
-    // Vertex v = boost::add_vertex(node, _state->dependency_graph);
-    // boost::add_edge(_state->vertices.top(), v, _state->dependency_graph);
-    // _state->vertices.push(v);
+    // Expression is used to compute `FIRST` so it should always be kept.
+    // All Expressions under a Production needs to evaluate its own FIRST and
+    // FOLLOW
+    Vertex v = boost::add_vertex(node, _state->dependency_graph);
+    boost::add_edge(_state->vertices.top(), v, _state->dependency_graph);
+    _state->vertices.push(v);
 
     for (const auto &term : node->terms) {
         term->accept(this);
     }
 
-    // _state->vertices.pop();
+    _state->vertices.pop();
     return 0;
 }
 
 int DependencyGraphBuilder::accept(TermNodePtr node)
 {
-    // Vertex v = boost::add_vertex(node, _state->dependency_graph);
-    // boost::add_edge(_state->vertices.top(), v, _state->dependency_graph);
-    // _state->vertices.push(v);
-
-    for (const auto &factor : node->factors) {
-        factor->accept(this);
+    if (node->factors.size() == 1) {
+        // passthrough
+        node->factors.at(0)->accept(this);
     }
+    else {
+        Vertex v = boost::add_vertex(node, _state->dependency_graph);
+        boost::add_edge(_state->vertices.top(), v, _state->dependency_graph);
+        _state->vertices.push(v);
 
-    // _state->vertices.pop();
+        for (const auto &factor : node->factors) {
+            factor->accept(this);
+        }
+
+        _state->vertices.pop();
+    }
     return 0;
 }
 

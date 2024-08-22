@@ -49,7 +49,7 @@ int main(int argc, char **argv)
     DependencyGraphBuilder builder(root, tokens, start);
     boost::directed_graph<ASTNodePtr> dependency_graph;
     builder.build();
-    builder.write_graphviz("build/o.dot");
+    builder.write_graphviz("build/deps.dot");
     builder.get_dependency_graph(dependency_graph);
 
     DependencyGraphSanityChecker checker(dependency_graph, tokens, start);
