@@ -1,7 +1,10 @@
 #include <iostream>
 #include <map>
+#include <memory>
 #include <stack>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include "ASTNode.h"
 #include "ASTNodeForward.h"
@@ -28,7 +31,7 @@ bool DependencyGraphAnalyzer::analyze()
     }
 
     // perform DFS with circular dependency check for all nodes
-    soft_dfs(_state->root, Graph::null_vertex());
+    soft_dfs(_state->root, Graph::null_vertex(), DescentPosition::Other);
 
     // is there any nodes untraversed?
     for (int i = 0; i < _graph.num_vertices(); i++) {
@@ -45,7 +48,7 @@ bool DependencyGraphAnalyzer::analyze()
     }
 
     // find left recursion
-    left_recursion_dfs(_state->root, Graph::null_vertex(), NodeType::None);
+    // left_recursion_dfs(_state->root, Graph::null_vertex(), NodeType::None);
 
     return false;
 }
@@ -100,20 +103,21 @@ int DependencyGraphAnalyzer::accept(LiteralNodePtr node)
     return 0;
 }
 
-void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent)
+void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent, DescentPosition descent_position)
 {
-    const auto &node = _graph[current];
+    const auto &current_node = _graph[current];
 
+    // already visited
     if (_state->visited.find(current) != _state->visited.end()) {
-        // already visited
         return;
     }
 
+    // circular dependency, including left recursion
     if (_state->mark.find(current) != _state->mark.end()) {
-        auto c = std::dynamic_pointer_cast<ProductionNode>(_graph[current]);
-        auto p = std::dynamic_pointer_cast<IdentifierNode>(_graph[parent]);
-        // circular dependency
-        if (!c || !p) {
+        auto current_production = std::dynamic_pointer_cast<ProductionNode>(current_node);
+        auto previous_identifier = std::dynamic_pointer_cast<IdentifierNode>(_graph[parent]);
+
+        if (!current_production || !previous_identifier) {
             throw;
             // TODO: this should not happen. our codepath only allow
             // current=ProductionNodePtr and parent=IdentifierNodePtr.
@@ -121,17 +125,102 @@ void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent)
             // myself!
         }
         // use the lineno for rule that's referencing it may be better
-        _state->circular.push_back(InfoWithLoc(p->lineno(), p->colno(), std::make_pair(c, p)));
+        _state->circular.push_back(InfoWithLoc(previous_identifier->lineno(), previous_identifier->colno(), std::make_pair(current_production, previous_identifier)));
+
+        const auto &last_descent = _state->descent_path.back();
+        const auto &last_production = last_descent.first; // it's last production rule because we haven't push our current production into it yet
+
+        // determine whether it's left recursion
+        // let's traverse our descent path backwards.
+        // it's a left recursion iif all path (loop part only) is derived from leftmost element
+        bool is_left_recursion = true;
+        std::vector<std::string> path;
+        // don't forget our current descent! it's not pushed yet
+        if (descent_position == DescentPosition::First) {
+            for (auto it = _state->descent_path.crbegin(); it != _state->descent_path.crend() && it->first->id != current_production->id; ++it) {
+                if (it->second != DescentPosition::First) {
+                    // found a non-leftmost derivation on our path
+                    is_left_recursion = false;
+                    break;
+                }
+
+                path.push_back(it->first->id);
+            }
+        } else {
+            is_left_recursion = false;
+        }
+
+        if (is_left_recursion) {
+            std::cerr << "LRD LLLLLLLL: left recursion:" << last_production->id << ":" << current_production->id << " referencing " << current_production->id << " on line " << last_production->lineno() << std::endl;
+            std::cerr << "path: " << current_production->id;
+            for (const std::string &p : path) {
+                std::cerr << "<-" << p;
+            }
+            std::cerr << "<-" << current_production->id << std::endl;
+        } else {
+            std::cerr << "LRD: circular (non-left):" << last_production->id << ":" << current_production->id << " referencing " << current_production->id << " on line " << last_production->lineno() << std::endl;
+        }
+
         return;
     }
 
     _state->mark.insert(current);
 
+    // let's push current production rule info
+    if (auto c = std::dynamic_pointer_cast<ProductionNode>(current_node)) {
+        _state->descent_path.push_back(std::make_pair(c, descent_position));
+        _state->descent_type.push(DescentType::ProductionRule);
+    } else if (auto c = std::dynamic_pointer_cast<OptionalNode>(current_node)) {
+        _state->descent_type.push(DescentType::Optional);
+    } else if (auto c = std::dynamic_pointer_cast<RepeatedNode>(current_node)) {
+        _state->descent_type.push(DescentType::Repeated);
+    } else if (auto c = std::dynamic_pointer_cast<GroupedNode>(current_node)) {
+        _state->descent_type.push(DescentType::Grouped);
+    }
+
     auto out_edges_pair = boost::out_edges(current, _graph);
-    for (auto it = out_edges_pair.first; it != out_edges_pair.second; ++it) {
+    int count = 0;
+
+    // NOTE: it's assumed that BGL guarantee the order of edge traversal - in the order we added them
+    for (auto it = out_edges_pair.first; it != out_edges_pair.second; ++it, ++count) {
         Vertex target = boost::target(*it, _graph);
 
-        soft_dfs(target, current);
+        // FIXME: special handling of Repeated/Optional/Grouped is missing
+        // the descending order is Expr -> Term [-> Repeated/Optional/Grouped -> Expr -> Term] -> Identifier -> Production
+        // Term node is responsible to hold first, second, third... elements in an alternative
+        // the Production node requires the descent position info
+        // so Identifier node has to inherit the info from Term and pass it to Production
+        DescentPosition descendent_position = descent_position;
+        // if we encountered a special descent like Repeated/Optional/Grouped, we shoud not look up terms order (DescentPosition) of it
+        // instead, we need to use the position before entering special descent
+        if (_state->descent_type.top() == DescentType::ProductionRule) {
+            // only set the position if it's Production Rule derived. if it's Repeated/Optional/Grouped derived, we're inheriting previous.
+            if (auto c = std::dynamic_pointer_cast<TermNode>(current_node)) {
+                if (count == 0) {
+                    descendent_position = DescentPosition::First;
+                } else if (count == 1) {
+                    descendent_position = DescentPosition::Follow;
+                } else {
+                    descendent_position = DescentPosition::Other;
+                }
+            }
+            // else if (auto c = std::dynamic_pointer_cast<IdentifierNode>(current_node)) {
+            //     descendent_type = descent_type;
+            // }
+        }
+
+        soft_dfs(target, current, descendent_position);
+    }
+
+    if (auto c = std::dynamic_pointer_cast<ProductionNode>(current_node)) {
+        _state->descent_path.pop_back();
+        _state->descent_type.pop();
+    } else if (auto c = std::dynamic_pointer_cast<OptionalNode>(current_node)) {
+        _state->descent_type.pop();
+    } else if (auto c = std::dynamic_pointer_cast<RepeatedNode>(current_node)) {
+        _state->descent_type.pop();
+    } else if (auto c = std::dynamic_pointer_cast<GroupedNode>(current_node)) {
+        _state->descent_type.pop();
     }
 
     _state->mark.erase(current);
@@ -173,120 +262,6 @@ bool DependencyGraphAnalyzer::get_topological_rule_order(std::vector<ProductionN
     } else {
         return false;
     }
-}
-
-std::set<DependencyGraphAnalyzer::Vertex> _left_visited;
-std::set<DependencyGraphAnalyzer::Vertex> _left_mark;
-std::set<std::string> _leftmost_path_set;
-std::stack<ProductionNodePtr> _path;
-
-void DependencyGraphAnalyzer::left_recursion_dfs(Vertex current, Vertex parent, NodeType node_type)
-{
-    const auto &node = _graph[current];
-
-    if (_left_visited.find(current) != _left_visited.end()) {
-        // already visited
-        return;
-    }
-
-    if (_left_mark.find(current) != _left_mark.end()) {
-        auto c = std::dynamic_pointer_cast<ProductionNode>(_graph[current]);
-        auto p = std::dynamic_pointer_cast<IdentifierNode>(_graph[parent]);
-        // circular dependency but not left
-        // current (Id)'s prod (Prod) is referencing visited (Prod)
-        if (!c || !p) {
-            throw;
-            // TODO: this should not happen. our codepath only allow
-            // current=ProductionNodePtr and parent=IdentifierNodePtr.
-            // This limit is set in builder, because I built this dependency
-            // myself!
-        }
-
-        // use the lineno for rule that's referencing it may be better
-        _state->circular.push_back(InfoWithLoc(p->lineno(), p->colno(), std::make_pair(c, p)));
-
-        const auto &last_prod = _path.top();
-        // it's last production rule because we haven't push our current prod into the stack
-        std::cerr << "LRD: circular (non-left)" << last_prod->id << ":" << c->id << " referencing " << c->id << " on line " << last_prod->lineno() << std::endl;
-        return;
-    }
-
-    _left_mark.insert(current);
-
-    // let's push current node info
-    if (auto c = std::dynamic_pointer_cast<ProductionNode>(_graph[current])) {
-        _path.push(c);
-    }
-    _path_type.push(node_type);
-
-    auto out_edges_pair = boost::out_edges(current, _graph);
-
-    int count = 0;
-    // FIXME: make sure this order is correct. Does BGL guarantee this?
-    for (auto it = out_edges_pair.first; it != out_edges_pair.second; ++it, ++count) {
-        Vertex target = boost::target(*it, _graph);
-
-        NodeType descendent_type = NodeType::None;
-        if (auto c = std::dynamic_pointer_cast<TermNode>(_graph[current])) {
-            // Term node is responsible to hold first, second, third... elements in an alternative
-            if (count == 0) {
-                descendent_type = NodeType::First;
-            } else if (count == 1) {
-                descendent_type = NodeType::Follow;
-            }
-        }
-
-        if (auto id = std::dynamic_pointer_cast<IdentifierNode>(_graph[current])) {
-            // Before descending into the production rule at the identifier.
-            // If the identifier is leftmost
-            //      Add current prod rule's name into the set<leftmost path>
-            //      Check if id's target is in the set<leftmost path> already?
-            //      If in the set, it's left recursion. For dir left rec, we added the rule just now. For indir, it's added earlier.
-            //      if not in the set, descend
-            // After descent, remove id from set
-
-            const auto &current_prod = _path.top();
-            std::cerr << "LRD DBG: id " << id->value << " prod " << current_prod->id << std::endl;
-
-            if (node_type == NodeType::First) {
-                _leftmost_path_set.insert(current_prod->id);
-            } else if (node_type == NodeType::Follow) {
-                // Follow
-            } else {
-                // None
-            }
-
-            // we have a production rule's name same as this identifier, whose leftmost element led the way here
-            if (_leftmost_path_set.find(id->value) != _leftmost_path_set.end()) {
-                // this is left recursion
-                // TODO: it's possible to print the whole path here.
-                std::cerr << "LRD: left recursion detected " << current_prod->id << ":" << id->value
-                          << " to " << id->value << "@ln " << _state->productions[id->value]->lineno() << std::endl;
-            } else {
-                // descend
-                left_recursion_dfs(target, current, descendent_type);
-            }
-
-            if (node_type == NodeType::First) {
-                _leftmost_path_set.erase(current_prod->id);
-            } else if (node_type == NodeType::Follow) {
-                // Follow
-            } else {
-                // None
-            }
-
-        } else {
-            left_recursion_dfs(target, current, descendent_type);
-        }
-    }
-
-    if (auto c = std::dynamic_pointer_cast<ProductionNode>(_graph[current])) {
-        _path.pop();
-    }
-    _path_type.pop();
-
-    _left_mark.erase(current);
-    _left_visited.insert(current);
 }
 
 void DependencyGraphAnalyzer::compute_first_initial() { }

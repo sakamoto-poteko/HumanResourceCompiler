@@ -13,8 +13,8 @@
 int yyparse(void);
 extern SyntaxNodePtr root;
 
-const char *path = "../../design/hrl.ebnf";
-// const char *path = "./sample.ebnf";
+// const char *path = "../../design/hrl.ebnf";
+const char *path = "./sample.ebnf";
 // const char *path = "build/test.ebnf";
 
 int main(int argc, char **argv)
@@ -49,15 +49,15 @@ int main(int argc, char **argv)
             "CLOSE_PAREN", "OPEN_BRACE", "CLOSE_BRACE", "COMMA" });
     std::string start = "compilation_unit";
 
-    DependencyGraphBuilder builder(root, tokens, start);
-    // DependencyGraphBuilder builder(root, tokens, "S");
+    // DependencyGraphBuilder builder(root, tokens, start);
+    DependencyGraphBuilder builder(root, tokens, "S");
     boost::directed_graph<ASTNodePtr> dependency_graph;
     builder.build();
     builder.write_graphviz("build/deps.dot");
     builder.get_dependency_graph(dependency_graph);
 
-    DependencyGraphAnalyzer checker(dependency_graph, tokens, start);
-    // DependencyGraphAnalyzer checker(dependency_graph, tokens, "S");
+    // DependencyGraphAnalyzer checker(dependency_graph, tokens, start);
+    DependencyGraphAnalyzer checker(dependency_graph, tokens, "S");
     checker.analyze();
 
     std::vector<InfoWithLoc<std::pair<ProductionNodePtr, IdentifierNodePtr>>>

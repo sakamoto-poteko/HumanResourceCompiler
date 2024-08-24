@@ -6,6 +6,7 @@
 #include <set>
 #include <stack>
 #include <string>
+#include <tuple>
 #include <vector>
 
 #include <boost/graph/directed_graph.hpp>
@@ -75,17 +76,22 @@ protected:
     virtual int accept(IdentifierNodePtr node) override;
     virtual int accept(LiteralNodePtr node) override;
 
-    virtual void soft_dfs(Vertex current, Vertex parent);
-
-    enum NodeType {
+    enum DescentPosition {
         First,
         Follow,
-        None,
+        Other,
     };
-    virtual void left_recursion_dfs(Vertex current, Vertex parent, NodeType node_type);
 
-    std::stack<NodeType> _path_type;
-    std::map<DependencyGraphAnalyzer::Vertex, NodeType> _left_mark_type;
+    enum DescentType {
+        ProductionRule,
+        Repeated,
+        Grouped,
+        Optional,
+    };
+
+    virtual void soft_dfs(Vertex current, Vertex parent, DescentPosition descent_position);
+
+    // virtual void left_recursion_dfs(Vertex current, Vertex parent, NodeType node_type);
 
     // Compute the first set of production rules. The sub rule's first set is not expanded
     virtual void compute_first_initial();
@@ -103,6 +109,9 @@ protected:
         std::set<Vertex> visited;
         std::set<Vertex> mark;
         std::vector<Vertex> reversed_topo;
+
+        std::vector<std::pair<ProductionNodePtr, DescentPosition>> descent_path;
+        std::stack<DescentType> descent_type;
 
         // circular from pair.second -> pair.first.
         std::vector<InfoWithLoc<std::pair<ProductionNodePtr, IdentifierNodePtr>>> circular;

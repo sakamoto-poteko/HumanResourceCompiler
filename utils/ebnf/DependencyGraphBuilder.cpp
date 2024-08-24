@@ -133,7 +133,8 @@ bool DependencyGraphBuilder::write_graphviz(const std::string &path)
             }
         },
         [](std::ostream &out) {
-            out << "subgraph cluster_legend {\n"
+            out << "ordering=\"out\"\n"
+                   "subgraph cluster_legend {\n"
                    "    label = Legend\n"
                    "    color = antiquewhite;\n"
                    "    style = filled;\n"
