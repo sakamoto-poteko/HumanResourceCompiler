@@ -9,19 +9,18 @@
 
 #include <boost/graph/directed_graph.hpp>
 
-#include "ASTExtendedInfo.h"
-#include "ASTNode.h"
 #include "ASTNodeVisitor.h"
 
 class DependencyGraphBuilder : protected ASTNodeVisitor {
-  public:
+public:
     using Vertex = boost::directed_graph<ASTNodePtr>::vertex_descriptor;
     using Edge = boost::directed_graph<ASTNodePtr>::edge_descriptor;
 
     DependencyGraphBuilder(SyntaxNodePtr node, std::set<std::string> tokens,
-                           const std::string &root_syntax_name)
-        : _root_node(node), _tokens(tokens),
-          _root_syntax_name(root_syntax_name){};
+        const std::string &root_syntax_name)
+        : _root_node(node)
+        , _tokens(tokens)
+        , _root_syntax_name(root_syntax_name) {};
 
     virtual ~DependencyGraphBuilder()
     {
@@ -34,13 +33,12 @@ class DependencyGraphBuilder : protected ASTNodeVisitor {
         if (_state) {
             graph = _state->dependency_graph;
             return true;
-        }
-        else {
+        } else {
             return false;
         }
     }
 
-  protected:
+protected:
     virtual int accept(SyntaxNodePtr node) override;
     virtual int accept(ProductionNodePtr node) override;
     virtual int accept(ExpressionNodePtr node) override;

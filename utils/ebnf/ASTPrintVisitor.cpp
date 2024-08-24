@@ -25,8 +25,7 @@ int ASTPrintVisitor::accept(ExpressionNodePtr node)
     for (const auto &term : node->terms) {
         if (first) {
             first = false;
-        }
-        else {
+        } else {
             std::cout << "| ";
         }
         term->accept(this);
@@ -47,15 +46,12 @@ int ASTPrintVisitor::accept(FactorNodePtr node)
 {
     if (node->node) {
         node->node->accept(this);
-    }
-    else {
+    } else {
         if (node->identifier) {
             node->identifier->accept(this);
-        }
-        else if (node->literal) {
+        } else if (node->literal) {
             node->literal->accept(this);
-        }
-        else {
+        } else {
             throw;
         }
     }

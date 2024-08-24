@@ -4,7 +4,7 @@
 #include "ASTNodeForward.h"
 
 class ASTNodeVisitor {
-  public:
+public:
     ASTNodeVisitor();
     virtual ~ASTNodeVisitor();
 
@@ -21,7 +21,7 @@ class ASTNodeVisitor {
 };
 
 class ASTPrintVisitor : public ASTNodeVisitor {
-  public:
+public:
     virtual ~ASTPrintVisitor() = default;
 
     virtual int accept(SyntaxNodePtr node) override;

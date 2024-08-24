@@ -1,6 +1,4 @@
-BasedOnStyle: LLVM
+BasedOnStyle: WebKit
 IndentWidth: 4
 PointerAlignment: Right
-AllowShortFunctionsOnASingleLine: false
-BreakBeforeBraces: Stroustrup #Allman # You can also use Stroustrup if you prefer that style
 AlwaysBreakBeforeMultilineStrings: true

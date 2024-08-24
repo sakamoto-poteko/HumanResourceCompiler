@@ -28,7 +28,6 @@ yylloc.first_column = yycolno - yyleng + 1;
 %option yylineno
 
 %%
-\(\*[^*]*\*\)           { /* comments */    }
 [a-zA-Z_][a-zA-Z_0-9]*	{ yylval.str = strdup(yytext); return ID;        }
 \'[^\']*\'|\"[^\"]*\"	{ yylval.str = strdup(yytext); return LITERAL;   }
 "="	                    { return EQUALS;    }
@@ -45,4 +44,7 @@ yylloc.first_column = yycolno - yyleng + 1;
 "|"	                    { return PIPE;      }
 ","	                    { return COMMA;     }
 [ \t\r\n]+	            { }
+\(\*[^*]*\*\)           { /* comments */    }
+\/\/[^\n]*              { /* comments */    }
+\#[^\n]*                { /* comments */    }
 %%

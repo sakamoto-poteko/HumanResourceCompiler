@@ -21,7 +21,7 @@ ASTNode.cpp
 ASTNodeVisitor.cpp
 ASTPrintVisitor.cpp
 DependencyGraphBuilder.cpp
-DependencyGraphSanityChecker.cpp
+DependencyGraphAnalyzer.cpp
 ${LEXER_OUT}
 ${PARSER_OUT}
 )

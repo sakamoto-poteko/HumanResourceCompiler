@@ -1,12 +1,12 @@
 #include <fstream>
 #include <iostream>
 #include <map>
-#include <sstream>
 
 #include <boost/format.hpp>
 #include <boost/graph/directed_graph.hpp>
 #include <boost/graph/graphviz.hpp>
 
+#include "ASTNode.h"
 #include "DependencyGraphBuilder.h"
 
 // Quick & dirty
@@ -42,8 +42,7 @@ void DependencyGraphBuilder::build()
         if (_state->productions.find(prod->id) != _state->productions.end()) {
             // FIXME: raise error conflicting production rule
         }
-        _state->productions[prod->id] =
-            boost::add_vertex(prod, _state->dependency_graph);
+        _state->productions[prod->id] = boost::add_vertex(prod, _state->dependency_graph);
     }
     accept(_root_node);
 
@@ -66,61 +65,43 @@ bool DependencyGraphBuilder::write_graphviz(const std::string &path)
             const ASTNodePtr &node = _state->dependency_graph[v];
             if (auto syntax = std::dynamic_pointer_cast<SyntaxNode>(node)) {
                 out << "[label=\"Syntax\" shape=diamond]";
-            }
-            else if (auto literal =
-                         std::dynamic_pointer_cast<LiteralNode>(node)) {
+            } else if (auto literal = std::dynamic_pointer_cast<LiteralNode>(node)) {
                 out << "[label=\"" << escapeGraphviz(literal->value)
                     << "\" shape=note "
                        "style=filled fillcolor=lightgrey "
                        "fontname=\"Consolas\"]";
-            }
-            else if (auto identifier =
-                         std::dynamic_pointer_cast<IdentifierNode>(node)) {
+            } else if (auto identifier = std::dynamic_pointer_cast<IdentifierNode>(node)) {
                 out << "[label=\""
                     << escapeGraphviz(identifier->value)
                     // << "\" shape=cds "
                     << "\" shape=note "
                        "style=filled fillcolor=lightgrey "
                        "fontname=\"Helvetica\"]";
-            }
-            else if (auto factor =
-                         std::dynamic_pointer_cast<FactorNode>(node)) {
+            } else if (auto factor = std::dynamic_pointer_cast<FactorNode>(node)) {
                 out << "[shape=point " // ANCHOR: point label=\"Factor\"
                        "style=filled fillcolor=lightyellow]";
-            }
-            else if (auto prod =
-                         std::dynamic_pointer_cast<ProductionNode>(node)) {
+            } else if (auto prod = std::dynamic_pointer_cast<ProductionNode>(node)) {
                 out << "[label=\"" << escapeGraphviz(prod->id)
                     << "\" shape=ellipse style=filled fillcolor=lightblue "
                        "fontname=\"Helvetica\"]";
-            }
-            else if (auto expression =
-                         std::dynamic_pointer_cast<ExpressionNode>(node)) {
+            } else if (auto expression = std::dynamic_pointer_cast<ExpressionNode>(node)) {
                 out << "[label=\"\" shape=circle style=filled " // ANCHOR: point
                                                                 // label=\"Expr\"
                        "fillcolor=lightcyan]";
-            }
-            else if (auto term = std::dynamic_pointer_cast<TermNode>(node)) {
+            } else if (auto term = std::dynamic_pointer_cast<TermNode>(node)) {
                 out << "[label=\"\" shape=circle style=filled " // ANCHOR:
                                                                 // point
                        "fillcolor=lightgreen]";
-            }
-            else if (auto optional =
-                         std::dynamic_pointer_cast<OptionalNode>(node)) {
+            } else if (auto optional = std::dynamic_pointer_cast<OptionalNode>(node)) {
                 out << "[label=\"Optional\" shape=rect style=filled "
                        "fillcolor=plum]";
-            }
-            else if (auto repeated =
-                         std::dynamic_pointer_cast<RepeatedNode>(node)) {
+            } else if (auto repeated = std::dynamic_pointer_cast<RepeatedNode>(node)) {
                 out << "[label=\"Repeated\" shape=rect style=filled "
                        "fillcolor=lightsalmon]";
-            }
-            else if (auto grouped =
-                         std::dynamic_pointer_cast<GroupedNode>(node)) {
+            } else if (auto grouped = std::dynamic_pointer_cast<GroupedNode>(node)) {
                 out << "[label=\"Grouped\" shape=rect style=filled "
                        "fillcolor=lightcoral]";
-            }
-            else {
+            } else {
                 // expression with side effects will be evaluated despite being
                 // used as an operand to 'typeid'
                 auto &p = *node; // workaround
@@ -136,13 +117,13 @@ bool DependencyGraphBuilder::write_graphviz(const std::string &path)
             if (auto t = std::dynamic_pointer_cast<FactorNode>(target)) {
                 out << "[arrowtail=none arrowhead=none]";
             }
-            if (auto t = std::dynamic_pointer_cast<ExpressionNode>(target)) {
-                // out << "[arrowtail=none arrowhead=none]"; // can't do this
-                // because expr can be referenced by other nodes
+            if (auto s = std::dynamic_pointer_cast<ExpressionNode>(source)) {
+                // expr source means alternatives
+                out << "[color=limegreen style=bold arrowtail=none arrowhead=vee]";
             }
-            if (auto t = std::dynamic_pointer_cast<TermNode>(target)) {
-                out << "[arrowtail=none arrowhead=none]";
-            }
+            // if (auto t = std::dynamic_pointer_cast<TermNode>(target)) {
+            //     out << "[arrowtail=none arrowhead=none]";
+            // }
             if (auto s = std::dynamic_pointer_cast<SyntaxNode>(source)) {
                 out << "[style=dotted arrowhead=empty color=grey]";
             }
@@ -150,6 +131,52 @@ bool DependencyGraphBuilder::write_graphviz(const std::string &path)
                 out << "[style=dashed arrowtail=inv arrowhead=open "
                        "color=crimson]";
             }
+        },
+        [](std::ostream &out) {
+            out << "subgraph cluster_legend {\n"
+                   "    label = Legend\n"
+                   "    color = antiquewhite;\n"
+                   "    style = filled;\n"
+                   "    node [style = filled; fontsize = 12; width = 0.75; "
+                   "fixedsize = true;];\n"
+                   "    Syntax [shape = diamond;label = \"Syntax\";style = "
+                   "filled;];\n"
+                   "    Literal [shape = note;label = \"Literal\";fillcolor = "
+                   "lightgrey;fontname = \"Consolas\";];\n"
+                   "    Identifier [shape = note;label = "
+                   "\"Identifier\";fillcolor = lightgrey;fontname = "
+                   "\"Helvetica\";];\n"
+                   "    Factor [shape = ellipse;label = \"Factor\";fillcolor = "
+                   "lightblue;];\n"
+                   "    Expression [shape = circle;label = \"Expr\";fillcolor "
+                   "= lightcyan;];\n"
+                   "    Term [shape = circle;label = \"Term\";fillcolor = "
+                   "lightgreen;style = \"dashed,filled\";];\n"
+                   "    Optional [shape = rect;label = \"Optional\";fillcolor "
+                   "= plum;];\n"
+                   "    Repeated [shape = rect;label = \"Repeated\";fillcolor "
+                   "= lightsalmon;];\n"
+                   "    Grouped [shape = rect;label = \"Grouped\";fillcolor = "
+                   "lightcoral;];\n"
+                   "    Production [shape = ellipse;label = \"Prod\";fillcolor "
+                   "= lightblue;fontname = \"Helvetica\";];\n"
+                   "    rankdir = \"TB\";\n"
+                   "    Syntax -> Production [style = dotted; color = grey; "
+                   "arrowhead = empty;];\n"
+                   "    Production -> Expression;\n"
+                   "    Expression -> Term [label = \"alternatives\"; "
+                   "arrowtail = none; arrowhead = vee; color = limegreen; "
+                   "style = bold;];\n"
+                   "    Term -> Factor [arrowtail = none; arrowhead = none;];\n"
+                   "    Factor -> Identifier;\n"
+                   "    Factor -> Literal;\n"
+                   "    Factor -> Expression;\n"
+                   "    Identifier -> Production [style = dashed; color = "
+                   "crimson; arrowhead = open; arrowtail = inv;];\n"
+                   "    Term -> Optional;\n"
+                   "    Term -> Repeated;\n"
+                   "    Term -> Grouped;\n"
+                   "}\n";
         });
 
     dotfile.close();
@@ -205,21 +232,15 @@ int DependencyGraphBuilder::accept(ExpressionNodePtr node)
 
 int DependencyGraphBuilder::accept(TermNodePtr node)
 {
-    if (node->factors.size() == 1) {
-        // passthrough
-        node->factors.at(0)->accept(this);
-    }
-    else {
-        Vertex v = boost::add_vertex(node, _state->dependency_graph);
-        boost::add_edge(_state->vertices.top(), v, _state->dependency_graph);
-        _state->vertices.push(v);
+    Vertex v = boost::add_vertex(node, _state->dependency_graph);
+    boost::add_edge(_state->vertices.top(), v, _state->dependency_graph);
+    _state->vertices.push(v);
 
-        for (const auto &factor : node->factors) {
-            factor->accept(this);
-        }
-
-        _state->vertices.pop();
+    for (const auto &factor : node->factors) {
+        factor->accept(this);
     }
+
+    _state->vertices.pop();
     return 0;
 }
 
@@ -234,18 +255,15 @@ int DependencyGraphBuilder::accept(FactorNodePtr node)
         // _state->vertices.push(v);
         node->literal->accept(this);
         // _state->vertices.pop();
-    }
-    else if (node->identifier) {
+    } else if (node->identifier) {
         // _state->vertices.push(v);
         node->identifier->accept(this);
         // _state->vertices.pop();
-    }
-    else if (node->node) {
+    } else if (node->node) {
         // _state->vertices.push(v);
         node->node->accept(this);
         // _state->vertices.pop();
-    }
-    else {
+    } else {
         throw;
     }
     return 0;
@@ -299,13 +317,12 @@ int DependencyGraphBuilder::accept(IdentifierNodePtr node)
             // it's not a token. raise error
             auto msg = boost::format(
                            "Rule '%1%' is referenced in '%2%' (line %3%) "
-                           "but not defined. Is it a token?") %
-                       node->value % _state->current_rule % node->lineno();
+                           "but not defined. Is it a token?")
+                % node->value % _state->current_rule % node->lineno();
             _state->warnings.push_back(msg.str());
         }
         // else it's a token. simply skip it.
-    }
-    else {
+    } else {
         boost::add_edge(v, ref->second, _state->dependency_graph);
     }
     return 0;

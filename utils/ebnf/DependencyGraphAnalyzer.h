@@ -2,6 +2,7 @@
 #define DEPENDENCYGRAPHSANITYCHECKER_H
 
 #include <map>
+#include <memory>
 #include <set>
 #include <stack>
 #include <string>
@@ -9,68 +10,60 @@
 
 #include <boost/graph/directed_graph.hpp>
 
+#include "ASTNodeForward.h"
 #include "ASTNodeVisitor.h"
-#include "DependencyGraphBuilder.h"
 
-template <class T> struct InfoWithLoc {
+template <class T>
+struct InfoWithLoc {
     int row;
     int col;
     T info;
 
-    InfoWithLoc(int row, int col, T info) : row(row), col(col), info(info)
+    InfoWithLoc(int row, int col, T info)
+        : row(row)
+        , col(col)
+        , info(info)
     {
     }
 };
 
-class DependencyGraphSanityChecker : protected ASTNodeVisitor {
-  public:
+class DependencyGraphAnalyzer : protected ASTNodeVisitor {
+public:
     using Graph = boost::directed_graph<ASTNodePtr>;
     using Vertex = Graph::vertex_descriptor;
     using Edge = Graph::edge_descriptor;
 
-    DependencyGraphSanityChecker(const boost::directed_graph<ASTNodePtr> &graph,
-                                 std::set<std::string> tokens,
-                                 const std::string &root_syntax_name)
-        : _graph(graph), _tokens(tokens), _root_symbol_name(root_syntax_name)
+    DependencyGraphAnalyzer(const boost::directed_graph<ASTNodePtr> &graph,
+        std::set<std::string> tokens,
+        const std::string &root_syntax_name)
+        : _graph(graph)
+        , _tokens(tokens)
+        , _root_symbol_name(root_syntax_name)
     {
     }
 
-    ~DependencyGraphSanityChecker()
+    ~DependencyGraphAnalyzer()
     {
     }
 
     /*
-    Checks for
+    Analyze for
     1. Unreachable nodes
     2. Left recursion
     3. FIRST/FIRST conflict
+    Compute for
+    1. FIRST set
+    2. FOLLOW set
     */
-    virtual bool check();
+    virtual bool analyze();
 
-    bool get_cicrular_dependency(
-        std::vector<InfoWithLoc<std::pair<ProductionNodePtr, IdentifierNodePtr>>> &circular)
-    {
-        if (_state) {
-            circular = _state->circular;
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
+    virtual bool get_cicrular_dependency(std::vector<InfoWithLoc<std::pair<ProductionNodePtr, IdentifierNodePtr>>> &circular);
 
-    bool get_unreachable(std::vector<InfoWithLoc<ProductionNodePtr>> &unreachable)
-    {
-        if (_state) {
-            unreachable = _state->unreachable;
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
+    virtual bool get_unreachable(std::vector<InfoWithLoc<ProductionNodePtr>> &unreachable);
 
-  protected:
+    virtual bool get_topological_rule_order(std::vector<ProductionNodePtr> &order);
+
+protected:
     virtual int accept(SyntaxNodePtr node) override;
     virtual int accept(ProductionNodePtr node) override;
     virtual int accept(ExpressionNodePtr node) override;
@@ -84,17 +77,32 @@ class DependencyGraphSanityChecker : protected ASTNodeVisitor {
 
     virtual void soft_dfs(Vertex current, Vertex parent);
 
+    enum NodeType {
+        First,
+        Follow,
+        None,
+    };
+    virtual void left_recursion_dfs(Vertex current, Vertex parent, NodeType node_type);
+
+    std::stack<NodeType> _path_type;
+    std::map<DependencyGraphAnalyzer::Vertex, NodeType> _left_mark_type;
+
+    // Compute the first set of production rules. The sub rule's first set is not expanded
+    virtual void compute_first_initial();
+    // Compute the first set of production rules. It expands sub's first set.
+    virtual void compute_first_expanded();
+
     const boost::directed_graph<ASTNodePtr> &_graph;
     std::set<std::string> _tokens;
     std::string _root_symbol_name;
 
     struct VisitState {
-        std::map<std::string, Vertex> productions;
+        std::map<std::string, ProductionNodePtr> productions;
         Vertex root;
 
         std::set<Vertex> visited;
         std::set<Vertex> mark;
-        std::vector<Vertex> topo;
+        std::vector<Vertex> reversed_topo;
 
         // circular from pair.second -> pair.first.
         std::vector<InfoWithLoc<std::pair<ProductionNodePtr, IdentifierNodePtr>>> circular;

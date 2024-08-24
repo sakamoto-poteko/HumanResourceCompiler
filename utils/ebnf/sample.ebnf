@@ -1,0 +1,28 @@
+(* Original Recursive Rules *)
+S -> Sld | Srd | Smd | Si | Sn;
+Sld -> 'x' A;
+Srd -> 'x' B;
+Smd -> 'x' J;
+Si -> 'x' C | 'x' G | 'x' H;
+Sn -> I;
+
+A -> A 'a' | 'b';            (* Direct left recursion *)
+B -> 'c' B | 'd';            (* Direct right recursion *)
+C1 -> 'c1' C2 | 'cx' CX;
+CX -> 'cx' C;
+C2 -> 'c2' C;
+C -> C1 | D 'c';              (* Indirect left recursion *)
+D -> 'e' D | 'f';             (* Direct right recursion *)
+G -> 'e' E;
+H -> E 'e';
+E -> G 'g';
+
+(* Dummy Non-Recursive Rules *)
+I -> 'g' | 'h';              (* Simple non-recursive rule *)
+J -> 'l' | 'i' K 'j' | 'k';  (* Mixed: non-recursive and right recursion *)
+K -> J 'z';
+
+// S -> C;
+// C1 -> 'c1' C2;
+// C2 -> 'c2' C;
+// C -> C1 | D 'c';  
