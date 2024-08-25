@@ -47,9 +47,6 @@ bool DependencyGraphAnalyzer::analyze()
         }
     }
 
-    // find left recursion
-    // left_recursion_dfs(_state->root, Graph::null_vertex(), NodeType::None);
-
     return false;
 }
 
