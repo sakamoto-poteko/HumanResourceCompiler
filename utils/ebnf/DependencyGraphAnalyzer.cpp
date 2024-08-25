@@ -1,10 +1,16 @@
+#include <algorithm>
+#include <cstdlib>
 #include <iostream>
+#include <list>
 #include <map>
 #include <memory>
-#include <stack>
 #include <string>
 #include <utility>
 #include <vector>
+
+#include <boost/format.hpp>
+
+#include <spdlog/spdlog.h>
 
 #include "ASTNode.h"
 #include "ASTNodeForward.h"
@@ -14,6 +20,7 @@ bool DependencyGraphAnalyzer::analyze()
 {
     _state = std::make_unique<VisitState>();
 
+    // Fill the ProductionNode map with rule id
     for (int i = 0; i < _graph.num_vertices(); i++) {
         Vertex vertex = boost::vertex(i, _graph);
         const auto &current = _graph[vertex];
@@ -27,152 +34,113 @@ bool DependencyGraphAnalyzer::analyze()
     }
 
     if (_state->root == Graph::null_vertex()) {
-        throw; // TODO: err msg root syntax does not exist
+        spdlog::critical("Root symbol '{0}' was not found", _root_symbol_name);
+        std::exit(EXIT_FAILURE);
     }
 
-    // perform DFS with circular dependency check for all nodes
-    soft_dfs(_state->root, Graph::null_vertex(), DescentPosition::Other);
+    // Perform DFS with circular dependency check for all nodes
+    soft_dfs(_state->root, Graph::null_vertex());
 
-    // is there any nodes untraversed?
+    // Are there any nodes untraversed?
     for (int i = 0; i < _graph.num_vertices(); i++) {
         Vertex vertex = boost::vertex(i, _graph);
         if (_state->visited.find(vertex) == _state->visited.end()) {
             const auto &current = _graph[vertex];
             if (auto ptr = std::dynamic_pointer_cast<ProductionNode>(current)) {
-                // unreachable production only. child elements of unreachable
-                // are ignored as user doesn't care.
-                _state->unreachable.push_back(
-                    InfoWithLoc(current->lineno(), current->colno(), ptr));
+                // unreachable production only
+                // child elements of unreachable are ignored as user doesn't care.
+                _state->unreachable.push_back(InfoWithLoc(ptr->id, ptr->lineno(), ptr->colno(), ptr));
             }
         }
     }
 
-    return false;
+    return true;
 }
 
-int DependencyGraphAnalyzer::accept(SyntaxNodePtr node)
+void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent)
 {
-    return 0;
-}
+    // Comments for Left Recursion Finder starts with *LRF*
 
-int DependencyGraphAnalyzer::accept(ProductionNodePtr node)
-{
-    return 0;
-}
-
-int DependencyGraphAnalyzer::accept(ExpressionNodePtr node)
-{
-    return 0;
-}
-
-int DependencyGraphAnalyzer::accept(TermNodePtr node)
-{
-    return 0;
-}
-
-int DependencyGraphAnalyzer::accept(RepeatedNodePtr node)
-{
-    return 0;
-}
-
-int DependencyGraphAnalyzer::accept(FactorNodePtr node)
-{
-    return 0;
-}
-
-int DependencyGraphAnalyzer::accept(OptionalNodePtr node)
-{
-    return 0;
-}
-
-int DependencyGraphAnalyzer::accept(GroupedNodePtr node)
-{
-    return 0;
-}
-
-int DependencyGraphAnalyzer::accept(IdentifierNodePtr node)
-{
-    return 0;
-}
-
-int DependencyGraphAnalyzer::accept(LiteralNodePtr node)
-{
-    return 0;
-}
-
-void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent, DescentPosition descent_position)
-{
     const auto &current_node = _graph[current];
 
-    // already visited
+    // Already visited
     if (_state->visited.find(current) != _state->visited.end()) {
         return;
     }
 
-    // circular dependency, including left recursion
+    // Circular dependency, including left recursion
     if (_state->mark.find(current) != _state->mark.end()) {
         auto current_production = std::dynamic_pointer_cast<ProductionNode>(current_node);
         auto previous_identifier = std::dynamic_pointer_cast<IdentifierNode>(_graph[parent]);
 
         if (!current_production || !previous_identifier) {
-            throw;
-            // TODO: this should not happen. our codepath only allow
-            // current=ProductionNodePtr and parent=IdentifierNodePtr.
-            // This limit is set in builder, because I built this dependency
-            // myself!
+            // This limit exists because that's how builder works.
+            spdlog::critical("ProductionNode can only have an IdentifierNode parent. This is a bug! Please consider report it.");
+            std::exit(EXIT_FAILURE);
         }
-        // use the lineno for rule that's referencing it may be better
-        _state->circular.push_back(InfoWithLoc(previous_identifier->lineno(), previous_identifier->colno(), std::make_pair(current_production, previous_identifier)));
 
-        const auto &last_descent = _state->descent_path.back();
-        const auto &last_production = last_descent.first; // it's last production rule because we haven't push our current production into it yet
+        // It's *last* production rule because we haven't push our current production into it yet
+        const auto &last_production = _state->descent_path.back();
 
-        // determine whether it's left recursion
-        // let's traverse our descent path backwards.
-        // it's a left recursion iif all path (loop part only) is derived from leftmost element
-        bool is_left_recursion = true;
+        /*  LRF
+            Determine whether it's left recursion. Traverse our descent path backwards.
+            It's a left recursion iif all path (loop part only) is derived from leftmost-possible element (i.e., value is 0)
+        */
+        /*  LRF
+            If there's a non-zero exits between the last and circular node, it's non-left recursion, otherwise it is
+            There might be multiple path element with the same id, since we're pushing nodes even under Optional/Repeated/Grouped's Term node
+        */
         std::vector<std::string> path;
-        // don't forget our current descent! it's not pushed yet
-        if (descent_position == DescentPosition::First) {
-            for (auto it = _state->descent_path.crbegin(); it != _state->descent_path.crend() && it->first->id != current_production->id; ++it) {
-                if (it->second != DescentPosition::First) {
-                    // found a non-leftmost derivation on our path
-                    is_left_recursion = false;
-                    break;
-                }
+        auto first_in_path_with_current_id = std::find_if(
+            _state->descent_path_edge_indices.cbegin(),
+            _state->descent_path_edge_indices.cend(),
+            [&current_production](const std::pair<ProductionNodePtr, int> &element) {
+                return element.first->id == current_production->id;
+            });
 
+        bool is_left_recursion = true;
+        for (auto it = first_in_path_with_current_id; it != _state->descent_path_edge_indices.cend(); ++it) {
+            if (it->second != 0) {
+                is_left_recursion = false; // Non-left recursion, break the loop
+                break;
+            }
+            if (path.empty() || path.back() != it->first->id) {
                 path.push_back(it->first->id);
             }
-        } else {
-            is_left_recursion = false;
         }
 
         if (is_left_recursion) {
-            std::cerr << "LRD LLLLLLLL: left recursion:" << last_production->id << ":" << current_production->id << " referencing " << current_production->id << " on line " << last_production->lineno() << std::endl;
-            std::cerr << "path: " << current_production->id;
-            for (const std::string &p : path) {
-                std::cerr << "<-" << p;
-            }
-            std::cerr << "<-" << current_production->id << std::endl;
+            path.push_back(current_production->id);
+            _state->left_recursion.push_back(InfoWithLoc(
+                last_production->id, last_production->lineno(), last_production->colno(),
+                current_production->id, current_production->lineno(), current_production->colno(),
+                std::make_pair(current_production, path)));
         } else {
-            std::cerr << "LRD: circular (non-left):" << last_production->id << ":" << current_production->id << " referencing " << current_production->id << " on line " << last_production->lineno() << std::endl;
+            _state->non_left_circular.push_back(InfoWithLoc(
+                current_production->id, current_production->lineno(), current_production->colno(),
+                last_production->id, last_production->lineno(), last_production->colno(),
+                std::make_pair(current_production, last_production)));
         }
-
         return;
     }
 
     _state->mark.insert(current);
 
-    // let's push current production rule info
+    /*  LRF
+        Push a 0 onto the stack when entering a TermNode
+        Term nodes have five possible children: LiteralNode, IdentifierNode, GroupedNode, RepeatedNode, or OptionalNode.
+        When encountering LiteralNode, IdentifierNode, or GroupedNode, increment the stack top to keep track of the position.
+        For RepeatedNode and OptionalNode, the stack top remains unchanged.
+        If we encounter a left recursion, the stack will only contain 0s.
+    */
     if (auto c = std::dynamic_pointer_cast<ProductionNode>(current_node)) {
-        _state->descent_path.push_back(std::make_pair(c, descent_position));
-        _state->descent_type.push(DescentType::ProductionRule);
+        _state->descent_path.push_back(c);
+    } else if (auto c = std::dynamic_pointer_cast<TermNode>(current_node)) {
+        _state->descent_path_edge_indices.push_back(std::make_pair(_state->descent_path.back(), 0));
     } else if (auto c = std::dynamic_pointer_cast<OptionalNode>(current_node)) {
-        _state->descent_type.push(DescentType::Optional);
     } else if (auto c = std::dynamic_pointer_cast<RepeatedNode>(current_node)) {
-        _state->descent_type.push(DescentType::Repeated);
     } else if (auto c = std::dynamic_pointer_cast<GroupedNode>(current_node)) {
-        _state->descent_type.push(DescentType::Grouped);
+    } else if (auto c = std::dynamic_pointer_cast<LiteralNode>(current_node)) {
     }
 
     auto out_edges_pair = boost::out_edges(current, _graph);
@@ -182,42 +150,29 @@ void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent, DescentPos
     for (auto it = out_edges_pair.first; it != out_edges_pair.second; ++it, ++count) {
         Vertex target = boost::target(*it, _graph);
 
-        // FIXME: special handling of Repeated/Optional/Grouped is missing
-        // the descending order is Expr -> Term [-> Repeated/Optional/Grouped -> Expr -> Term] -> Identifier -> Production
         // Term node is responsible to hold first, second, third... elements in an alternative
-        // the Production node requires the descent position info
-        // so Identifier node has to inherit the info from Term and pass it to Production
-        DescentPosition descendent_position = descent_position;
-        // if we encountered a special descent like Repeated/Optional/Grouped, we shoud not look up terms order (DescentPosition) of it
-        // instead, we need to use the position before entering special descent
-        if (_state->descent_type.top() == DescentType::ProductionRule) {
-            // only set the position if it's Production Rule derived. if it's Repeated/Optional/Grouped derived, we're inheriting previous.
-            if (auto c = std::dynamic_pointer_cast<TermNode>(current_node)) {
-                if (count == 0) {
-                    descendent_position = DescentPosition::First;
-                } else if (count == 1) {
-                    descendent_position = DescentPosition::Follow;
-                } else {
-                    descendent_position = DescentPosition::Other;
-                }
-            }
-            // else if (auto c = std::dynamic_pointer_cast<IdentifierNode>(current_node)) {
-            //     descendent_type = descent_type;
-            // }
-        }
-
-        soft_dfs(target, current, descendent_position);
+        soft_dfs(target, current);
     }
 
+    /*  LRF
+        Pop the stack when leaving a TermNode.
+        Increment the stack top on exit if the node is a LiteralNode, IdentifierNode, or GroupedNode.
+    */
     if (auto c = std::dynamic_pointer_cast<ProductionNode>(current_node)) {
         _state->descent_path.pop_back();
-        _state->descent_type.pop();
+    } else if (auto c = std::dynamic_pointer_cast<TermNode>(current_node)) {
+        _state->descent_path_edge_indices.pop_back();
     } else if (auto c = std::dynamic_pointer_cast<OptionalNode>(current_node)) {
-        _state->descent_type.pop();
     } else if (auto c = std::dynamic_pointer_cast<RepeatedNode>(current_node)) {
-        _state->descent_type.pop();
     } else if (auto c = std::dynamic_pointer_cast<GroupedNode>(current_node)) {
-        _state->descent_type.pop();
+        int &descent_index_from_parent = _state->descent_path_edge_indices.back().second;
+        ++descent_index_from_parent;
+    } else if (auto c = std::dynamic_pointer_cast<IdentifierNode>(current_node)) {
+        int &descent_index_from_parent = _state->descent_path_edge_indices.back().second;
+        ++descent_index_from_parent;
+    } else if (auto c = std::dynamic_pointer_cast<LiteralNode>(current_node)) {
+        int &descent_index_from_parent = _state->descent_path_edge_indices.back().second;
+        ++descent_index_from_parent;
     }
 
     _state->mark.erase(current);
@@ -225,10 +180,10 @@ void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent, DescentPos
     _state->reversed_topo.push_back(current);
 }
 
-bool DependencyGraphAnalyzer::get_cicrular_dependency(std::vector<InfoWithLoc<std::pair<ProductionNodePtr, IdentifierNodePtr>>> &circular)
+bool DependencyGraphAnalyzer::get_non_left_cicrular_dependency(std::vector<InfoWithLoc<std::pair<ProductionNodePtr, ProductionNodePtr>>> &circular)
 {
     if (_state) {
-        circular = _state->circular;
+        circular = _state->non_left_circular;
         return true;
     } else {
         return false;
@@ -264,3 +219,13 @@ bool DependencyGraphAnalyzer::get_topological_rule_order(std::vector<ProductionN
 void DependencyGraphAnalyzer::compute_first_initial() { }
 
 void DependencyGraphAnalyzer::compute_first_expanded() { }
+
+bool DependencyGraphAnalyzer::get_left_recursion(std::vector<InfoWithLoc<std::pair<ProductionNodePtr, std::vector<std::string>>>> &left_recursion)
+{
+    if (_state) {
+        left_recursion = decltype(_state->left_recursion)(_state->left_recursion);
+        return true;
+    } else {
+        return false;
+    }
+}

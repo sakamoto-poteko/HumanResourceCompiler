@@ -133,8 +133,7 @@ bool DependencyGraphBuilder::write_graphviz(const std::string &path)
             }
         },
         [](std::ostream &out) {
-            out << "ordering=\"out\"\n"
-                   "subgraph cluster_legend {\n"
+            out << "subgraph cluster_legend {\n"
                    "    label = Legend\n"
                    "    color = antiquewhite;\n"
                    "    style = filled;\n"
@@ -152,7 +151,7 @@ bool DependencyGraphBuilder::write_graphviz(const std::string &path)
                    "    Expression [shape = circle;label = \"Expr\";fillcolor "
                    "= lightcyan;];\n"
                    "    Term [shape = circle;label = \"Term\";fillcolor = "
-                   "lightgreen;style = \"dashed,filled\";];\n"
+                   "lightgreen;style = \"filled\";];\n"
                    "    Optional [shape = rect;label = \"Optional\";fillcolor "
                    "= plum;];\n"
                    "    Repeated [shape = rect;label = \"Repeated\";fillcolor "
@@ -177,7 +176,8 @@ bool DependencyGraphBuilder::write_graphviz(const std::string &path)
                    "    Term -> Optional;\n"
                    "    Term -> Repeated;\n"
                    "    Term -> Grouped;\n"
-                   "}\n";
+                   "}\n"
+                   "node[ordering=out]\n";
         });
 
     dotfile.close();
@@ -316,9 +316,7 @@ int DependencyGraphBuilder::accept(IdentifierNodePtr node)
     if (ref == _state->productions.end()) {
         if (_tokens.find(node->value) == _tokens.end()) {
             // it's not a token. raise error
-            auto msg = boost::format(
-                           "Rule '%1%' is referenced in '%2%' (line %3%) "
-                           "but not defined. Is it a token?")
+            auto msg = boost::format("Rule '%1%' is referenced in '%2%' (line %3%) but not defined. Is it a token?")
                 % node->value % _state->current_rule % node->lineno();
             _state->warnings.push_back(msg.str());
         }

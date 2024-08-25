@@ -1,5 +1,6 @@
 (* Original Recursive Rules *)
-S -> Sld | Srd | Smd | Si | Sn | LL2 | LL | AA | BB | DD;
+S -> Sld | Srd | Smd | Si | Sn | LL2 | LL | AA | BB | DD | GG | HH;
+// S -> BB | GG | DD;
 Sld -> 'x' A;
 Srd -> 'x' B;
 Smd -> 'x' J;
@@ -29,8 +30,17 @@ A2 -> 'd';
 A4 -> A5 'e';
 A5 -> AA 'f';
 
-BB -> [(B1)] AA 'b';
+BB -> [({B1})] [B2] B3 AA 'b';
 B1 -> BB 'c';
+B2 -> BB 'd';
+B3 -> BB 'e';
+
+GG -> G4 | G5;
+G4 -> 'f' GG;
+G5 -> ['g'] GG;
+
+HH -> 'a' {[H1]} 'b';
+H1 -> HH;
 
 DD -> {D1} AA 'b';
 D1 -> DD 'c';

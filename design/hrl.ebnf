@@ -58,5 +58,3 @@ function_body = statement_block;
 import_directive = IMPORT, IDENTIFIER, T;
 floor_inits = {floor_box_init_statement}, [floor_max_init_statement] | [floor_max_init_statement], {floor_box_init_statement};
 compilation_unit = {import_directive}, floor_inits, {variable_declaration_statement | function_definition | subproc_definition};
-
-unreachable = UNREACHABLE_TOKEN;

@@ -4,31 +4,67 @@
 #include <map>
 #include <memory>
 #include <set>
-#include <stack>
 #include <string>
-#include <tuple>
 #include <vector>
 
 #include <boost/graph/directed_graph.hpp>
 
 #include "ASTNodeForward.h"
-#include "ASTNodeVisitor.h"
 
 template <class T>
 struct InfoWithLoc {
     int row;
     int col;
+    int row2;
+    int col2;
+    std::string id;
+    std::string id2;
     T info;
 
     InfoWithLoc(int row, int col, T info)
         : row(row)
         , col(col)
+        , id()
+        , row2(0)
+        , col2(0)
+        , id2()
+        , info(info)
+    {
+    }
+
+    InfoWithLoc(const std::string &id, int row, int col, T info)
+        : row(row)
+        , col(col)
+        , id(id)
+        , row2(0)
+        , col2(0)
+        , id2()
+        , info(info)
+    {
+    }
+
+    InfoWithLoc(int row, int col, int row2, int col2, T info)
+        : row(row)
+        , col(col)
+        , row2(row2)
+        , col2(col2)
+        , info(info)
+    {
+    }
+
+    InfoWithLoc(const std::string &id, int row, int col, const std::string &id2, int row2, int col2, T info)
+        : row(row)
+        , col(col)
+        , id(id)
+        , row2(row2)
+        , col2(col2)
+        , id2(id2)
         , info(info)
     {
     }
 };
 
-class DependencyGraphAnalyzer : protected ASTNodeVisitor {
+class DependencyGraphAnalyzer{
 public:
     using Graph = boost::directed_graph<ASTNodePtr>;
     using Vertex = Graph::vertex_descriptor;
@@ -58,40 +94,16 @@ public:
     */
     virtual bool analyze();
 
-    virtual bool get_cicrular_dependency(std::vector<InfoWithLoc<std::pair<ProductionNodePtr, IdentifierNodePtr>>> &circular);
+    virtual bool get_non_left_cicrular_dependency(std::vector<InfoWithLoc<std::pair<ProductionNodePtr, ProductionNodePtr>>> &circular);
+
+    virtual bool get_left_recursion(std::vector<InfoWithLoc<std::pair<ProductionNodePtr, std::vector<std::string>>>> &left_recursion);
 
     virtual bool get_unreachable(std::vector<InfoWithLoc<ProductionNodePtr>> &unreachable);
 
     virtual bool get_topological_rule_order(std::vector<ProductionNodePtr> &order);
 
 protected:
-    virtual int accept(SyntaxNodePtr node) override;
-    virtual int accept(ProductionNodePtr node) override;
-    virtual int accept(ExpressionNodePtr node) override;
-    virtual int accept(TermNodePtr node) override;
-    virtual int accept(FactorNodePtr node) override;
-    virtual int accept(OptionalNodePtr node) override;
-    virtual int accept(RepeatedNodePtr node) override;
-    virtual int accept(GroupedNodePtr node) override;
-    virtual int accept(IdentifierNodePtr node) override;
-    virtual int accept(LiteralNodePtr node) override;
-
-    enum DescentPosition {
-        First,
-        Follow,
-        Other,
-    };
-
-    enum DescentType {
-        ProductionRule,
-        Repeated,
-        Grouped,
-        Optional,
-    };
-
-    virtual void soft_dfs(Vertex current, Vertex parent, DescentPosition descent_position);
-
-    // virtual void left_recursion_dfs(Vertex current, Vertex parent, NodeType node_type);
+    virtual void soft_dfs(Vertex current, Vertex parent);
 
     // Compute the first set of production rules. The sub rule's first set is not expanded
     virtual void compute_first_initial();
@@ -110,11 +122,13 @@ protected:
         std::set<Vertex> mark;
         std::vector<Vertex> reversed_topo;
 
-        std::vector<std::pair<ProductionNodePtr, DescentPosition>> descent_path;
-        std::stack<DescentType> descent_type;
+        std::vector<ProductionNodePtr> descent_path;
+        std::vector<std::pair<ProductionNodePtr, int>> descent_path_edge_indices;
 
-        // circular from pair.second -> pair.first.
-        std::vector<InfoWithLoc<std::pair<ProductionNodePtr, IdentifierNodePtr>>> circular;
+        // left recursion <current node, path>
+        std::vector<InfoWithLoc<std::pair<ProductionNodePtr, std::vector<std::string>>>> left_recursion;
+        // circular from pair.first -> pair.second.
+        std::vector<InfoWithLoc<std::pair<ProductionNodePtr, ProductionNodePtr>>> non_left_circular;
         std::vector<InfoWithLoc<ProductionNodePtr>> unreachable;
     };
     std::unique_ptr<VisitState> _state;
