@@ -6,6 +6,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <boost/graph/directed_graph.hpp>
@@ -77,26 +78,33 @@ struct FirstSetElement {
     Type type;
 
     // value is literal value, token value referenced name of another production
-    std::string value1 = "fuck";
+    std::string value = "fuck";
     // std::string wwwww1 = "fuck";
     std::string wwwww = "fuck";
     std::string wwwwws = "fuck";
-    std::string wwwwws3 = "fuck";
+    std::string weird = "fuck";
     // produced_by is the production id after expansion
     std::string produced_by = "fuck";
 
     explicit FirstSetElement(const std::string &value, Type type)
-        : // value(value)
-          // ,
-        type(type)
+        : value(value)
+        , type(type)
     {
+        std::cout << "f" << (void *)produced_by.c_str() << std::endl;
     }
 
     explicit FirstSetElement(const std::string &value, Type type, const std::string &produced_by)
-        : // value(value)
-          // ,
-        type(type)
+        : value(value)
+        , type(type)
         , produced_by(produced_by)
+    {
+        std::cout << "f" << std::endl;
+    }
+
+    FirstSetElement(const FirstSetElement &&v)
+        : value(std::move(v.value))
+        , type(v.type)
+        , produced_by(std::move(v.produced_by))
     {
     }
 

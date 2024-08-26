@@ -254,11 +254,13 @@ void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent)
     } else if (auto c = std::dynamic_pointer_cast<OptionalNode>(current_node)) {
     } else if (auto c = std::dynamic_pointer_cast<RepeatedNode>(current_node)) {
     } else if (auto c = std::dynamic_pointer_cast<GroupedNode>(current_node)) {
-        ++descent_index_from_parent;
+        // Not using descent_index_from_parent since we don't know if recursion changed the stack or not
+        // and the topmost recursion the stack could be empty so we cannot move the declaration out of this if neither
+        ++_state->descent_path_edge_indices.back().second;
     } else if (auto c = std::dynamic_pointer_cast<IdentifierNode>(current_node)) {
-        ++descent_index_from_parent;
+        ++_state->descent_path_edge_indices.back().second;
     } else if (auto c = std::dynamic_pointer_cast<LiteralNode>(current_node)) {
-        ++descent_index_from_parent;
+        ++_state->descent_path_edge_indices.back().second;
     } else if (auto c = std::dynamic_pointer_cast<EpsilonNode>(current_node)) {
     }
 
