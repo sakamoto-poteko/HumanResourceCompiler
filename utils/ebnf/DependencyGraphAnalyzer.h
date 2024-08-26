@@ -1,7 +1,6 @@
 #ifndef DEPENDENCYGRAPHSANITYCHECKER_H
 #define DEPENDENCYGRAPHSANITYCHECKER_H
 
-#include <iostream>
 #include <map>
 #include <memory>
 #include <set>
