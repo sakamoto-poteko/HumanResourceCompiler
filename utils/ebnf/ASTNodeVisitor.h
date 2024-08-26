@@ -1,6 +1,7 @@
 #ifndef ASTNODEVISITOR_H
 #define ASTNODEVISITOR_H
 
+#include "ASTNode.h"
 #include "ASTNodeForward.h"
 
 class ASTNodeVisitor {
@@ -18,6 +19,7 @@ public:
     virtual int accept(GroupedNodePtr node) = 0;
     virtual int accept(IdentifierNodePtr node) = 0;
     virtual int accept(LiteralNodePtr node) = 0;
+    virtual int accept(EpsilonNodePtr node) = 0;
 };
 
 class ASTPrintVisitor : public ASTNodeVisitor {
@@ -34,6 +36,7 @@ public:
     virtual int accept(GroupedNodePtr node) override;
     virtual int accept(IdentifierNodePtr node) override;
     virtual int accept(LiteralNodePtr node) override;
+    virtual int accept(EpsilonNodePtr node) override;
 };
 
 #endif

@@ -16,11 +16,23 @@
 #include "ASTNodeForward.h"
 #include "DependencyGraphAnalyzer.h"
 
-bool DependencyGraphAnalyzer::analyze()
+void DependencyGraphAnalyzer::find_unreachable()
 {
-    _state = std::make_unique<VisitState>();
+    for (int i = 0; i < _graph.num_vertices(); i++) {
+        Vertex vertex = boost::vertex(i, _graph);
+        if (_state->visited.find(vertex) == _state->visited.end()) {
+            const auto &current = _graph[vertex];
+            if (auto ptr = std::dynamic_pointer_cast<ProductionNode>(current)) {
+                // unreachable production only
+                // child elements of unreachable are ignored as user doesn't care.
+                _state->unreachable.push_back(InfoWithLoc(ptr->id, ptr->lineno(), ptr->colno(), ptr));
+            }
+        }
+    }
+}
 
-    // Fill the ProductionNode map with rule id
+void DependencyGraphAnalyzer::build_production_rule_map()
+{
     for (int i = 0; i < _graph.num_vertices(); i++) {
         Vertex vertex = boost::vertex(i, _graph);
         const auto &current = _graph[vertex];
@@ -37,23 +49,76 @@ bool DependencyGraphAnalyzer::analyze()
         spdlog::critical("Root symbol '{0}' was not found", _root_symbol_name);
         std::exit(EXIT_FAILURE);
     }
+}
 
-    // Perform DFS with circular dependency check for all nodes
+void DependencyGraphAnalyzer::expand_first_set()
+{
+    // for (auto &order : _state->reversed_topo) {
+    //     if (ProductionNodePtr production = std::dynamic_pointer_cast<ProductionNode>(_graph[order])) {
+    //         // in reversed topological order
+
+    //         auto &current_first_set = _state->first_set[production->id];
+
+    //         // Skip left recursion element
+    //         if (_state->left_recursion_production_id.find(production->id) != _state->left_recursion_production_id.end()) {
+    //             current_first_set.clear();
+    //             continue;
+    //         }
+
+    //         std::vector<FirstSetElement> expansion_required;
+    //         // get all referenced FIRST in a production
+    //         for (const auto &first : current_first_set) {
+    //             if (first.type == FirstSetElement::Reference) {
+    //                 expansion_required.push_back(first);
+    //             }
+    //         }
+
+    //         // expand referenced FIRST, and remove the `reference` node
+    //         for (const auto &ref_element : expansion_required) {
+    //             // if any of FIRST is referencing a left recursion, we skip this one
+    //             if (_state->left_recursion_production_id.find(production->id) != _state->left_recursion_production_id.end()) {
+    //                 current_first_set.clear();
+    //                 break;
+    //             }
+    //             const auto &referenced_first_set = _state->first_set[ref_element.value];
+    //             // for each FIRST in the referenced rule, construct ours, populating the produced_by field
+    //             for (const auto &ref_first : referenced_first_set) {
+
+    //                 auto our_first = FirstSetElement(ref_first.value, ref_first.type, ref_element.value);
+    //                 current_first_set.insert(our_first);
+    //                 current_first_set.erase(ref_element);
+    //             }
+    //         }
+    //     }
+    // }
+
+    // for (const auto &entry : _state->first_set) {
+    //     std::cout << entry.first << ": ";
+    //     for (const auto &f : entry.second) {
+    //         std::cout << FirstSetElement::type_str(f.type) << "(" << f.value << "-" << f.produced_by << "), ";
+    //     }
+    //     std::cout << std::endl;
+    // }
+}
+
+bool DependencyGraphAnalyzer::analyze()
+{
+    // _state = std::make_unique<VisitState>();
+    _state = new VisitState;
+
+    // Fill the ProductionNode map with rule id
+    build_production_rule_map();
+
+    // Perform DFS with:
+    //   circular dependency check for all nodes
+    //   initial FIRST set construction
     soft_dfs(_state->root, Graph::null_vertex());
+    // expand_first_set();
 
     // Are there any nodes untraversed?
-    for (int i = 0; i < _graph.num_vertices(); i++) {
-        Vertex vertex = boost::vertex(i, _graph);
-        if (_state->visited.find(vertex) == _state->visited.end()) {
-            const auto &current = _graph[vertex];
-            if (auto ptr = std::dynamic_pointer_cast<ProductionNode>(current)) {
-                // unreachable production only
-                // child elements of unreachable are ignored as user doesn't care.
-                _state->unreachable.push_back(InfoWithLoc(ptr->id, ptr->lineno(), ptr->colno(), ptr));
-            }
-        }
-    }
-
+    find_unreachable();
+    delete _state;
+    _state = nullptr;
     return true;
 }
 
@@ -115,6 +180,7 @@ void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent)
                 last_production->id, last_production->lineno(), last_production->colno(),
                 current_production->id, current_production->lineno(), current_production->colno(),
                 std::make_pair(current_production, path)));
+            _state->left_recursion_production_id.insert(current_production->id);
         } else {
             _state->non_left_circular.push_back(InfoWithLoc(
                 current_production->id, current_production->lineno(), current_production->colno(),
@@ -140,7 +206,30 @@ void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent)
     } else if (auto c = std::dynamic_pointer_cast<OptionalNode>(current_node)) {
     } else if (auto c = std::dynamic_pointer_cast<RepeatedNode>(current_node)) {
     } else if (auto c = std::dynamic_pointer_cast<GroupedNode>(current_node)) {
-    } else if (auto c = std::dynamic_pointer_cast<LiteralNode>(current_node)) {
+    }
+
+    /*  FIRST
+        Calculate the first set of the production rule. Add the element to map if it's 0th edge.
+        The set is unexploaded which contains references to others' FIRST set.
+     */
+    const auto &current_production = _state->descent_path.back();
+    int &descent_index_from_parent = _state->descent_path_edge_indices.back().second;
+    if (auto c = std::dynamic_pointer_cast<LiteralNode>(current_node)) {
+        if (descent_index_from_parent == 0) {
+            // _state->first_set[current_production->id].insert(FirstSetElement(c->value, FirstSetElement::Literal));
+        }
+    } else if (auto c = std::dynamic_pointer_cast<IdentifierNode>(current_node)) {
+        if (descent_index_from_parent == 0) {
+            if (_tokens.find(c->value) != _tokens.end()) {
+                _state->first_set[current_production->id].insert(FirstSetElement(c->value, FirstSetElement::Token));
+            } else {
+                // _state->first_set[current_production->id].insert(FirstSetElement(c->value, FirstSetElement::Reference));
+            }
+        }
+    } else if (auto c = std::dynamic_pointer_cast<EpsilonNode>(current_node)) {
+        if (descent_index_from_parent == 0) {
+            // _state->first_set[current_production->id].insert(FirstSetElement(std::string(), FirstSetElement::Epsilon));
+        }
     }
 
     auto out_edges_pair = boost::out_edges(current, _graph);
@@ -165,14 +254,12 @@ void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent)
     } else if (auto c = std::dynamic_pointer_cast<OptionalNode>(current_node)) {
     } else if (auto c = std::dynamic_pointer_cast<RepeatedNode>(current_node)) {
     } else if (auto c = std::dynamic_pointer_cast<GroupedNode>(current_node)) {
-        int &descent_index_from_parent = _state->descent_path_edge_indices.back().second;
         ++descent_index_from_parent;
     } else if (auto c = std::dynamic_pointer_cast<IdentifierNode>(current_node)) {
-        int &descent_index_from_parent = _state->descent_path_edge_indices.back().second;
         ++descent_index_from_parent;
     } else if (auto c = std::dynamic_pointer_cast<LiteralNode>(current_node)) {
-        int &descent_index_from_parent = _state->descent_path_edge_indices.back().second;
         ++descent_index_from_parent;
+    } else if (auto c = std::dynamic_pointer_cast<EpsilonNode>(current_node)) {
     }
 
     _state->mark.erase(current);
@@ -215,10 +302,6 @@ bool DependencyGraphAnalyzer::get_topological_rule_order(std::vector<ProductionN
         return false;
     }
 }
-
-void DependencyGraphAnalyzer::compute_first_initial() { }
-
-void DependencyGraphAnalyzer::compute_first_expanded() { }
 
 bool DependencyGraphAnalyzer::get_left_recursion(std::vector<InfoWithLoc<std::pair<ProductionNodePtr, std::vector<std::string>>>> &left_recursion)
 {

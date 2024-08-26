@@ -1,6 +1,7 @@
 #ifndef DEPENDENCYGRAPHSANITYCHECKER_H
 #define DEPENDENCYGRAPHSANITYCHECKER_H
 
+#include <iostream>
 #include <map>
 #include <memory>
 #include <set>
@@ -64,7 +65,66 @@ struct InfoWithLoc {
     }
 };
 
-class DependencyGraphAnalyzer{
+struct FirstSetElement {
+    enum Type {
+        Literal,
+        Epsilon,
+        Token,
+        Reference,
+    };
+
+    // ~FirstSetElement() { std::cout << "Destructing " << value << std::endl; }
+    Type type;
+
+    // value is literal value, token value referenced name of another production
+    std::string value1 = "fuck";
+    // std::string wwwww1 = "fuck";
+    std::string wwwww = "fuck";
+    std::string wwwwws = "fuck";
+    std::string wwwwws3 = "fuck";
+    // produced_by is the production id after expansion
+    std::string produced_by = "fuck";
+
+    explicit FirstSetElement(const std::string &value, Type type)
+        : // value(value)
+          // ,
+        type(type)
+    {
+    }
+
+    explicit FirstSetElement(const std::string &value, Type type, const std::string &produced_by)
+        : // value(value)
+          // ,
+        type(type)
+        , produced_by(produced_by)
+    {
+    }
+
+    static std::string type_str(Type type)
+    {
+        switch (type) {
+        case Literal:
+            return "Literal";
+        case Epsilon:
+            return "Epsilon";
+        case Reference:
+            return "Reference";
+        case Token:
+            return "Token";
+        }
+        return "ERROR";
+    }
+
+    bool operator<(const FirstSetElement &other) const
+    {
+        // if (type == other.type) {
+        //     return value < other.value;
+        // }
+        return type < other.type;
+    }
+};
+
+class DependencyGraphAnalyzer {
 public:
     using Graph = boost::directed_graph<ASTNodePtr>;
     using Vertex = Graph::vertex_descriptor;
@@ -105,10 +165,9 @@ public:
 protected:
     virtual void soft_dfs(Vertex current, Vertex parent);
 
-    // Compute the first set of production rules. The sub rule's first set is not expanded
-    virtual void compute_first_initial();
-    // Compute the first set of production rules. It expands sub's first set.
-    virtual void compute_first_expanded();
+    virtual void find_unreachable();
+    virtual void build_production_rule_map();
+    virtual void expand_first_set();
 
     const boost::directed_graph<ASTNodePtr> &_graph;
     std::set<std::string> _tokens;
@@ -121,9 +180,13 @@ protected:
         std::set<Vertex> visited;
         std::set<Vertex> mark;
         std::vector<Vertex> reversed_topo;
+        std::set<std::string> left_recursion_production_id;
 
         std::vector<ProductionNodePtr> descent_path;
         std::vector<std::pair<ProductionNodePtr, int>> descent_path_edge_indices;
+
+        // map<production id, [element]>
+        std::map<std::string, std::set<FirstSetElement>> first_set;
 
         // left recursion <current node, path>
         std::vector<InfoWithLoc<std::pair<ProductionNodePtr, std::vector<std::string>>>> left_recursion;
@@ -131,7 +194,10 @@ protected:
         std::vector<InfoWithLoc<std::pair<ProductionNodePtr, ProductionNodePtr>>> non_left_circular;
         std::vector<InfoWithLoc<ProductionNodePtr>> unreachable;
     };
-    std::unique_ptr<VisitState> _state;
+
+    VisitState *_state = nullptr;
+    // std::shared_ptr<VisitState> _state;
+    // std::unique_ptr<VisitState> _state;
 };
 
 #endif

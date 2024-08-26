@@ -93,3 +93,9 @@ int ASTPrintVisitor::accept(LiteralNodePtr node)
     std::cout << node->value;
     return 0;
 }
+
+int ASTPrintVisitor::accept(EpsilonNodePtr node)
+{
+    std::cout << "(epsilon)";
+    return 0;
+}

@@ -14,6 +14,7 @@ class RepeatedNode;
 class GroupedNode;
 class LiteralNode;
 class IdentifierNode;
+class EpsilonNode;
 
 using ASTNodePtr = std::shared_ptr<ASTNode>;
 using SyntaxNodePtr = std::shared_ptr<SyntaxNode>;
@@ -26,5 +27,6 @@ using RepeatedNodePtr = std::shared_ptr<RepeatedNode>;
 using GroupedNodePtr = std::shared_ptr<GroupedNode>;
 using IdentifierNodePtr = std::shared_ptr<IdentifierNode>;
 using LiteralNodePtr = std::shared_ptr<LiteralNode>;
+using EpsilonNodePtr = std::shared_ptr<EpsilonNode>;
 
 #endif // !ASTNODEFORWARD_H

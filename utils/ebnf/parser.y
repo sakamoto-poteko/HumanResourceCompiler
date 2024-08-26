@@ -116,6 +116,10 @@ factor:
     {
         $$ = new FactorNode(ASTNodePtr($1), @1.first_line, @1.first_column);
     }
+    |
+    {
+        $$ = new FactorNode(std::make_shared<EpsilonNode>(0, 0), 0, 0);
+    }
     ;
 
 optional:

@@ -16,6 +16,7 @@ public:
         , _colno(colno)
     {
     }
+
     virtual ~ASTNode() = default;
 
     virtual void accept(ASTNodeVisitor *visitor) = 0;
@@ -54,10 +55,7 @@ public:
 
     virtual void accept(ASTNodeVisitor *visitor) override;
 
-    const char *name() override
-    {
-        return "Syntax";
-    }
+    const char *name() override;
 };
 
 // Production node
@@ -76,16 +74,14 @@ public:
 
     virtual void accept(ASTNodeVisitor *visitor) override;
 
-    const char *name() override
-    {
-        return "Production";
-    }
+    const char *name() override;
 };
 
 // Expression node
 class ExpressionNode : public ASTNode {
 public:
     std::vector<TermNodePtr> terms;
+
     explicit ExpressionNode(int lineno, int colno)
         : ASTNode(lineno, colno)
     {
@@ -98,16 +94,14 @@ public:
 
     virtual void accept(ASTNodeVisitor *visitor) override;
 
-    const char *name() override
-    {
-        return "Expression";
-    }
+    const char *name() override;
 };
 
 // Term node
 class TermNode : public ASTNode {
 public:
     std::vector<FactorNodePtr> factors;
+
     explicit TermNode(int lineno, int colno)
         : ASTNode(lineno, colno)
     {
@@ -120,10 +114,7 @@ public:
 
     virtual void accept(ASTNodeVisitor *visitor) override;
 
-    const char *name() override
-    {
-        return "Term";
-    }
+    const char *name() override;
 };
 
 // Factor node
@@ -138,11 +129,13 @@ public:
         , identifier(id)
     {
     }
+
     explicit FactorNode(LiteralNodePtr lit, int lineno, int colno)
         : ASTNode(lineno, colno)
         , literal(lit)
     {
     }
+
     explicit FactorNode(ASTNodePtr value, int lineno, int colno)
         : ASTNode(lineno, colno)
         , node(value)
@@ -151,10 +144,7 @@ public:
 
     virtual void accept(ASTNodeVisitor *visitor) override;
 
-    const char *name() override
-    {
-        return "Factor";
-    }
+    const char *name() override;
 };
 
 class IdentifierNode : public ASTNode {
@@ -169,10 +159,7 @@ public:
 
     virtual void accept(ASTNodeVisitor *visitor) override;
 
-    const char *name() override
-    {
-        return "Identifier";
-    }
+    const char *name() override;
 };
 
 class LiteralNode : public ASTNode {
@@ -187,10 +174,7 @@ public:
 
     virtual void accept(ASTNodeVisitor *visitor) override;
 
-    const char *name() override
-    {
-        return "Literal";
-    }
+    const char *name() override;
 };
 
 // Optional node
@@ -206,10 +190,7 @@ public:
 
     virtual void accept(ASTNodeVisitor *visitor) override;
 
-    const char *name() override
-    {
-        return "Optional";
-    }
+    const char *name() override;
 };
 
 // Repeated node
@@ -225,10 +206,7 @@ public:
 
     virtual void accept(ASTNodeVisitor *visitor) override;
 
-    const char *name() override
-    {
-        return "Repeated";
-    }
+    const char *name() override;
 };
 
 // Grouped node
@@ -244,10 +222,19 @@ public:
 
     virtual void accept(ASTNodeVisitor *visitor) override;
 
-    const char *name() override
+    const char *name() override;
+};
+
+class EpsilonNode : public ASTNode {
+public:
+    explicit EpsilonNode(int lineno, int colno)
+        : ASTNode(lineno, colno)
     {
-        return "Grouped";
     }
+
+    virtual void accept(ASTNodeVisitor *visitor) override;
+
+    const char *name() override;
 };
 
 #endif

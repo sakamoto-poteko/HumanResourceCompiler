@@ -333,3 +333,10 @@ int DependencyGraphBuilder::accept(LiteralNodePtr node)
     boost::add_edge(_state->vertices.top(), v, _state->dependency_graph);
     return 0;
 }
+
+int DependencyGraphBuilder::accept(EpsilonNodePtr node)
+{
+    Vertex v = boost::add_vertex(node, _state->dependency_graph);
+    boost::add_edge(_state->vertices.top(), v, _state->dependency_graph);
+    return 0;
+}

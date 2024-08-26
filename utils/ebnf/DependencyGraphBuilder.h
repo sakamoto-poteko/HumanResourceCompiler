@@ -9,6 +9,7 @@
 
 #include <boost/graph/directed_graph.hpp>
 
+#include "ASTNodeForward.h"
 #include "ASTNodeVisitor.h"
 
 class DependencyGraphBuilder : protected ASTNodeVisitor {
@@ -49,6 +50,7 @@ protected:
     virtual int accept(GroupedNodePtr node) override;
     virtual int accept(IdentifierNodePtr node) override;
     virtual int accept(LiteralNodePtr node) override;
+    virtual int accept(EpsilonNodePtr node) override;
 
     SyntaxNodePtr _root_node;
     std::set<std::string> _tokens;
