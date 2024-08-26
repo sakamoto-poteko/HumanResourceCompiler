@@ -70,10 +70,13 @@ int main(int argc, char **argv)
     std::vector<InfoWithLoc<std::pair<ProductionNodePtr, std::vector<std::string>>>> left_recursion;
     std::vector<InfoWithLoc<ProductionNodePtr>> unreachable;
     std::vector<ProductionNodePtr> topoorder;
+    std::map<std::string, std::set<FirstSetElement>> first_set;
+
     checker.get_left_recursion(left_recursion);
     checker.get_non_left_cicrular_dependency(nonleft_circular);
     checker.get_unreachable(unreachable);
     checker.get_topological_rule_order(topoorder);
+    checker.get_first_set(first_set);
 
     for (auto c : nonleft_circular) {
         std::cout << boost::format("Non-left circular dependency detected between the rule '%2%' (line %4%) and '%1%' (line %3%)")
@@ -96,6 +99,33 @@ int main(int argc, char **argv)
         std::cout << p->id << ", ";
     }
     std::cout << std::endl;
+
+    std::cout << "FIRST set:" << std::endl;
+    for (const auto &entry : first_set) {
+        std::cout << entry.first << ": ";
+        for (const auto &f : entry.second) {
+            switch (f.type) {
+            case FirstSetElement::Literal:
+                std::cout << f.value;
+                break;
+            case FirstSetElement::Epsilon:
+                std::cout << "(epsilon)";
+                break;
+            case FirstSetElement::Token:
+                std::cout << f.value;
+                if (!f.produced_by.empty()) {
+                    std::cout << "(" << f.produced_by << ")";
+                }
+                break;
+            case FirstSetElement::Reference:
+                std::cout << "REF(" << f.value << ")";
+                break;
+            }
+
+            std::cout << " ";
+        }
+        std::cout << std::endl;
+    }
 
     return 0;
 }

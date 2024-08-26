@@ -74,23 +74,16 @@ struct FirstSetElement {
         Reference,
     };
 
-    // ~FirstSetElement() { std::cout << "Destructing " << value << std::endl; }
     Type type;
-
     // value is literal value, token value referenced name of another production
-    std::string value = "fuck";
-    // std::string wwwww1 = "fuck";
-    std::string wwwww = "fuck";
-    std::string wwwwws = "fuck";
-    std::string weird = "fuck";
+    std::string value;
     // produced_by is the production id after expansion
-    std::string produced_by = "fuck";
+    std::string produced_by;
 
     explicit FirstSetElement(const std::string &value, Type type)
         : value(value)
         , type(type)
     {
-        std::cout << "f" << (void *)produced_by.c_str() << std::endl;
     }
 
     explicit FirstSetElement(const std::string &value, Type type, const std::string &produced_by)
@@ -98,17 +91,9 @@ struct FirstSetElement {
         , type(type)
         , produced_by(produced_by)
     {
-        std::cout << "f" << std::endl;
     }
 
-    FirstSetElement(const FirstSetElement &&v)
-        : value(std::move(v.value))
-        , type(v.type)
-        , produced_by(std::move(v.produced_by))
-    {
-    }
-
-    static std::string type_str(Type type)
+    static const char *type_str(Type type)
     {
         switch (type) {
         case Literal:
@@ -125,9 +110,9 @@ struct FirstSetElement {
 
     bool operator<(const FirstSetElement &other) const
     {
-        // if (type == other.type) {
-        //     return value < other.value;
-        // }
+        if (type == other.type) {
+            return value < other.value;
+        }
         return type < other.type;
     }
 };
@@ -170,6 +155,8 @@ public:
 
     virtual bool get_topological_rule_order(std::vector<ProductionNodePtr> &order);
 
+    virtual bool get_first_set(std::map<std::string, std::set<FirstSetElement>> &firsts);
+
 protected:
     virtual void soft_dfs(Vertex current, Vertex parent);
 
@@ -203,9 +190,7 @@ protected:
         std::vector<InfoWithLoc<ProductionNodePtr>> unreachable;
     };
 
-    VisitState *_state = nullptr;
-    // std::shared_ptr<VisitState> _state;
-    // std::unique_ptr<VisitState> _state;
+    std::unique_ptr<VisitState> _state;
 };
 
 #endif
