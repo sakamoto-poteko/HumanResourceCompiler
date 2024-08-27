@@ -45,8 +45,8 @@ std::shared_ptr<SyntaxNode> root; // This will hold the root of the AST
 
 %%
 syntax:
-    /* empty */
-    { root = std::make_shared<SyntaxNode>(0, 0); }
+    production
+    { root = std::make_shared<SyntaxNode>(@1.first_line, @1.first_column); root->productions.push_back(ProductionNodePtr($1)); }
     | syntax production
     {
         root->productions.push_back(ProductionNodePtr($2));
