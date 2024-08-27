@@ -192,20 +192,23 @@ void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent)
         For RepeatedNode and OptionalNode, the stack top remains unchanged.
         If we encounter a left recursion, the stack will only contain 0s.
     */
-    if (auto c = std::dynamic_pointer_cast<ProductionNode>(current_node)) {
-        _state->descent_path.push_back(c);
-    } else if (auto c = std::dynamic_pointer_cast<TermNode>(current_node)) {
+    if (auto production = std::dynamic_pointer_cast<ProductionNode>(current_node)) {
+        _state->descent_path.push_back(production);
+    } else if (auto term = std::dynamic_pointer_cast<TermNode>(current_node)) {
         _state->descent_path_edge_indices.push_back(std::make_pair(_state->descent_path.back(), 0));
-    } else if (auto c = std::dynamic_pointer_cast<OptionalNode>(current_node)) {
-    } else if (auto c = std::dynamic_pointer_cast<RepeatedNode>(current_node)) {
-    } else if (auto c = std::dynamic_pointer_cast<GroupedNode>(current_node)) {
+    } else if (auto optional = std::dynamic_pointer_cast<OptionalNode>(current_node)) {
+    } else if (auto repeated = std::dynamic_pointer_cast<RepeatedNode>(current_node)) {
+    } else if (auto grouped = std::dynamic_pointer_cast<GroupedNode>(current_node)) {
     }
 
     /*  FIRST
         Calculate the first set of the production rule. Add the element to map if it's 0th edge.
         The set is unexploaded which contains references to others' FIRST set.
      */
+    // WARNING: the use of current_production should not leave these ifs. Pushing elements into vector may result in the reallocation of vector
+    // hence invalidation of the reference
     const auto &current_production = _state->descent_path.back();
+    auto &dbg = _state->descent_path_edge_indices.back();
     int &descent_index_from_parent = _state->descent_path_edge_indices.back().second;
     if (auto c = std::dynamic_pointer_cast<LiteralNode>(current_node)) {
         if (descent_index_from_parent == 0) {
@@ -235,12 +238,12 @@ void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent)
         // Term node is responsible to hold first, second, third... elements in an alternative
         soft_dfs(target, current);
     }
-
+    
     /*  LRF
         Pop the stack when leaving a TermNode.
         Increment the stack top on exit if the node is a LiteralNode, IdentifierNode, or GroupedNode.
     */
-    // NO MORE USE of current_production and descent_index_from_parent after this line
+    // WARNING: NO MORE USE of current_production and descent_index_from_parent after this line. Same reason as above.
     if (auto c = std::dynamic_pointer_cast<ProductionNode>(current_node)) {
         _state->descent_path.pop_back();
     } else if (auto c = std::dynamic_pointer_cast<TermNode>(current_node)) {

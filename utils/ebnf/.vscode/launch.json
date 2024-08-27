@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(lldb) Launch",
+            "name": "(gdb/lldb/cppvsdbg) Launch",
             "type": "cppdbg",
             "request": "launch",
             "program": "${command:cmake.launchTargetPath}",
@@ -14,43 +14,16 @@
                 "../../design/hrl.ebnf",
                 "-s",
                 "compilation_unit",
-                "-t",
+                "-f",
                 "../../design/hrl.tokens",
                 "-g",
-                "--left-recursion",
-                "--unreachable",
-                "--first-set",
-                "--non-left-circular",
-            ],
-            "stopAtEntry": false,
-            "cwd": "${fileDirname}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "lldb"
-        },
-        {
-            "name": "(gdb) Launch",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${command:cmake.launchTargetPath}",
-            "args": [
-                "-i",
-                "../../design/hrl.ebnf",
-                "-s",
-                "compilation_unit",
-                "-t",
-                "../../design/hrl.tokens",
-                "-g",
-                "--left-recursion",
-                "--unreachable",
-                "--first-set",
-                "--non-left-circular",
+                "build/hrl.dot",
+                "-LCUFR"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "gdb",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
@@ -62,7 +35,16 @@
                     "text": "-gdb-set disassembly-flavor intel",
                     "ignoreFailures": true
                 }
-            ]
+            ],
+            "windows": {
+                "MIMode": "cppvsdbg",
+            },
+            "osx": {
+                "MIMode": "lldb",
+            },
+            "linux": {
+                "MIMode": "gdb",
+            }
         }
     ]
 }

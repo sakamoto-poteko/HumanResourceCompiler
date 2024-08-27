@@ -33,6 +33,7 @@ struct Arguments {
     bool check_non_left_circular = false;
     bool check_unreachable = false;
     bool calculate_first_set = false;
+    bool reprint_ebnf = false;
 };
 
 void read_tokens_from_file(const std::string &file_path, std::set<std::string> &tokens)
@@ -62,6 +63,23 @@ void read_tokens_from_file(const std::string &file_path, std::set<std::string> &
     file.close();
 }
 
+void print_help()
+{
+    std::cout << "Usage: program [options] [input_file]\n";
+    std::cout << "Options:\n";
+    std::cout << "  -i, --input        Input file\n";
+    std::cout << "  -s, --start        Start symbol (default: compilation_unit)\n";
+    std::cout << "  -t, --token        Specify tokens (can be used multiple times)\n";
+    std::cout << "  -f, --token-file   File containing tokens, one per line\n";
+    std::cout << "  -g, --graph        Output Graphviz DOT file\n";
+    std::cout << "  --left-recursion   Enable left recursion check\n";
+    std::cout << "  --non-left-circular Enable non-left circular dependency check\n";
+    std::cout << "  --unreachable      Enable unreachable rules check\n";
+    std::cout << "  --first-set        Enable FIRST set calculation (enforces left recursion check)\n";
+    std::cout << "  -h, --help         Show this help message\n";
+    std::cout << "  -v, --version      Show program version\n";
+}
+
 Arguments parse_arguments(int argc, char **argv)
 {
     Arguments args;
@@ -73,16 +91,17 @@ Arguments parse_arguments(int argc, char **argv)
         { "token", required_argument, nullptr, 't' },
         { "token-file", required_argument, nullptr, 'f' },
         { "graph", required_argument, nullptr, 'g' },
-        { "left-recursion", no_argument, nullptr, 1 },
-        { "non-left-circular", no_argument, nullptr, 2 },
-        { "unreachable", no_argument, nullptr, 3 },
-        { "first-set", no_argument, nullptr, 4 },
+        { "left-recursion", no_argument, nullptr, 'L' },
+        { "non-left-circular", no_argument, nullptr, 'C' },
+        { "unreachable", no_argument, nullptr, 'U' },
+        { "first-set", no_argument, nullptr, 'F' },
+        { "reprint-ebnf", no_argument, nullptr, 'R' },
         { "help", no_argument, nullptr, 'h' },
         { "version", no_argument, nullptr, 'v' },
         { nullptr, 0, nullptr, 0 }
     };
 
-    while ((opt = getopt_long(argc, argv, "i:s:t:f:g:hv", long_options, nullptr)) != -1) {
+    while ((opt = getopt_long(argc, argv, "i:s:t:f:g:LCUFRhv", long_options, nullptr)) != -1) {
         switch (opt) {
         case 'i':
             args.input_file = optarg;
@@ -100,38 +119,28 @@ Arguments parse_arguments(int argc, char **argv)
             args.graphviz_output = optarg;
             args.graphviz_requested = true;
             break;
-        case 1: // left-recursion
+        case 'L': // left-recursion
             args.check_left_recursion = true;
             break;
-        case 2: // non-left-circular
+        case 'C': // non-left-circular
             args.check_non_left_circular = true;
             break;
-        case 3: // unreachable
+        case 'U': // unreachable
             args.check_unreachable = true;
             break;
-        case 4: // first-set
+        case 'F': // first-set
             args.calculate_first_set = true;
             args.check_left_recursion = true; // Enforce left recursion check
             break;
+        case 'R': // reprint EBNF
+            args.reprint_ebnf = true;
+            break;
         case 'h':
-            std::cout << "Usage: program [options] [input_file]\n";
-            std::cout << "Options:\n";
-            std::cout << "  -i, --input        Input file\n";
-            std::cout << "  -s, --start        Start symbol (default: compilation_unit)\n";
-            std::cout << "  -t, --token        Specify tokens (can be used multiple times)\n";
-            std::cout << "  -f, --token-file   File containing tokens, one per line\n";
-            std::cout << "  -g, --graph        Output Graphviz DOT file\n";
-            std::cout << "  --left-recursion   Enable left recursion check\n";
-            std::cout << "  --non-left-circular Enable non-left circular dependency check\n";
-            std::cout << "  --unreachable      Enable unreachable rules check\n";
-            std::cout << "  --first-set        Enable FIRST set calculation (enforces left recursion check)\n";
-            std::cout << "  -h, --help         Show this help message\n";
-            std::cout << "  -v, --version      Show program version\n";
+            print_help();
             std::exit(EXIT_SUCCESS);
         case 'v':
             std::cout << "Program version 1.0\n";
             std::exit(EXIT_SUCCESS);
-
         default:
             std::cerr << "Unknown option. Use -h or --help for help.\n";
             std::exit(EXIT_FAILURE);
@@ -150,6 +159,10 @@ Arguments parse_arguments(int argc, char **argv)
     if (args.start_symbol.empty()) {
         spdlog::error("Start symbol is required. Use -h or --help for help.");
         std::exit(EXIT_FAILURE);
+    }
+
+    if (!args.token_file.empty()) {
+        read_tokens_from_file(args.token_file, args.tokens);
     }
 
     return args;
@@ -177,13 +190,16 @@ int main(int argc, char **argv)
     }
     std::fclose(yyin);
 
-    ASTPrintVisitor visitor;
-    visitor.accept(root);
-
     DependencyGraphBuilder builder(root, args.tokens, args.start_symbol);
     boost::directed_graph<ASTNodePtr> dependency_graph;
     builder.build();
     builder.get_dependency_graph(dependency_graph);
+
+    if (args.reprint_ebnf) {
+        ASTPrintVisitor visitor;
+        visitor.accept(root);
+        std::cout << std::endl;
+    }
 
     if (args.graphviz_requested) {
         builder.write_graphviz(args.graphviz_output);
@@ -201,6 +217,7 @@ int main(int argc, char **argv)
                     % c.id % c.id2 % c.row % c.row2 % boost::algorithm::join(c.info.second, "->")
                       << std::endl;
         }
+        std::cout << std::endl;
     }
 
     if (args.check_non_left_circular) {
@@ -212,6 +229,7 @@ int main(int argc, char **argv)
                     % c.id % c.id2 % c.row % c.row2
                       << std::endl;
         }
+        std::cout << std::endl;
     }
 
     if (args.check_unreachable) {
@@ -221,9 +239,11 @@ int main(int argc, char **argv)
         for (auto u : unreachable) {
             std::cout << boost::format("Rule '%1%' (line %2%) is unreachable.") % u.id % u.row << std::endl;
         }
+        std::cout << std::endl;
     }
 
     // topological order
+    /*
     if (false) {
         std::vector<ProductionNodePtr> topoorder;
         checker.get_topological_rule_order(topoorder);
@@ -234,6 +254,7 @@ int main(int argc, char **argv)
         }
         std::cout << std::endl;
     }
+    */
 
     if (args.calculate_first_set) {
         std::map<std::string, std::set<FirstSetElement>> first_set;
@@ -265,6 +286,7 @@ int main(int argc, char **argv)
             }
             std::cout << std::endl;
         }
+        std::cout << std::endl;
     }
 
     return 0;
