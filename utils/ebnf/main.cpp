@@ -73,10 +73,10 @@ Arguments parse_arguments(int argc, char **argv)
         { "token", required_argument, nullptr, 't' },
         { "token-file", required_argument, nullptr, 'f' },
         { "graph", required_argument, nullptr, 'g' },
-        { "left-recursion", no_argument, nullptr, 0 },
-        { "non-left-circular", no_argument, nullptr, 0 },
-        { "unreachable", no_argument, nullptr, 0 },
-        { "first-set", no_argument, nullptr, 0 },
+        { "left-recursion", no_argument, nullptr, 1 },
+        { "non-left-circular", no_argument, nullptr, 2 },
+        { "unreachable", no_argument, nullptr, 3 },
+        { "first-set", no_argument, nullptr, 4 },
         { "help", no_argument, nullptr, 'h' },
         { "version", no_argument, nullptr, 'v' },
         { nullptr, 0, nullptr, 0 }
@@ -100,17 +100,18 @@ Arguments parse_arguments(int argc, char **argv)
             args.graphviz_output = optarg;
             args.graphviz_requested = true;
             break;
-        case 0:
-            if (strcmp("left-recursion", long_options[optind - 1].name) == 0) {
-                args.check_left_recursion = true;
-            } else if (strcmp("non-left-circular", long_options[optind - 1].name) == 0) {
-                args.check_non_left_circular = true;
-            } else if (strcmp("unreachable", long_options[optind - 1].name) == 0) {
-                args.check_unreachable = true;
-            } else if (strcmp("first-set", long_options[optind - 1].name) == 0) {
-                args.calculate_first_set = true;
-                args.check_left_recursion = true; // Enforce left recursion check
-            }
+        case 1: // left-recursion
+            args.check_left_recursion = true;
+            break;
+        case 2: // non-left-circular
+            args.check_non_left_circular = true;
+            break;
+        case 3: // unreachable
+            args.check_unreachable = true;
+            break;
+        case 4: // first-set
+            args.calculate_first_set = true;
+            args.check_left_recursion = true; // Enforce left recursion check
             break;
         case 'h':
             std::cout << "Usage: program [options] [input_file]\n";

@@ -5,6 +5,30 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "(lldb) Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${command:cmake.launchTargetPath}",
+            "args": [
+                "-i",
+                "../../design/hrl.ebnf",
+                "-s",
+                "compilation_unit",
+                "-t",
+                "../../design/hrl.tokens",
+                "-g",
+                "--left-recursion",
+                "--unreachable",
+                "--first-set",
+                "--non-left-circular",
+            ],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb"
+        },
+        {
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
