@@ -18,7 +18,7 @@
                 "../../design/hrl.tokens",
                 "-g",
                 "build/hrl.dot",
-                "-LCUFR"
+                "-LCUFRN"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

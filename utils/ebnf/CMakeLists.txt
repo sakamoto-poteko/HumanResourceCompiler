@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.25)
 project(ebnf)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 
 find_package(FLEX 2.6 REQUIRED)

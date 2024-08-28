@@ -35,6 +35,7 @@ struct Arguments {
     bool check_unreachable = false;
     bool calculate_first_set = false;
     bool reprint_ebnf = false;
+    bool check_conflicts = false;
 };
 
 void read_tokens_from_file(const std::string &file_path, std::set<std::string> &tokens)
@@ -95,14 +96,15 @@ Arguments parse_arguments(int argc, char **argv)
         { "left-recursion", no_argument, nullptr, 'L' },
         { "non-left-circular", no_argument, nullptr, 'C' },
         { "unreachable", no_argument, nullptr, 'U' },
-        { "first-set", no_argument, nullptr, 'F' },
+        { "first-follow-set", no_argument, nullptr, 'F' },
+        { "conflicts", no_argument, nullptr, 'N' },
         { "reprint-ebnf", no_argument, nullptr, 'R' },
         { "help", no_argument, nullptr, 'h' },
         { "version", no_argument, nullptr, 'v' },
         { nullptr, 0, nullptr, 0 }
     };
 
-    while ((opt = getopt_long(argc, argv, "i:s:t:f:g:LCUFRhv", long_options, nullptr)) != -1) {
+    while ((opt = getopt_long(argc, argv, "i:s:t:f:g:LCUFNRhv", long_options, nullptr)) != -1) {
         switch (opt) {
         case 'i':
             args.input_file = optarg;
@@ -135,6 +137,9 @@ Arguments parse_arguments(int argc, char **argv)
             break;
         case 'R': // reprint EBNF
             args.reprint_ebnf = true;
+            break;
+        case 'N':
+            args.check_conflicts = true;
             break;
         case 'h':
             print_help();
@@ -236,7 +241,7 @@ int main(int argc, char **argv)
     */
 
     if (args.calculate_first_set) {
-        calculate_first_follow_set(checker);
+        calculate_first_follow_set(checker, args.check_conflicts);
     }
 
     return 0;

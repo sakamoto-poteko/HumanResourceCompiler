@@ -188,12 +188,16 @@ public:
 
     virtual bool get_first_set(std::map<std::string, std::set<FirstSetElement>> &firsts);
 
+    virtual bool get_first_first_conflicts(std::map<std::string, std::set<std::string>> &conflicts);
+
 protected:
     virtual void soft_dfs(Vertex current, Vertex parent);
 
     virtual void find_unreachable();
     virtual void build_production_rule_map();
     virtual void expand_first_set();
+    virtual void analyze_first_first_conflict();
+    virtual void compute_follow_set();
 
     const boost::directed_graph<ASTNodePtr> &_graph;
     std::set<std::string> _tokens;
@@ -221,6 +225,9 @@ protected:
         std::vector<InfoWithLoc<std::pair<ProductionNodePtr, ProductionNodePtr>>> non_left_circular;
         std::set<InfoWithLoc<std::pair<ProductionNodePtr, ProductionNodePtr>>> non_left_circular_dedup;
         std::vector<InfoWithLoc<ProductionNodePtr>> unreachable;
+
+        // <FIRST, [rule id]>
+        std::map<std::string, std::set<std::string>> first_first_conflicts;
     };
 
     std::unique_ptr<VisitState> _state;

@@ -20,7 +20,7 @@ void DependencyGraphAnalyzer::find_unreachable()
 {
     for (int i = 0; i < _graph.num_vertices(); i++) {
         Vertex vertex = boost::vertex(i, _graph);
-        if (_state->visited.find(vertex) == _state->visited.end()) {
+        if (!_state->visited.contains(vertex)) {
             const auto &current = _graph[vertex];
             if (auto ptr = std::dynamic_pointer_cast<ProductionNode>(current)) {
                 // unreachable production only
@@ -60,7 +60,7 @@ void DependencyGraphAnalyzer::expand_first_set()
             auto &current_first_set = _state->first_set[production->id];
 
             // Skip left recursion element
-            if (_state->left_recursion_production_id.find(production->id) != _state->left_recursion_production_id.end()) {
+            if (_state->left_recursion_production_id.contains(production->id)) {
                 current_first_set.clear();
                 continue;
             }
@@ -76,19 +76,36 @@ void DependencyGraphAnalyzer::expand_first_set()
             // expand referenced FIRST, and remove the `reference` node
             for (const auto &ref_element : expansion_required) {
                 // if any of FIRST is referencing a left recursion, we skip this one
-                if (_state->left_recursion_production_id.find(ref_element.value) != _state->left_recursion_production_id.end()) {
-                    // whether to leave the entier production empty, or simply skip the referenced one?
-                    // current_first_set.clear();
-                    // break;
+                if (_state->left_recursion_production_id.contains(ref_element.value)) {
                     continue;
                 }
                 const auto &referenced_first_set = _state->first_set[ref_element.value];
                 // for each FIRST in the referenced rule, construct ours, populating the produced_by field
                 for (const auto &ref_first : referenced_first_set) {
-
                     auto our_first = FirstSetElement(ref_first.value, ref_first.type, ref_element.value);
                     current_first_set.insert(our_first);
                     current_first_set.erase(ref_element);
+                }
+            }
+        }
+    }
+}
+
+void DependencyGraphAnalyzer::analyze_first_first_conflict()
+{
+    std::map<std::string, std::set<std::string>> visited;
+
+    // look at every production rule's first set
+    for (const auto &production_first_set : _state->first_set) {
+        // for every element in first set
+        for (const auto &first : production_first_set.second) {
+            if (first.type == first.Token || first.type == first.Literal) {
+                // did we see this FIRST element previouly?
+                auto seen = visited.contains(first.value);
+                visited[first.value].insert(production_first_set.first);
+                // it's FIRST/FIRST conflict if we've seen it
+                if (seen) {
+                    _state->first_first_conflicts[first.value].insert(production_first_set.first);
                 }
             }
         }
@@ -110,6 +127,11 @@ bool DependencyGraphAnalyzer::analyze()
     // Expand the FIRST set
     expand_first_set();
 
+    compute_follow_set();
+
+    // Look for FIRST/FIRST conflict
+    analyze_first_first_conflict();
+
     // Are there any nodes untraversed?
     find_unreachable();
     return true;
@@ -122,12 +144,12 @@ void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent)
     const auto &current_node = _graph[current];
 
     // Already visited
-    if (_state->visited.find(current) != _state->visited.end()) {
+    if (_state->visited.contains(current)) {
         return;
     }
 
     // Circular dependency, including left recursion
-    if (_state->mark.find(current) != _state->mark.end()) {
+    if (_state->mark.contains(current)) {
         auto current_production = std::dynamic_pointer_cast<ProductionNode>(current_node);
         auto previous_identifier = std::dynamic_pointer_cast<IdentifierNode>(_graph[parent]);
 
@@ -175,7 +197,7 @@ void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent)
                 current_production->id, current_production->lineno(), current_production->colno(),
                 std::make_pair(current_production, path));
 
-            if (_state->left_recursion_dedup.find(info) == _state->left_recursion_dedup.end()) {
+            if (!_state->left_recursion_dedup.contains(info)) {
                 _state->left_recursion_dedup.insert(info);
                 _state->left_recursion.push_back(info);
                 _state->left_recursion_production_id.insert(current_production->id);
@@ -186,7 +208,7 @@ void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent)
                 last_production->id, last_production->lineno(), last_production->colno(),
                 std::make_pair(current_production, last_production));
 
-            if (_state->non_left_circular_dedup.find(info) == _state->non_left_circular_dedup.end()) {
+            if (!_state->non_left_circular_dedup.contains(info)) {
                 _state->non_left_circular_dedup.insert(info);
                 _state->non_left_circular.push_back(info);
             }
@@ -243,7 +265,7 @@ void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent)
         }
     } else if (auto c = std::dynamic_pointer_cast<IdentifierNode>(current_node)) {
         if (is_first_element()) {
-            if (_tokens.find(c->value) != _tokens.end()) {
+            if (_tokens.contains(c->value)) {
                 _state->first_set[current_production->id].insert(FirstSetElement(c->value, FirstSetElement::Token));
             } else {
                 _state->first_set[current_production->id].insert(FirstSetElement(c->value, FirstSetElement::Reference));
@@ -345,4 +367,31 @@ bool DependencyGraphAnalyzer::get_first_set(std::map<std::string, std::set<First
     } else {
         return false;
     }
+}
+
+bool DependencyGraphAnalyzer::get_first_first_conflicts(std::map<std::string, std::set<std::string>> &conflicts)
+{
+    if (_state) {
+        conflicts = _state->first_first_conflicts;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+void DependencyGraphAnalyzer::compute_follow_set()
+{
+    // FIXME: Impl
+    /*
+    Algorithm:
+    
+    1. Initialize the FOLLOW set for each non-terminal as an empty set.
+    2. Add the end-of-input marker ('$') to the FOLLOW set of the start symbol.
+    3. Apply the following rules iteratively until no changes occur:
+        - Rule 1: For a production A → αBβ, add FIRST(β) - {ε} to FOLLOW(B).
+        - Rule 2: For a production A → αB or if β can derive ε, add FOLLOW(A) to FOLLOW(B).
+    4. Return the FOLLOW sets after convergence.
+
+    Ref: Dragon book Section 4.4.2
+    */
 }
