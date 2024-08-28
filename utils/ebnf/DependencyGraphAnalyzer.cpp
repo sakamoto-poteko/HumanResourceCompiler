@@ -202,20 +202,37 @@ void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent)
     }
 
     /*  FIRST
-        Calculate the first set of the production rule. Add the element to map if it's 0th edge.
+        Calculate the first set of the production rule. Add the element to map if it's 0th edge for all Terms until the production.
         The set is unexploaded which contains references to others' FIRST set.
      */
     // WARNING: the use of current_production should not leave these ifs. Pushing elements into vector may result in the reallocation of vector
     // hence invalidation of the reference
     const auto &current_production = _state->descent_path.back();
-    auto &dbg = _state->descent_path_edge_indices.back();
-    int &descent_index_from_parent = _state->descent_path_edge_indices.back().second;
+
+    auto is_first_element = [&]() {
+        auto first_prod_occurence = std::find_if(
+            _state->descent_path_edge_indices.cbegin(),
+            _state->descent_path_edge_indices.cend(),
+            [&current_production](auto &rule_idx_pair) {
+                return rule_idx_pair.first->id == current_production->id;
+            });
+        bool all_have_index_of_0 = std::all_of(
+            first_prod_occurence,
+            _state->descent_path_edge_indices.cend(),
+            [](auto &rule_idx_pair) {
+                return rule_idx_pair.second == 0;
+            });
+
+        return all_have_index_of_0;
+    };
+
+    // int &descent_index_from_parent = _state->descent_path_edge_indices.back().second;
     if (auto c = std::dynamic_pointer_cast<LiteralNode>(current_node)) {
-        if (descent_index_from_parent == 0) {
+        if (is_first_element()) {
             _state->first_set[current_production->id].insert(FirstSetElement(c->value, FirstSetElement::Literal));
         }
     } else if (auto c = std::dynamic_pointer_cast<IdentifierNode>(current_node)) {
-        if (descent_index_from_parent == 0) {
+        if (is_first_element()) {
             if (_tokens.find(c->value) != _tokens.end()) {
                 _state->first_set[current_production->id].insert(FirstSetElement(c->value, FirstSetElement::Token));
             } else {
@@ -223,7 +240,7 @@ void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent)
             }
         }
     } else if (auto c = std::dynamic_pointer_cast<EpsilonNode>(current_node)) {
-        if (descent_index_from_parent == 0) {
+        if (is_first_element()) {
             _state->first_set[current_production->id].insert(FirstSetElement(std::string(), FirstSetElement::Epsilon));
         }
     }
@@ -238,7 +255,7 @@ void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent)
         // Term node is responsible to hold first, second, third... elements in an alternative
         soft_dfs(target, current);
     }
-    
+
     /*  LRF
         Pop the stack when leaving a TermNode.
         Increment the stack top on exit if the node is a LiteralNode, IdentifierNode, or GroupedNode.
