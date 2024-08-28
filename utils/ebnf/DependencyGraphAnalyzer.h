@@ -63,6 +63,38 @@ struct InfoWithLoc {
         , info(info)
     {
     }
+
+    bool operator<(const InfoWithLoc &other) const
+    {
+        // Compare based on row first
+        if (row != other.row) {
+            return row < other.row;
+        }
+        // Then compare based on col
+        if (col != other.col) {
+            return col < other.col;
+        }
+        // Then compare based on id
+        if (id != other.id) {
+            return id < other.id;
+        }
+
+        // Then compare based on row2
+        if (row2 != other.row2) {
+            return row2 < other.row2;
+        }
+        // Then compare based on col2
+        if (col2 != other.col2) {
+            return col2 < other.col2;
+        }
+        // Then compare based on id2
+        if (id2 != other.id2) {
+            return id2 < other.id2;
+        }
+
+        // Finally compare based on info
+        return info < other.info;
+    }
 };
 
 struct FirstSetElement {
@@ -184,8 +216,10 @@ protected:
 
         // left recursion <current node, path>
         std::vector<InfoWithLoc<std::pair<ProductionNodePtr, std::vector<std::string>>>> left_recursion;
+        std::set<InfoWithLoc<std::pair<ProductionNodePtr, std::vector<std::string>>>> left_recursion_dedup;
         // circular from pair.first -> pair.second.
         std::vector<InfoWithLoc<std::pair<ProductionNodePtr, ProductionNodePtr>>> non_left_circular;
+        std::set<InfoWithLoc<std::pair<ProductionNodePtr, ProductionNodePtr>>> non_left_circular_dedup;
         std::vector<InfoWithLoc<ProductionNodePtr>> unreachable;
     };
 

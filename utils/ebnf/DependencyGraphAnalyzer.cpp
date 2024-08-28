@@ -169,16 +169,27 @@ void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent)
 
         if (is_left_recursion) {
             path.push_back(current_production->id);
-            _state->left_recursion.push_back(InfoWithLoc(
+
+            auto info = InfoWithLoc(
                 last_production->id, last_production->lineno(), last_production->colno(),
                 current_production->id, current_production->lineno(), current_production->colno(),
-                std::make_pair(current_production, path)));
-            _state->left_recursion_production_id.insert(current_production->id);
+                std::make_pair(current_production, path));
+
+            if (_state->left_recursion_dedup.find(info) == _state->left_recursion_dedup.end()) {
+                _state->left_recursion_dedup.insert(info);
+                _state->left_recursion.push_back(info);
+                _state->left_recursion_production_id.insert(current_production->id);
+            }
         } else {
-            _state->non_left_circular.push_back(InfoWithLoc(
+            auto info = InfoWithLoc(
                 current_production->id, current_production->lineno(), current_production->colno(),
                 last_production->id, last_production->lineno(), last_production->colno(),
-                std::make_pair(current_production, last_production)));
+                std::make_pair(current_production, last_production));
+
+            if (_state->non_left_circular_dedup.find(info) == _state->non_left_circular_dedup.end()) {
+                _state->non_left_circular_dedup.insert(info);
+                _state->non_left_circular.push_back(info);
+            }
         }
         return;
     }
@@ -226,7 +237,6 @@ void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent)
         return all_have_index_of_0;
     };
 
-    // int &descent_index_from_parent = _state->descent_path_edge_indices.back().second;
     if (auto c = std::dynamic_pointer_cast<LiteralNode>(current_node)) {
         if (is_first_element()) {
             _state->first_set[current_production->id].insert(FirstSetElement(c->value, FirstSetElement::Literal));
@@ -260,7 +270,7 @@ void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent)
         Pop the stack when leaving a TermNode.
         Increment the stack top on exit if the node is a LiteralNode, IdentifierNode, or GroupedNode.
     */
-    // WARNING: NO MORE USE of current_production and descent_index_from_parent after this line. Same reason as above.
+    // WARNING: NO MORE USE of current_production after this line. Same reason as above.
     if (auto c = std::dynamic_pointer_cast<ProductionNode>(current_node)) {
         _state->descent_path.pop_back();
     } else if (auto c = std::dynamic_pointer_cast<TermNode>(current_node)) {
@@ -268,8 +278,6 @@ void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent)
     } else if (auto c = std::dynamic_pointer_cast<OptionalNode>(current_node)) {
     } else if (auto c = std::dynamic_pointer_cast<RepeatedNode>(current_node)) {
     } else if (auto c = std::dynamic_pointer_cast<GroupedNode>(current_node)) {
-        // Not using descent_index_from_parent since we don't know if recursion changed the stack or not
-        // and the topmost recursion the stack could be empty so we cannot move the declaration out of this if neither
         ++_state->descent_path_edge_indices.back().second;
     } else if (auto c = std::dynamic_pointer_cast<IdentifierNode>(current_node)) {
         ++_state->descent_path_edge_indices.back().second;
