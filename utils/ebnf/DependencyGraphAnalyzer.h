@@ -177,7 +177,8 @@ protected:
         std::set<std::string> left_recursion_production_id;
 
         std::vector<ProductionNodePtr> descent_path;
-        std::vector<std::pair<ProductionNodePtr, int>> descent_path_edge_indices;
+        // tuple <rule, index which optional do not adds, index which all adds>
+        std::vector<std::tuple<ProductionNodePtr, int>> descent_path_edge_indices;
 
         // map<production id, [element]>
         std::map<std::string, std::set<FirstSetElement>> first_set;
