@@ -269,7 +269,7 @@ int main(int argc, char **argv)
                     std::cout << f.value;
                     break;
                 case FirstSetElement::Epsilon:
-                    std::cout << "(epsilon)";
+                    std::cout << "$EPSILON";
                     break;
                 case FirstSetElement::Token:
                     std::cout << f.value;
@@ -278,7 +278,7 @@ int main(int argc, char **argv)
                     }
                     break;
                 case FirstSetElement::Reference:
-                    std::cout << "REF(" << f.value << ")";
+                    std::cout << "$REF[" << f.value << "]";
                     break;
                 }
 
