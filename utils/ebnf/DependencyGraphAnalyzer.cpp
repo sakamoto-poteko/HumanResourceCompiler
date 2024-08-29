@@ -242,7 +242,8 @@ void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent)
     // hence invalidation of the reference
     const auto &current_production = _state->descent_path.back();
 
-    auto is_first_element = [&]() {
+    auto determine_is_first_set_element = [&]() {
+        // Must be searched bottom-to-top. There might me multiple elements with same production id when ecounter Repeated/Grouped/Optional.
         auto first_prod_occurence = std::find_if(
             _state->descent_path_edge_indices.cbegin(),
             _state->descent_path_edge_indices.cend(),
@@ -260,11 +261,11 @@ void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent)
     };
 
     if (auto c = std::dynamic_pointer_cast<LiteralNode>(current_node)) {
-        if (is_first_element()) {
+        if (determine_is_first_set_element()) {
             _state->first_set[current_production->id].insert(FirstSetElement(c->value, FirstSetElement::Literal));
         }
     } else if (auto c = std::dynamic_pointer_cast<IdentifierNode>(current_node)) {
-        if (is_first_element()) {
+        if (determine_is_first_set_element()) {
             if (_tokens.contains(c->value)) {
                 _state->first_set[current_production->id].insert(FirstSetElement(c->value, FirstSetElement::Token));
             } else {
@@ -272,7 +273,7 @@ void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent)
             }
         }
     } else if (auto c = std::dynamic_pointer_cast<EpsilonNode>(current_node)) {
-        if (is_first_element()) {
+        if (determine_is_first_set_element()) {
             _state->first_set[current_production->id].insert(FirstSetElement(std::string(), FirstSetElement::Epsilon));
         }
     }
@@ -394,4 +395,12 @@ void DependencyGraphAnalyzer::compute_follow_set()
 
     Ref: Dragon book Section 4.4.2
     */
+
+    // iterate until no changes occur
+    bool expanded = false;
+    while (expanded) {
+        for (const auto &production : _state->productions) {
+
+        }
+    }
 }

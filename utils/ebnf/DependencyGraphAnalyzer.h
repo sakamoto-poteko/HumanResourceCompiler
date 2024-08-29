@@ -11,6 +11,7 @@
 #include <boost/graph/directed_graph.hpp>
 
 #include "ASTNodeForward.h"
+#include "FirstFollowElement.h"
 
 template <class T>
 struct InfoWithLoc {
@@ -94,57 +95,6 @@ struct InfoWithLoc {
 
         // Finally compare based on info
         return info < other.info;
-    }
-};
-
-struct FirstSetElement {
-    enum Type {
-        Literal,
-        Epsilon,
-        Token,
-        Reference,
-    };
-
-    Type type;
-    // value is literal value, token value referenced name of another production
-    std::string value;
-    // produced_by is the production id after expansion
-    std::string produced_by;
-
-    explicit FirstSetElement(const std::string &value, Type type)
-        : value(value)
-        , type(type)
-    {
-    }
-
-    explicit FirstSetElement(const std::string &value, Type type, const std::string &produced_by)
-        : value(value)
-        , type(type)
-        , produced_by(produced_by)
-    {
-    }
-
-    static const char *type_str(Type type)
-    {
-        switch (type) {
-        case Literal:
-            return "Literal";
-        case Epsilon:
-            return "Epsilon";
-        case Reference:
-            return "Reference";
-        case Token:
-            return "Token";
-        }
-        return "ERROR";
-    }
-
-    bool operator<(const FirstSetElement &other) const
-    {
-        if (type == other.type) {
-            return value < other.value;
-        }
-        return type < other.type;
     }
 };
 
