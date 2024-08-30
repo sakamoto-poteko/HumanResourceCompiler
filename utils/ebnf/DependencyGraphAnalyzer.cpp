@@ -59,10 +59,10 @@ void DependencyGraphAnalyzer::expand_first_set()
 
             auto &current_first_set = _state->first_set[production->id];
 
-            // Skip left recursion element
             if (_state->left_recursion_production_id.contains(production->id)) {
-                current_first_set.clear();
-                continue;
+                // It's ok that current production is left recursion
+                // It may have other non-left recursion FIRSTS
+                // e.g. A -> A b | c d
             }
 
             std::vector<FirstSetElement> expansion_required;
