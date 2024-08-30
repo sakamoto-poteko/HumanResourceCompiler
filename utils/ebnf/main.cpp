@@ -5,6 +5,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <string>
 #include <string_view>
 #include <unistd.h>
 #include <vector>
@@ -68,10 +69,10 @@ void read_tokens_from_file(const std::string &file_path, std::set<std::string> &
     file.close();
 }
 
-void print_help()
+void print_help(const char *self)
 {
-    constexpr std::string_view help_message = R"(
-Usage: program_name [OPTIONS] -i <input_file> -s <start_symbol>
+    const std::string help_message = R"(
+Usage: %1% [OPTIONS] -i <input_file> -s <start_symbol>
 
 Options:
   -i, --input <file>          Specify the input file containing the grammar.
@@ -90,8 +91,8 @@ Options:
   -v, --version               Display the program version and exit.
 
 Examples:
-  program_name -i grammar.ebnf -s start_symbol
-  program_name -i grammar.ebnf -s start_symbol -t token1 -t token2 -g output.dot
+  %1% -i grammar.ebnf -s start_symbol
+  %1% -i grammar.ebnf -s start_symbol -t token1 -t token2 -g output.dot
 
 Notes:
   - The input file (-i) and start symbol (-s) are mandatory.
@@ -99,7 +100,7 @@ Notes:
   - The -F option automatically enables the left recursion check.
 )";
 
-    std::cout << help_message;
+    std::cout << boost::format(help_message) % self;
 }
 
 Arguments parse_arguments(int argc, char **argv)
@@ -165,7 +166,7 @@ Arguments parse_arguments(int argc, char **argv)
             args.check_conflicts = true;
             break;
         case 'h':
-            print_help();
+            print_help(argv[0]);
             std::exit(EXIT_SUCCESS);
         case 'v':
             std::cout << "Program version 1.0\n";
@@ -174,10 +175,6 @@ Arguments parse_arguments(int argc, char **argv)
             std::cerr << "Unknown option or missing argument. Use -h or --help for help.\n";
             std::exit(EXIT_FAILURE);
         }
-    }
-
-    if (optind < argc) {
-        args.input_file = argv[optind];
     }
 
     if (args.input_file.empty()) {
