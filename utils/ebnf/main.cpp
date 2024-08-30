@@ -5,6 +5,8 @@
 
 #include <fstream>
 #include <iostream>
+#include <string_view>
+#include <unistd.h>
 #include <vector>
 
 #include <boost/algorithm/string/join.hpp>
@@ -29,6 +31,7 @@ struct Arguments {
     std::set<std::string> tokens;
     std::string token_file;
     std::string graphviz_output;
+    std::string first_follow_output;
     bool graphviz_requested = false;
     bool check_left_recursion = false;
     bool check_non_left_circular = false;
@@ -67,32 +70,35 @@ void read_tokens_from_file(const std::string &file_path, std::set<std::string> &
 
 void print_help()
 {
-    const char *help_message =
-        "Usage: program_name [OPTIONS] -i <input_file> -s <start_symbol>\n"
-        "\n"
-        "Options:\n"
-        "  -i, --input <file>          Specify the input file containing the grammar.\n"
-        "  -s, --start <symbol>        Specify the start symbol for the grammar.\n"
-        "  -t, --token <token>         Specify a token. This option can be used multiple times to add more tokens.\n"
-        "  -f, --token-file <file>     Specify a file containing tokens, one per line.\n"
-        "  -g, --graph <file>          Generate a Graphviz dependency graph and save it to the specified file.\n"
-        "  -L, --left-recursion        Check for left recursion in the grammar.\n"
-        "  -C, --non-left-circular     Check for non-left-circular productions in the grammar.\n"
-        "  -U, --unreachable           Check for unreachable symbols in the grammar.\n"
-        "  -F, --first-follow-set      Calculate the first and follow sets. Also enforces left recursion check. (FOLLOW is not yet supported)\n"
-        "  -N, --conflicts             Check for conflicts in the grammar.\n"
-        "  -R, --reprint-ebnf          Reprint the grammar in Extended Backus-Naur Form (EBNF).\n"
-        "  -h, --help                  Display this help message and exit.\n"
-        "  -v, --version               Display the program version and exit.\n"
-        "\n"
-        "Examples:\n"
-        "  program_name -i grammar.ebnf -s start_symbol\n"
-        "  program_name -i grammar.ebnf -s start_symbol -t token1 -t token2 -g output.dot\n"
-        "\n"
-        "Notes:\n"
-        "  - The input file (-i) and start symbol (-s) are mandatory.\n"
-        "  - If a token file is specified with -f, tokens from that file will be added to the list of tokens.\n"
-        "  - The -F option will automatically enable the left recursion check.\n";
+    constexpr std::string_view help_message = R"(
+Usage: program_name [OPTIONS] -i <input_file> -s <start_symbol>
+
+Options:
+  -i, --input <file>          Specify the input file containing the grammar.
+  -s, --start <symbol>        Specify the start symbol for the grammar.
+  -t, --token <token>         Specify a token. This option can be used multiple times to add tokens.
+  -f, --token-file <file>     Specify a file containing tokens, one per line.
+  -g, --graph <file>          Generate a Graphviz dependency graph and save it to the specified file.
+  -L, --left-recursion        Check for left recursion in the grammar.
+  -C, --non-left-circular     Check for non-left-circular productions in the grammar.
+  -U, --unreachable           Check for unreachable symbols in the grammar.
+  -F, --first-follow-set [file] Calculate the first and follow sets, also enforcing a left recursion check.
+                              Optionally, write the C++ FIRST and FOLLOW maps. (FOLLOW is not yet supported)
+  -N, --conflicts             Check for conflicts in the grammar.
+  -R, --reprint-ebnf          Reprint the grammar in Extended Backus-Naur Form (EBNF).
+  -h, --help                  Display this help message and exit.
+  -v, --version               Display the program version and exit.
+
+Examples:
+  program_name -i grammar.ebnf -s start_symbol
+  program_name -i grammar.ebnf -s start_symbol -t token1 -t token2 -g output.dot
+
+Notes:
+  - The input file (-i) and start symbol (-s) are mandatory.
+  - If a token file is specified with -f, tokens from that file will be added to the list of tokens.
+  - The -F option automatically enables the left recursion check.
+)";
+
     std::cout << help_message;
 }
 
@@ -110,7 +116,7 @@ Arguments parse_arguments(int argc, char **argv)
         { "left-recursion", no_argument, nullptr, 'L' },
         { "non-left-circular", no_argument, nullptr, 'C' },
         { "unreachable", no_argument, nullptr, 'U' },
-        { "first-follow-set", no_argument, nullptr, 'F' },
+        { "first-follow-set", optional_argument, nullptr, 'F' },
         { "conflicts", no_argument, nullptr, 'N' },
         { "reprint-ebnf", no_argument, nullptr, 'R' },
         { "help", no_argument, nullptr, 'h' },
@@ -118,7 +124,7 @@ Arguments parse_arguments(int argc, char **argv)
         { nullptr, 0, nullptr, 0 }
     };
 
-    while ((opt = getopt_long(argc, argv, "i:s:t:f:g:LCUFNRhv", long_options, nullptr)) != -1) {
+    while ((opt = getopt_long(argc, argv, "i:s:t:f:g:LCUF::NRhv", long_options, nullptr)) != -1) {
         switch (opt) {
         case 'i':
             args.input_file = optarg;
@@ -148,6 +154,9 @@ Arguments parse_arguments(int argc, char **argv)
         case 'F': // first-set
             args.calculate_first_set = true;
             args.check_left_recursion = true; // Enforce left recursion check
+            if (optarg) {
+                args.first_follow_output = optarg;
+            }
             break;
         case 'R': // reprint EBNF
             args.reprint_ebnf = true;
@@ -162,7 +171,7 @@ Arguments parse_arguments(int argc, char **argv)
             std::cout << "Program version 1.0\n";
             std::exit(EXIT_SUCCESS);
         default:
-            std::cerr << "Unknown option. Use -h or --help for help.\n";
+            std::cerr << "Unknown option or missing argument. Use -h or --help for help.\n";
             std::exit(EXIT_FAILURE);
         }
     }
@@ -255,7 +264,7 @@ int main(int argc, char **argv)
     */
 
     if (args.calculate_first_set) {
-        calculate_first_follow_set(checker, args.check_conflicts);
+        calculate_first_follow_set(checker, args.check_conflicts, args.first_follow_output);
     }
 
     return 0;
