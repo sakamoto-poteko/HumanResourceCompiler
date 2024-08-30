@@ -14,7 +14,6 @@
 
 #include <boost/algorithm/string/join.hpp>
 #include <boost/format.hpp>
-#include <boost/preprocessor/stringize.hpp>
 
 #include <getopt.h>
 
@@ -42,9 +41,9 @@ static void write_first_follow_file(const std::string &path, const std::map<std:
 #include <string>
 
 // Map<Production, Set<FIRST Token>>
-extern std::map<std::string, std::set<std::string>> __ebnf_first_set_token;
+extern const std::map<std::string, std::set<std::string>> __ebnf_first_set_token;
 // Map<Production, Set<FIRST Literal>>
-extern std::map<std::string, std::set<std::string>> __ebnf_first_set_literal;
+extern const std::map<std::string, std::set<std::string>> __ebnf_first_set_literal;
 
 #endif // %1%_H
 )";
@@ -53,11 +52,11 @@ extern std::map<std::string, std::set<std::string>> __ebnf_first_set_literal;
         R"(
 #include "%1%.h"
 
-std::map<std::string, std::set<std::string>> __ebnf_first_set_literal {
+const std::map<std::string, std::set<std::string>> __ebnf_first_set_literal {
 %2%
 };
 
-std::map<std::string, std::set<std::string>> __ebnf_first_set_token {
+const std::map<std::string, std::set<std::string>> __ebnf_first_set_token {
 %3%
 };
 )";
