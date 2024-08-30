@@ -1,6 +1,9 @@
 #ifndef HRL_TOKEN
 #define HRL_TOKEN
 
+#include <memory>
+
+#include "hrl_global.h"
 #include "lexer_global.h"
 
 OPEN_LEXER_NAMESPACE
@@ -57,41 +60,49 @@ enum TokenId : int {
     ERROR = -1,
 };
 
-class Token {
+class Token : std::enable_shared_from_this<Token> {
 public:
-    Token(TokenId tokenId, int row, int col, int width, GCString text)
-        : _tokenId(tokenId)
+    Token(TokenId tokenId, int row, int col, int width, ManagedString text)
+        : _token_id(tokenId)
         , _lineno(row)
-        , _col(col)
+        , _colno(col)
         , _width(width)
         , _text(text)
     {
     }
+
     virtual ~Token() { }
 
-    const char *get_token_name();
-    TokenId get_token_id() { return _tokenId; }
-    GCString get_token_text() { return _text; }
-    int get_lineno() { return _lineno; }
-    int get_col() { return _col; }
-    int get_width() { return _width; }
+    const char *get_token_name() const;
+
+    TokenId token_id() const { return _token_id; }
+
+    ManagedString token_text() const { return _text; }
+
+    int lineno() const { return _lineno; }
+
+    int colno() const { return _colno; }
+
+    int width() const { return _width; }
 
 protected:
-    TokenId _tokenId;
+    TokenId _token_id;
 
     int _lineno;
-    int _col;
+    int _colno;
     int _width;
-    GCString _text;
+    ManagedString _text;
 };
 
 class BooleanToken : public Token {
 public:
-    BooleanToken(TokenId id, bool value, int row, int col, int width, GCString text)
+    BooleanToken(TokenId id, bool value, int row, int col, int width, ManagedString text)
         : Token(id, row, col, width, text)
         , _value(value)
     {
     }
+
+    int get_value() const { return _value; }
 
 protected:
     bool _value;
@@ -99,11 +110,13 @@ protected:
 
 class IntegerToken : public Token {
 public:
-    IntegerToken(TokenId id, int value, int row, int col, int width, GCString text)
+    IntegerToken(TokenId id, int value, int row, int col, int width, ManagedString text)
         : Token(id, row, col, width, text)
         , _value(value)
     {
     }
+
+    int get_value() const { return _value; }
 
 protected:
     int _value;
@@ -111,14 +124,16 @@ protected:
 
 class IdentifierToken : public Token {
 public:
-    IdentifierToken(TokenId id, GCString value, int row, int col, int width, GCString text)
+    IdentifierToken(TokenId id, ManagedString value, int row, int col, int width, ManagedString text)
         : Token(id, row, col, width, text)
         , _value(value)
     {
     }
 
+    ManagedString get_value() const { return _value; }
+
 protected:
-    GCString _value;
+    ManagedString _value;
 };
 
 CLOSE_LEXER_NAMESPACE

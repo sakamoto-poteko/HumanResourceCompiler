@@ -30,7 +30,7 @@ int main(int argc, char **argv)
     }
 
     HRLLexer lexer;
-    std::vector<GCToken> tokens;
+    std::vector<ManagedToken> tokens;
 
     int result = lexer.lex(file, fileManager.get_input_filename(), tokens);
     if (result != 0) {

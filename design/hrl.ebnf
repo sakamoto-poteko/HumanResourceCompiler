@@ -13,10 +13,13 @@ floor_assignment = floor_access, EQ, expression;
 expression = binary_expression | unary_expression;
 
 (* Left recursion *)
-binary_expression = (binary_expression | unary_expression), binary_operator, (binary_expression | unary_expression);
-unary_expression = primary_expression | increment_expression | decrement_expression | NOT, expression | ADD, expression | SUB, expression;
+binary_expression = expression, binary_operator, expression;
+unary_expression = primary_expression | increment_expression | decrement_expression | not_expression | positive_expression | negative_expression;
 increment_expression = ADDADD, variable_name;
 decrement_expression = SUBSUB, variable_name;
+not_expression = NOT, expression;
+positive_expression = ADD, expression;
+negative_expression = SUB, expression;
 floor_access = FLOOR, OPEN_BRACKET, expression, CLOSE_BRACKET;
 (* invocation_expression and variable_name has FIRST/FIRST conflict *)
 primary_expression = literal | parenthesized_expression | invocation_expression | variable_name | floor_access;
@@ -41,7 +44,7 @@ return_statement = RETURN, [expression], T;
 (* floor init only appear outside the functions. usually at the beginning of the file *)
 floor_box_init_statement = INIT, FLOOR, OPEN_BRACKET, INTEGER, CLOSE_BRACKET, EQ, INTEGER, T;
 (* only one floor max allowed in a program *)
-floor_max_init_statement = INIT, FLOORMAX, EQ, INTEGER, T;
+floor_max_init_statement = INIT, FLOOR_MAX, EQ, INTEGER, T;
 
 (* Function and subprocedure *)
 function_definition = function_header, function_body;

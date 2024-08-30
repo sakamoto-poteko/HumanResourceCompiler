@@ -12,4 +12,4 @@ src/TerminalColor.cpp
 )
 add_dependencies(${PROJECT_NAME} check_git)
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

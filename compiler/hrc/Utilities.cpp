@@ -10,12 +10,12 @@ Utilities::~Utilities()
 {
 }
 
-void Utilities::write_token_list_to_file(FILE *file, const std::vector<GCToken> &tokens)
+void Utilities::write_token_list_to_file(FILE *file, const std::vector<ManagedToken> &tokens)
 {
     int indent = 0;
-    for (const GCToken &token : tokens) {
+    for (const ManagedToken &token : tokens) {
         std::string name = token->get_token_name();
-        if (name[0] == ';') {
+        if (name[0] == 'T') {
             std::fprintf(file, ";\n");
             for (int i = 0; i < indent; ++i) {
                 std::fprintf(file, " ");

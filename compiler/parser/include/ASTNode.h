@@ -1,0 +1,785 @@
+#ifndef ASTNODE_H
+#define ASTNODE_H
+
+#include <memory>
+#include <vector>
+
+#include "ASTNodeForward.h"
+#include "HRLToken.h"
+#include "hrl_global.h"
+#include "parser_global.h"
+
+#include "ASTNodeVisitor.h"
+
+OPEN_PARSER_NAMESPACE
+
+class ASTNode : std::enable_shared_from_this<ASTNode> {
+public:
+    ASTNode(int lineno, int colno)
+        : _lineno(lineno)
+        , _colno(colno)
+    {
+    }
+
+    virtual ~ASTNode() = default;
+
+    virtual void accept(ASTNodeVisitor *visitor) = 0;
+
+    int lineno()
+    {
+        return _lineno;
+    }
+
+    int colno()
+    {
+        return _colno;
+    }
+
+    virtual const char *name() = 0;
+
+    template <typename T>
+    std::shared_ptr<T> shared_from_this_casted()
+    {
+        return std::static_pointer_cast<T>(shared_from_this());
+    }
+
+protected:
+    int _lineno;
+    int _colno;
+};
+
+class AbstractExpressionNode : public ASTNode {
+public:
+    AbstractExpressionNode(int lineno, int colno)
+        : ASTNode(lineno, colno)
+    {
+    }
+};
+
+class AbstractUnaryExpressionNode : public AbstractExpressionNode {
+public:
+    AbstractUnaryExpressionNode(int lineno, int colno)
+        : AbstractExpressionNode(lineno, colno)
+    {
+    }
+};
+
+class AbstractPrimaryExpressionNode : public AbstractUnaryExpressionNode {
+public:
+    AbstractPrimaryExpressionNode(int lineno, int colno)
+        : AbstractUnaryExpressionNode(lineno, colno)
+    {
+    }
+};
+
+// Terminal Nodes
+class IdentifierNode : public ASTNode {
+public:
+    IdentifierNode(const lexer::IdentifierToken &token)
+        : ASTNode(token.lineno(), token.colno())
+        , _name(token.get_value())
+    {
+    }
+
+    const char *name() override { return "Identifier"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+
+    const ManagedString get_name() const { return _name; }
+
+private:
+    ManagedString _name;
+};
+
+class IntegerLiteralNode : public AbstractPrimaryExpressionNode {
+public:
+    IntegerLiteralNode(const lexer::IntegerToken &token)
+        : AbstractPrimaryExpressionNode(token.lineno(), token.colno())
+        , _value(token.get_value())
+    {
+    }
+
+    const char *name() override { return "IntegerLiteral"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+
+    int get_value() const { return _value; }
+
+private:
+    int _value;
+};
+
+// Similar classes for BooleanLiteralNode, BinaryOperatorNode, etc.
+
+class BooleanLiteralNode : public AbstractPrimaryExpressionNode {
+public:
+    BooleanLiteralNode(const lexer::BooleanToken &token)
+        : AbstractPrimaryExpressionNode(token.lineno(), token.colno())
+        , _value(token.get_value())
+    {
+    }
+
+    const char *name() override { return "BooleanLiteral"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+
+    bool get_value() const { return _value; }
+
+private:
+    bool _value;
+};
+
+class BinaryOperatorNode : public ASTNode {
+public:
+    BinaryOperatorNode(int lineno, int colno, const lexer::Token &token)
+        : ASTNode(token.lineno(), token.colno())
+        , _op(get_binary_operator_from_token_id(token.token_id()))
+    {
+    }
+
+    enum BinaryOperator {
+        GE,
+        LE,
+        EE,
+        NE,
+        GT,
+        LT,
+
+        AND,
+        OR,
+        NOT,
+
+        ADD,
+        SUB,
+        MUL,
+        DIV,
+        MOD,
+
+        EQ,
+    };
+
+    inline static BinaryOperator get_binary_operator_from_token_id(lexer::TokenId token_id)
+    {
+        BinaryOperator op;
+        switch (token_id) {
+        case lexer::TokenId::GE:
+            return GE;
+        case lexer::TokenId::LE:
+            return LE;
+        case lexer::TokenId::EE:
+            return EE;
+        case lexer::TokenId::NE:
+            return NE;
+        case lexer::TokenId::GT:
+            return GT;
+        case lexer::TokenId::LT:
+            return LT;
+        case lexer::TokenId::AND:
+            return AND;
+        case lexer::TokenId::OR:
+            return OR;
+        case lexer::TokenId::NOT:
+            return NOT;
+        case lexer::TokenId::ADD:
+            return ADD;
+        case lexer::TokenId::SUB:
+            return SUB;
+        case lexer::TokenId::MUL:
+            return MUL;
+        case lexer::TokenId::DIV:
+            return DIV;
+        case lexer::TokenId::MOD:
+            return MOD;
+        default:
+            // FIXME: error handling
+            throw;
+        }
+    }
+
+    const char *name() override
+    {
+        return "BinaryOperator";
+    }
+
+    void accept(ASTNodeVisitor *visitor) override;
+
+    BinaryOperator get_op() const { return _op; }
+
+private:
+    BinaryOperator _op;
+};
+
+// Variable and Function Nodes
+class VariableDeclarationNode : public ASTNode {
+public:
+    VariableDeclarationNode(int lineno, int colno, IdentifierNodePtr var_name, AbstractExpressionNodePtr expr = nullptr)
+        : ASTNode(lineno, colno)
+        , _var_name(var_name)
+        , _expr(expr)
+    {
+    }
+
+    const char *name() override { return "VariableDeclaration"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+
+    IdentifierNodePtr get_var_name() const { return _var_name; }
+
+    // the optional equals part
+    AbstractExpressionNodePtr get_expr() const { return _expr; }
+
+private:
+    IdentifierNodePtr _var_name;
+    AbstractExpressionNodePtr _expr;
+};
+
+class VariableAssignmentNode : public ASTNode {
+public:
+    VariableAssignmentNode(int lineno, int colno, IdentifierNodePtr var_name, AbstractExpressionNodePtr expr)
+        : ASTNode(lineno, colno)
+        , _var_name(var_name)
+        , _expr(expr)
+    {
+    }
+
+    const char *name() override { return "VariableAssignment"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+
+    IdentifierNodePtr get_var_name() const { return _var_name; }
+
+    AbstractExpressionNodePtr get_expr() const { return _expr; }
+
+private:
+    IdentifierNodePtr _var_name;
+    AbstractExpressionNodePtr _expr;
+};
+
+class FloorAssignmentNode : public ASTNode {
+public:
+    FloorAssignmentNode(int lineno, int colno, FloorAccessNodePtr floor_access, AbstractExpressionNodePtr expr)
+        : ASTNode(lineno, colno)
+        , _floor_access(floor_access)
+        , _expr(expr)
+    {
+    }
+
+    const char *name() override { return "FloorAssignment"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+
+    FloorAccessNodePtr get_floor_access() const { return _floor_access; }
+
+    AbstractExpressionNodePtr get_expr() const { return _expr; }
+
+private:
+    FloorAccessNodePtr _floor_access;
+    AbstractExpressionNodePtr _expr;
+};
+
+// Expression Nodes
+class BinaryExpressionNode : public AbstractExpressionNode {
+public:
+    BinaryExpressionNode(int lineno, int colno, AbstractExpressionNodePtr left, BinaryOperatorNodePtr op, AbstractExpressionNodePtr right)
+        : AbstractExpressionNode(lineno, colno)
+        , _left(left)
+        , _op(op)
+        , _right(right)
+    {
+    }
+
+    const char *name() override { return "BinaryExpression"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+
+    AbstractExpressionNodePtr get_left() const { return _left; }
+
+    BinaryOperatorNodePtr get_op() const { return _op; }
+
+    AbstractExpressionNodePtr get_right() const { return _right; }
+
+private:
+    AbstractExpressionNodePtr _left;
+    BinaryOperatorNodePtr _op;
+    AbstractExpressionNodePtr _right;
+};
+
+class NotExpressionNode : public AbstractUnaryExpressionNode {
+public:
+    NotExpressionNode(int lineno, int colno, AbstractExpressionNodePtr expr)
+        : AbstractUnaryExpressionNode(lineno, colno)
+        , _expr(expr)
+    {
+    }
+
+    const char *name() override { return "NotExpression"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+
+    AbstractExpressionNodePtr get_expr() const { return _expr; }
+
+private:
+    AbstractExpressionNodePtr _expr;
+};
+
+class PositiveExpressionNode : public AbstractUnaryExpressionNode {
+public:
+    PositiveExpressionNode(int lineno, int colno, AbstractExpressionNodePtr expr)
+        : AbstractUnaryExpressionNode(lineno, colno)
+        , _expr(expr)
+    {
+    }
+
+    const char *name() override { return "PositiveExpression"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+
+    AbstractExpressionNodePtr get_expr() const { return _expr; }
+
+private:
+    AbstractExpressionNodePtr _expr;
+};
+
+class NegativeExpressionNode : public AbstractUnaryExpressionNode {
+public:
+    NegativeExpressionNode(int lineno, int colno, AbstractExpressionNodePtr expr)
+        : AbstractUnaryExpressionNode(lineno, colno)
+        , _expr(expr)
+    {
+    }
+
+    const char *name() override { return "NegativeExpression"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+
+    AbstractExpressionNodePtr get_expr() const { return _expr; }
+
+private:
+    AbstractExpressionNodePtr _expr;
+};
+
+class IncrementExpressionNode : public AbstractUnaryExpressionNode {
+public:
+    IncrementExpressionNode(int lineno, int colno, IdentifierNodePtr var_name)
+        : AbstractUnaryExpressionNode(lineno, colno)
+        , _var_name(var_name)
+    {
+    }
+
+    const char *name() override { return "IncrementExpression"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+
+    IdentifierNodePtr get_var_name() const { return _var_name; }
+
+private:
+    IdentifierNodePtr _var_name;
+};
+
+class DecrementExpressionNode : public AbstractUnaryExpressionNode {
+public:
+    DecrementExpressionNode(int lineno, int colno, IdentifierNodePtr var_name)
+        : AbstractUnaryExpressionNode(lineno, colno)
+        , _var_name(var_name)
+    {
+    }
+
+    const char *name() override { return "DecrementExpression"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+
+    IdentifierNodePtr get_var_name() const { return _var_name; }
+
+private:
+    IdentifierNodePtr _var_name;
+};
+
+class FloorAccessNode : public AbstractPrimaryExpressionNode {
+public:
+    FloorAccessNode(int lineno, int colno, AbstractExpressionNodePtr index_expr)
+        : AbstractPrimaryExpressionNode(lineno, colno)
+        , _index_expr(index_expr)
+    {
+    }
+
+    const char *name() override { return "FloorAccess"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+
+    AbstractExpressionNodePtr get_index_expr() const { return _index_expr; }
+
+private:
+    AbstractExpressionNodePtr _index_expr;
+};
+
+class ParenthesizedExpressionNode : public AbstractPrimaryExpressionNode {
+public:
+    ParenthesizedExpressionNode(int lineno, int colno, AbstractExpressionNodePtr expr)
+        : AbstractPrimaryExpressionNode(lineno, colno)
+        , _expr(expr)
+    {
+    }
+
+    const char *name() override { return "ParenthesizedExpression"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+
+    AbstractExpressionNodePtr get_expr() const { return _expr; }
+
+private:
+    AbstractExpressionNodePtr _expr;
+};
+
+class InvocationExpressionNode : public ASTNode {
+public:
+    InvocationExpressionNode(int lineno, int colno, IdentifierNodePtr func_name, const std::vector<AbstractExpressionNodePtr> &args)
+        : ASTNode(lineno, colno)
+        , _func_name(func_name)
+        , _args(args)
+    {
+    }
+
+    const char *name() override { return "InvocationExpression"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+
+    IdentifierNodePtr get_func_name() const { return _func_name; }
+
+    const std::vector<AbstractExpressionNodePtr> &get_args() const { return _args; }
+
+private:
+    IdentifierNodePtr _func_name;
+    std::vector<AbstractExpressionNodePtr> _args;
+};
+
+// Statement Nodes
+class AbstractStatementNode : public ASTNode {
+public:
+    AbstractStatementNode(int lineno, int colno)
+        : ASTNode(lineno, colno)
+    {
+    }
+};
+
+class AbstractSelectionStatementNode : public AbstractStatementNode {
+public:
+    AbstractSelectionStatementNode(int lineno, int colno)
+        : AbstractStatementNode(lineno, colno)
+    {
+    }
+};
+
+class AbstractEmbeddedStatementNode : public AbstractStatementNode {
+public:
+    AbstractEmbeddedStatementNode(int lineno, int colno)
+        : AbstractStatementNode(lineno, colno)
+    {
+    }
+};
+
+class AbstractIterationStatementNode : public AbstractStatementNode {
+public:
+    AbstractIterationStatementNode(int lineno, int colno)
+        : AbstractStatementNode(lineno, colno)
+    {
+    }
+};
+
+class IfStatementNode : public AbstractSelectionStatementNode {
+public:
+    IfStatementNode(int lineno, int colno, AbstractExpressionNodePtr condition, AbstractEmbeddedStatementNodePtr then_stmt, AbstractEmbeddedStatementNodePtr else_stmt = nullptr)
+        : AbstractSelectionStatementNode(lineno, colno)
+        , _condition(condition)
+        , _then_stmt(then_stmt)
+        , _else_stmt(else_stmt)
+    {
+    }
+
+    const char *name() override { return "IfStatement"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+
+    AbstractExpressionNodePtr get_condition() const { return _condition; }
+
+    AbstractEmbeddedStatementNodePtr get_then_stmt() const { return _then_stmt; }
+
+    AbstractEmbeddedStatementNodePtr get_else_stmt() const { return _else_stmt; }
+
+private:
+    AbstractExpressionNodePtr _condition;
+    AbstractEmbeddedStatementNodePtr _then_stmt;
+    AbstractEmbeddedStatementNodePtr _else_stmt;
+};
+
+class WhileStatementNode : public AbstractIterationStatementNode {
+public:
+    WhileStatementNode(int lineno, int colno, AbstractExpressionNodePtr condition, AbstractEmbeddedStatementNodePtr body)
+        : AbstractIterationStatementNode(lineno, colno)
+        , _condition(condition)
+        , _body(body)
+    {
+    }
+
+    const char *name() override { return "WhileStatement"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+
+    AbstractExpressionNodePtr get_condition() const { return _condition; }
+
+    AbstractEmbeddedStatementNodePtr get_body() const { return _body; }
+
+private:
+    AbstractExpressionNodePtr _condition;
+    AbstractEmbeddedStatementNodePtr _body;
+};
+
+class ForStatementNode : public AbstractIterationStatementNode {
+public:
+    ForStatementNode(
+        int lineno, int colno,
+        VariableAssignmentNodePtr init_stmt,
+        AbstractExpressionNodePtr condition,
+        AbstractExpressionNodePtr update_stmt,
+        AbstractEmbeddedStatementNodePtr body)
+        : AbstractIterationStatementNode(lineno, colno)
+        , _init_stmt_assignment(init_stmt)
+        , _condition(condition)
+        , _update_stmt(update_stmt)
+        , _body(body)
+    {
+    }
+
+    ForStatementNode(
+        int lineno, int colno,
+        VariableDeclarationNodePtr init_stmt,
+        AbstractExpressionNodePtr condition,
+        AbstractExpressionNodePtr update_stmt,
+        AbstractEmbeddedStatementNodePtr body)
+        : AbstractIterationStatementNode(lineno, colno)
+        , _init_stmt_declaration(init_stmt)
+        , _condition(condition)
+        , _update_stmt(update_stmt)
+        , _body(body)
+    {
+    }
+
+    const char *name() override { return "ForStatement"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+
+    ASTNodePtr get_init_stmt() const
+    {
+        if (_init_stmt_assignment) {
+            return _init_stmt_assignment;
+        } else {
+            return _init_stmt_declaration;
+        }
+    }
+
+    AbstractExpressionNodePtr get_condition() const { return _condition; }
+
+    AbstractExpressionNodePtr get_update_stmt() const { return _update_stmt; }
+
+    AbstractEmbeddedStatementNodePtr get_body() const { return _body; }
+
+private:
+    VariableAssignmentNodePtr _init_stmt_assignment;
+    VariableDeclarationNodePtr _init_stmt_declaration;
+    AbstractExpressionNodePtr _condition;
+    AbstractExpressionNodePtr _update_stmt;
+    AbstractEmbeddedStatementNodePtr _body;
+};
+
+class ReturnStatementNode : public AbstractEmbeddedStatementNode {
+public:
+    ReturnStatementNode(int lineno, int colno, AbstractExpressionNodePtr expr = nullptr)
+        : AbstractEmbeddedStatementNode(lineno, colno)
+        , _expr(expr)
+    {
+    }
+
+    const char *name() override { return "ReturnStatement"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+
+    AbstractExpressionNodePtr get_expr() const { return _expr; }
+
+private:
+    AbstractExpressionNodePtr _expr;
+};
+
+class FloorBoxInitStatementNode : public AbstractEmbeddedStatementNode {
+public:
+    FloorBoxInitStatementNode(int lineno, int colno, IntegerLiteralNodePtr index, IntegerLiteralNodePtr value)
+        : AbstractEmbeddedStatementNode(lineno, colno)
+        , _index(index)
+        , _value(value)
+    {
+    }
+
+    const char *name() override { return "FloorBoxInitStatement"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+
+    IntegerLiteralNodePtr get_index() const { return _index; }
+
+    IntegerLiteralNodePtr get_value() const { return _value; }
+
+private:
+    IntegerLiteralNodePtr _index;
+    IntegerLiteralNodePtr _value;
+};
+
+class FloorMaxInitStatementNode : public ASTNode {
+public:
+    FloorMaxInitStatementNode(int lineno, int colno, IntegerLiteralNodePtr value)
+        : ASTNode(lineno, colno)
+        , _value(value)
+    {
+    }
+
+    const char *name() override { return "FloorMaxInitStatement"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+
+    IntegerLiteralNodePtr get_value() const { return _value; }
+
+private:
+    IntegerLiteralNodePtr _value;
+};
+
+class EmptyStatementNode : public ASTNode {
+public:
+    EmptyStatementNode(int lineno, int colno)
+        : ASTNode(lineno, colno)
+    {
+    }
+
+    const char *name() override { return "EmptyStatement"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+};
+
+class StatementBlockNode : public AbstractEmbeddedStatementNode {
+public:
+    StatementBlockNode(int lineno, int colno, const std::vector<AbstractStatementNodePtr> &statements)
+        : AbstractEmbeddedStatementNode(lineno, colno)
+        , _statements(statements)
+    {
+    }
+
+    const char *name() override { return "StatementBlock"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+
+    const std::vector<AbstractStatementNodePtr> &get_statements() const { return _statements; }
+
+private:
+    std::vector<AbstractStatementNodePtr> _statements;
+};
+
+// Function and Subprocedure Nodes
+class RoutineDefinitionCommonNode : public ASTNode {
+public:
+    RoutineDefinitionCommonNode(int lineno, int colno, IdentifierNodePtr function_name, const std::vector<IdentifierNodePtr> &formal_parameters, StatementBlockNodePtr body)
+        : ASTNode(lineno, colno)
+        , _function_name(function_name)
+        , _formal_parameters(formal_parameters)
+        , _body(body)
+    {
+    }
+
+    IdentifierNodePtr get_function_name() const { return _function_name; }
+
+    const std::vector<IdentifierNodePtr> &get_formal_parameters() const { return _formal_parameters; }
+
+    StatementBlockNodePtr get_body() const { return _body; }
+
+protected:
+    IdentifierNodePtr _function_name;
+    std::vector<IdentifierNodePtr> _formal_parameters;
+    StatementBlockNodePtr _body;
+};
+
+class FunctionDefinitionNode : public RoutineDefinitionCommonNode {
+public:
+    FunctionDefinitionNode(int lineno, int colno, IdentifierNodePtr function_name, const std::vector<IdentifierNodePtr> &formal_parameters, StatementBlockNodePtr body)
+        : RoutineDefinitionCommonNode(lineno, colno, function_name, formal_parameters, body)
+    {
+    }
+
+    const char *name() override { return "FunctionDefinition"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+};
+
+class SubprocDefinitionNode : public RoutineDefinitionCommonNode {
+public:
+    SubprocDefinitionNode(int lineno, int colno, IdentifierNodePtr function_name, const std::vector<IdentifierNodePtr> &formal_parameters, StatementBlockNodePtr body)
+        : RoutineDefinitionCommonNode(lineno, colno, function_name, formal_parameters, body)
+    {
+    }
+
+    const char *name() override { return "SubprocDefinition"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+};
+
+class ImportDirectiveNode : public ASTNode {
+public:
+    ImportDirectiveNode(int lineno, int colno, IdentifierNodePtr module_name)
+        : ASTNode(lineno, colno)
+        , _module_name(module_name)
+    {
+    }
+
+    IdentifierNodePtr get_module_name() const { return _module_name; }
+
+private:
+    IdentifierNodePtr _module_name;
+};
+
+// Compilation Unit Node
+class CompilationUnitNode : public ASTNode {
+public:
+    CompilationUnitNode(
+        int lineno, int colno,
+        const std::vector<ImportDirectiveNodePtr> &imports,
+        const std::vector<FloorBoxInitStatementNodePtr> &floor_inits,
+        const std::vector<VariableDeclarationNodePtr> &top_level_decls,
+        const std::vector<FunctionDefinitionNodePtr> &functions,
+        const std::vector<SubprocDefinitionNodePtr> &subprocs)
+        : ASTNode(lineno, colno)
+        , _imports(imports)
+        , _floor_inits(floor_inits)
+        , _top_level_decls(top_level_decls)
+        , _functions(functions)
+        , _subprocs(subprocs)
+    {
+    }
+
+    const char *name() override { return "CompilationUnit"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+
+    const std::vector<ImportDirectiveNodePtr> &get_imports() const { return _imports; }
+
+    const std::vector<FloorBoxInitStatementNodePtr> &get_floor_inits() const { return _floor_inits; }
+
+    const std::vector<VariableDeclarationNodePtr> &get_top_level_decls() const { return _top_level_decls; }
+
+    const std::vector<FunctionDefinitionNodePtr> &get_functions() const { return _functions; }
+
+    const std::vector<SubprocDefinitionNodePtr> &get_subprocs() const { return _subprocs; }
+
+private:
+    std::vector<ImportDirectiveNodePtr> _imports;
+    std::vector<FloorBoxInitStatementNodePtr> _floor_inits;
+    std::vector<VariableDeclarationNodePtr> _top_level_decls;
+    std::vector<FunctionDefinitionNodePtr> _functions;
+    std::vector<SubprocDefinitionNodePtr> _subprocs;
+};
+
+CLOSE_PARSER_NAMESPACE
+
+#endif

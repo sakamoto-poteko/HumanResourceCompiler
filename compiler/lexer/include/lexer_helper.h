@@ -10,7 +10,7 @@ struct CurrentToken
 public:
     int integer;
     bool boolean;
-    GCString identifier;
+    ManagedString identifier;
 };
 
 extern CurrentToken __currentToken;
