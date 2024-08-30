@@ -88,6 +88,11 @@ term:
     {
         $1->addFactor(FactorNodePtr($2));
         $$ = $1;
+    }    
+    | epsilon
+    {
+        $$ = new TermNode(@1.first_line, @1.first_column);
+        $$->addFactor(std::make_shared<FactorNode>(std::make_shared<EpsilonNode>(@1.first_line, @1.first_column), @1.first_line, @1.first_column));
     }
     ;
 
@@ -116,10 +121,9 @@ factor:
     {
         $$ = new FactorNode(ASTNodePtr($1), @1.first_line, @1.first_column);
     }
-    |
-    {
-        $$ = new FactorNode(std::make_shared<EpsilonNode>(0, 0), 0, 0);
-    }
+    ;
+
+epsilon:
     ;
 
 optional:
