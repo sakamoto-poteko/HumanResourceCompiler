@@ -101,6 +101,9 @@ bool DependencyGraphBuilder::write_graphviz(const std::string &path)
             } else if (auto grouped = std::dynamic_pointer_cast<GroupedNode>(node)) {
                 out << "[label=\"Grouped\" shape=rect style=filled "
                        "fillcolor=lightcoral]";
+            } else if (auto epsilon = std::dynamic_pointer_cast<EpsilonNode>(node)) {
+                out << "[label=\"Epsilon\" shape=rect style=filled "
+                       "fillcolor=gold]";
             } else {
                 // expression with side effects will be evaluated despite being
                 // used as an operand to 'typeid'
