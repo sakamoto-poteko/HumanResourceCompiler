@@ -67,19 +67,33 @@ void read_tokens_from_file(const std::string &file_path, std::set<std::string> &
 
 void print_help()
 {
-    std::cout << "Usage: program [options] [input_file]\n";
-    std::cout << "Options:\n";
-    std::cout << "  -i, --input        Input file\n";
-    std::cout << "  -s, --start        Start symbol (default: compilation_unit)\n";
-    std::cout << "  -t, --token        Specify tokens (can be used multiple times)\n";
-    std::cout << "  -f, --token-file   File containing tokens, one per line\n";
-    std::cout << "  -g, --graph        Output Graphviz DOT file\n";
-    std::cout << "  --left-recursion   Enable left recursion check\n";
-    std::cout << "  --non-left-circular Enable non-left circular dependency check\n";
-    std::cout << "  --unreachable      Enable unreachable rules check\n";
-    std::cout << "  --first-set        Enable FIRST set calculation (enforces left recursion check)\n";
-    std::cout << "  -h, --help         Show this help message\n";
-    std::cout << "  -v, --version      Show program version\n";
+    const char *help_message =
+        "Usage: program_name [OPTIONS] -i <input_file> -s <start_symbol>\n"
+        "\n"
+        "Options:\n"
+        "  -i, --input <file>          Specify the input file containing the grammar.\n"
+        "  -s, --start <symbol>        Specify the start symbol for the grammar.\n"
+        "  -t, --token <token>         Specify a token. This option can be used multiple times to add more tokens.\n"
+        "  -f, --token-file <file>     Specify a file containing tokens, one per line.\n"
+        "  -g, --graph <file>          Generate a Graphviz dependency graph and save it to the specified file.\n"
+        "  -L, --left-recursion        Check for left recursion in the grammar.\n"
+        "  -C, --non-left-circular     Check for non-left-circular productions in the grammar.\n"
+        "  -U, --unreachable           Check for unreachable symbols in the grammar.\n"
+        "  -F, --first-follow-set      Calculate the first and follow sets. Also enforces left recursion check. (FOLLOW is not yet supported)\n"
+        "  -N, --conflicts             Check for conflicts in the grammar.\n"
+        "  -R, --reprint-ebnf          Reprint the grammar in Extended Backus-Naur Form (EBNF).\n"
+        "  -h, --help                  Display this help message and exit.\n"
+        "  -v, --version               Display the program version and exit.\n"
+        "\n"
+        "Examples:\n"
+        "  program_name -i grammar.ebnf -s start_symbol\n"
+        "  program_name -i grammar.ebnf -s start_symbol -t token1 -t token2 -g output.dot\n"
+        "\n"
+        "Notes:\n"
+        "  - The input file (-i) and start symbol (-s) are mandatory.\n"
+        "  - If a token file is specified with -f, tokens from that file will be added to the list of tokens.\n"
+        "  - The -F option will automatically enable the left recursion check.\n";
+    std::cout << help_message;
 }
 
 Arguments parse_arguments(int argc, char **argv)

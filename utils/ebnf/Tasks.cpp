@@ -56,7 +56,7 @@ void calculate_first_follow_set(DependencyGraphAnalyzer &checker, bool check_con
     std::cout << std::endl;
 
     if (check_conflicts) {
-        std::cout << "FIRST/FIRST conflict:" << std::endl;
+        std::cout << "FIRST/FIRST conflict(s):" << std::endl;
         for (const auto &first : conflicts) {
             std::cout
                 << boost::format("FIRST/FIRST conflict: %1% appeared in rule '%2%'") % first.first % boost::join(first.second, "', '")

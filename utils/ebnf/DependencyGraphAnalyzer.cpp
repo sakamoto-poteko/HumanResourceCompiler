@@ -385,7 +385,7 @@ void DependencyGraphAnalyzer::compute_follow_set()
     // FIXME: Impl
     /*
     Algorithm:
-    
+
     1. Initialize the FOLLOW set for each non-terminal as an empty set.
     2. Add the end-of-input marker ('$') to the FOLLOW set of the start symbol.
     3. Apply the following rules iteratively until no changes occur:
@@ -400,7 +400,14 @@ void DependencyGraphAnalyzer::compute_follow_set()
     bool expanded = false;
     while (expanded) {
         for (const auto &production : _state->productions) {
+            // propogate_follow_set_ending_with_terminal
+            // propogate_follow_set_ending_with_nonterminal
 
+            // 1. for each terms in expression
+            // 2. is it the last? define `is_last_edge` stack, optional/repeated leave as is, group/id/literal set false
+            // compute_sth(prod node, expr node, out can_be_optional)
+            // for each term, compute_term(prod node, term node, out can_be_optional)
+            // for each literal/id compute_terminal(prod node, terminal node, out can_be_optional)
         }
     }
 }
