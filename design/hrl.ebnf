@@ -17,14 +17,11 @@ binary_expression = (binary_expression | unary_expression), binary_operator, (bi
 unary_expression = primary_expression | increment_expression | decrement_expression | NOT, expression | ADD, expression | SUB, expression;
 increment_expression = ADDADD, variable_name;
 decrement_expression = SUBSUB, variable_name;
-floor_access = FLOOR, OPEN_BRACKET, expression ,CLOSE_BRACKET;
+floor_access = FLOOR, OPEN_BRACKET, expression, CLOSE_BRACKET;
 (* invocation_expression and variable_name has FIRST/FIRST conflict *)
 primary_expression = literal | parenthesized_expression | invocation_expression | variable_name | floor_access;
-return_statement = RETURN, [expression], T;
 parenthesized_expression = OPEN_PAREN, expression, CLOSE_PAREN;
-invocation_expression = function_name,  OPEN_PAREN, [function_argument], CLOSE_PAREN;
-function_argument = expression;
-
+invocation_expression = function_name,  OPEN_PAREN, [expression], CLOSE_PAREN;
 
 
 (* Statement *)
@@ -34,13 +31,12 @@ variable_assignment_statement = variable_assignment, T;
 floor_assignment_statement = floor_assignment, T;
 statement_block = OPEN_BRACE, {statement}, CLOSE_BRACE;
 statement = variable_declaration_statement | variable_assignment_statement | floor_assignment_statement | embedded_statement;
-embedded_statement = statement_block | empty_statement | expression | iteration_statement | selection_statement | return_statement;
+embedded_statement = statement_block | empty_statement | iteration_statement | selection_statement | return_statement;
 selection_statement = if_statement;
 if_statement = IF, OPEN_PAREN, expression, CLOSE_PAREN, embedded_statement, [ELSE, embedded_statement];
 iteration_statement = while_statement | for_statement;
 while_statement = WHILE, OPEN_PAREN, expression, CLOSE_PAREN, embedded_statement;
-variable_assignment_or_declaration = variable_assignment | variable_declaration;
-for_statement = FOR, OPEN_PAREN, [variable_assignment_or_declaration], COMMA, [expression], COMMA , [expression], CLOSE_PAREN, embedded_statement;
+for_statement = FOR, OPEN_PAREN, [variable_assignment | variable_declaration], COMMA, [expression], COMMA , [expression], CLOSE_PAREN, embedded_statement;
 return_statement = RETURN, [expression], T;
 (* floor init only appear outside the functions. usually at the beginning of the file *)
 floor_box_init_statement = INIT, FLOOR, OPEN_BRACKET, INTEGER, CLOSE_BRACKET, EQ, INTEGER, T;
@@ -58,5 +54,5 @@ function_body = statement_block;
 
 (* Compilation Unit *)
 import_directive = IMPORT, IDENTIFIER, T;
-compilation_unit_nonordered = {import_directive | variable_declaration_statement | function_definition | subproc_definition | floor_box_init_statement};
-compilation_unit = compilation_unit_nonordered, [floor_max_init_statement], compilation_unit_nonordered;
+floor_inits = {floor_box_init_statement}, [floor_max_init_statement] | [floor_max_init_statement], {floor_box_init_statement};
+compilation_unit = {import_directive}, floor_inits, {variable_declaration_statement | function_definition | subproc_definition};

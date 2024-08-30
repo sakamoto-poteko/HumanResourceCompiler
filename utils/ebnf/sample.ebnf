@@ -1,0 +1,56 @@
+(* Original Recursive Rules *)
+S -> Sld | Srd | Smd | Si | Sn | LL2 | LL | AA | BB | DD | GG | HH;
+// S -> BB | GG | DD;
+Sld -> 'x' A;
+Srd -> 'x' B;
+Smd -> 'x' J;
+Si -> 'x' C | 'x' G | 'x' H;
+Sn -> I;
+
+A -> A 'a' | 'b';            (* Direct left recursion *)
+B -> 'c' B | 'd';            (* Direct right recursion *)
+C1 -> 'c1' C2 | 'cx' CX;
+CX -> 'cx' C;
+C2 -> 'c2' C;
+C -> C1 | D 'c';              (* Indirect left recursion *)
+D -> 'e' D | 'f';             (* Direct right recursion *)
+G -> 'e' E;
+H -> E 'e';
+E -> G 'g';
+
+LL -> LL1 'a';
+LL1 -> LL2 'b';
+LL2 -> LL3 'c';
+LL3 -> LL1 'd';
+
+AA -> (A1 | A2 | A4) 'a';
+A1 -> A3 'b';
+A3 -> AA 'c';
+A2 -> 'd';
+A4 -> A5 'e';
+A5 -> AA 'f';
+
+BB -> [({B1})] [B2] B3 AA 'b';
+B1 -> BB 'c';
+B2 -> BB 'd';
+B3 -> BB 'e';
+
+GG -> G4 | G5;
+G4 -> 'f' GG;
+G5 -> ['g'] GG;
+
+HH -> 'a' {[H1]} 'b';
+H1 -> HH;
+
+DD -> {D1} AA 'b';
+D1 -> DD 'c';
+
+(* Dummy Non-Recursive Rules *)
+I -> 'g' | 'h';              (* Simple non-recursive rule *)
+J -> 'l' | 'i' K 'j' | 'k';  (* Mixed: non-recursive and right recursion *)
+K -> J 'z';
+
+// S -> C;
+// C1 -> 'c1' C2;
+// C2 -> 'c2' C;
+// C -> C1 | D 'c';  

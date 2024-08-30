@@ -1,0 +1,5 @@
+BasedOnStyle: WebKit
+IndentWidth: 4
+PointerAlignment: Right
+AlwaysBreakBeforeMultilineStrings: true
+SeparateDefinitionBlocks: Always
