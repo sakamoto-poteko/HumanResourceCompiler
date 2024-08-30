@@ -41,7 +41,7 @@ return_statement = RETURN, [expression], T;
 (* floor init only appear outside the functions. usually at the beginning of the file *)
 floor_box_init_statement = INIT, FLOOR, OPEN_BRACKET, INTEGER, CLOSE_BRACKET, EQ, INTEGER, T;
 (* only one floor max allowed in a program *)
-floor_max_init_statement = INIT, FLOOR_MAX, EQ, INTEGER, T;
+floor_max_init_statement = INIT, FLOORMAX, EQ, INTEGER, T;
 
 (* Function and subprocedure *)
 function_definition = function_header, function_body;
