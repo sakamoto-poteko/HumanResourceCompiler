@@ -20,6 +20,9 @@ public:
     virtual void visit(VariableAssignmentNodePtr node) = 0;
     virtual void visit(FloorAssignmentNodePtr node) = 0;
     virtual void visit(BinaryExpressionNodePtr node) = 0;
+    virtual void visit(NegativeExpressionNodePtr node) = 0;
+    virtual void visit(PositiveExpressionNodePtr node) = 0;
+    virtual void visit(NotExpressionNodePtr node) = 0;
     virtual void visit(IncrementExpressionNodePtr node) = 0;
     virtual void visit(DecrementExpressionNodePtr node) = 0;
     virtual void visit(FloorAccessNodePtr node) = 0;

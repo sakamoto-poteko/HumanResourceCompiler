@@ -17,14 +17,14 @@ binary_expression = expression, binary_operator, expression;
 unary_expression = primary_expression | increment_expression | decrement_expression | not_expression | positive_expression | negative_expression;
 increment_expression = ADDADD, variable_name;
 decrement_expression = SUBSUB, variable_name;
-not_expression = NOT, expression;
-positive_expression = ADD, expression;
-negative_expression = SUB, expression;
+not_expression = NOT, primary_expression;
+positive_expression = ADD, primary_expression;
+negative_expression = SUB, primary_expression;
 floor_access = FLOOR, OPEN_BRACKET, expression, CLOSE_BRACKET;
 (* invocation_expression and variable_name has FIRST/FIRST conflict *)
 primary_expression = literal | parenthesized_expression | invocation_expression | variable_name | floor_access;
 parenthesized_expression = OPEN_PAREN, expression, CLOSE_PAREN;
-invocation_expression = function_name,  OPEN_PAREN, [expression], CLOSE_PAREN;
+invocation_expression = function_name, OPEN_PAREN, [expression], CLOSE_PAREN;
 
 
 (* Statement *)

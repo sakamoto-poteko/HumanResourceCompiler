@@ -74,10 +74,10 @@ public:
 };
 
 // Terminal Nodes
-class IdentifierNode : public ASTNode {
+class IdentifierNode : public AbstractPrimaryExpressionNode {
 public:
     IdentifierNode(const lexer::IdentifierTokenPtr &token)
-        : ASTNode(token->lineno(), token->colno())
+        : AbstractPrimaryExpressionNode(token->lineno(), token->colno())
         , _name(token->get_value())
     {
     }
@@ -343,7 +343,7 @@ private:
 
 class NotExpressionNode : public AbstractUnaryExpressionNode {
 public:
-    NotExpressionNode(int lineno, int colno, AbstractExpressionNodePtr expr)
+    NotExpressionNode(int lineno, int colno, AbstractPrimaryExpressionNodePtr expr)
         : AbstractUnaryExpressionNode(lineno, colno)
         , _expr(expr)
     {
@@ -353,15 +353,15 @@ public:
 
     void accept(ASTNodeVisitor *visitor) override;
 
-    AbstractExpressionNodePtr get_expr() const { return _expr; }
+    AbstractPrimaryExpressionNodePtr get_expr() const { return _expr; }
 
 private:
-    AbstractExpressionNodePtr _expr;
+    AbstractPrimaryExpressionNodePtr _expr;
 };
 
 class PositiveExpressionNode : public AbstractUnaryExpressionNode {
 public:
-    PositiveExpressionNode(int lineno, int colno, AbstractExpressionNodePtr expr)
+    PositiveExpressionNode(int lineno, int colno, AbstractPrimaryExpressionNodePtr expr)
         : AbstractUnaryExpressionNode(lineno, colno)
         , _expr(expr)
     {
@@ -371,15 +371,15 @@ public:
 
     void accept(ASTNodeVisitor *visitor) override;
 
-    AbstractExpressionNodePtr get_expr() const { return _expr; }
+    AbstractPrimaryExpressionNodePtr get_expr() const { return _expr; }
 
 private:
-    AbstractExpressionNodePtr _expr;
+    AbstractPrimaryExpressionNodePtr _expr;
 };
 
 class NegativeExpressionNode : public AbstractUnaryExpressionNode {
 public:
-    NegativeExpressionNode(int lineno, int colno, AbstractExpressionNodePtr expr)
+    NegativeExpressionNode(int lineno, int colno, AbstractPrimaryExpressionNodePtr expr)
         : AbstractUnaryExpressionNode(lineno, colno)
         , _expr(expr)
     {
@@ -389,10 +389,10 @@ public:
 
     void accept(ASTNodeVisitor *visitor) override;
 
-    AbstractExpressionNodePtr get_expr() const { return _expr; }
+    AbstractPrimaryExpressionNodePtr get_expr() const { return _expr; }
 
 private:
-    AbstractExpressionNodePtr _expr;
+    AbstractPrimaryExpressionNodePtr _expr;
 };
 
 class IncrementExpressionNode : public AbstractUnaryExpressionNode {

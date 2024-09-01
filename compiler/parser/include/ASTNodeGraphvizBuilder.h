@@ -29,7 +29,6 @@ public:
 
     virtual std::string generate_graphviz();
 
-
     virtual void visit(IdentifierNodePtr node) override;
     virtual void visit(IntegerLiteralNodePtr node) override;
     virtual void visit(BooleanLiteralNodePtr node) override;
@@ -38,6 +37,9 @@ public:
     virtual void visit(VariableAssignmentNodePtr node) override;
     virtual void visit(FloorAssignmentNodePtr node) override;
     virtual void visit(BinaryExpressionNodePtr node) override;
+    virtual void visit(NegativeExpressionNodePtr node) override;
+    virtual void visit(PositiveExpressionNodePtr node) override;
+    virtual void visit(NotExpressionNodePtr node) override;
     virtual void visit(IncrementExpressionNodePtr node) override;
     virtual void visit(DecrementExpressionNodePtr node) override;
     virtual void visit(FloorAccessNodePtr node) override;

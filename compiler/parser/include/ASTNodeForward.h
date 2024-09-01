@@ -17,6 +17,9 @@ class VariableDeclarationNode;
 class VariableAssignmentNode;
 class FloorAssignmentNode;
 
+class PositiveExpressionNode;
+class NegativeExpressionNode;
+class NotExpressionNode;
 class AbstractExpressionNode;
 class BinaryExpressionNode;
 class AbstractUnaryExpressionNode;
@@ -70,9 +73,12 @@ using AbstractUnaryExpressionNodePtr = std::shared_ptr<AbstractUnaryExpressionNo
 using IncrementExpressionNodePtr = std::shared_ptr<IncrementExpressionNode>;
 using DecrementExpressionNodePtr = std::shared_ptr<DecrementExpressionNode>;
 using FloorAccessNodePtr = std::shared_ptr<FloorAccessNode>;
-using PrimaryExpressionNodePtr = std::shared_ptr<AbstractPrimaryExpressionNode>;
+using AbstractPrimaryExpressionNodePtr = std::shared_ptr<AbstractPrimaryExpressionNode>;
 using ParenthesizedExpressionNodePtr = std::shared_ptr<ParenthesizedExpressionNode>;
 using InvocationExpressionNodePtr = std::shared_ptr<InvocationExpressionNode>;
+using PositiveExpressionNodePtr = std::shared_ptr<PositiveExpressionNode>;
+using NegativeExpressionNodePtr = std::shared_ptr<NegativeExpressionNode>;
+using NotExpressionNodePtr = std::shared_ptr<NotExpressionNode>;
 
 using AbstractStatementNodePtr = std::shared_ptr<AbstractStatementNode>;
 using AbstractEmbeddedStatementNodePtr = std::shared_ptr<AbstractEmbeddedStatementNode>;

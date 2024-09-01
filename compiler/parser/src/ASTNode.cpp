@@ -143,5 +143,20 @@ void FloorAssignmentStatementNode::accept(ASTNodeVisitor *visitor)
     visitor->visit(shared_from_this_casted<FloorAssignmentStatementNode>());
 }
 
+void NegativeExpressionNode::accept(ASTNodeVisitor *visitor)
+{
+    visitor->visit(shared_from_this_casted<NegativeExpressionNode>());
+}
+
+void PositiveExpressionNode::accept(ASTNodeVisitor *visitor)
+{
+    visitor->visit(shared_from_this_casted<PositiveExpressionNode>());
+}
+
+void NotExpressionNode::accept(ASTNodeVisitor *visitor)
+{
+    visitor->visit(shared_from_this_casted<NotExpressionNode>());
+}
+
 CLOSE_PARSER_NAMESPACE
 // end

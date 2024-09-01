@@ -11,8 +11,8 @@
 #include "ASTNode.h"
 #include "ASTNodeForward.h"
 #include "HRLToken.h"
-#include "RecursiveDescentParser.h"
 #include "RecursiveDescentParser.Common.h"
+#include "RecursiveDescentParser.h"
 #include "hrl_global.h"
 #include "lexer_global.h"
 
@@ -300,17 +300,17 @@ bool RecursiveDescentParser::parse_statement(AbstractStatementNodePtr &node)
     case lexer::FLOOR: // floor_assignment_statement
         ok = parse_floor_assignment_statement(floor_assignment);
         CHECK_ERROR(ok);
-        node = std::static_pointer_cast<AbstractStatementNode>(floor_assignment);
+        SET_NODE_FROM(floor_assignment);
         break;
     case lexer::IDENTIFIER: // variable_assignment_statement
         ok = parse_variable_assignment_statement(var_assignment);
         CHECK_ERROR(ok);
-        node = std::static_pointer_cast<AbstractStatementNode>(var_assignment);
+        SET_NODE_FROM(var_assignment);
         break;
     case lexer::LET: // variable_declaration_statement
         ok = parse_variable_declaration_statement(var_decl);
         CHECK_ERROR(ok);
-        node = std::static_pointer_cast<AbstractStatementNode>(var_decl);
+        SET_NODE_FROM(var_decl);
         break;
     case lexer::RETURN: // embedded_statement
     case lexer::T: // embedded_statement
@@ -320,7 +320,7 @@ bool RecursiveDescentParser::parse_statement(AbstractStatementNodePtr &node)
     case lexer::OPEN_BRACE: // embedded_statement
         ok = parse_embedded_statement(embedded_statement);
         CHECK_ERROR(ok);
-        node = std::static_pointer_cast<AbstractStatementNode>(embedded_statement);
+        SET_NODE_FROM(embedded_statement);
         break;
     default:
         CHECK_ERROR_MSG(false, "Expect a statement but got '" + *token->token_text() + "'", lineno, colno);
@@ -352,13 +352,6 @@ bool RecursiveDescentParser::parse_variable_declaration(VariableDeclarationNodeP
 
     SET_NODE(var_name, expr);
 
-    LEAVE_PARSE_FRAME();
-}
-
-bool RecursiveDescentParser::parse_expression(AbstractExpressionNodePtr &node)
-{
-    ENTER_PARSE_FRAME();
-    // FIXME: impl
     LEAVE_PARSE_FRAME();
 }
 
@@ -447,32 +440,32 @@ bool RecursiveDescentParser::parse_embedded_statement(AbstractEmbeddedStatementN
     case lexer::FOR: // iteration_statement
         ok = parse_for_statement(for_statement);
         CHECK_ERROR(ok);
-        node = std::static_pointer_cast<AbstractEmbeddedStatementNode>(for_statement);
+        SET_NODE_FROM(for_statement);
         break;
     case lexer::WHILE: // iteration_statement
         ok = parse_while_statement(while_statement);
         CHECK_ERROR(ok);
-        node = std::static_pointer_cast<AbstractEmbeddedStatementNode>(while_statement);
+        SET_NODE_FROM(while_statement);
         break;
     case lexer::IF: // selection_statement
         ok = parse_if_statement(if_statement);
         CHECK_ERROR(ok);
-        node = std::static_pointer_cast<AbstractEmbeddedStatementNode>(if_statement);
+        SET_NODE_FROM(if_statement);
         break;
     case lexer::OPEN_BRACE: // statement_block
         ok = parse_statement_block(statement_block);
         CHECK_ERROR(ok);
-        node = std::static_pointer_cast<AbstractEmbeddedStatementNode>(statement_block);
+        SET_NODE_FROM(statement_block);
         break;
     case lexer::RETURN: // return_statement
         ok = parse_return_statement(return_statement);
         CHECK_ERROR(ok);
-        node = std::static_pointer_cast<AbstractEmbeddedStatementNode>(return_statement);
+        SET_NODE_FROM(return_statement);
         break;
     case lexer::T: // empty_statement
         ok = parse_empty_statement(empty_statement);
         CHECK_ERROR(ok);
-        node = std::static_pointer_cast<AbstractEmbeddedStatementNode>(empty_statement);
+        SET_NODE_FROM(empty_statement);
         break;
     default:
         CHECK_ERROR_MSG(false,
@@ -647,7 +640,7 @@ bool RecursiveDescentParser::parse_empty_statement(EmptyStatementNodePtr &node)
     ENTER_PARSE_FRAME();
 
     CHECK_TOKEN_AND_CONSUME(lexer::T, "';'");
-    
+
     SET_NODE();
 
     LEAVE_PARSE_FRAME();

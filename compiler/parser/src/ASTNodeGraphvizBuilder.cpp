@@ -369,5 +369,26 @@ void ASTNodeGraphvizBuilder::visit(FloorAssignmentStatementNodePtr node)
     node->get_floor_assignment()->accept(this);
 };
 
+void ASTNodeGraphvizBuilder::visit(NegativeExpressionNodePtr node)
+{
+    enter_and_create_vertex(node->type());
+    node->get_expr()->accept(this);
+    leave();
+}
+
+void ASTNodeGraphvizBuilder::visit(PositiveExpressionNodePtr node)
+{
+    enter_and_create_vertex(node->type());
+    node->get_expr()->accept(this);
+    leave();
+}
+
+void ASTNodeGraphvizBuilder::visit(NotExpressionNodePtr node)
+{
+    enter_and_create_vertex(node->type());
+    node->get_expr()->accept(this);
+    leave();
+}
+
 CLOSE_PARSER_NAMESPACE
 // end

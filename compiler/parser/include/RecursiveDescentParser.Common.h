@@ -11,7 +11,7 @@ OPEN_PARSER_NAMESPACE
 
 #define ENTER_PARSE_FRAME()                        \
     enter_parse_frame();                           \
-    lexer::TokenPtr token = lookahead();                  \
+    lexer::TokenPtr token = lookahead();           \
     int lineno = token->lineno();                  \
     int colno = token->colno();                    \
     std::list<std::string>::iterator last_error_it \
@@ -28,6 +28,9 @@ OPEN_PARSER_NAMESPACE
 
 #define TO_INTEGER_NODE() \
     std::make_shared<IntegerLiteralNode>(std::static_pointer_cast<hrl::lexer::IntegerToken>(token))
+
+#define TO_BOOLEAN_NODE() \
+    std::make_shared<BooleanLiteralNode>(std::static_pointer_cast<hrl::lexer::BooleanToken>(token))
 
 #define CHECK_TOKEN_AND_CONSUME(expected_token, expected_message) \
     token = lookahead();                                          \
@@ -77,6 +80,9 @@ OPEN_PARSER_NAMESPACE
 
 #define SET_NODE(...) \
     std::make_shared<std::remove_reference_t<decltype(node)>::element_type>(lineno, colno, ##__VA_ARGS__)
+
+#define SET_NODE_FROM(ptr) \
+    std::static_pointer_cast<std::remove_reference_t<decltype(node)>::element_type>(ptr)
 
 CLOSE_PARSER_NAMESPACE
 
