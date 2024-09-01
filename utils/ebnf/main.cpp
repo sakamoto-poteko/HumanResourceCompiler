@@ -125,7 +125,7 @@ Arguments parse_arguments(int argc, char **argv)
         { nullptr, 0, nullptr, 0 }
     };
 
-    while ((opt = getopt_long(argc, argv, "i:s:t:f:g:LCUF::NRhv", long_options, nullptr)) != -1) {
+    while ((opt = getopt_long(argc, argv, "i:s:t:f:g:F::LCUNRhv", long_options, nullptr)) != -1) {
         switch (opt) {
         case 'i':
             args.input_file = optarg;

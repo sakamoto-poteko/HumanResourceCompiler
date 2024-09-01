@@ -23,7 +23,7 @@ HRLLexer::~HRLLexer()
 {
 }
 
-int HRLLexer::lex(FILE *in, const std::string &filepath, std::vector<ManagedToken> &result)
+int HRLLexer::lex(FILE *in, const std::string &filepath, std::vector<TokenPtr> &result)
 {
     lexer_finalize(); // clean up if there's previous lexing context
     lexer_initialize(in);
@@ -31,13 +31,13 @@ int HRLLexer::lex(FILE *in, const std::string &filepath, std::vector<ManagedToke
     std::vector<std::string> lines;
     get_file_lines(in, lines);
 
-    std::vector<ManagedToken> r;
+    std::vector<TokenPtr> r;
 
     // begin tokenization
     TokenId currentTokenId = END;
 
     do {
-        ManagedToken token = tokenize();
+        TokenPtr token = tokenize();
         currentTokenId = token->token_id();
         r.push_back(token);
     } while (currentTokenId > 0);
@@ -61,7 +61,7 @@ int HRLLexer::lexer_initialize(FILE *in)
 {
     yyin = in;
     __currentToken.boolean = false;
-    __currentToken.identifier = ManagedString();
+    __currentToken.identifier = StringPtr();
     __currentToken.integer = 0;
     return 0;
 }
@@ -72,7 +72,7 @@ int HRLLexer::lexer_finalize()
     return 0;
 }
 
-ManagedToken HRLLexer::tokenize()
+TokenPtr HRLLexer::tokenize()
 {
     int val = yylex();
     TokenId tokenId = static_cast<TokenId>(val);
@@ -142,10 +142,10 @@ ManagedToken HRLLexer::tokenize()
         abort();
     }
 
-    return ManagedToken();
+    return TokenPtr();
 }
 
-void HRLLexer::print_tokenization_error(const std::string &filepath, int lineno, int colno, int width, const ManagedString &text, const std::vector<std::string> &lines)
+void HRLLexer::print_tokenization_error(const std::string &filepath, int lineno, int colno, int width, const StringPtr &text, const std::vector<std::string> &lines)
 {
     spdlog::error("{}:{}:{}:{}Unrecognized token `{}'{}", filepath, lineno, colno, __tc.COLOR_HIGHLIGHT, *(text.get()), __tc.COLOR_RESET);
     spdlog::error(lines.at(lineno - 1)); // line starts from 1

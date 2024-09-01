@@ -7,13 +7,14 @@
 #include "ASTNodeForward.h"
 #include "HRLToken.h"
 #include "hrl_global.h"
+#include "lexer_global.h"
 #include "parser_global.h"
-
-#include "ASTNodeVisitor.h"
 
 OPEN_PARSER_NAMESPACE
 
-class ASTNode : std::enable_shared_from_this<ASTNode> {
+class ASTNodeVisitor;
+
+class ASTNode : public std::enable_shared_from_this<ASTNode> {
 public:
     ASTNode(int lineno, int colno)
         : _lineno(lineno)
@@ -35,7 +36,7 @@ public:
         return _colno;
     }
 
-    virtual const char *name() = 0;
+    virtual const char *type() = 0;
 
     template <typename T>
     std::shared_ptr<T> shared_from_this_casted()
@@ -75,31 +76,31 @@ public:
 // Terminal Nodes
 class IdentifierNode : public ASTNode {
 public:
-    IdentifierNode(const lexer::IdentifierToken &token)
-        : ASTNode(token.lineno(), token.colno())
-        , _name(token.get_value())
+    IdentifierNode(const lexer::IdentifierTokenPtr &token)
+        : ASTNode(token->lineno(), token->colno())
+        , _name(token->get_value())
     {
     }
 
-    const char *name() override { return "Identifier"; }
+    const char *type() override { return "Identifier"; }
 
     void accept(ASTNodeVisitor *visitor) override;
 
-    const ManagedString get_name() const { return _name; }
+    const StringPtr get_value() const { return _name; }
 
 private:
-    ManagedString _name;
+    StringPtr _name;
 };
 
 class IntegerLiteralNode : public AbstractPrimaryExpressionNode {
 public:
-    IntegerLiteralNode(const lexer::IntegerToken &token)
-        : AbstractPrimaryExpressionNode(token.lineno(), token.colno())
-        , _value(token.get_value())
+    IntegerLiteralNode(const lexer::IntegerTokenPtr &token)
+        : AbstractPrimaryExpressionNode(token->lineno(), token->colno())
+        , _value(token->get_value())
     {
     }
 
-    const char *name() override { return "IntegerLiteral"; }
+    const char *type() override { return "IntegerLiteral"; }
 
     void accept(ASTNodeVisitor *visitor) override;
 
@@ -109,17 +110,15 @@ private:
     int _value;
 };
 
-// Similar classes for BooleanLiteralNode, BinaryOperatorNode, etc.
-
 class BooleanLiteralNode : public AbstractPrimaryExpressionNode {
 public:
-    BooleanLiteralNode(const lexer::BooleanToken &token)
-        : AbstractPrimaryExpressionNode(token.lineno(), token.colno())
-        , _value(token.get_value())
+    BooleanLiteralNode(const lexer::BooleanTokenPtr &token)
+        : AbstractPrimaryExpressionNode(token->lineno(), token->colno())
+        , _value(token->get_value())
     {
     }
 
-    const char *name() override { return "BooleanLiteral"; }
+    const char *type() override { return "BooleanLiteral"; }
 
     void accept(ASTNodeVisitor *visitor) override;
 
@@ -131,9 +130,9 @@ private:
 
 class BinaryOperatorNode : public ASTNode {
 public:
-    BinaryOperatorNode(int lineno, int colno, const lexer::Token &token)
-        : ASTNode(token.lineno(), token.colno())
-        , _op(get_binary_operator_from_token_id(token.token_id()))
+    BinaryOperatorNode(int lineno, int colno, const lexer::TokenPtr &token)
+        : ASTNode(token->lineno(), token->colno())
+        , _op(get_binary_operator_from_token_id(token->token_id()))
     {
     }
 
@@ -157,6 +156,44 @@ public:
 
         EQ,
     };
+
+    static const char *get_binary_operator_string(BinaryOperator op)
+    {
+        switch (op) {
+        case GE:
+            return "GE";
+        case LE:
+            return "LE";
+        case EE:
+            return "EE";
+        case NE:
+            return "NE";
+        case GT:
+            return "GT";
+        case LT:
+            return "LT";
+        case AND:
+            return "AND";
+        case OR:
+            return "OR";
+        case NOT:
+            return "NOT";
+        case ADD:
+            return "ADD";
+        case SUB:
+            return "SUB";
+        case MUL:
+            return "MUL";
+        case DIV:
+            return "DIV";
+        case MOD:
+            return "MOD";
+        case EQ:
+            return "EQ";
+        default:
+            return "Unknown";
+        }
+    }
 
     inline static BinaryOperator get_binary_operator_from_token_id(lexer::TokenId token_id)
     {
@@ -196,7 +233,7 @@ public:
         }
     }
 
-    const char *name() override
+    const char *type() override
     {
         return "BinaryOperator";
     }
@@ -219,7 +256,7 @@ public:
     {
     }
 
-    const char *name() override { return "VariableDeclaration"; }
+    const char *type() override { return "VariableDeclaration"; }
 
     void accept(ASTNodeVisitor *visitor) override;
 
@@ -242,7 +279,7 @@ public:
     {
     }
 
-    const char *name() override { return "VariableAssignment"; }
+    const char *type() override { return "VariableAssignment"; }
 
     void accept(ASTNodeVisitor *visitor) override;
 
@@ -264,7 +301,7 @@ public:
     {
     }
 
-    const char *name() override { return "FloorAssignment"; }
+    const char *type() override { return "FloorAssignment"; }
 
     void accept(ASTNodeVisitor *visitor) override;
 
@@ -288,7 +325,7 @@ public:
     {
     }
 
-    const char *name() override { return "BinaryExpression"; }
+    const char *type() override { return "BinaryExpression"; }
 
     void accept(ASTNodeVisitor *visitor) override;
 
@@ -312,7 +349,7 @@ public:
     {
     }
 
-    const char *name() override { return "NotExpression"; }
+    const char *type() override { return "NotExpression"; }
 
     void accept(ASTNodeVisitor *visitor) override;
 
@@ -330,7 +367,7 @@ public:
     {
     }
 
-    const char *name() override { return "PositiveExpression"; }
+    const char *type() override { return "PositiveExpression"; }
 
     void accept(ASTNodeVisitor *visitor) override;
 
@@ -348,7 +385,7 @@ public:
     {
     }
 
-    const char *name() override { return "NegativeExpression"; }
+    const char *type() override { return "NegativeExpression"; }
 
     void accept(ASTNodeVisitor *visitor) override;
 
@@ -366,7 +403,7 @@ public:
     {
     }
 
-    const char *name() override { return "IncrementExpression"; }
+    const char *type() override { return "IncrementExpression"; }
 
     void accept(ASTNodeVisitor *visitor) override;
 
@@ -384,7 +421,7 @@ public:
     {
     }
 
-    const char *name() override { return "DecrementExpression"; }
+    const char *type() override { return "DecrementExpression"; }
 
     void accept(ASTNodeVisitor *visitor) override;
 
@@ -402,7 +439,7 @@ public:
     {
     }
 
-    const char *name() override { return "FloorAccess"; }
+    const char *type() override { return "FloorAccess"; }
 
     void accept(ASTNodeVisitor *visitor) override;
 
@@ -420,7 +457,7 @@ public:
     {
     }
 
-    const char *name() override { return "ParenthesizedExpression"; }
+    const char *type() override { return "ParenthesizedExpression"; }
 
     void accept(ASTNodeVisitor *visitor) override;
 
@@ -439,7 +476,7 @@ public:
     {
     }
 
-    const char *name() override { return "InvocationExpression"; }
+    const char *type() override { return "InvocationExpression"; }
 
     void accept(ASTNodeVisitor *visitor) override;
 
@@ -495,7 +532,7 @@ public:
     {
     }
 
-    const char *name() override { return "IfStatement"; }
+    const char *type() override { return "IfStatement"; }
 
     void accept(ASTNodeVisitor *visitor) override;
 
@@ -520,7 +557,7 @@ public:
     {
     }
 
-    const char *name() override { return "WhileStatement"; }
+    const char *type() override { return "WhileStatement"; }
 
     void accept(ASTNodeVisitor *visitor) override;
 
@@ -563,7 +600,7 @@ public:
     {
     }
 
-    const char *name() override { return "ForStatement"; }
+    const char *type() override { return "ForStatement"; }
 
     void accept(ASTNodeVisitor *visitor) override;
 
@@ -598,7 +635,7 @@ public:
     {
     }
 
-    const char *name() override { return "ReturnStatement"; }
+    const char *type() override { return "ReturnStatement"; }
 
     void accept(ASTNodeVisitor *visitor) override;
 
@@ -617,7 +654,7 @@ public:
     {
     }
 
-    const char *name() override { return "FloorBoxInitStatement"; }
+    const char *type() override { return "FloorBoxInitStatement"; }
 
     void accept(ASTNodeVisitor *visitor) override;
 
@@ -638,7 +675,7 @@ public:
     {
     }
 
-    const char *name() override { return "FloorMaxInitStatement"; }
+    const char *type() override { return "FloorMaxInitStatement"; }
 
     void accept(ASTNodeVisitor *visitor) override;
 
@@ -655,7 +692,7 @@ public:
     {
     }
 
-    const char *name() override { return "EmptyStatement"; }
+    const char *type() override { return "EmptyStatement"; }
 
     void accept(ASTNodeVisitor *visitor) override;
 };
@@ -668,7 +705,7 @@ public:
     {
     }
 
-    const char *name() override { return "StatementBlock"; }
+    const char *type() override { return "StatementBlock"; }
 
     void accept(ASTNodeVisitor *visitor) override;
 
@@ -708,7 +745,7 @@ public:
     {
     }
 
-    const char *name() override { return "FunctionDefinition"; }
+    const char *type() override { return "FunctionDefinition"; }
 
     void accept(ASTNodeVisitor *visitor) override;
 };
@@ -720,7 +757,7 @@ public:
     {
     }
 
-    const char *name() override { return "SubprocDefinition"; }
+    const char *type() override { return "SubprocDefinition"; }
 
     void accept(ASTNodeVisitor *visitor) override;
 };
@@ -732,6 +769,10 @@ public:
         , _module_name(module_name)
     {
     }
+
+    const char *type() override { return "ImportDirective"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
 
     IdentifierNodePtr get_module_name() const { return _module_name; }
 
@@ -746,25 +787,29 @@ public:
         int lineno, int colno,
         const std::vector<ImportDirectiveNodePtr> &imports,
         const std::vector<FloorBoxInitStatementNodePtr> &floor_inits,
+        const FloorMaxInitStatementNodePtr &floor_max,
         const std::vector<VariableDeclarationNodePtr> &top_level_decls,
         const std::vector<FunctionDefinitionNodePtr> &functions,
         const std::vector<SubprocDefinitionNodePtr> &subprocs)
         : ASTNode(lineno, colno)
         , _imports(imports)
         , _floor_inits(floor_inits)
+        , _floor_max(floor_max)
         , _top_level_decls(top_level_decls)
         , _functions(functions)
         , _subprocs(subprocs)
     {
     }
 
-    const char *name() override { return "CompilationUnit"; }
+    const char *type() override { return "CompilationUnit"; }
 
     void accept(ASTNodeVisitor *visitor) override;
 
     const std::vector<ImportDirectiveNodePtr> &get_imports() const { return _imports; }
 
     const std::vector<FloorBoxInitStatementNodePtr> &get_floor_inits() const { return _floor_inits; }
+
+    const FloorMaxInitStatementNodePtr &get_floor_max() const { return _floor_max; }
 
     const std::vector<VariableDeclarationNodePtr> &get_top_level_decls() const { return _top_level_decls; }
 
@@ -775,10 +820,14 @@ public:
 private:
     std::vector<ImportDirectiveNodePtr> _imports;
     std::vector<FloorBoxInitStatementNodePtr> _floor_inits;
+    FloorMaxInitStatementNodePtr _floor_max;
     std::vector<VariableDeclarationNodePtr> _top_level_decls;
     std::vector<FunctionDefinitionNodePtr> _functions;
     std::vector<SubprocDefinitionNodePtr> _subprocs;
 };
+
+template <typename T>
+concept convertible_to_ASTNodePtr = std::convertible_to<T, ASTNodePtr>;
 
 CLOSE_PARSER_NAMESPACE
 

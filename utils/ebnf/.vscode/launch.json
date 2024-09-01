@@ -19,8 +19,7 @@
                 "-g",
                 "build/hrl.dot",
                 "-LCURN",
-                "-F",
-                "build/Firsts"
+                "-F/Users/afa/projects/HumanResourceCompiler/compiler/build/First"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

@@ -1,0 +1,43 @@
+binary_expression: $REF[binary_expression] $REF[unary_expression] 
+binary_operator: ADD AND DIV EE GE GT LE LT MOD MUL NE OR SUB 
+compilation_unit: IMPORT(import_directive) INIT(floor_inits) 
+decrement_expression: SUBSUB 
+embedded_statement: FOR(iteration_statement) IF(selection_statement) OPEN_BRACE(statement_block) RETURN(return_statement) T(empty_statement) WHILE(iteration_statement) 
+empty_statement: T 
+expression: ADD(unary_expression) ADDADD(unary_expression) BOOLEAN(unary_expression) FLOOR(unary_expression) IDENTIFIER(unary_expression) INTEGER(unary_expression) NOT(unary_expression) OPEN_PAREN(unary_expression) SUB(unary_expression) SUBSUB(unary_expression) 
+floor_access: FLOOR 
+floor_assignment: FLOOR(floor_access) 
+floor_assignment_statement: FLOOR(floor_assignment) 
+floor_box_init_statement: INIT 
+floor_inits: INIT(floor_box_init_statement) 
+floor_max_init_statement: INIT 
+for_statement: FOR 
+formal_parameter_list: IDENTIFIER 
+function_body: OPEN_BRACE(statement_block) 
+function_definition: FUNCTION(function_header) 
+function_header: FUNCTION 
+function_name: IDENTIFIER 
+if_statement: IF 
+import_directive: IMPORT 
+increment_expression: ADDADD 
+invocation_expression: IDENTIFIER(function_name) 
+iteration_statement: FOR(for_statement) WHILE(while_statement) 
+literal: BOOLEAN INTEGER 
+negative_expression: SUB 
+not_expression: NOT 
+parenthesized_expression: OPEN_PAREN 
+positive_expression: ADD 
+primary_expression: BOOLEAN(literal) FLOOR(floor_access) IDENTIFIER(invocation_expression) INTEGER(literal) OPEN_PAREN(parenthesized_expression) 
+return_statement: RETURN 
+selection_statement: IF(if_statement) 
+statement: FLOOR(floor_assignment_statement) FOR(embedded_statement) IDENTIFIER(variable_assignment_statement) IF(embedded_statement) LET(variable_declaration_statement) OPEN_BRACE(embedded_statement) RETURN(embedded_statement) T(embedded_statement) WHILE(embedded_statement) 
+statement_block: OPEN_BRACE 
+subproc_definition: SUBWORD(subproc_header) 
+subproc_header: SUBWORD 
+unary_expression: ADD(positive_expression) ADDADD(increment_expression) BOOLEAN(primary_expression) FLOOR(primary_expression) IDENTIFIER(primary_expression) INTEGER(primary_expression) NOT(not_expression) OPEN_PAREN(primary_expression) SUB(negative_expression) SUBSUB(decrement_expression) 
+variable_assignment: IDENTIFIER(variable_name) 
+variable_assignment_statement: IDENTIFIER(variable_assignment) 
+variable_declaration: LET 
+variable_declaration_statement: LET(variable_declaration) 
+variable_name: IDENTIFIER 
+while_statement: WHILE

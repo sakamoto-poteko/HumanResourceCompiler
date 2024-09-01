@@ -15,7 +15,7 @@ public:
     Utilities();
     ~Utilities();
 
-    static void write_token_list_to_file(FILE *file, const std::vector<ManagedToken> &tokens);
+    static void write_token_list_to_file(FILE *file, const std::vector<TokenPtr> &tokens);
 
 private:
 };

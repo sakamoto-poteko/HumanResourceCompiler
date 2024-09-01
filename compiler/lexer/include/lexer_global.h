@@ -15,7 +15,13 @@
 OPEN_LEXER_NAMESPACE
 
 class Token;
-using ManagedToken = std::shared_ptr<Token>;
+class IdentifierToken;
+class IntegerToken;
+class BooleanToken;
+using TokenPtr = std::shared_ptr<Token>;
+using IdentifierTokenPtr = std::shared_ptr<IdentifierToken>;
+using IntegerTokenPtr = std::shared_ptr<IntegerToken>;
+using BooleanTokenPtr = std::shared_ptr<BooleanToken>;
 
 CLOSE_LEXER_NAMESPACE
 

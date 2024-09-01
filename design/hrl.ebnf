@@ -47,13 +47,8 @@ floor_box_init_statement = INIT, FLOOR, OPEN_BRACKET, INTEGER, CLOSE_BRACKET, EQ
 floor_max_init_statement = INIT, FLOOR_MAX, EQ, INTEGER, T;
 
 (* Function and subprocedure *)
-function_definition = function_header, function_body;
-subproc_definition = subproc_header, function_body;
-(* Only one or zero param allowed now *)
-formal_parameter_list = IDENTIFIER;
-function_header = FUNCTION, function_name, OPEN_PAREN, [formal_parameter_list], CLOSE_PAREN;
-subproc_header = SUBWORD, function_name, OPEN_PAREN, [formal_parameter_list], CLOSE_PAREN;
-function_body = statement_block;
+function_definition = FUNCTION, function_name, OPEN_PAREN, {IDENTIFIER}, CLOSE_PAREN, statement_block;
+subproc_definition = SUBWORD, function_name, OPEN_PAREN, {IDENTIFIER}, CLOSE_PAREN, statement_block;
 
 (* Compilation Unit *)
 import_directive = IMPORT, IDENTIFIER, T;

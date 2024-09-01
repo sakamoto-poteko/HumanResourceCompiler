@@ -62,7 +62,7 @@ enum TokenId : int {
 
 class Token : std::enable_shared_from_this<Token> {
 public:
-    Token(TokenId tokenId, int row, int col, int width, ManagedString text)
+    Token(TokenId tokenId, int row, int col, int width, StringPtr text)
         : _token_id(tokenId)
         , _lineno(row)
         , _colno(col)
@@ -77,7 +77,7 @@ public:
 
     TokenId token_id() const { return _token_id; }
 
-    ManagedString token_text() const { return _text; }
+    StringPtr token_text() const { return _text; }
 
     int lineno() const { return _lineno; }
 
@@ -91,12 +91,12 @@ protected:
     int _lineno;
     int _colno;
     int _width;
-    ManagedString _text;
+    StringPtr _text;
 };
 
 class BooleanToken : public Token {
 public:
-    BooleanToken(TokenId id, bool value, int row, int col, int width, ManagedString text)
+    BooleanToken(TokenId id, bool value, int row, int col, int width, StringPtr text)
         : Token(id, row, col, width, text)
         , _value(value)
     {
@@ -110,7 +110,7 @@ protected:
 
 class IntegerToken : public Token {
 public:
-    IntegerToken(TokenId id, int value, int row, int col, int width, ManagedString text)
+    IntegerToken(TokenId id, int value, int row, int col, int width, StringPtr text)
         : Token(id, row, col, width, text)
         , _value(value)
     {
@@ -124,16 +124,16 @@ protected:
 
 class IdentifierToken : public Token {
 public:
-    IdentifierToken(TokenId id, ManagedString value, int row, int col, int width, ManagedString text)
+    IdentifierToken(TokenId id, StringPtr value, int row, int col, int width, StringPtr text)
         : Token(id, row, col, width, text)
         , _value(value)
     {
     }
 
-    ManagedString get_value() const { return _value; }
+    StringPtr get_value() const { return _value; }
 
 protected:
-    ManagedString _value;
+    StringPtr _value;
 };
 
 CLOSE_LEXER_NAMESPACE

@@ -10,10 +10,10 @@ Utilities::~Utilities()
 {
 }
 
-void Utilities::write_token_list_to_file(FILE *file, const std::vector<ManagedToken> &tokens)
+void Utilities::write_token_list_to_file(FILE *file, const std::vector<TokenPtr> &tokens)
 {
     int indent = 0;
-    for (const ManagedToken &token : tokens) {
+    for (const TokenPtr &token : tokens) {
         std::string name = token->get_token_name();
         if (name[0] == 'T') {
             std::fprintf(file, ";\n");

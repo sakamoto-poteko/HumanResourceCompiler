@@ -4,6 +4,6 @@
 #include <string>
 #include <memory>
 
-typedef std::shared_ptr<std::string> ManagedString;
+typedef std::shared_ptr<std::string> StringPtr;
 
 #endif

@@ -10,34 +10,33 @@ OPEN_PARSER_NAMESPACE
 class ASTNodeVisitor {
 public:
     ASTNodeVisitor() = default;
-
     virtual ~ASTNodeVisitor() = default;
 
-    virtual void visit(IdentifierNode *node) = 0;
-    virtual void visit(IntegerLiteralNode *node) = 0;
-    virtual void visit(BooleanLiteralNode *node) = 0;
-    virtual void visit(BinaryOperatorNode *node) = 0;
-    virtual void visit(VariableDeclarationNode *node) = 0;
-    virtual void visit(VariableAssignmentNode *node) = 0;
-    virtual void visit(FloorAssignmentNode *node) = 0;
-    virtual void visit(BinaryExpressionNode *node) = 0;
-    virtual void visit(IncrementExpressionNode *node) = 0;
-    virtual void visit(DecrementExpressionNode *node) = 0;
-    virtual void visit(FloorAccessNode *node) = 0;
-    virtual void visit(ParenthesizedExpressionNode *node) = 0;
-    virtual void visit(InvocationExpressionNode *node) = 0;
-    virtual void visit(IfStatementNode *node) = 0;
-    virtual void visit(WhileStatementNode *node) = 0;
-    virtual void visit(ForStatementNode *node) = 0;
-    virtual void visit(ReturnStatementNode *node) = 0;
-    virtual void visit(FloorBoxInitStatementNode *node) = 0;
-    virtual void visit(FloorMaxInitStatementNode *node) = 0;
-    virtual void visit(EmptyStatementNode *node) = 0;
-    virtual void visit(StatementBlockNode *node) = 0;
-    virtual void visit(RoutineDefinitionCommonNode *node) = 0;
-    virtual void visit(SubprocDefinitionNode *node) = 0;
-    virtual void visit(FunctionDefinitionNode *node) = 0;
-    virtual void visit(CompilationUnitNode *node) = 0;
+    virtual void visit(IdentifierNodePtr node) = 0;
+    virtual void visit(IntegerLiteralNodePtr node) = 0;
+    virtual void visit(BooleanLiteralNodePtr node) = 0;
+    virtual void visit(BinaryOperatorNodePtr node) = 0;
+    virtual void visit(VariableDeclarationNodePtr node) = 0;
+    virtual void visit(VariableAssignmentNodePtr node) = 0;
+    virtual void visit(FloorAssignmentNodePtr node) = 0;
+    virtual void visit(BinaryExpressionNodePtr node) = 0;
+    virtual void visit(IncrementExpressionNodePtr node) = 0;
+    virtual void visit(DecrementExpressionNodePtr node) = 0;
+    virtual void visit(FloorAccessNodePtr node) = 0;
+    virtual void visit(ParenthesizedExpressionNodePtr node) = 0;
+    virtual void visit(InvocationExpressionNodePtr node) = 0;
+    virtual void visit(IfStatementNodePtr node) = 0;
+    virtual void visit(WhileStatementNodePtr node) = 0;
+    virtual void visit(ForStatementNodePtr node) = 0;
+    virtual void visit(ReturnStatementNodePtr node) = 0;
+    virtual void visit(FloorBoxInitStatementNodePtr node) = 0;
+    virtual void visit(FloorMaxInitStatementNodePtr node) = 0;
+    virtual void visit(EmptyStatementNodePtr node) = 0;
+    virtual void visit(StatementBlockNodePtr node) = 0;
+    virtual void visit(SubprocDefinitionNodePtr node) = 0;
+    virtual void visit(FunctionDefinitionNodePtr node) = 0;
+    virtual void visit(ImportDirectiveNodePtr node) = 0;
+    virtual void visit(CompilationUnitNodePtr node) = 0;
 };
 
 CLOSE_PARSER_NAMESPACE

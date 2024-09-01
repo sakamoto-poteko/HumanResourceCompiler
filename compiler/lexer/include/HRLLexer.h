@@ -14,14 +14,14 @@ public:
     HRLLexer();
     ~HRLLexer();
 
-    int lex(FILE *in, const std::string &filepath, std::vector<ManagedToken> &result);
+    int lex(FILE *in, const std::string &filepath, std::vector<TokenPtr> &result);
 
 private:
     int lexer_initialize(FILE *in);
     int lexer_finalize();
 
-    ManagedToken tokenize();
-    void print_tokenization_error(const std::string &filepath, int lineno, int colno, int width, const ManagedString &text, const std::vector<std::string> &lines);
+    TokenPtr tokenize();
+    void print_tokenization_error(const std::string &filepath, int lineno, int colno, int width, const StringPtr &text, const std::vector<std::string> &lines);
 
     void get_file_lines(FILE *in, std::vector<std::string> &rows);
 };

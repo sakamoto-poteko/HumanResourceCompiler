@@ -1,8 +1,11 @@
 #include <spdlog/spdlog.h>
 
+#include "ASTNodeForward.h"
+#include "ASTNodeGraphvizBuilder.h"
 #include "CompilerOptions.h"
 #include "FileManager.h"
 #include "HRLLexer.h"
+#include "RecursiveDescentParser.h"
 #include "TerminalColor.h"
 #include "Utilities.h"
 
@@ -30,7 +33,7 @@ int main(int argc, char **argv)
     }
 
     HRLLexer lexer;
-    std::vector<ManagedToken> tokens;
+    std::vector<TokenPtr> tokens;
 
     int result = lexer.lex(file, fileManager.get_input_filename(), tokens);
     if (result != 0) {
@@ -47,5 +50,12 @@ int main(int argc, char **argv)
     Utilities::write_token_list_to_file(output, tokens);
 
     fclose(file);
+
+    hrl::parser::RecursiveDescentParser parser(tokens);
+    hrl::parser::CompilationUnitNodePtr compilation_unit;
+    bool parsed = parser.parse(compilation_unit);
+    hrl::parser::ASTNodeGraphvizBuilder graphviz(compilation_unit);
+    graphviz.generate_graphviz();
+
     return 0;
 }
