@@ -39,16 +39,20 @@ protected:
     bool parse_import_directive(ImportDirectiveNodePtr &node);
     bool parse_floor_box_init_statement(FloorBoxInitStatementNodePtr &node);
     bool parse_floor_max_statement(FloorMaxInitStatementNodePtr &node);
-    bool parse_variable_declaration_statement(FloorMaxInitStatementNodePtr &node);
     bool parse_function_definition(FunctionDefinitionNodePtr &node);
     bool parse_subproc_definition(SubprocDefinitionNodePtr &node);
     bool parse_statement_block(StatementBlockNodePtr &node);
     bool parse_statement(AbstractStatementNodePtr &node);
-    bool parse_variable_declaration_statement(VariableDeclarationNodePtr &node);
+    bool parse_variable_declaration_statement(VariableDeclarationStatementNodePtr &node);
     bool parse_variable_declaration(VariableDeclarationNodePtr &node);
+    bool parse_expression(AbstractExpressionNodePtr &node);
+    bool parse_floor_assignment_statement(FloorAssignmentStatementNodePtr &node);
+    bool parse_floor_assignment(FloorAssignmentNodePtr &node);
+    bool parse_floor_access(FloorAccessNodePtr &node);
+    bool parse_variable_assignment_statement(VariableAssignmentStatementNodePtr &node);
+    bool parse_variable_assignment(VariableAssignmentNodePtr &node);
 
-    // TODO: this func is for clangd anchoring. remove after dev
-    void placeholder();
+    bool parse_embedded_statement(AbstractEmbeddedStatementNodePtr &node);
 
     void push_error(const std::string &expect, const lexer::TokenPtr &got, int lineno = -1, int colno = -1);
     void push_error(const std::string &message, int lineno = -1, int colno = -1);

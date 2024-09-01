@@ -128,4 +128,20 @@ void CompilationUnitNode::accept(ASTNodeVisitor *visitor)
     visitor->visit(shared_from_this_casted<CompilationUnitNode>());
 }
 
+void VariableDeclarationStatementNode::accept(ASTNodeVisitor *visitor)
+{
+    visitor->visit(shared_from_this_casted<VariableDeclarationStatementNode>());
+}
+
+void VariableAssignmentStatementNode::accept(ASTNodeVisitor *visitor)
+{
+    visitor->visit(shared_from_this_casted<VariableAssignmentStatementNode>());
+}
+
+void FloorAssignmentStatementNode::accept(ASTNodeVisitor *visitor)
+{
+    visitor->visit(shared_from_this_casted<FloorAssignmentStatementNode>());
+}
+
 CLOSE_PARSER_NAMESPACE
+// end

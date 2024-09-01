@@ -11,6 +11,90 @@
 
 OPEN_PARSER_NAMESPACE
 
+ASTNodeGraphvizBuilder::Vertex ASTNodeGraphvizBuilder::enter_and_create_vertex(const std::string &name, const std::string &value, bool terminal)
+{
+    Vertex vertex = _graph.add_vertex(NodeProperty {
+        .name = name,
+        .terminal = terminal,
+        .value = value });
+
+    if (!_ancestors.empty()) {
+        _graph.add_edge(_ancestors.top(), vertex);
+    }
+
+    _ancestors.push(vertex);
+    return vertex;
+}
+
+ASTNodeGraphvizBuilder::Vertex ASTNodeGraphvizBuilder::enter_and_create_vertex(const std::string &name, bool terminal)
+{
+    return enter_and_create_vertex(name, std::string(), terminal);
+}
+
+void ASTNodeGraphvizBuilder::leave()
+{
+    _ancestors.pop();
+}
+
+std::string ASTNodeGraphvizBuilder::escape_graphviz(const std::string &text)
+{
+    std::string escaped;
+
+    for (auto it = text.begin(); it != text.end(); ++it) {
+        switch (*it) {
+        case '\\':
+            escaped.append("\\\\");
+            break;
+        case '\n':
+            escaped.append("\\n");
+            break;
+        case '"':
+            escaped.append("\\\"");
+            break;
+        default:
+            escaped.push_back(*it);
+            break;
+        }
+    }
+
+    return escaped;
+}
+
+std::string ASTNodeGraphvizBuilder::generate_graphviz()
+{
+    _root->accept(this);
+
+    std::stringstream dotfile;
+    boost::write_graphviz(dotfile, _graph, [this](std::ostream &out, auto &v) {
+        NodeProperty &node = _graph[v];
+
+        std::string label;
+        if (node.value.empty()) {
+            label = node.name;
+        } else {
+            label = node.value;
+        }
+
+        if (node.terminal) {
+            out << "[label=\"" << escape_graphviz(label)
+                << "\" shape=note style=\"filled\" fillcolor=lightcoral fontname=Courier]";
+        } else {
+            out << "[label=\"" << escape_graphviz(label)
+                << "\" shape=rect style=\"rounded,filled\" fillcolor=lightgreen fontname=Helvetica]";
+        }
+    });
+
+    std::cout << std::endl
+              << dotfile.str()
+              << std::endl;
+
+    std::ofstream out("build/out.dot");
+    out << dotfile.str();
+    out.close();
+
+    return dotfile.str();
+}
+
 ASTNodeGraphvizBuilder::ASTNodeGraphvizBuilder(const CompilationUnitNodePtr &root)
     : _root(root)
 {
@@ -157,9 +241,11 @@ void ASTNodeGraphvizBuilder::visit(ForStatementNodePtr node)
 {
     enter_and_create_vertex(node->type());
 
-    enter_and_create_vertex("Init");
-    node->get_init_stmt()->accept(this);
-    leave();
+    if (node->get_init_stmt()) {
+        enter_and_create_vertex("Init");
+        node->get_init_stmt()->accept(this);
+        leave();
+    }
 
     enter_and_create_vertex("Cond");
     node->get_condition()->accept(this);
@@ -179,7 +265,9 @@ void ASTNodeGraphvizBuilder::visit(ForStatementNodePtr node)
 void ASTNodeGraphvizBuilder::visit(ReturnStatementNodePtr node)
 {
     enter_and_create_vertex(node->type());
-    node->get_expr()->accept(this);
+    if (node->get_expr()) {
+        node->get_expr()->accept(this);
+    }
     leave();
 }
 
@@ -266,88 +354,20 @@ void ASTNodeGraphvizBuilder::visit(CompilationUnitNodePtr node)
     leave();
 }
 
-ASTNodeGraphvizBuilder::Vertex ASTNodeGraphvizBuilder::enter_and_create_vertex(const std::string &name, const std::string &value, bool terminal)
+void ASTNodeGraphvizBuilder::visit(VariableDeclarationStatementNodePtr node)
 {
-    Vertex vertex = _graph.add_vertex(NodeProperty {
-        .name = name,
-        .terminal = terminal,
-        .value = value });
-
-    if (!_ancestors.empty()) {
-        _graph.add_edge(_ancestors.top(), vertex);
-    }
-
-    _ancestors.push(vertex);
-    return vertex;
+    node->get_variable_decl()->accept(this);
 }
 
-ASTNodeGraphvizBuilder::Vertex ASTNodeGraphvizBuilder::enter_and_create_vertex(const std::string &name, bool terminal)
+void ASTNodeGraphvizBuilder::visit(VariableAssignmentStatementNodePtr node)
 {
-    return enter_and_create_vertex(name, std::string(), terminal);
+    node->get_variable_assignment().accept(this);
 }
 
-void ASTNodeGraphvizBuilder::leave()
+void ASTNodeGraphvizBuilder::visit(FloorAssignmentStatementNodePtr node)
 {
-    _ancestors.pop();
-}
-
-std::string ASTNodeGraphvizBuilder::escape_graphviz(const std::string &text)
-{
-    std::string escaped;
-
-    for (auto it = text.begin(); it != text.end(); ++it) {
-        switch (*it) {
-        case '\\':
-            escaped.append("\\\\");
-            break;
-        case '\n':
-            escaped.append("\\n");
-            break;
-        case '"':
-            escaped.append("\\\"");
-            break;
-        default:
-            escaped.push_back(*it);
-            break;
-        }
-    }
-
-    return escaped;
-}
-
-std::string ASTNodeGraphvizBuilder::generate_graphviz()
-{
-    _root->accept(this);
-
-    std::stringstream dotfile;
-    boost::write_graphviz(dotfile, _graph, [this](std::ostream &out, auto &v) {
-        NodeProperty &node = _graph[v];
-
-        std::string label;
-        if (node.value.empty()) {
-            label = node.name;
-        } else {
-            label = node.value;
-        }
-
-        if (node.terminal) {
-            out << "[label=\"" << escape_graphviz(label)
-                << "\" shape=note style=\"filled\" fillcolor=lightcoral fontname=Courier]";
-        } else {
-            out << "[label=\"" << escape_graphviz(label)
-                << "\" shape=rect style=\"rounded,filled\" fillcolor=lightgreen fontname=Helvetica]";
-        }
-    });
-
-    std::cout << std::endl
-              << dotfile.str()
-              << std::endl;
-
-    std::ofstream out("build/out.dot");
-    out << dotfile.str();
-    out.close();
-
-    return dotfile.str();
-}
+    node->get_floor_assignment()->accept(this);
+};
 
 CLOSE_PARSER_NAMESPACE
+// end

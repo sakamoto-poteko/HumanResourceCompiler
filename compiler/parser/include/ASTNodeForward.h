@@ -40,6 +40,9 @@ class FloorBoxInitStatementNode;
 class FloorMaxInitStatementNode;
 class EmptyStatementNode;
 class StatementBlockNode;
+class FloorAssignmentStatementNode;
+class VariableAssignmentStatementNode;
+class VariableDeclarationStatementNode;
 
 class RoutineDefinitionCommonNode;
 class SubprocDefinitionNode;
@@ -57,6 +60,9 @@ using BinaryOperatorNodePtr = std::shared_ptr<BinaryOperatorNode>;
 using VariableDeclarationNodePtr = std::shared_ptr<VariableDeclarationNode>;
 using VariableAssignmentNodePtr = std::shared_ptr<VariableAssignmentNode>;
 using FloorAssignmentNodePtr = std::shared_ptr<FloorAssignmentNode>;
+using FloorAssignmentStatementNodePtr = std::shared_ptr<FloorAssignmentStatementNode>;
+using VariableAssignmentStatementNodePtr = std::shared_ptr<VariableAssignmentStatementNode>;
+using VariableDeclarationStatementNodePtr = std::shared_ptr<VariableDeclarationStatementNode>;
 
 using AbstractExpressionNodePtr = std::shared_ptr<AbstractExpressionNode>;
 using BinaryExpressionNodePtr = std::shared_ptr<BinaryExpressionNode>;

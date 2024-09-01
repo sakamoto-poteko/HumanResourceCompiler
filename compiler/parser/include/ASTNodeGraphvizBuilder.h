@@ -51,6 +51,9 @@ public:
     virtual void visit(FloorMaxInitStatementNodePtr node) override;
     virtual void visit(EmptyStatementNodePtr node) override;
     virtual void visit(StatementBlockNodePtr node) override;
+    virtual void visit(VariableDeclarationStatementNodePtr node) override;
+    virtual void visit(VariableAssignmentStatementNodePtr node) override;
+    virtual void visit(FloorAssignmentStatementNodePtr node) override;
     virtual void visit(SubprocDefinitionNodePtr node) override;
     virtual void visit(FunctionDefinitionNodePtr node) override;
     virtual void visit(ImportDirectiveNodePtr node) override;

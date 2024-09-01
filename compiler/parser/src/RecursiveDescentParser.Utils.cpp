@@ -33,8 +33,9 @@ void RecursiveDescentParser::leave_parse_frame()
 
 void RecursiveDescentParser::push_error(const std::string &expect, const lexer::TokenPtr &got, int lineno, int colno)
 {
+    auto token_text = *got->token_text();
     auto err_str = boost::format("Expect %1% but got '%2%'. [%3%:%4%]")
-        % expect % got->token_text() % (lineno != -1 ? lineno : got->lineno()) % (colno != -1 ? colno : got->colno());
+        % expect % token_text % (lineno != -1 ? lineno : got->lineno()) % (colno != -1 ? colno : got->colno());
 
     _errors.push_back(err_str.str());
 }

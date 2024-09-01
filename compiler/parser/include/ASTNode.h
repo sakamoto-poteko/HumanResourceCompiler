@@ -498,14 +498,6 @@ public:
     }
 };
 
-class AbstractSelectionStatementNode : public AbstractStatementNode {
-public:
-    AbstractSelectionStatementNode(int lineno, int colno)
-        : AbstractStatementNode(lineno, colno)
-    {
-    }
-};
-
 class AbstractEmbeddedStatementNode : public AbstractStatementNode {
 public:
     AbstractEmbeddedStatementNode(int lineno, int colno)
@@ -514,10 +506,18 @@ public:
     }
 };
 
-class AbstractIterationStatementNode : public AbstractStatementNode {
+class AbstractSelectionStatementNode : public AbstractEmbeddedStatementNode {
+public:
+    AbstractSelectionStatementNode(int lineno, int colno)
+        : AbstractEmbeddedStatementNode(lineno, colno)
+    {
+    }
+};
+
+class AbstractIterationStatementNode : public AbstractEmbeddedStatementNode {
 public:
     AbstractIterationStatementNode(int lineno, int colno)
-        : AbstractStatementNode(lineno, colno)
+        : AbstractEmbeddedStatementNode(lineno, colno)
     {
     }
 };
@@ -645,10 +645,64 @@ private:
     AbstractExpressionNodePtr _expr;
 };
 
-class FloorBoxInitStatementNode : public AbstractEmbeddedStatementNode {
+class FloorAssignmentStatementNode : public AbstractStatementNode {
+public:
+    FloorAssignmentStatementNode(int lineno, int colno, FloorAssignmentNodePtr assignment)
+        : AbstractStatementNode(lineno, colno)
+        , _assignment(assignment)
+    {
+    }
+
+    const char *type() override { return "FloorAssignmentStatement"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+
+    FloorAssignmentNodePtr get_floor_assignment() const { return _assignment; }
+
+private:
+    FloorAssignmentNodePtr _assignment;
+};
+
+class VariableAssignmentStatementNode : public AbstractStatementNode {
+public:
+    VariableAssignmentStatementNode(int lineno, int colno, VariableAssignmentNode assignment)
+        : AbstractStatementNode(lineno, colno)
+        , _assignment(assignment)
+    {
+    }
+
+    const char *type() override { return "VariableAssignmentStatement"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+
+    VariableAssignmentNode get_variable_assignment() const { return _assignment; }
+
+private:
+    VariableAssignmentNode _assignment;
+};
+
+class VariableDeclarationStatementNode : public AbstractStatementNode {
+public:
+    VariableDeclarationStatementNode(int lineno, int colno, VariableDeclarationNodePtr decl)
+        : AbstractStatementNode(lineno, colno)
+        , decl(decl)
+    {
+    }
+
+    const char *type() override { return "VariableDeclarationStatement"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+
+    VariableDeclarationNodePtr get_variable_decl() const { return decl; }
+
+private:
+    VariableDeclarationNodePtr decl;
+};
+
+class FloorBoxInitStatementNode : public AbstractStatementNode {
 public:
     FloorBoxInitStatementNode(int lineno, int colno, IntegerLiteralNodePtr index, IntegerLiteralNodePtr value)
-        : AbstractEmbeddedStatementNode(lineno, colno)
+        : AbstractStatementNode(lineno, colno)
         , _index(index)
         , _value(value)
     {
@@ -667,10 +721,10 @@ private:
     IntegerLiteralNodePtr _value;
 };
 
-class FloorMaxInitStatementNode : public ASTNode {
+class FloorMaxInitStatementNode : public AbstractStatementNode {
 public:
     FloorMaxInitStatementNode(int lineno, int colno, IntegerLiteralNodePtr value)
-        : ASTNode(lineno, colno)
+        : AbstractStatementNode(lineno, colno)
         , _value(value)
     {
     }
@@ -685,10 +739,10 @@ private:
     IntegerLiteralNodePtr _value;
 };
 
-class EmptyStatementNode : public ASTNode {
+class EmptyStatementNode : public AbstractStatementNode {
 public:
     EmptyStatementNode(int lineno, int colno)
-        : ASTNode(lineno, colno)
+        : AbstractStatementNode(lineno, colno)
     {
     }
 
@@ -788,7 +842,7 @@ public:
         const std::vector<ImportDirectiveNodePtr> &imports,
         const std::vector<FloorBoxInitStatementNodePtr> &floor_inits,
         const FloorMaxInitStatementNodePtr &floor_max,
-        const std::vector<VariableDeclarationNodePtr> &top_level_decls,
+        const std::vector<VariableDeclarationStatementNodePtr> &top_level_decls,
         const std::vector<FunctionDefinitionNodePtr> &functions,
         const std::vector<SubprocDefinitionNodePtr> &subprocs)
         : ASTNode(lineno, colno)
@@ -811,7 +865,7 @@ public:
 
     const FloorMaxInitStatementNodePtr &get_floor_max() const { return _floor_max; }
 
-    const std::vector<VariableDeclarationNodePtr> &get_top_level_decls() const { return _top_level_decls; }
+    const std::vector<VariableDeclarationStatementNodePtr> &get_top_level_decls() const { return _top_level_decls; }
 
     const std::vector<FunctionDefinitionNodePtr> &get_functions() const { return _functions; }
 
@@ -821,7 +875,7 @@ private:
     std::vector<ImportDirectiveNodePtr> _imports;
     std::vector<FloorBoxInitStatementNodePtr> _floor_inits;
     FloorMaxInitStatementNodePtr _floor_max;
-    std::vector<VariableDeclarationNodePtr> _top_level_decls;
+    std::vector<VariableDeclarationStatementNodePtr> _top_level_decls;
     std::vector<FunctionDefinitionNodePtr> _functions;
     std::vector<SubprocDefinitionNodePtr> _subprocs;
 };
