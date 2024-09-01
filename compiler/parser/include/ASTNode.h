@@ -665,7 +665,7 @@ private:
 
 class VariableAssignmentStatementNode : public AbstractStatementNode {
 public:
-    VariableAssignmentStatementNode(int lineno, int colno, VariableAssignmentNode assignment)
+    VariableAssignmentStatementNode(int lineno, int colno, VariableAssignmentNodePtr assignment)
         : AbstractStatementNode(lineno, colno)
         , _assignment(assignment)
     {
@@ -675,10 +675,10 @@ public:
 
     void accept(ASTNodeVisitor *visitor) override;
 
-    VariableAssignmentNode get_variable_assignment() const { return _assignment; }
+    VariableAssignmentNodePtr get_variable_assignment() const { return _assignment; }
 
 private:
-    VariableAssignmentNode _assignment;
+    VariableAssignmentNodePtr _assignment;
 };
 
 class VariableDeclarationStatementNode : public AbstractStatementNode {
@@ -739,10 +739,10 @@ private:
     IntegerLiteralNodePtr _value;
 };
 
-class EmptyStatementNode : public AbstractStatementNode {
+class EmptyStatementNode : public AbstractEmbeddedStatementNode {
 public:
     EmptyStatementNode(int lineno, int colno)
-        : AbstractStatementNode(lineno, colno)
+        : AbstractEmbeddedStatementNode(lineno, colno)
     {
     }
 

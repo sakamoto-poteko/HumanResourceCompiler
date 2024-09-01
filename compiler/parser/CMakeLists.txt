@@ -6,7 +6,8 @@ set(OUTPUT_BASE "${CMAKE_CURRENT_BINARY_DIR}/First")
 add_library(${PROJECT_NAME}
     src/ASTNode.cpp
     src/ASTNodeVisitor.cpp
-    src/RecursiveDescentParser.cpp
+    src/RecursiveDescentParser.Parsing.cpp
+    src/RecursiveDescentParser.Expr.cpp
     src/RecursiveDescentParser.Utils.cpp
     src/ASTNodeGraphvizBuilder.cpp
     "${OUTPUT_BASE}.h"

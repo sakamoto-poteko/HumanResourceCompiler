@@ -361,7 +361,7 @@ void ASTNodeGraphvizBuilder::visit(VariableDeclarationStatementNodePtr node)
 
 void ASTNodeGraphvizBuilder::visit(VariableAssignmentStatementNodePtr node)
 {
-    node->get_variable_assignment().accept(this);
+    node->get_variable_assignment()->accept(this);
 }
 
 void ASTNodeGraphvizBuilder::visit(FloorAssignmentStatementNodePtr node)

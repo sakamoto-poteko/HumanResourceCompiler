@@ -70,5 +70,30 @@ void RecursiveDescentParser::pop_error_till(std::list<std::string>::iterator til
     }
 }
 
+const lexer::TokenPtr RecursiveDescentParser::NULL_TOKEN = lexer::TokenPtr();
+
+const lexer::TokenPtr &RecursiveDescentParser::lookahead() const
+{
+    if (_token_pointer < _tokens.size()) {
+        return _tokens.at(_token_pointer);
+    } else {
+        return NULL_TOKEN;
+    }
+}
+
+lexer::TokenId RecursiveDescentParser::lookahead_id() const
+{
+    if (_token_pointer < _tokens.size()) {
+        return _tokens.at(_token_pointer)->token_id();
+    } else {
+        return lexer::END;
+    }
+}
+
+void RecursiveDescentParser::consume()
+{
+    ++_token_pointer;
+}
+
 CLOSE_PARSER_NAMESPACE
 // end

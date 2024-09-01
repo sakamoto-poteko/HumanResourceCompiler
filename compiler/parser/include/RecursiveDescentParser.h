@@ -33,7 +33,7 @@ protected:
 
     const lexer::TokenPtr &lookahead() const;
     lexer::TokenId lookahead_id() const;
-    inline void consume();
+    void consume();
 
     bool parse_compilation_unit(CompilationUnitNodePtr &node);
     bool parse_import_directive(ImportDirectiveNodePtr &node);
@@ -51,8 +51,12 @@ protected:
     bool parse_floor_access(FloorAccessNodePtr &node);
     bool parse_variable_assignment_statement(VariableAssignmentStatementNodePtr &node);
     bool parse_variable_assignment(VariableAssignmentNodePtr &node);
-
     bool parse_embedded_statement(AbstractEmbeddedStatementNodePtr &node);
+    bool parse_if_statement(IfStatementNodePtr &node);
+    bool parse_while_statement(WhileStatementNodePtr &node);
+    bool parse_for_statement(ForStatementNodePtr &node);
+    bool parse_return_statement(ReturnStatementNodePtr &node);
+    bool parse_empty_statement(EmptyStatementNodePtr &node);
 
     void push_error(const std::string &expect, const lexer::TokenPtr &got, int lineno = -1, int colno = -1);
     void push_error(const std::string &message, int lineno = -1, int colno = -1);
