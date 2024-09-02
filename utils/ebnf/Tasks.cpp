@@ -134,6 +134,8 @@ const std::map<std::string, std::set<std::string>> __ebnf_first_set_token {
         spdlog::error("Failed to write to the file {}.", source_filename);
     }
     source_file.close();
+
+    std::cout << "Written to " << header_filename << " and " << source_filename << std::endl;
 }
 
 void calculate_first_follow_set(DependencyGraphAnalyzer &checker, bool check_conflicts, const std::string &output_path)

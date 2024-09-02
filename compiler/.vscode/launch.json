@@ -11,15 +11,7 @@
             "program": "${command:cmake.launchTargetPath}",
             "args": [
                 "-i",
-                "../../design/hrl.ebnf",
-                "-s",
-                "compilation_unit",
-                "-f",
-                "../../design/hrl.tokens",
-                "-g",
-                "build/hrl.dot",
-                "-LCURN",
-                "-F/Users/afa/projects/HumanResourceCompiler/compiler/build/First"
+                "../design/lang.hrml",
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

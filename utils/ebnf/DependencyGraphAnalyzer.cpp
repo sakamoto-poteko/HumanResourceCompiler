@@ -75,8 +75,8 @@ void DependencyGraphAnalyzer::expand_first_set()
 
             // expand referenced FIRST, and remove the `reference` node
             for (const auto &ref_element : expansion_required) {
-                // if any of FIRST is referencing a left recursion, we skip this one
-                if (_state->left_recursion_production_id.contains(ref_element.value)) {
+                // if any of FIRST is referencing a self left recursion, we skip this one
+                if (_state->left_recursion_production_id.contains(ref_element.value) && production->id == ref_element.value) {
                     continue;
                 }
                 const auto &referenced_first_set = _state->first_set[ref_element.value];

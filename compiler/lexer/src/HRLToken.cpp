@@ -2,9 +2,9 @@
 
 OPEN_LEXER_NAMESPACE
 
-const char *Token::get_token_name()
+const char *Token::get_token_name() const
 {
-    switch (_tokenId) {
+    switch (_token_id) {
     case END:
         return "END";
     case IMPORT:
@@ -72,7 +72,7 @@ const char *Token::get_token_name()
     case EQ:
         return "EQ";
     case T:
-        return ";";
+        return "T";
     case OPEN_PAREN:
         return "OPEN_PAREN";
     case CLOSE_PAREN:
@@ -86,7 +86,7 @@ const char *Token::get_token_name()
     case CLOSE_BRACKET:
         return "CLOSE_BRACKET";
     case COMMA:
-        return ",";
+        return "COMMA";
     case ERROR:
         return "ERROR";
     default:

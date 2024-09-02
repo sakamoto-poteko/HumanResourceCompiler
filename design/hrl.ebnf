@@ -13,16 +13,18 @@ floor_assignment = floor_access, EQ, expression;
 expression = binary_expression | unary_expression;
 
 (* Left recursion *)
-binary_expression = (binary_expression | unary_expression), binary_operator, (binary_expression | unary_expression);
-unary_expression = primary_expression | increment_expression | decrement_expression | NOT, expression | ADD, expression | SUB, expression;
+binary_expression = expression, binary_operator, expression;
+unary_expression = primary_expression | increment_expression | decrement_expression | not_expression | positive_expression | negative_expression;
 increment_expression = ADDADD, variable_name;
 decrement_expression = SUBSUB, variable_name;
+not_expression = NOT, primary_expression;
+positive_expression = ADD, primary_expression;
+negative_expression = SUB, primary_expression;
 floor_access = FLOOR, OPEN_BRACKET, expression, CLOSE_BRACKET;
 (* invocation_expression and variable_name has FIRST/FIRST conflict *)
 primary_expression = literal | parenthesized_expression | invocation_expression | variable_name | floor_access;
 parenthesized_expression = OPEN_PAREN, expression, CLOSE_PAREN;
-invocation_expression = function_name,  OPEN_PAREN, [expression], CLOSE_PAREN;
-
+invocation_expression = function_name, OPEN_PAREN, [expression], CLOSE_PAREN;
 
 (* Statement *)
 empty_statement = T;
@@ -30,8 +32,9 @@ variable_declaration_statement = variable_declaration, T;
 variable_assignment_statement = variable_assignment, T;
 floor_assignment_statement = floor_assignment, T;
 statement_block = OPEN_BRACE, {statement}, CLOSE_BRACE;
-statement = variable_declaration_statement | variable_assignment_statement | floor_assignment_statement | embedded_statement;
-embedded_statement = statement_block | empty_statement | iteration_statement | selection_statement | return_statement;
+statement = variable_declaration_statement | embedded_statement;
+embedded_statement = statement_block | empty_statement | iteration_statement | selection_statement | return_statement | variable_assignment_statement | floor_assignment_statement | invocation_statement;
+invocation_statement = invocation_expression, T;
 selection_statement = if_statement;
 if_statement = IF, OPEN_PAREN, expression, CLOSE_PAREN, embedded_statement, [ELSE, embedded_statement];
 iteration_statement = while_statement | for_statement;
@@ -41,16 +44,12 @@ return_statement = RETURN, [expression], T;
 (* floor init only appear outside the functions. usually at the beginning of the file *)
 floor_box_init_statement = INIT, FLOOR, OPEN_BRACKET, INTEGER, CLOSE_BRACKET, EQ, INTEGER, T;
 (* only one floor max allowed in a program *)
-floor_max_init_statement = INIT, FLOORMAX, EQ, INTEGER, T;
+floor_max_init_statement = INIT, FLOOR_MAX, EQ, INTEGER, T;
 
 (* Function and subprocedure *)
-function_definition = function_header, function_body;
-subproc_definition = subproc_header, function_body;
-(* Only one or zero param allowed now *)
-formal_parameter_list = IDENTIFIER;
-function_header = FUNCTION, function_name, OPEN_PAREN, [formal_parameter_list], CLOSE_PAREN;
-subproc_header = SUBWORD, function_name, OPEN_PAREN, [formal_parameter_list], CLOSE_PAREN;
-function_body = statement_block;
+function_definition = FUNCTION, function_name, OPEN_PAREN, [IDENTIFIER], CLOSE_PAREN, statement_block;
+subproc_definition = SUBWORD, function_name, OPEN_PAREN, [IDENTIFIER], CLOSE_PAREN, statement_block;
+
 
 (* Compilation Unit *)
 import_directive = IMPORT, IDENTIFIER, T;

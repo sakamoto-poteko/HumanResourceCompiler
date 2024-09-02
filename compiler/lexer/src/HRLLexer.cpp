@@ -23,7 +23,7 @@ HRLLexer::~HRLLexer()
 {
 }
 
-int HRLLexer::lex(FILE *in, const std::string &filepath, std::vector<GCToken> &result)
+int HRLLexer::lex(FILE *in, const std::string &filepath, std::vector<TokenPtr> &result)
 {
     lexer_finalize(); // clean up if there's previous lexing context
     lexer_initialize(in);
@@ -31,14 +31,14 @@ int HRLLexer::lex(FILE *in, const std::string &filepath, std::vector<GCToken> &r
     std::vector<std::string> lines;
     get_file_lines(in, lines);
 
-    std::vector<GCToken> r;
+    std::vector<TokenPtr> r;
 
     // begin tokenization
     TokenId currentTokenId = END;
 
     do {
-        GCToken token = tokenize();
-        currentTokenId = token->get_token_id();
+        TokenPtr token = tokenize();
+        currentTokenId = token->token_id();
         r.push_back(token);
     } while (currentTokenId > 0);
 
@@ -49,7 +49,7 @@ int HRLLexer::lex(FILE *in, const std::string &filepath, std::vector<GCToken> &r
 
     if (currentTokenId == ERROR) {
         const auto &token = r.back();
-        print_tokenization_error(filepath, token->get_lineno(), token->get_col(), token->get_width(), token->get_token_text(), lines);
+        print_tokenization_error(filepath, token->lineno(), token->colno(), token->width(), token->token_text(), lines);
         return -1;
     }
     // this is not supposed to happen. tokenization ended but not with either END or ERROR.
@@ -61,7 +61,7 @@ int HRLLexer::lexer_initialize(FILE *in)
 {
     yyin = in;
     __currentToken.boolean = false;
-    __currentToken.identifier = GCString();
+    __currentToken.identifier = StringPtr();
     __currentToken.integer = 0;
     return 0;
 }
@@ -72,7 +72,7 @@ int HRLLexer::lexer_finalize()
     return 0;
 }
 
-GCToken HRLLexer::tokenize()
+TokenPtr HRLLexer::tokenize()
 {
     int val = yylex();
     TokenId tokenId = static_cast<TokenId>(val);
@@ -142,10 +142,10 @@ GCToken HRLLexer::tokenize()
         abort();
     }
 
-    return GCToken();
+    return TokenPtr();
 }
 
-void HRLLexer::print_tokenization_error(const std::string &filepath, int lineno, int colno, int width, const GCString &text, const std::vector<std::string> &lines)
+void HRLLexer::print_tokenization_error(const std::string &filepath, int lineno, int colno, int width, const StringPtr &text, const std::vector<std::string> &lines)
 {
     spdlog::error("{}:{}:{}:{}Unrecognized token `{}'{}", filepath, lineno, colno, __tc.COLOR_HIGHLIGHT, *(text.get()), __tc.COLOR_RESET);
     spdlog::error(lines.at(lineno - 1)); // line starts from 1
