@@ -46,6 +46,7 @@ class StatementBlockNode;
 class FloorAssignmentStatementNode;
 class VariableAssignmentStatementNode;
 class VariableDeclarationStatementNode;
+class InvocationStatementNode;
 
 class RoutineDefinitionCommonNode;
 class SubprocDefinitionNode;
@@ -93,6 +94,7 @@ using FloorBoxInitStatementNodePtr = std::shared_ptr<FloorBoxInitStatementNode>;
 using FloorMaxInitStatementNodePtr = std::shared_ptr<FloorMaxInitStatementNode>;
 using EmptyStatementNodePtr = std::shared_ptr<EmptyStatementNode>;
 using StatementBlockNodePtr = std::shared_ptr<StatementBlockNode>;
+using InvocationStatementNodePtr = std::shared_ptr<InvocationStatementNode>;
 
 using FunctionDefinitionNodePtr = std::shared_ptr<FunctionDefinitionNode>;
 using SubprocDefinitionNodePtr = std::shared_ptr<SubprocDefinitionNode>;

@@ -79,10 +79,10 @@ OPEN_PARSER_NAMESPACE
     (token->token_id() == (id))
 
 #define SET_NODE(...) \
-    std::make_shared<std::remove_reference_t<decltype(node)>::element_type>(lineno, colno, ##__VA_ARGS__)
+    node = std::make_shared<std::remove_reference_t<decltype(node)>::element_type>(lineno, colno, ##__VA_ARGS__)
 
 #define SET_NODE_FROM(ptr) \
-    std::static_pointer_cast<std::remove_reference_t<decltype(node)>::element_type>(ptr)
+    node = std::static_pointer_cast<std::remove_reference_t<decltype(node)>::element_type>(ptr)
 
 CLOSE_PARSER_NAMESPACE
 

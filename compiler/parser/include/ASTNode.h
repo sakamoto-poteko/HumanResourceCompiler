@@ -130,7 +130,7 @@ private:
 
 class BinaryOperatorNode : public ASTNode {
 public:
-    BinaryOperatorNode(int lineno, int colno, const lexer::TokenPtr &token)
+    BinaryOperatorNode(const lexer::TokenPtr &token)
         : ASTNode(token->lineno(), token->colno())
         , _op(get_binary_operator_from_token_id(token->token_id()))
     {
@@ -195,7 +195,7 @@ public:
         }
     }
 
-    inline static BinaryOperator get_binary_operator_from_token_id(lexer::TokenId token_id)
+    static BinaryOperator get_binary_operator_from_token_id(lexer::TokenId token_id)
     {
         BinaryOperator op;
         switch (token_id) {
@@ -233,9 +233,89 @@ public:
         }
     }
 
+    static inline int get_operator_precedence(lexer::TokenId token)
+    {
+        switch (token) {
+        // case INVOCATION: // a()
+        //     return 12;
+        // case INDEX: // floor[]
+        //     return 11;
+        case lexer::ADDADD: // ++a
+        case lexer::SUBSUB: // --a
+            return 10;
+        // unary add/sub
+        // case lexer::ADD: // +a
+        // case lexer::SUB: // -a
+        //     return 9;
+        case lexer::NOT: // !
+            return 8;
+        case lexer::MUL: // a*b
+        case lexer::DIV: // a/b
+        case lexer::MOD: // a%b
+            return 7;
+        case lexer::ADD: // a+b
+        case lexer::SUB: // a-b
+            return 6;
+        case lexer::GE: // >=
+        case lexer::LE: // <=
+        case lexer::GT: // >
+        case lexer::LT: // <
+            return 5;
+        case lexer::EE: // ==
+        case lexer::NE: // !=
+            return 4;
+        case lexer::AND: // &
+            return 3;
+        case lexer::OR: // |
+            return 2;
+        case lexer::EQ: // =
+            return 1;
+        default:
+            return -1; // Unknown or unsupported operator
+        }
+    }
+
     const char *type() override
     {
         return "BinaryOperator";
+    }
+
+    enum Associativity {
+        LEFT_TO_RIGHT,
+        RIGHT_TO_LEFT,
+        NONE
+    };
+
+    static inline Associativity get_operator_associativity(lexer::TokenId token)
+    {
+        switch (token) {
+        // case INVOCATION:    // a()
+        // case FLOOR_ACCESS: // floor[]
+        case lexer::MUL: // a*b
+        case lexer::DIV: // a/b
+        case lexer::MOD: // a%b
+        case lexer::ADD: // a+b
+        case lexer::SUB: // a-b
+        case lexer::GE: // >=
+        case lexer::LE: // <=
+        case lexer::GT: // >
+        case lexer::LT: // <
+        case lexer::EE: // ==
+        case lexer::NE: // !=
+        case lexer::AND: // &
+        case lexer::OR: // |
+            return Associativity::LEFT_TO_RIGHT;
+        case lexer::ADDADD: // ++a
+        case lexer::SUBSUB: // --a
+        // unary
+        // case lexer::ADD:   // +a
+        // case lexer::SUB:  // -a
+        case lexer::NOT: // !
+        case lexer::EQ: // =
+            return Associativity::RIGHT_TO_LEFT;
+        default:
+            return Associativity::NONE; // Unknown or unsupported operator
+        }
     }
 
     void accept(ASTNodeVisitor *visitor) override;
@@ -467,12 +547,12 @@ private:
     AbstractExpressionNodePtr _expr;
 };
 
-class InvocationExpressionNode : public ASTNode {
+class InvocationExpressionNode : public AbstractPrimaryExpressionNode {
 public:
-    InvocationExpressionNode(int lineno, int colno, IdentifierNodePtr func_name, const std::vector<AbstractExpressionNodePtr> &args)
-        : ASTNode(lineno, colno)
+    InvocationExpressionNode(int lineno, int colno, IdentifierNodePtr func_name, AbstractExpressionNodePtr arg)
+        : AbstractPrimaryExpressionNode(lineno, colno)
         , _func_name(func_name)
-        , _args(args)
+        , _arg(arg)
     {
     }
 
@@ -482,11 +562,11 @@ public:
 
     IdentifierNodePtr get_func_name() const { return _func_name; }
 
-    const std::vector<AbstractExpressionNodePtr> &get_args() const { return _args; }
+    AbstractExpressionNodePtr get_arg() const { return _arg; }
 
 private:
     IdentifierNodePtr _func_name;
-    std::vector<AbstractExpressionNodePtr> _args;
+    AbstractExpressionNodePtr _arg;
 };
 
 // Statement Nodes
@@ -645,10 +725,28 @@ private:
     AbstractExpressionNodePtr _expr;
 };
 
-class FloorAssignmentStatementNode : public AbstractStatementNode {
+class InvocationStatementNode : public AbstractEmbeddedStatementNode {
+public:
+    InvocationStatementNode(int lineno, int colno, InvocationExpressionNodePtr expr = nullptr)
+        : AbstractEmbeddedStatementNode(lineno, colno)
+        , _expr(expr)
+    {
+    }
+
+    const char *type() override { return "InvocationStatement"; }
+
+    void accept(ASTNodeVisitor *visitor) override;
+
+    InvocationExpressionNodePtr get_expr() const { return _expr; }
+
+private:
+    InvocationExpressionNodePtr _expr;
+};
+
+class FloorAssignmentStatementNode : public AbstractEmbeddedStatementNode {
 public:
     FloorAssignmentStatementNode(int lineno, int colno, FloorAssignmentNodePtr assignment)
-        : AbstractStatementNode(lineno, colno)
+        : AbstractEmbeddedStatementNode(lineno, colno)
         , _assignment(assignment)
     {
     }
@@ -663,10 +761,10 @@ private:
     FloorAssignmentNodePtr _assignment;
 };
 
-class VariableAssignmentStatementNode : public AbstractStatementNode {
+class VariableAssignmentStatementNode : public AbstractEmbeddedStatementNode {
 public:
     VariableAssignmentStatementNode(int lineno, int colno, VariableAssignmentNodePtr assignment)
-        : AbstractStatementNode(lineno, colno)
+        : AbstractEmbeddedStatementNode(lineno, colno)
         , _assignment(assignment)
     {
     }
@@ -772,30 +870,30 @@ private:
 // Function and Subprocedure Nodes
 class RoutineDefinitionCommonNode : public ASTNode {
 public:
-    RoutineDefinitionCommonNode(int lineno, int colno, IdentifierNodePtr function_name, const std::vector<IdentifierNodePtr> &formal_parameters, StatementBlockNodePtr body)
+    RoutineDefinitionCommonNode(int lineno, int colno, IdentifierNodePtr function_name, IdentifierNodePtr formal_parameter, StatementBlockNodePtr body)
         : ASTNode(lineno, colno)
         , _function_name(function_name)
-        , _formal_parameters(formal_parameters)
+        , _formal_parameter(formal_parameter)
         , _body(body)
     {
     }
 
     IdentifierNodePtr get_function_name() const { return _function_name; }
 
-    const std::vector<IdentifierNodePtr> &get_formal_parameters() const { return _formal_parameters; }
+    IdentifierNodePtr get_formal_parameter() const { return _formal_parameter; }
 
     StatementBlockNodePtr get_body() const { return _body; }
 
 protected:
     IdentifierNodePtr _function_name;
-    std::vector<IdentifierNodePtr> _formal_parameters;
+    IdentifierNodePtr _formal_parameter;
     StatementBlockNodePtr _body;
 };
 
 class FunctionDefinitionNode : public RoutineDefinitionCommonNode {
 public:
-    FunctionDefinitionNode(int lineno, int colno, IdentifierNodePtr function_name, const std::vector<IdentifierNodePtr> &formal_parameters, StatementBlockNodePtr body)
-        : RoutineDefinitionCommonNode(lineno, colno, function_name, formal_parameters, body)
+    FunctionDefinitionNode(int lineno, int colno, IdentifierNodePtr function_name, IdentifierNodePtr &formal_parameter, StatementBlockNodePtr body)
+        : RoutineDefinitionCommonNode(lineno, colno, function_name, formal_parameter, body)
     {
     }
 
@@ -806,8 +904,8 @@ public:
 
 class SubprocDefinitionNode : public RoutineDefinitionCommonNode {
 public:
-    SubprocDefinitionNode(int lineno, int colno, IdentifierNodePtr function_name, const std::vector<IdentifierNodePtr> &formal_parameters, StatementBlockNodePtr body)
-        : RoutineDefinitionCommonNode(lineno, colno, function_name, formal_parameters, body)
+    SubprocDefinitionNode(int lineno, int colno, IdentifierNodePtr function_name, IdentifierNodePtr formal_parameter, StatementBlockNodePtr body)
+        : RoutineDefinitionCommonNode(lineno, colno, function_name, formal_parameter, body)
     {
     }
 

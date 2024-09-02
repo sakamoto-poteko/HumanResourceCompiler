@@ -187,7 +187,7 @@ bool RecursiveDescentParser::parse_subproc_definition(SubprocDefinitionNodePtr &
     ENTER_PARSE_FRAME();
 
     IdentifierNodePtr subproc_name;
-    std::vector<IdentifierNodePtr> formal_parameters;
+    IdentifierNodePtr formal_parameter;
     StatementBlockNodePtr body;
 
     CHECK_TOKEN_AND_CONSUME(lexer::SUBWORD, "'sub'");
@@ -196,16 +196,16 @@ bool RecursiveDescentParser::parse_subproc_definition(SubprocDefinitionNodePtr &
     CHECK_TOKEN_AND_CONSUME(lexer::OPEN_PAREN, "'('");
 
     UPDATE_TOKEN_LOOKAHEAD();
-    while (TOKEN_IS(lexer::IDENTIFIER)) {
+    if (TOKEN_IS(lexer::IDENTIFIER)) {
         CHECK_TOKEN_AND_CONSUME(lexer::IDENTIFIER, "an identifier (formal parameter)");
-        formal_parameters.push_back(TO_IDENTIFIER_NODE());
+        formal_parameter = TO_IDENTIFIER_NODE();
         UPDATE_TOKEN_LOOKAHEAD();
     }
     CHECK_TOKEN_AND_CONSUME(lexer::CLOSE_PAREN, "')'");
     bool ok = parse_statement_block(body);
     CHECK_ERROR(ok);
 
-    SET_NODE(subproc_name, formal_parameters, body);
+    SET_NODE(subproc_name, formal_parameter, body);
 
     LEAVE_PARSE_FRAME();
 }
@@ -215,7 +215,7 @@ bool RecursiveDescentParser::parse_function_definition(FunctionDefinitionNodePtr
     ENTER_PARSE_FRAME();
 
     IdentifierNodePtr function_name;
-    std::vector<IdentifierNodePtr> formal_parameters;
+    IdentifierNodePtr formal_parameter;
     StatementBlockNodePtr body;
 
     CHECK_TOKEN_AND_CONSUME(lexer::FUNCTION, "'function'");
@@ -226,14 +226,14 @@ bool RecursiveDescentParser::parse_function_definition(FunctionDefinitionNodePtr
     UPDATE_TOKEN_LOOKAHEAD();
     while (TOKEN_IS(lexer::IDENTIFIER)) {
         CHECK_TOKEN_AND_CONSUME(lexer::IDENTIFIER, "an identifier (formal parameter)");
-        formal_parameters.push_back(TO_IDENTIFIER_NODE());
+        formal_parameter = TO_IDENTIFIER_NODE();
         UPDATE_TOKEN_LOOKAHEAD();
     }
     CHECK_TOKEN_AND_CONSUME(lexer::CLOSE_PAREN, "')'");
     bool ok = parse_statement_block(body);
     CHECK_ERROR(ok);
 
-    SET_NODE(function_name, formal_parameters, body);
+    SET_NODE(function_name, formal_parameter, body);
 
     LEAVE_PARSE_FRAME();
 }
@@ -287,26 +287,13 @@ bool RecursiveDescentParser::parse_statement(AbstractStatementNodePtr &node)
     bool ok;
     // statement
     //        = variable_declaration_statement
-    //        | variable_assignment_statement
-    //        | floor_assignment_statement
     //        | embedded_statement;
 
-    FloorAssignmentStatementNodePtr floor_assignment;
-    VariableAssignmentStatementNodePtr var_assignment;
     VariableDeclarationStatementNodePtr var_decl;
     AbstractEmbeddedStatementNodePtr embedded_statement;
 
     switch (token->token_id()) {
-    case lexer::FLOOR: // floor_assignment_statement
-        ok = parse_floor_assignment_statement(floor_assignment);
-        CHECK_ERROR(ok);
-        SET_NODE_FROM(floor_assignment);
-        break;
-    case lexer::IDENTIFIER: // variable_assignment_statement
-        ok = parse_variable_assignment_statement(var_assignment);
-        CHECK_ERROR(ok);
-        SET_NODE_FROM(var_assignment);
-        break;
+        // FIXME: remove FLOOR & ID
     case lexer::LET: // variable_declaration_statement
         ok = parse_variable_declaration_statement(var_decl);
         CHECK_ERROR(ok);
@@ -318,6 +305,8 @@ bool RecursiveDescentParser::parse_statement(AbstractStatementNodePtr &node)
     case lexer::FOR: // embedded_statement
     case lexer::WHILE: // embedded_statement
     case lexer::OPEN_BRACE: // embedded_statement
+    case lexer::FLOOR: // embedded_statement
+    case lexer::IDENTIFIER: // embedded_statement
         ok = parse_embedded_statement(embedded_statement);
         CHECK_ERROR(ok);
         SET_NODE_FROM(embedded_statement);
@@ -434,9 +423,28 @@ bool RecursiveDescentParser::parse_embedded_statement(AbstractEmbeddedStatementN
     StatementBlockNodePtr statement_block;
     EmptyStatementNodePtr empty_statement;
     WhileStatementNodePtr while_statement;
+    FloorAssignmentStatementNodePtr floor_assignment;
+    VariableAssignmentStatementNodePtr var_assignment;
+    InvocationStatementNodePtr invocation;
     bool ok;
 
     switch (token->token_id()) {
+    case lexer::FLOOR: // floor_assignment_statement
+        ok = parse_floor_assignment_statement(floor_assignment);
+        CHECK_ERROR(ok);
+        SET_NODE_FROM(floor_assignment);
+        break;
+    case lexer::IDENTIFIER: // invocation_statement, variable_assignment_statement
+        ok = parse_invocation_statement(invocation);
+        if (ok) {
+            SET_NODE_FROM(invocation);
+        } else {
+            ok = parse_variable_assignment_statement(var_assignment);
+            CHECK_ERROR(ok);
+            CLEAR_ERROR_BEYOND();
+            SET_NODE_FROM(var_assignment);
+        }
+        break;
     case lexer::FOR: // iteration_statement
         ok = parse_for_statement(for_statement);
         CHECK_ERROR(ok);
@@ -642,6 +650,19 @@ bool RecursiveDescentParser::parse_empty_statement(EmptyStatementNodePtr &node)
     CHECK_TOKEN_AND_CONSUME(lexer::T, "';'");
 
     SET_NODE();
+
+    LEAVE_PARSE_FRAME();
+}
+
+bool RecursiveDescentParser::parse_invocation_statement(InvocationStatementNodePtr &node)
+{
+    ENTER_PARSE_FRAME();
+    InvocationExpressionNodePtr invocation;
+    bool ok = parse_invocation_expression(invocation);
+    CHECK_ERROR(ok);
+
+    CHECK_TOKEN_AND_CONSUME(lexer::T, "';'");
+    SET_NODE(invocation);
 
     LEAVE_PARSE_FRAME();
 }

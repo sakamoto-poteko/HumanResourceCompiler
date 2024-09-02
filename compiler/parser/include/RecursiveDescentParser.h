@@ -50,6 +50,7 @@ protected:
     bool parse_floor_access(FloorAccessNodePtr &node);
     bool parse_variable_assignment_statement(VariableAssignmentStatementNodePtr &node);
     bool parse_variable_assignment(VariableAssignmentNodePtr &node);
+    bool parse_invocation_statement(InvocationStatementNodePtr &node);
     bool parse_embedded_statement(AbstractEmbeddedStatementNodePtr &node);
     bool parse_if_statement(IfStatementNodePtr &node);
     bool parse_while_statement(WhileStatementNodePtr &node);
@@ -62,6 +63,8 @@ protected:
     bool parse_primary_expression(AbstractPrimaryExpressionNodePtr &node);
     bool parse_invocation_expression(InvocationExpressionNodePtr &node);
     bool parse_parenthesized_expression(ParenthesizedExpressionNodePtr &node);
+
+    bool parse_precedence_climbing(AbstractExpressionNodePtr &result, AbstractExpressionNodePtr lhs, int min_precedence);
 
     void push_error(const std::string &expect, const lexer::TokenPtr &got, int lineno = -1, int colno = -1);
     void push_error(const std::string &message, int lineno = -1, int colno = -1);

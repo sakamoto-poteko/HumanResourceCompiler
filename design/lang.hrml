@@ -31,11 +31,13 @@ sub start() {
         let b = inbox();
         if (a > b) {
             outbox(a);
-        } else {
+        } else if (a == b){
             outbox(b);
-        }
+        } else
+            outbox(0);
+        
         let c = a * b;
-        let num = countdown(a);
+        let num = countdown(a * b == 0) + 3 % 10 + -1 * 5 - 2;
         floor[2] = num;
         floor[3] = floor[b] + c;
         outbox(c);

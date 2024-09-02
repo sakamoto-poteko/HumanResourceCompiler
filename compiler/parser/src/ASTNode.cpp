@@ -158,5 +158,10 @@ void NotExpressionNode::accept(ASTNodeVisitor *visitor)
     visitor->visit(shared_from_this_casted<NotExpressionNode>());
 }
 
+void InvocationStatementNode::accept(ASTNodeVisitor *visitor)
+{
+    visitor->visit(shared_from_this_casted<InvocationStatementNode>());
+}
+
 CLOSE_PARSER_NAMESPACE
 // end

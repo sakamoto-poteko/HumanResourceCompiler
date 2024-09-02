@@ -39,6 +39,7 @@ public:
     virtual void visit(VariableDeclarationStatementNodePtr node) = 0;
     virtual void visit(VariableAssignmentStatementNodePtr node) = 0;
     virtual void visit(FloorAssignmentStatementNodePtr node) = 0;
+    virtual void visit(InvocationStatementNodePtr node) = 0;
     virtual void visit(SubprocDefinitionNodePtr node) = 0;
     virtual void visit(FunctionDefinitionNodePtr node) = 0;
     virtual void visit(ImportDirectiveNodePtr node) = 0;

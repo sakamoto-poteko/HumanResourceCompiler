@@ -26,15 +26,15 @@ primary_expression = literal | parenthesized_expression | invocation_expression 
 parenthesized_expression = OPEN_PAREN, expression, CLOSE_PAREN;
 invocation_expression = function_name, OPEN_PAREN, [expression], CLOSE_PAREN;
 
-
 (* Statement *)
 empty_statement = T;
 variable_declaration_statement = variable_declaration, T;
 variable_assignment_statement = variable_assignment, T;
 floor_assignment_statement = floor_assignment, T;
 statement_block = OPEN_BRACE, {statement}, CLOSE_BRACE;
-statement = variable_declaration_statement | variable_assignment_statement | floor_assignment_statement | embedded_statement;
-embedded_statement = statement_block | empty_statement | iteration_statement | selection_statement | return_statement;
+statement = variable_declaration_statement | embedded_statement;
+embedded_statement = statement_block | empty_statement | iteration_statement | selection_statement | return_statement | variable_assignment_statement | floor_assignment_statement | invocation_statement;
+invocation_statement = invocation_expression, T;
 selection_statement = if_statement;
 if_statement = IF, OPEN_PAREN, expression, CLOSE_PAREN, embedded_statement, [ELSE, embedded_statement];
 iteration_statement = while_statement | for_statement;
@@ -47,8 +47,9 @@ floor_box_init_statement = INIT, FLOOR, OPEN_BRACKET, INTEGER, CLOSE_BRACKET, EQ
 floor_max_init_statement = INIT, FLOOR_MAX, EQ, INTEGER, T;
 
 (* Function and subprocedure *)
-function_definition = FUNCTION, function_name, OPEN_PAREN, {IDENTIFIER}, CLOSE_PAREN, statement_block;
-subproc_definition = SUBWORD, function_name, OPEN_PAREN, {IDENTIFIER}, CLOSE_PAREN, statement_block;
+function_definition = FUNCTION, function_name, OPEN_PAREN, [IDENTIFIER], CLOSE_PAREN, statement_block;
+subproc_definition = SUBWORD, function_name, OPEN_PAREN, [IDENTIFIER], CLOSE_PAREN, statement_block;
+
 
 (* Compilation Unit *)
 import_directive = IMPORT, IDENTIFIER, T;

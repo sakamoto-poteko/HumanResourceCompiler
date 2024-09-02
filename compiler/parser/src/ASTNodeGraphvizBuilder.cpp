@@ -2,10 +2,12 @@
 
 #include <fstream>
 #include <iostream>
+#include <ostream>
 #include <string>
 
 #include <boost/graph/graphviz.hpp>
 
+#include "ASTNode.h"
 #include "ASTNodeGraphvizBuilder.h"
 #include "parser_global.h"
 
@@ -65,7 +67,11 @@ std::string ASTNodeGraphvizBuilder::generate_graphviz()
     _root->accept(this);
 
     std::stringstream dotfile;
-    boost::write_graphviz(dotfile, _graph, [this](std::ostream &out, auto &v) {
+    boost::write_graphviz(
+        dotfile,
+        _graph,
+        // vertex
+        [this](std::ostream &out, Vertex &v) {
         NodeProperty &node = _graph[v];
 
         std::string label;
@@ -81,8 +87,14 @@ std::string ASTNodeGraphvizBuilder::generate_graphviz()
         } else {
             out << "[label=\"" << escape_graphviz(label)
                 << "\" shape=rect style=\"rounded,filled\" fillcolor=lightgreen fontname=Helvetica]";
-        }
-    });
+        } },
+        // edge
+        [](std::ostream &out, const Edge &e) {
+            //
+        },
+        // graph
+
+        [](std::ostream &out) { out << "node[ordering=out];\n"; });
 
     std::cout << std::endl
               << dotfile.str()
@@ -154,10 +166,10 @@ void ASTNodeGraphvizBuilder::visit(FloorAssignmentNodePtr node)
 
 void ASTNodeGraphvizBuilder::visit(BinaryExpressionNodePtr node)
 {
-    enter_and_create_vertex(node->type());
+    enter_and_create_vertex(node->type(), BinaryOperatorNode::get_binary_operator_string(node->get_op()->get_op()), false);
 
     node->get_left()->accept(this);
-    node->get_op()->accept(this);
+    // node->get_op()->accept(this);
     node->get_right()->accept(this);
 
     leave();
@@ -196,8 +208,9 @@ void ASTNodeGraphvizBuilder::visit(InvocationExpressionNodePtr node)
     enter_and_create_vertex(node->type());
     node->get_func_name()->accept(this);
 
-    enter_and_create_vertex("Args");
-    traverse(node->get_args());
+    enter_and_create_vertex("Arg");
+    traverse(node->get_arg());
+    // node->get_arg()->accept(this);
     leave();
 
     leave();
@@ -313,7 +326,12 @@ void ASTNodeGraphvizBuilder::visit(SubprocDefinitionNodePtr node)
     enter_and_create_vertex(node->type());
 
     node->get_function_name()->accept(this);
-    traverse(node->get_formal_parameters());
+
+    enter_and_create_vertex("Arg");
+    traverse(node->get_formal_parameter());
+    // node->get_formal_parameter()->accept(this);
+    leave();
+
     node->get_body()->accept(this);
 
     leave();
@@ -324,8 +342,8 @@ void ASTNodeGraphvizBuilder::visit(FunctionDefinitionNodePtr node)
     enter_and_create_vertex(node->type());
 
     node->get_function_name()->accept(this);
-    enter_and_create_vertex("Args");
-    traverse(node->get_formal_parameters());
+    enter_and_create_vertex("Arg");
+    node->get_formal_parameter()->accept(this);
     leave();
     node->get_body()->accept(this);
 
@@ -372,7 +390,7 @@ void ASTNodeGraphvizBuilder::visit(FloorAssignmentStatementNodePtr node)
 void ASTNodeGraphvizBuilder::visit(NegativeExpressionNodePtr node)
 {
     enter_and_create_vertex(node->type());
-    node->get_expr()->accept(this);
+    traverse(node->get_expr());
     leave();
 }
 
@@ -389,6 +407,13 @@ void ASTNodeGraphvizBuilder::visit(NotExpressionNodePtr node)
     node->get_expr()->accept(this);
     leave();
 }
+
+void ASTNodeGraphvizBuilder::visit(InvocationStatementNodePtr node)
+{
+    enter_and_create_vertex(node->type());
+    node->get_expr()->accept(this);
+    leave();
+};
 
 CLOSE_PARSER_NAMESPACE
 // end

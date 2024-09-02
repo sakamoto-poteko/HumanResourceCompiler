@@ -60,6 +60,29 @@ enum TokenId : int {
     ERROR = -1,
 };
 
+inline bool is_token_binary_operator(TokenId token)
+{
+    switch (token) {
+    case GE:
+    case LE:
+    case EE:
+    case NE:
+    case GT:
+    case LT:
+    case AND:
+    case OR:
+    case NOT:
+    case ADD:
+    case SUB:
+    case MUL:
+    case DIV:
+    case MOD:
+        return true;
+    default:
+        return false;
+    }
+}
+
 class Token : std::enable_shared_from_this<Token> {
 public:
     Token(TokenId tokenId, int row, int col, int width, StringPtr text)

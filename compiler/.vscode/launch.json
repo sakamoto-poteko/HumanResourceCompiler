@@ -11,8 +11,7 @@
             "program": "${command:cmake.launchTargetPath}",
             "args": [
                 "-i",
-                "build/test.hrml",
-                // "../design/lang.hrml",
+                "../design/lang.hrml",
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

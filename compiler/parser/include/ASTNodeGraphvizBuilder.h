@@ -26,6 +26,7 @@ public:
 
     using Graph = boost::directed_graph<NodeProperty>;
     using Vertex = Graph::vertex_descriptor;
+    using Edge = Graph::edge_descriptor;
 
     virtual std::string generate_graphviz();
 
@@ -56,6 +57,7 @@ public:
     virtual void visit(VariableDeclarationStatementNodePtr node) override;
     virtual void visit(VariableAssignmentStatementNodePtr node) override;
     virtual void visit(FloorAssignmentStatementNodePtr node) override;
+    virtual void visit(InvocationStatementNodePtr node) override;
     virtual void visit(SubprocDefinitionNodePtr node) override;
     virtual void visit(FunctionDefinitionNodePtr node) override;
     virtual void visit(ImportDirectiveNodePtr node) override;
@@ -77,6 +79,15 @@ protected:
     void traverse(const Container &nodes)
     {
         for (const auto &node : nodes) {
+            node->accept(this);
+        }
+    }
+
+    template <typename T>
+        requires convertible_to_ASTNodePtr<T>
+    void traverse(const T &node)
+    {
+        if (node) {
             node->accept(this);
         }
     }

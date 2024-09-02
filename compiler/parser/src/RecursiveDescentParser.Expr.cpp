@@ -21,9 +21,68 @@ OPEN_PARSER_NAMESPACE
 bool RecursiveDescentParser::parse_expression(AbstractExpressionNodePtr &node)
 {
     ENTER_PARSE_FRAME();
-    // FIXME: impl
+    bool ok;
+
+    AbstractUnaryExpressionNodePtr lhs;
+    ok = parse_unary_expression(lhs);
+    CHECK_ERROR(ok);
+
+    ok = parse_precedence_climbing(node, lhs, 0);
+    CHECK_ERROR(ok);
+
     LEAVE_PARSE_FRAME();
 }
+
+// Precedence climbing works both for binary and unary expression
+bool RecursiveDescentParser::parse_precedence_climbing(AbstractExpressionNodePtr &result, AbstractExpressionNodePtr lhs, int min_precedence)
+{
+    ENTER_PARSE_FRAME();
+
+    // FIXME: impl
+
+    while (lexer::is_token_binary_operator(token->token_id())
+        && BinaryOperatorNode::get_operator_precedence(token->token_id()) >= min_precedence) {
+
+        bool ok;
+        BinaryOperatorNodePtr op = std::make_shared<BinaryOperatorNode>(token);
+        int current_precedence = BinaryOperatorNode::get_operator_precedence(token->token_id());
+        CONSUME_TOKEN();
+
+        AbstractUnaryExpressionNodePtr rhs_unary;
+        AbstractExpressionNodePtr rhs;
+        ok = parse_unary_expression(rhs_unary);
+        CHECK_ERROR(ok);
+        rhs = std::static_pointer_cast<AbstractExpressionNode>(rhs_unary);
+
+        UPDATE_TOKEN_LOOKAHEAD()
+
+        while (lexer::is_token_binary_operator(token->token_id())) {
+            bool is_left_assoc = BinaryOperatorNode::get_operator_associativity(token->token_id()) == BinaryOperatorNode::LEFT_TO_RIGHT;
+            bool is_right_assoc = !is_left_assoc;
+            int lookahead_precedence = BinaryOperatorNode::get_operator_precedence(token->token_id());
+
+            if ((is_left_assoc && lookahead_precedence > current_precedence) || (is_right_assoc && lookahead_precedence >= current_precedence)) {
+                AbstractExpressionNodePtr rhs_result;
+                ok = parse_precedence_climbing(
+                    rhs_result,
+                    rhs,
+                    current_precedence == lookahead_precedence ? current_precedence : current_precedence + 1);
+                CHECK_ERROR(ok);
+
+                rhs = rhs_result;
+
+                UPDATE_TOKEN_LOOKAHEAD();
+            } else {
+                break;
+            }
+        }
+        lhs = std::make_shared<BinaryExpressionNode>(token->lineno(), token->colno(), lhs, op, rhs);
+    }
+
+    result = lhs;
+
+    LEAVE_PARSE_FRAME();
+};
 
 bool RecursiveDescentParser::parse_unary_expression(AbstractUnaryExpressionNodePtr &node)
 {
@@ -95,10 +154,12 @@ bool RecursiveDescentParser::parse_primary_expression(AbstractPrimaryExpressionN
     IdentifierNodePtr id;
     FloorAccessNodePtr floor_access;
     ParenthesizedExpressionNodePtr parenthesized_expr;
+    InvocationExpressionNodePtr invocation;
 
     switch (token->token_id()) {
     case lexer::BOOLEAN: // literal
         bool_literal = TO_BOOLEAN_NODE();
+        CONSUME_TOKEN();
         SET_NODE_FROM(bool_literal);
         break;
     case lexer::FLOOR: // floor_access
@@ -106,12 +167,21 @@ bool RecursiveDescentParser::parse_primary_expression(AbstractPrimaryExpressionN
         CHECK_ERROR(ok);
         node = std::static_pointer_cast<AbstractPrimaryExpressionNode>(floor_access);
         break;
-    case lexer::IDENTIFIER: // invocation_expression
-        id = TO_IDENTIFIER_NODE();
-        SET_NODE_FROM(id);
+    case lexer::IDENTIFIER: // invocation_expression, variable
+        // it's either an invocation or a variable
+        ok = parse_invocation_expression(invocation);
+        if (ok) {
+            SET_NODE_FROM(invocation);
+        } else {
+            CLEAR_ERROR_BEYOND();
+            id = TO_IDENTIFIER_NODE();
+            CONSUME_TOKEN();
+            SET_NODE_FROM(id);
+        }
         break;
     case lexer::INTEGER: // literal
         int_literal = TO_INTEGER_NODE();
+        CONSUME_TOKEN();
         SET_NODE_FROM(int_literal);
         break;
     case lexer::OPEN_PAREN: // parenthesized_expression
@@ -130,12 +200,25 @@ bool RecursiveDescentParser::parse_invocation_expression(InvocationExpressionNod
 {
     ENTER_PARSE_FRAME();
 
+    IdentifierNodePtr func_name;
+    AbstractExpressionNodePtr arg;
+
     CHECK_TOKEN_AND_CONSUME(lexer::IDENTIFIER, "an identifier (function or subprocedure)");
+    func_name = TO_IDENTIFIER_NODE();
+
     CHECK_TOKEN_AND_CONSUME(lexer::OPEN_PAREN, "'(");
-    AbstractExpressionNodePtr expr;
-    bool ok = parse_expression(expr);
-    CHECK_ERROR(ok);
+    UPDATE_TOKEN_LOOKAHEAD();
+    // optional expr
+    if (!TOKEN_IS(lexer::CLOSE_PAREN)) {
+        AbstractExpressionNodePtr arg;
+        bool ok = parse_expression(arg);
+        CHECK_ERROR(ok);
+
+        UPDATE_TOKEN_LOOKAHEAD();
+    }
     CHECK_TOKEN_AND_CONSUME(lexer::CLOSE_PAREN, "')'");
+
+    SET_NODE(func_name, arg);
 
     LEAVE_PARSE_FRAME();
 }
