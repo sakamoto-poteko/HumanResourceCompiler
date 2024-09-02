@@ -2,9 +2,11 @@
 
 #include <spdlog/spdlog.h>
 
-#include "TerminalColor.h"
-#include "lexer_helper.h"
 #include "HRLLexer.h"
+#include "HRLToken.h"
+#include "TerminalColor.h"
+#include "lexer_global.h"
+#include "lexer_helper.h"
 
 extern int yyleng;
 extern char *yytext;
@@ -75,7 +77,14 @@ int HRLLexer::lexer_finalize()
 TokenPtr HRLLexer::tokenize()
 {
     int val = yylex();
-    TokenId tokenId = static_cast<TokenId>(val);
+    TokenPtr token;
+
+    // as long as it's metadata, we keep tokenize next
+    while (val >= COMMENT) {
+        val = yylex();
+    }
+
+    TokenId token_id = static_cast<TokenId>(val);
     int lineno = yylineno; // line starts from 1
     int colno = yycolno - yyleng + 1; // colno starts from 1
     int width = yyleng;
@@ -119,30 +128,31 @@ TokenPtr HRLLexer::tokenize()
     case OPEN_BRACKET:
     case CLOSE_BRACKET:
     case COMMA:
-        return std::make_shared<Token>(tokenId, lineno, colno, width, std::make_shared<std::string>(yytext));
-
+        token = std::make_shared<Token>(token_id, lineno, colno, width, std::make_shared<std::string>(yytext), __currentToken.preceding_metadata);
+        break;
     // tokens has some payloads
     case BOOLEAN:
-        return std::make_shared<BooleanToken>(tokenId, __currentToken.boolean, lineno, colno, width, std::make_shared<std::string>(yytext));
-
+        token = std::make_shared<BooleanToken>(token_id, __currentToken.boolean, lineno, colno, width, std::make_shared<std::string>(yytext), __currentToken.preceding_metadata);
+        break;
     case INTEGER:
-        return std::make_shared<IntegerToken>(tokenId, __currentToken.integer, lineno, colno, width, std::make_shared<std::string>(yytext));
-
+        token = std::make_shared<IntegerToken>(token_id, __currentToken.integer, lineno, colno, width, std::make_shared<std::string>(yytext), __currentToken.preceding_metadata);
+        break;
     case IDENTIFIER:
-        return std::make_shared<IdentifierToken>(tokenId, __currentToken.identifier, lineno, colno, width, std::make_shared<std::string>(yytext));
-
+        token = std::make_shared<IdentifierToken>(token_id, __currentToken.identifier, lineno, colno, width, std::make_shared<std::string>(yytext), __currentToken.preceding_metadata);
+        break;
     case END:
-        return std::make_shared<Token>(END, lineno, colno, width, std::make_shared<std::string>(yytext));
-
+        token = std::make_shared<Token>(END, lineno, colno, width, std::make_shared<std::string>(yytext), __currentToken.preceding_metadata);
+        break;
     case ERROR:
-        return std::make_shared<Token>(ERROR, lineno, colno, width, std::make_shared<std::string>(yytext));
-
+        token = std::make_shared<Token>(ERROR, lineno, colno, width, std::make_shared<std::string>(yytext), __currentToken.preceding_metadata);
+        break;
     default:
         spdlog::critical("bug: unreachable tokenize default");
         abort();
     }
 
-    return TokenPtr();
+    __currentToken.clear();
+    return token;
 }
 
 void HRLLexer::print_tokenization_error(const std::string &filepath, int lineno, int colno, int width, const StringPtr &text, const std::vector<std::string> &lines)

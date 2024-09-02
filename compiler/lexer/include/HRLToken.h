@@ -2,9 +2,11 @@
 #define HRL_TOKEN
 
 #include <memory>
+#include <vector>
 
 #include "hrl_global.h"
 #include "lexer_global.h"
+#include "lexer_helper.h"
 
 OPEN_LEXER_NAMESPACE
 
@@ -57,6 +59,9 @@ enum TokenId : int {
     CLOSE_BRACKET,
     COMMA,
 
+    COMMENT = 999,
+    NEWLINE,
+
     ERROR = -1,
 };
 
@@ -85,12 +90,13 @@ inline bool is_token_binary_operator(TokenId token)
 
 class Token : std::enable_shared_from_this<Token> {
 public:
-    Token(TokenId tokenId, int row, int col, int width, StringPtr text)
+    Token(TokenId tokenId, int row, int col, int width, StringPtr text, const std::vector<TokenMetadata> &metadata)
         : _token_id(tokenId)
         , _lineno(row)
         , _colno(col)
         , _width(width)
         , _text(text)
+        , _metadata(metadata)
     {
     }
 
@@ -108,6 +114,8 @@ public:
 
     int width() const { return _width; }
 
+    const std::vector<TokenMetadata> &metadata() const { return _metadata; }
+
 protected:
     TokenId _token_id;
 
@@ -115,12 +123,13 @@ protected:
     int _colno;
     int _width;
     StringPtr _text;
+    std::vector<TokenMetadata> _metadata;
 };
 
 class BooleanToken : public Token {
 public:
-    BooleanToken(TokenId id, bool value, int row, int col, int width, StringPtr text)
-        : Token(id, row, col, width, text)
+    BooleanToken(TokenId id, bool value, int row, int col, int width, StringPtr text, const std::vector<TokenMetadata> &metadata)
+        : Token(id, row, col, width, text, metadata)
         , _value(value)
     {
     }
@@ -133,8 +142,8 @@ protected:
 
 class IntegerToken : public Token {
 public:
-    IntegerToken(TokenId id, int value, int row, int col, int width, StringPtr text)
-        : Token(id, row, col, width, text)
+    IntegerToken(TokenId id, int value, int row, int col, int width, StringPtr text, const std::vector<TokenMetadata> &metadata)
+        : Token(id, row, col, width, text, metadata)
         , _value(value)
     {
     }
@@ -147,8 +156,8 @@ protected:
 
 class IdentifierToken : public Token {
 public:
-    IdentifierToken(TokenId id, StringPtr value, int row, int col, int width, StringPtr text)
-        : Token(id, row, col, width, text)
+    IdentifierToken(TokenId id, StringPtr value, int row, int col, int width, StringPtr text, const std::vector<TokenMetadata> &metadata)
+        : Token(id, row, col, width, text, metadata)
         , _value(value)
     {
     }
