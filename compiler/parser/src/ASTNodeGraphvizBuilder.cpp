@@ -143,24 +143,24 @@ void ASTNodeGraphvizBuilder::visit(BinaryOperatorNodePtr node)
 void ASTNodeGraphvizBuilder::visit(VariableDeclarationNodePtr node)
 {
     enter_and_create_vertex(node->type());
-    node->get_var_name()->accept(this);
-    node->get_expr()->accept(this);
+    traverse(node->get_var_name());
+    traverse(node->get_expr());
     leave();
 }
 
 void ASTNodeGraphvizBuilder::visit(VariableAssignmentNodePtr node)
 {
     enter_and_create_vertex(node->type());
-    node->get_var_name()->accept(this);
-    node->get_expr()->accept(this);
+    traverse(node->get_var_name());
+    traverse(node->get_expr());
     leave();
 }
 
 void ASTNodeGraphvizBuilder::visit(FloorAssignmentNodePtr node)
 {
     enter_and_create_vertex(node->type());
-    node->get_floor_access()->accept(this);
-    node->get_expr()->accept(this);
+    traverse(node->get_floor_access());
+    traverse(node->get_expr());
     leave();
 }
 
@@ -168,9 +168,8 @@ void ASTNodeGraphvizBuilder::visit(BinaryExpressionNodePtr node)
 {
     enter_and_create_vertex(node->type(), BinaryOperatorNode::get_binary_operator_string(node->get_op()->get_op()), false);
 
-    node->get_left()->accept(this);
-    // node->get_op()->accept(this);
-    node->get_right()->accept(this);
+    traverse(node->get_left());
+    traverse(node->get_right());
 
     leave();
 }
@@ -178,39 +177,39 @@ void ASTNodeGraphvizBuilder::visit(BinaryExpressionNodePtr node)
 void ASTNodeGraphvizBuilder::visit(IncrementExpressionNodePtr node)
 {
     enter_and_create_vertex(node->type());
-    node->get_var_name()->accept(this);
+    traverse(node->get_var_name());
     leave();
 }
 
 void ASTNodeGraphvizBuilder::visit(DecrementExpressionNodePtr node)
 {
     enter_and_create_vertex(node->type());
-    node->get_var_name()->accept(this);
+    traverse(node->get_var_name());
     leave();
 }
 
 void ASTNodeGraphvizBuilder::visit(FloorAccessNodePtr node)
 {
     enter_and_create_vertex(node->type());
-    node->get_index_expr()->accept(this);
+    traverse(node->get_index_expr());
     leave();
 }
 
 void ASTNodeGraphvizBuilder::visit(ParenthesizedExpressionNodePtr node)
 {
     enter_and_create_vertex(node->type());
-    node->get_expr()->accept(this);
+    traverse(node->get_expr());
     leave();
 }
 
 void ASTNodeGraphvizBuilder::visit(InvocationExpressionNodePtr node)
 {
     enter_and_create_vertex(node->type());
-    node->get_func_name()->accept(this);
+    traverse(node->get_func_name());
 
     enter_and_create_vertex("Arg");
     traverse(node->get_arg());
-    // node->get_arg()->accept(this);
+    // traverse(node->get_arg());
     leave();
 
     leave();
@@ -221,15 +220,15 @@ void ASTNodeGraphvizBuilder::visit(IfStatementNodePtr node)
     enter_and_create_vertex(node->type());
 
     enter_and_create_vertex("Cond");
-    node->get_condition()->accept(this);
+    traverse(node->get_condition());
     leave();
 
     enter_and_create_vertex("Then");
-    node->get_then_stmt()->accept(this);
+    traverse(node->get_then_stmt());
     leave();
 
     enter_and_create_vertex("Else");
-    node->get_else_stmt()->accept(this);
+    traverse(node->get_else_stmt());
     leave();
 
     leave();
@@ -240,11 +239,11 @@ void ASTNodeGraphvizBuilder::visit(WhileStatementNodePtr node)
     enter_and_create_vertex(node->type());
 
     enter_and_create_vertex("Cond");
-    node->get_condition()->accept(this);
+    traverse(node->get_condition());
     leave();
 
     enter_and_create_vertex("Body");
-    node->get_body()->accept(this);
+    traverse(node->get_body());
     leave();
 
     leave();
@@ -254,22 +253,20 @@ void ASTNodeGraphvizBuilder::visit(ForStatementNodePtr node)
 {
     enter_and_create_vertex(node->type());
 
-    if (node->get_init_stmt()) {
-        enter_and_create_vertex("Init");
-        node->get_init_stmt()->accept(this);
-        leave();
-    }
+    enter_and_create_vertex("Init");
+    traverse(node->get_init_stmt());
+    leave();
 
     enter_and_create_vertex("Cond");
-    node->get_condition()->accept(this);
+    traverse(node->get_condition());
     leave();
 
     enter_and_create_vertex("Update");
-    node->get_update_stmt()->accept(this);
+    traverse(node->get_update_stmt());
     leave();
 
     enter_and_create_vertex("Body");
-    node->get_body()->accept(this);
+    traverse(node->get_body());
     leave();
 
     leave();
@@ -278,9 +275,9 @@ void ASTNodeGraphvizBuilder::visit(ForStatementNodePtr node)
 void ASTNodeGraphvizBuilder::visit(ReturnStatementNodePtr node)
 {
     enter_and_create_vertex(node->type());
-    if (node->get_expr()) {
-        node->get_expr()->accept(this);
-    }
+
+    traverse(node->get_expr());
+
     leave();
 }
 
@@ -289,11 +286,11 @@ void ASTNodeGraphvizBuilder::visit(FloorBoxInitStatementNodePtr node)
     enter_and_create_vertex(node->type());
 
     enter_and_create_vertex("Index");
-    node->get_index()->accept(this);
+    traverse(node->get_index());
     leave();
 
     enter_and_create_vertex("Value");
-    node->get_value()->accept(this);
+    traverse(node->get_value());
     leave();
 
     leave();
@@ -302,7 +299,7 @@ void ASTNodeGraphvizBuilder::visit(FloorBoxInitStatementNodePtr node)
 void ASTNodeGraphvizBuilder::visit(FloorMaxInitStatementNodePtr node)
 {
     enter_and_create_vertex(node->type());
-    node->get_value()->accept(this);
+    traverse(node->get_value());
     leave();
 }
 
@@ -325,14 +322,13 @@ void ASTNodeGraphvizBuilder::visit(SubprocDefinitionNodePtr node)
 {
     enter_and_create_vertex(node->type());
 
-    node->get_function_name()->accept(this);
+    traverse(node->get_function_name());
 
     enter_and_create_vertex("Arg");
     traverse(node->get_formal_parameter());
-    // node->get_formal_parameter()->accept(this);
     leave();
 
-    node->get_body()->accept(this);
+    traverse(node->get_body());
 
     leave();
 }
@@ -341,11 +337,13 @@ void ASTNodeGraphvizBuilder::visit(FunctionDefinitionNodePtr node)
 {
     enter_and_create_vertex(node->type());
 
-    node->get_function_name()->accept(this);
+    traverse(node->get_function_name());
+
     enter_and_create_vertex("Arg");
-    node->get_formal_parameter()->accept(this);
+    traverse(node->get_formal_parameter());
     leave();
-    node->get_body()->accept(this);
+
+    traverse(node->get_body());
 
     leave();
 }
@@ -353,7 +351,7 @@ void ASTNodeGraphvizBuilder::visit(FunctionDefinitionNodePtr node)
 void ASTNodeGraphvizBuilder::visit(ImportDirectiveNodePtr node)
 {
     enter_and_create_vertex(node->type());
-    node->get_module_name()->accept(this);
+    traverse(node->get_module_name());
     leave();
 }
 
@@ -361,8 +359,7 @@ void ASTNodeGraphvizBuilder::visit(CompilationUnitNodePtr node)
 {
     enter_and_create_vertex(node->type());
 
-    node->get_floor_max()->accept(this);
-
+    traverse(node->get_floor_max());
     traverse(node->get_functions());
     traverse(node->get_imports());
     traverse(node->get_subprocs());
@@ -374,17 +371,17 @@ void ASTNodeGraphvizBuilder::visit(CompilationUnitNodePtr node)
 
 void ASTNodeGraphvizBuilder::visit(VariableDeclarationStatementNodePtr node)
 {
-    node->get_variable_decl()->accept(this);
+    traverse(node->get_variable_decl());
 }
 
 void ASTNodeGraphvizBuilder::visit(VariableAssignmentStatementNodePtr node)
 {
-    node->get_variable_assignment()->accept(this);
+    traverse(node->get_variable_assignment());
 }
 
 void ASTNodeGraphvizBuilder::visit(FloorAssignmentStatementNodePtr node)
 {
-    node->get_floor_assignment()->accept(this);
+    traverse(node->get_floor_assignment());
 };
 
 void ASTNodeGraphvizBuilder::visit(NegativeExpressionNodePtr node)
@@ -397,21 +394,21 @@ void ASTNodeGraphvizBuilder::visit(NegativeExpressionNodePtr node)
 void ASTNodeGraphvizBuilder::visit(PositiveExpressionNodePtr node)
 {
     enter_and_create_vertex(node->type());
-    node->get_expr()->accept(this);
+    traverse(node->get_expr());
     leave();
 }
 
 void ASTNodeGraphvizBuilder::visit(NotExpressionNodePtr node)
 {
     enter_and_create_vertex(node->type());
-    node->get_expr()->accept(this);
+    traverse(node->get_expr());
     leave();
 }
 
 void ASTNodeGraphvizBuilder::visit(InvocationStatementNodePtr node)
 {
     enter_and_create_vertex(node->type());
-    node->get_expr()->accept(this);
+    traverse(node->get_expr());
     leave();
 };
 
