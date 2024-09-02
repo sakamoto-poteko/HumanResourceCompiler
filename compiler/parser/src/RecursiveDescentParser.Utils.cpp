@@ -31,11 +31,13 @@ void RecursiveDescentParser::leave_parse_frame()
     _parse_frame_token_pointer.pop();
 }
 
-void RecursiveDescentParser::push_error(const std::string &expect, const lexer::TokenPtr &got, int lineno, int colno)
+void RecursiveDescentParser::push_error(const std::string &expect, const lexer::TokenPtr &got, int lineno, int colno, int width)
 {
+    auto c = colno != -1 ? colno : got->colno();
+    auto w = width != -1 ? width : got->width();
     auto token_text = *got->token_text();
-    auto err_str = boost::format("Expect %1% but got '%2%'. [%3%:%4%]")
-        % expect % token_text % (lineno != -1 ? lineno : got->lineno()) % (colno != -1 ? colno : got->colno());
+    auto err_str = boost::format("Expect %1% but got '%2%'. [%3%:%4%-%5%]")
+        % expect % token_text % (lineno != -1 ? lineno : got->lineno()) % c % (c + w);
 
     _errors.push_back(err_str.str());
 }
@@ -49,11 +51,10 @@ void RecursiveDescentParser::print_error()
     _errors.clear();
 }
 
-void RecursiveDescentParser::push_error(const std::string &message, int lineno, int colno)
+void RecursiveDescentParser::push_error(const std::string &message, int lineno, int colno, int width)
 {
-    auto err_str = boost::format("%1%%2%")
-        % message
-        % (lineno != -1 && colno != -1 ? boost::format(" [%1%:%2%]") % lineno % colno : boost::format());
+    auto pos_str = boost::format(" [%1%:%2%-%3%]") % lineno % colno % (colno + width);
+    auto err_str = boost::format("%1%%2%") % message % pos_str;
 
     _errors.push_back(err_str.str());
 }

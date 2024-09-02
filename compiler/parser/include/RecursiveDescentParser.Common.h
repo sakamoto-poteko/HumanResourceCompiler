@@ -14,6 +14,7 @@ OPEN_PARSER_NAMESPACE
     lexer::TokenPtr token = lookahead();           \
     int lineno = token->lineno();                  \
     int colno = token->colno();                    \
+    int width = token->width();                    \
     std::list<std::string>::iterator last_error_it \
         = _errors.empty() ? _errors.end() : std::prev(_errors.end());
 
@@ -62,11 +63,11 @@ OPEN_PARSER_NAMESPACE
         return false;                \
     }
 
-#define CHECK_ERROR_MSG(ok, msg, lineno, colno) \
-    if (!(ok)) {                                \
-        push_error((msg), lineno, colno);       \
-        revert_parse_frame();                   \
-        return false;                           \
+#define CHECK_ERROR_MSG(ok, msg, lineno, colno, width) \
+    if (!(ok)) {                                       \
+        push_error((msg), lineno, colno, width);       \
+        revert_parse_frame();                          \
+        return false;                                  \
     }
 
 #define CHECK_ERROR(ok)       \

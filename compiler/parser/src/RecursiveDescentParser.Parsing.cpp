@@ -56,20 +56,18 @@ bool RecursiveDescentParser::parse_compilation_unit(CompilationUnitNodePtr &node
             CHECK_ERROR_MSG(
                 ok,
                 "Expect either 'init floor' or 'init floor_max' statement.",
-                token->lineno(),
-                token->colno());
+                token->lineno(), token->colno(), token->width());
 
             // clear the error of parse floor box init failure
             CLEAR_ERROR_BEYOND();
 
-            if (floor_max) {
-                // floor max already set. there can be only one.
-                push_error("Maximum one 'init floor_max' allowed");
-                revert_parse_frame();
-                return false;
-            } else {
-                floor_max.swap(max);
-            }
+            // floor max already set? there can be only one.
+            CHECK_ERROR_MSG(
+                !floor_max, // cannot be true. true means set already
+                "Maximum one 'init floor_max' allowed",
+                token->lineno(), token->colno(), token->width());
+
+            floor_max.swap(max);
         }
 
         UPDATE_TOKEN_LOOKAHEAD();
@@ -312,7 +310,7 @@ bool RecursiveDescentParser::parse_statement(AbstractStatementNodePtr &node)
         SET_NODE_FROM(embedded_statement);
         break;
     default:
-        CHECK_ERROR_MSG(false, "Expect a statement but got '" + *token->token_text() + "'", lineno, colno);
+        CHECK_ERROR_MSG(false, "Expect a statement but got '" + *token->token_text() + "'", lineno, colno, width);
     }
 
     // FIXME: impl
@@ -480,7 +478,7 @@ bool RecursiveDescentParser::parse_embedded_statement(AbstractEmbeddedStatementN
             "Expect an iteration/selection/return/empty statement or a statement block but got '"
                 + *token->token_text()
                 + "'",
-            lineno, colno);
+            lineno, colno, width);
     }
 
     LEAVE_PARSE_FRAME();
@@ -586,7 +584,8 @@ bool RecursiveDescentParser::parse_for_statement(ForStatementNodePtr &node)
             if (ok) {
                 CLEAR_ERROR_BEYOND();
             } else {
-                CHECK_ERROR_MSG(false, "for init statment should either be variable assignment or variable declaration", token->lineno(), token->colno());
+                CHECK_ERROR_MSG(false, "for init statment should either be variable assignment or variable declaration",
+                    token->lineno(), token->colno(), token->width());
             }
         }
     }
