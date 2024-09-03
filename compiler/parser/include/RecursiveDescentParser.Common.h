@@ -14,6 +14,7 @@ OPEN_PARSER_NAMESPACE
     lexer::TokenPtr token = lookahead();           \
     int lineno = token->lineno();                  \
     int colno = token->colno();                    \
+    int width = token->width();                    \
     std::list<std::string>::iterator last_error_it \
         = _errors.empty() ? _errors.end() : std::prev(_errors.end());
 
@@ -32,13 +33,14 @@ OPEN_PARSER_NAMESPACE
 #define TO_BOOLEAN_NODE() \
     std::make_shared<BooleanLiteralNode>(std::static_pointer_cast<hrl::lexer::BooleanToken>(token))
 
-#define CHECK_TOKEN_AND_CONSUME(expected_token, expected_message) \
-    token = lookahead();                                          \
-    if (token->token_id() != (expected_token)) {                  \
-        push_error((expected_message), token);                    \
-        revert_parse_frame();                                     \
-        return false;                                             \
-    }                                                             \
+#define CHECK_TOKEN_AND_CONSUME(expected_token, expected_message, token_name) \
+    token = lookahead();                                                      \
+    auto token_name = token;                                                  \
+    if (token->token_id() != (expected_token)) {                              \
+        push_error((expected_message), token);                                \
+        revert_parse_frame();                                                 \
+        return false;                                                         \
+    }                                                                         \
     consume();
 
 #define CONSUME_TOKEN() \
@@ -62,11 +64,11 @@ OPEN_PARSER_NAMESPACE
         return false;                \
     }
 
-#define CHECK_ERROR_MSG(ok, msg, lineno, colno) \
-    if (!(ok)) {                                \
-        push_error((msg), lineno, colno);       \
-        revert_parse_frame();                   \
-        return false;                           \
+#define CHECK_ERROR_MSG(ok, msg, lineno, colno, width) \
+    if (!(ok)) {                                       \
+        push_error((msg), lineno, colno, width);       \
+        revert_parse_frame();                          \
+        return false;                                  \
     }
 
 #define CHECK_ERROR(ok)       \

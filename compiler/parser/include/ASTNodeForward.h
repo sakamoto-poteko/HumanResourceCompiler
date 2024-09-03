@@ -34,6 +34,7 @@ class AbstractStatementNode;
 class AbstractEmbeddedStatementNode;
 class AbstractSelectionStatementNode;
 class AbstractIterationStatementNode;
+class AbstractSubroutineNode;
 
 class IfStatementNode;
 class WhileStatementNode;
@@ -48,7 +49,7 @@ class VariableAssignmentStatementNode;
 class VariableDeclarationStatementNode;
 class InvocationStatementNode;
 
-class RoutineDefinitionCommonNode;
+class SubroutineNode;
 class SubprocDefinitionNode;
 class FunctionDefinitionNode;
 
@@ -85,6 +86,7 @@ using AbstractStatementNodePtr = std::shared_ptr<AbstractStatementNode>;
 using AbstractEmbeddedStatementNodePtr = std::shared_ptr<AbstractEmbeddedStatementNode>;
 using AbstractSelectionStatementNodePtr = std::shared_ptr<AbstractSelectionStatementNode>;
 using AbstractIterationStatementNodePtr = std::shared_ptr<AbstractIterationStatementNode>;
+using AbstractSubroutineNodePtr = std::shared_ptr<AbstractSubroutineNode>;
 
 using IfStatementNodePtr = std::shared_ptr<IfStatementNode>;
 using WhileStatementNodePtr = std::shared_ptr<WhileStatementNode>;

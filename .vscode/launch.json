@@ -11,12 +11,11 @@
             "program": "${command:cmake.launchTargetPath}",
             "args": [
                 "-i",
-                "../design/lang.hrml",
+                "design/lang.hrml",
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
-            "internalConsoleOptions": "openOnSessionStart",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",

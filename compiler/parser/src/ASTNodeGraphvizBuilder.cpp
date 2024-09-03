@@ -17,8 +17,9 @@ ASTNodeGraphvizBuilder::Vertex ASTNodeGraphvizBuilder::enter_and_create_vertex(c
 {
     Vertex vertex = _graph.add_vertex(NodeProperty {
         .name = name,
+        .value = value,
         .terminal = terminal,
-        .value = value });
+    });
 
     if (!_ancestors.empty()) {
         _graph.add_edge(_ancestors.top(), vertex);
@@ -359,12 +360,11 @@ void ASTNodeGraphvizBuilder::visit(CompilationUnitNodePtr node)
 {
     enter_and_create_vertex(node->type());
 
-    traverse(node->get_floor_max());
-    traverse(node->get_functions());
     traverse(node->get_imports());
-    traverse(node->get_subprocs());
+    traverse(node->get_floor_max());
     traverse(node->get_top_level_decls());
     traverse(node->get_floor_inits());
+    traverse(node->get_subroutines());
 
     leave();
 }

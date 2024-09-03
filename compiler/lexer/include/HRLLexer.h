@@ -14,7 +14,7 @@ public:
     HRLLexer();
     ~HRLLexer();
 
-    int lex(FILE *in, const std::string &filepath, std::vector<TokenPtr> &result);
+    bool lex(FILE *in, const std::string &filepath, std::vector<TokenPtr> &result);
 
 private:
     int lexer_initialize(FILE *in);
