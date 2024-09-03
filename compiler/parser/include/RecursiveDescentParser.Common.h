@@ -33,13 +33,14 @@ OPEN_PARSER_NAMESPACE
 #define TO_BOOLEAN_NODE() \
     std::make_shared<BooleanLiteralNode>(std::static_pointer_cast<hrl::lexer::BooleanToken>(token))
 
-#define CHECK_TOKEN_AND_CONSUME(expected_token, expected_message) \
-    token = lookahead();                                          \
-    if (token->token_id() != (expected_token)) {                  \
-        push_error((expected_message), token);                    \
-        revert_parse_frame();                                     \
-        return false;                                             \
-    }                                                             \
+#define CHECK_TOKEN_AND_CONSUME(expected_token, expected_message, token_name) \
+    token = lookahead();                                                      \
+    auto token_name = token;                                                  \
+    if (token->token_id() != (expected_token)) {                              \
+        push_error((expected_message), token);                                \
+        revert_parse_frame();                                                 \
+        return false;                                                         \
+    }                                                                         \
     consume();
 
 #define CONSUME_TOKEN() \

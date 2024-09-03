@@ -359,12 +359,11 @@ void ASTNodeGraphvizBuilder::visit(CompilationUnitNodePtr node)
 {
     enter_and_create_vertex(node->type());
 
-    traverse(node->get_floor_max());
-    traverse(node->get_functions());
     traverse(node->get_imports());
-    traverse(node->get_subprocs());
+    traverse(node->get_floor_max());
     traverse(node->get_top_level_decls());
     traverse(node->get_floor_inits());
+    traverse(node->get_subroutines());
 
     leave();
 }

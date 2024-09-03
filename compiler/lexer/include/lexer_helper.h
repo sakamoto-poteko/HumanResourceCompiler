@@ -31,7 +31,7 @@ public:
     void clear() {
         integer = 0;
         boolean = false;
-        identifier->clear();
+        identifier.reset();
         preceding_metadata.clear();
     }
 };

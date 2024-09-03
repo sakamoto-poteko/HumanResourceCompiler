@@ -27,8 +27,7 @@ bool RecursiveDescentParser::parse_compilation_unit(CompilationUnitNodePtr &node
     FloorMaxInitStatementNodePtr floor_max;
 
     std::vector<VariableDeclarationStatementNodePtr> variable_declarations;
-    std::vector<FunctionDefinitionNodePtr> function_definitions;
-    std::vector<SubprocDefinitionNodePtr> subproc_definitions;
+    std::vector<AbstractSubroutineNodePtr> subroutine_definitions;
 
     // There must be 0 to any import directives at the beginning of the file
     while (TOKEN_IS(lexer::IMPORT)) {
@@ -87,13 +86,13 @@ bool RecursiveDescentParser::parse_compilation_unit(CompilationUnitNodePtr &node
             ok = parse_function_definition(func);
             CHECK_ERROR(ok);
 
-            function_definitions.push_back(func);
+            subroutine_definitions.push_back(func);
         } else if (TOKEN_IS(lexer::SUBWORD)) {
             SubprocDefinitionNodePtr sub;
             ok = parse_subproc_definition(sub);
             CHECK_ERROR(ok);
 
-            subproc_definitions.push_back(sub);
+            subroutine_definitions.push_back(sub);
         } else {
             throw; // won't be here
         }
@@ -102,7 +101,7 @@ bool RecursiveDescentParser::parse_compilation_unit(CompilationUnitNodePtr &node
     } while (TOKEN_IS(lexer::LET) || TOKEN_IS(lexer::FUNCTION) || TOKEN_IS(lexer::SUBWORD));
 
     SET_NODE(imports, floor_inits, floor_max,
-        variable_declarations, function_definitions, subproc_definitions);
+        variable_declarations, subroutine_definitions);
 
     LEAVE_PARSE_FRAME();
 }
@@ -124,14 +123,14 @@ bool RecursiveDescentParser::parse_import_directive(ImportDirectiveNodePtr &node
 
     IdentifierNodePtr identifier;
 
-    CHECK_TOKEN_AND_CONSUME(lexer::IMPORT, "'import'");
+    CHECK_TOKEN_AND_CONSUME(lexer::IMPORT, "'import'", import_token);
 
-    CHECK_TOKEN_AND_CONSUME(lexer::IDENTIFIER, "an identifier")
+    CHECK_TOKEN_AND_CONSUME(lexer::IDENTIFIER, "an identifier", _)
     identifier = TO_IDENTIFIER_NODE();
 
-    CHECK_TOKEN_AND_CONSUME(lexer::T, "';'");
+    CHECK_TOKEN_AND_CONSUME(lexer::T, "';'", semicolon);
 
-    SET_NODE(identifier);
+    SET_NODE(identifier, import_token, semicolon);
 
     LEAVE_PARSE_FRAME();
 }
@@ -142,22 +141,22 @@ bool RecursiveDescentParser::parse_floor_box_init_statement(FloorBoxInitStatemen
 
     IntegerLiteralNodePtr index, value;
 
-    CHECK_TOKEN_AND_CONSUME(lexer::INIT, "'init'");
-    CHECK_TOKEN_AND_CONSUME(lexer::FLOOR, "'floor'");
-    CHECK_TOKEN_AND_CONSUME(lexer::OPEN_BRACKET, "'['");
+    CHECK_TOKEN_AND_CONSUME(lexer::INIT, "'init'", init_token);
+    CHECK_TOKEN_AND_CONSUME(lexer::FLOOR, "'floor'", floor_token);
+    CHECK_TOKEN_AND_CONSUME(lexer::OPEN_BRACKET, "'['", open_bracket);
 
-    CHECK_TOKEN_AND_CONSUME(lexer::INTEGER, "an integer (floor index)");
+    CHECK_TOKEN_AND_CONSUME(lexer::INTEGER, "an integer (floor index)", floor_index);
     index = TO_INTEGER_NODE();
 
-    CHECK_TOKEN_AND_CONSUME(lexer::CLOSE_BRACKET, "']'");
-    CHECK_TOKEN_AND_CONSUME(lexer::EQ, "'='");
+    CHECK_TOKEN_AND_CONSUME(lexer::CLOSE_BRACKET, "']'", close_bracket);
+    CHECK_TOKEN_AND_CONSUME(lexer::EQ, "'='", equals);
 
-    CHECK_TOKEN_AND_CONSUME(lexer::INTEGER, "an integer (value)");
+    CHECK_TOKEN_AND_CONSUME(lexer::INTEGER, "an integer (value)", value_token);
     value = TO_INTEGER_NODE();
 
-    CHECK_TOKEN_AND_CONSUME(lexer::T, "';'");
+    CHECK_TOKEN_AND_CONSUME(lexer::T, "';'", semicolon);
 
-    SET_NODE(index, value);
+    SET_NODE(index, value, init_token, floor_token, open_bracket, floor_index, close_bracket, equals, value_token, semicolon);
 
     LEAVE_PARSE_FRAME();
 }
@@ -168,14 +167,14 @@ bool RecursiveDescentParser::parse_floor_max_statement(FloorMaxInitStatementNode
 
     IntegerLiteralNodePtr max;
 
-    CHECK_TOKEN_AND_CONSUME(lexer::INIT, "'init'");
-    CHECK_TOKEN_AND_CONSUME(lexer::FLOOR_MAX, "'floor_max'");
-    CHECK_TOKEN_AND_CONSUME(lexer::EQ, "'='");
-    CHECK_TOKEN_AND_CONSUME(lexer::INTEGER, "an integer (floor max value)");
+    CHECK_TOKEN_AND_CONSUME(lexer::INIT, "'init'", init_token);
+    CHECK_TOKEN_AND_CONSUME(lexer::FLOOR_MAX, "'floor_max'", floor_max_token);
+    CHECK_TOKEN_AND_CONSUME(lexer::EQ, "'='", equals);
+    CHECK_TOKEN_AND_CONSUME(lexer::INTEGER, "an integer (floor max value)", value_token);
     max = TO_INTEGER_NODE();
-    CHECK_TOKEN_AND_CONSUME(lexer::T, "';'");
+    CHECK_TOKEN_AND_CONSUME(lexer::T, "';'", semicolon);
 
-    SET_NODE(max);
+    SET_NODE(max, init_token, floor_max_token, equals, value_token, semicolon);
 
     LEAVE_PARSE_FRAME();
 }
@@ -188,22 +187,22 @@ bool RecursiveDescentParser::parse_subproc_definition(SubprocDefinitionNodePtr &
     IdentifierNodePtr formal_parameter;
     StatementBlockNodePtr body;
 
-    CHECK_TOKEN_AND_CONSUME(lexer::SUBWORD, "'sub'");
-    CHECK_TOKEN_AND_CONSUME(lexer::IDENTIFIER, "an identifier (subproc name)");
+    CHECK_TOKEN_AND_CONSUME(lexer::SUBWORD, "'sub'", sub_token);
+    CHECK_TOKEN_AND_CONSUME(lexer::IDENTIFIER, "an identifier (subproc name)", _);
     subproc_name = TO_IDENTIFIER_NODE();
-    CHECK_TOKEN_AND_CONSUME(lexer::OPEN_PAREN, "'('");
+    CHECK_TOKEN_AND_CONSUME(lexer::OPEN_PAREN, "'('", open_paren);
 
     UPDATE_TOKEN_LOOKAHEAD();
     if (TOKEN_IS(lexer::IDENTIFIER)) {
-        CHECK_TOKEN_AND_CONSUME(lexer::IDENTIFIER, "an identifier (formal parameter)");
+        CHECK_TOKEN_AND_CONSUME(lexer::IDENTIFIER, "an identifier (formal parameter)", __);
         formal_parameter = TO_IDENTIFIER_NODE();
         UPDATE_TOKEN_LOOKAHEAD();
     }
-    CHECK_TOKEN_AND_CONSUME(lexer::CLOSE_PAREN, "')'");
+    CHECK_TOKEN_AND_CONSUME(lexer::CLOSE_PAREN, "')'", close_paren);
     bool ok = parse_statement_block(body);
     CHECK_ERROR(ok);
 
-    SET_NODE(subproc_name, formal_parameter, body);
+    SET_NODE(subproc_name, formal_parameter, body, sub_token, open_paren, close_paren);
 
     LEAVE_PARSE_FRAME();
 }
@@ -216,22 +215,22 @@ bool RecursiveDescentParser::parse_function_definition(FunctionDefinitionNodePtr
     IdentifierNodePtr formal_parameter;
     StatementBlockNodePtr body;
 
-    CHECK_TOKEN_AND_CONSUME(lexer::FUNCTION, "'function'");
-    CHECK_TOKEN_AND_CONSUME(lexer::IDENTIFIER, "an identifier (function name)");
+    CHECK_TOKEN_AND_CONSUME(lexer::FUNCTION, "'function'", func_token);
+    CHECK_TOKEN_AND_CONSUME(lexer::IDENTIFIER, "an identifier (function name)", _);
     function_name = TO_IDENTIFIER_NODE();
-    CHECK_TOKEN_AND_CONSUME(lexer::OPEN_PAREN, "'('");
+    CHECK_TOKEN_AND_CONSUME(lexer::OPEN_PAREN, "'('", open_paren);
 
     UPDATE_TOKEN_LOOKAHEAD();
     while (TOKEN_IS(lexer::IDENTIFIER)) {
-        CHECK_TOKEN_AND_CONSUME(lexer::IDENTIFIER, "an identifier (formal parameter)");
+        CHECK_TOKEN_AND_CONSUME(lexer::IDENTIFIER, "an identifier (formal parameter)", __);
         formal_parameter = TO_IDENTIFIER_NODE();
         UPDATE_TOKEN_LOOKAHEAD();
     }
-    CHECK_TOKEN_AND_CONSUME(lexer::CLOSE_PAREN, "')'");
+    CHECK_TOKEN_AND_CONSUME(lexer::CLOSE_PAREN, "')'", close_paren);
     bool ok = parse_statement_block(body);
     CHECK_ERROR(ok);
 
-    SET_NODE(function_name, formal_parameter, body);
+    SET_NODE(function_name, formal_parameter, body, func_token, open_paren, close_paren);
 
     LEAVE_PARSE_FRAME();
 }
@@ -242,7 +241,7 @@ bool RecursiveDescentParser::parse_statement_block(StatementBlockNodePtr &node)
 
     std::vector<AbstractStatementNodePtr> statements;
 
-    CHECK_TOKEN_AND_CONSUME(lexer::OPEN_BRACE, "'{'");
+    CHECK_TOKEN_AND_CONSUME(lexer::OPEN_BRACE, "'{'", open_brace);
 
     // zero or more statements
     UPDATE_TOKEN_LOOKAHEAD();
@@ -256,9 +255,9 @@ bool RecursiveDescentParser::parse_statement_block(StatementBlockNodePtr &node)
         UPDATE_TOKEN_LOOKAHEAD();
     }
 
-    CHECK_TOKEN_AND_CONSUME(lexer::CLOSE_BRACE, "'}'");
+    CHECK_TOKEN_AND_CONSUME(lexer::CLOSE_BRACE, "'}'", close_brace);
 
-    SET_NODE(statements);
+    SET_NODE(statements, open_brace, close_brace);
 
     LEAVE_PARSE_FRAME();
 }
@@ -271,9 +270,9 @@ bool RecursiveDescentParser::parse_variable_declaration_statement(VariableDeclar
     bool ok = parse_variable_declaration(decl);
     CHECK_ERROR(ok);
 
-    CHECK_TOKEN_AND_CONSUME(lexer::T, "';'");
+    CHECK_TOKEN_AND_CONSUME(lexer::T, "';'", semicolon);
 
-    SET_NODE(decl);
+    SET_NODE(decl, semicolon);
 
     LEAVE_PARSE_FRAME();
 }
@@ -323,21 +322,23 @@ bool RecursiveDescentParser::parse_variable_declaration(VariableDeclarationNodeP
 
     IdentifierNodePtr var_name;
     AbstractExpressionNodePtr expr;
+    lexer::TokenPtr eq;
 
-    CHECK_TOKEN_AND_CONSUME(lexer::LET, "let");
+    CHECK_TOKEN_AND_CONSUME(lexer::LET, "let", let_token);
 
-    CHECK_TOKEN_AND_CONSUME(lexer::IDENTIFIER, "an identifier (variable name)");
+    CHECK_TOKEN_AND_CONSUME(lexer::IDENTIFIER, "an identifier (variable name)", _);
     var_name = TO_IDENTIFIER_NODE();
 
     UPDATE_TOKEN_LOOKAHEAD();
     // optional assignment?
     if (TOKEN_IS(lexer::EQ)) {
-        CHECK_TOKEN_AND_CONSUME(lexer::EQ, "'='");
+        CHECK_TOKEN_AND_CONSUME(lexer::EQ, "'='", equals_t);
         bool ok = parse_expression(expr);
         CHECK_ERROR(ok);
+        eq = equals_t;
     }
 
-    SET_NODE(var_name, expr);
+    SET_NODE(var_name, expr, let_token, eq);
 
     LEAVE_PARSE_FRAME();
 }
@@ -349,9 +350,9 @@ bool RecursiveDescentParser::parse_floor_assignment_statement(FloorAssignmentSta
     FloorAssignmentNodePtr floor_assignment;
     bool ok = parse_floor_assignment(floor_assignment);
     CHECK_ERROR(ok);
-    CHECK_TOKEN_AND_CONSUME(lexer::T, "';'");
+    CHECK_TOKEN_AND_CONSUME(lexer::T, "';'", semicolon);
 
-    SET_NODE(floor_assignment);
+    SET_NODE(floor_assignment, semicolon);
 
     LEAVE_PARSE_FRAME();
 }
@@ -367,12 +368,12 @@ bool RecursiveDescentParser::parse_floor_assignment(FloorAssignmentNodePtr &node
     ok = parse_floor_access(floor_access);
     CHECK_ERROR(ok);
 
-    CHECK_TOKEN_AND_CONSUME(lexer::EQ, "'='");
+    CHECK_TOKEN_AND_CONSUME(lexer::EQ, "'='", equals);
 
     ok = parse_expression(expr);
     CHECK_ERROR(ok);
 
-    SET_NODE(floor_access, expr);
+    SET_NODE(floor_access, expr, equals);
 
     LEAVE_PARSE_FRAME();
 }
@@ -387,9 +388,9 @@ bool RecursiveDescentParser::parse_variable_assignment_statement(VariableAssignm
     ok = parse_variable_assignment(variable_assignment);
     CHECK_ERROR(ok);
 
-    CHECK_TOKEN_AND_CONSUME(lexer::T, "';'");
+    CHECK_TOKEN_AND_CONSUME(lexer::T, "';'", semicolon);
 
-    SET_NODE(variable_assignment);
+    SET_NODE(variable_assignment, semicolon);
 
     LEAVE_PARSE_FRAME();
 }
@@ -398,15 +399,15 @@ bool RecursiveDescentParser::parse_variable_assignment(VariableAssignmentNodePtr
 {
     ENTER_PARSE_FRAME();
 
-    CHECK_TOKEN_AND_CONSUME(lexer::IDENTIFIER, "an identifier (variable name)");
+    CHECK_TOKEN_AND_CONSUME(lexer::IDENTIFIER, "an identifier (variable name)", _);
     IdentifierNodePtr variable = TO_IDENTIFIER_NODE();
 
-    CHECK_TOKEN_AND_CONSUME(lexer::EQ, "'='");
+    CHECK_TOKEN_AND_CONSUME(lexer::EQ, "'='", equals);
 
     AbstractExpressionNodePtr expr;
     bool ok = parse_expression(expr);
 
-    SET_NODE(variable, expr);
+    SET_NODE(variable, expr, equals);
 
     LEAVE_PARSE_FRAME();
 }
@@ -488,16 +489,16 @@ bool RecursiveDescentParser::parse_floor_access(FloorAccessNodePtr &node)
 {
     ENTER_PARSE_FRAME();
 
-    CHECK_TOKEN_AND_CONSUME(lexer::FLOOR, "'floor'");
-    CHECK_TOKEN_AND_CONSUME(lexer::OPEN_BRACKET, "'['");
+    CHECK_TOKEN_AND_CONSUME(lexer::FLOOR, "'floor'", floor_token);
+    CHECK_TOKEN_AND_CONSUME(lexer::OPEN_BRACKET, "'['", open_bracket);
 
     AbstractExpressionNodePtr expr;
     bool ok = parse_expression(expr);
     CHECK_ERROR(ok);
 
-    CHECK_TOKEN_AND_CONSUME(lexer::CLOSE_BRACKET, "']'");
+    CHECK_TOKEN_AND_CONSUME(lexer::CLOSE_BRACKET, "']'", close_bracket);
 
-    SET_NODE(expr);
+    SET_NODE(expr, floor_token, open_bracket, close_bracket);
 
     LEAVE_PARSE_FRAME();
 }
@@ -506,8 +507,8 @@ bool RecursiveDescentParser::parse_if_statement(IfStatementNodePtr &node)
 {
     ENTER_PARSE_FRAME();
 
-    CHECK_TOKEN_AND_CONSUME(lexer::IF, "'if'");
-    CHECK_TOKEN_AND_CONSUME(lexer::OPEN_PAREN, "'('");
+    CHECK_TOKEN_AND_CONSUME(lexer::IF, "'if'", if_token);
+    CHECK_TOKEN_AND_CONSUME(lexer::OPEN_PAREN, "'('", open_bracket);
 
     bool ok;
     AbstractExpressionNodePtr cond;
@@ -517,20 +518,22 @@ bool RecursiveDescentParser::parse_if_statement(IfStatementNodePtr &node)
     ok = parse_expression(cond);
     CHECK_ERROR(ok);
 
-    CHECK_TOKEN_AND_CONSUME(lexer::CLOSE_PAREN, "')'");
+    CHECK_TOKEN_AND_CONSUME(lexer::CLOSE_PAREN, "')'", close_bracket);
 
     ok = parse_embedded_statement(then_stmt);
     CHECK_ERROR(ok);
 
+    lexer::TokenPtr else_token;
     UPDATE_TOKEN_LOOKAHEAD();
     if (TOKEN_IS(lexer::ELSE)) {
-        CHECK_TOKEN_AND_CONSUME(lexer::ELSE, "'else'");
+        CHECK_TOKEN_AND_CONSUME(lexer::ELSE, "'else'", else_token_t);
+        else_token = else_token_t;
 
         ok = parse_embedded_statement(else_stmt);
         CHECK_ERROR(ok);
     }
 
-    SET_NODE(cond, then_stmt, else_stmt);
+    SET_NODE(cond, then_stmt, else_stmt, if_token, open_bracket, close_bracket, else_token);
 
     LEAVE_PARSE_FRAME();
 }
@@ -539,8 +542,8 @@ bool RecursiveDescentParser::parse_while_statement(WhileStatementNodePtr &node)
 {
     ENTER_PARSE_FRAME();
 
-    CHECK_TOKEN_AND_CONSUME(lexer::WHILE, "'while'");
-    CHECK_TOKEN_AND_CONSUME(lexer::OPEN_PAREN, "'('");
+    CHECK_TOKEN_AND_CONSUME(lexer::WHILE, "'while'", while_token);
+    CHECK_TOKEN_AND_CONSUME(lexer::OPEN_PAREN, "'('", open_paren);
 
     bool ok;
     AbstractExpressionNodePtr expr;
@@ -549,12 +552,12 @@ bool RecursiveDescentParser::parse_while_statement(WhileStatementNodePtr &node)
     ok = parse_expression(expr);
     CHECK_ERROR(ok);
 
-    CHECK_TOKEN_AND_CONSUME(lexer::CLOSE_PAREN, "')'");
+    CHECK_TOKEN_AND_CONSUME(lexer::CLOSE_PAREN, "')'", close_paren);
 
     ok = parse_embedded_statement(body);
     CHECK_ERROR(ok);
 
-    SET_NODE(expr, body);
+    SET_NODE(expr, body, while_token, open_paren, close_paren);
 
     LEAVE_PARSE_FRAME();
 }
@@ -563,8 +566,8 @@ bool RecursiveDescentParser::parse_for_statement(ForStatementNodePtr &node)
 {
     ENTER_PARSE_FRAME();
 
-    CHECK_TOKEN_AND_CONSUME(lexer::FOR, "'for'");
-    CHECK_TOKEN_AND_CONSUME(lexer::OPEN_PAREN, "'('");
+    CHECK_TOKEN_AND_CONSUME(lexer::FOR, "'for'", for_token);
+    CHECK_TOKEN_AND_CONSUME(lexer::OPEN_PAREN, "'('", open_paren);
 
     bool ok;
 
@@ -590,7 +593,7 @@ bool RecursiveDescentParser::parse_for_statement(ForStatementNodePtr &node)
         }
     }
 
-    CHECK_TOKEN_AND_CONSUME(lexer::COMMA, "','");
+    CHECK_TOKEN_AND_CONSUME(lexer::COMMA, "','", comma1);
 
     // optional cond stmt
     UPDATE_TOKEN_LOOKAHEAD();
@@ -599,7 +602,7 @@ bool RecursiveDescentParser::parse_for_statement(ForStatementNodePtr &node)
         CHECK_ERROR(ok);
     }
 
-    CHECK_TOKEN_AND_CONSUME(lexer::COMMA, "','");
+    CHECK_TOKEN_AND_CONSUME(lexer::COMMA, "','", comma2);
 
     // optional update stmt
     UPDATE_TOKEN_LOOKAHEAD();
@@ -608,15 +611,15 @@ bool RecursiveDescentParser::parse_for_statement(ForStatementNodePtr &node)
         CHECK_ERROR(ok);
     }
 
-    CHECK_TOKEN_AND_CONSUME(lexer::CLOSE_PAREN, "')'");
+    CHECK_TOKEN_AND_CONSUME(lexer::CLOSE_PAREN, "')'", close_paren);
 
     ok = parse_embedded_statement(body);
     CHECK_ERROR(ok);
 
     if (init_var_assignment) {
-        SET_NODE(init_var_assignment, cond, update, body);
+        SET_NODE(init_var_assignment, cond, update, body, for_token, open_paren, comma1, comma2, close_paren);
     } else if (init_var_declaration) {
-        SET_NODE(init_var_declaration, cond, update, body);
+        SET_NODE(init_var_declaration, cond, update, body, for_token, open_paren, comma1, comma2, close_paren);
     } else {
         throw; // not supposed to be here
     }
@@ -628,16 +631,16 @@ bool RecursiveDescentParser::parse_return_statement(ReturnStatementNodePtr &node
 {
     ENTER_PARSE_FRAME();
 
-    CHECK_TOKEN_AND_CONSUME(lexer::RETURN, "'return'");
+    CHECK_TOKEN_AND_CONSUME(lexer::RETURN, "'return'", return_token);
 
     bool ok;
     AbstractExpressionNodePtr expr;
     ok = parse_expression(expr);
     CHECK_ERROR(ok);
 
-    CHECK_TOKEN_AND_CONSUME(lexer::T, "';'");
+    CHECK_TOKEN_AND_CONSUME(lexer::T, "';'", semicolon);
 
-    SET_NODE(expr);
+    SET_NODE(expr, return_token, semicolon);
 
     LEAVE_PARSE_FRAME();
 }
@@ -646,9 +649,9 @@ bool RecursiveDescentParser::parse_empty_statement(EmptyStatementNodePtr &node)
 {
     ENTER_PARSE_FRAME();
 
-    CHECK_TOKEN_AND_CONSUME(lexer::T, "';'");
+    CHECK_TOKEN_AND_CONSUME(lexer::T, "';'", semicolon);
 
-    SET_NODE();
+    SET_NODE(semicolon);
 
     LEAVE_PARSE_FRAME();
 }
@@ -660,8 +663,8 @@ bool RecursiveDescentParser::parse_invocation_statement(InvocationStatementNodeP
     bool ok = parse_invocation_expression(invocation);
     CHECK_ERROR(ok);
 
-    CHECK_TOKEN_AND_CONSUME(lexer::T, "';'");
-    SET_NODE(invocation);
+    CHECK_TOKEN_AND_CONSUME(lexer::T, "';'", semicolon);
+    SET_NODE(invocation, semicolon);
 
     LEAVE_PARSE_FRAME();
 }

@@ -10,6 +10,7 @@ add_library(${PROJECT_NAME}
     src/RecursiveDescentParser.Expr.cpp
     src/RecursiveDescentParser.Utils.cpp
     src/ASTNodeGraphvizBuilder.cpp
+    src/Formatter.cpp
     "${OUTPUT_BASE}.h"
     "${OUTPUT_BASE}.cpp"
 )

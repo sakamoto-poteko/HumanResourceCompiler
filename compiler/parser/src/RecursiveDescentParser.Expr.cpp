@@ -90,42 +90,51 @@ bool RecursiveDescentParser::parse_unary_expression(AbstractUnaryExpressionNodeP
 
     bool ok;
     AbstractPrimaryExpressionNodePtr primary;
-    IncrementExpressionNodePtr increment;
-    DecrementExpressionNodePtr decrement;
 
     switch (token->token_id()) {
     case lexer::ADD: // positive_expression
-        CHECK_TOKEN_AND_CONSUME(lexer::ADD, "'+'");
+    {
+        CHECK_TOKEN_AND_CONSUME(lexer::ADD, "'+'", add_token);
         ok = parse_primary_expression(primary);
         CHECK_ERROR(ok);
-        SET_NODE_FROM(std::make_shared<PositiveExpressionNode>(lineno, colno, primary));
+        SET_NODE_FROM(std::make_shared<PositiveExpressionNode>(lineno, colno, primary, add_token));
         break;
+    }
 
     case lexer::SUB: // negative_expression
-        CHECK_TOKEN_AND_CONSUME(lexer::SUB, "'-'");
+    {
+        IncrementExpressionNodePtr increment;
+        CHECK_TOKEN_AND_CONSUME(lexer::SUB, "'-'", sub_token);
         ok = parse_primary_expression(primary);
         CHECK_ERROR(ok);
-        SET_NODE_FROM(std::make_shared<NegativeExpressionNode>(lineno, colno, primary));
+        SET_NODE_FROM(std::make_shared<NegativeExpressionNode>(lineno, colno, primary, sub_token));
         break;
+    }
 
     case lexer::ADDADD: // increment_expression
-        CHECK_TOKEN_AND_CONSUME(lexer::ADDADD, "'++'");
-        CHECK_TOKEN_AND_CONSUME(lexer::IDENTIFIER, "an identifier (variable name)");
-        SET_NODE_FROM(std::make_shared<IncrementExpressionNode>(lineno, colno, TO_IDENTIFIER_NODE()));
+    {
+        CHECK_TOKEN_AND_CONSUME(lexer::ADDADD, "'++'", inc_token);
+        CHECK_TOKEN_AND_CONSUME(lexer::IDENTIFIER, "an identifier (variable name)", id_token);
+        SET_NODE_FROM(std::make_shared<IncrementExpressionNode>(lineno, colno, TO_IDENTIFIER_NODE(), inc_token));
         break;
-
+    }
     case lexer::SUBSUB: // decrement_expression
-        CHECK_TOKEN_AND_CONSUME(lexer::SUBSUB, "'--'");
-        CHECK_TOKEN_AND_CONSUME(lexer::IDENTIFIER, "an identifier (variable name)");
-        SET_NODE_FROM(std::make_shared<IncrementExpressionNode>(lineno, colno, TO_IDENTIFIER_NODE()));
+    {
+        DecrementExpressionNodePtr decrement;
+        CHECK_TOKEN_AND_CONSUME(lexer::SUBSUB, "'--'", dec_token);
+        CHECK_TOKEN_AND_CONSUME(lexer::IDENTIFIER, "an identifier (variable name)", id_token);
+        SET_NODE_FROM(std::make_shared<IncrementExpressionNode>(lineno, colno, TO_IDENTIFIER_NODE(), dec_token));
         break;
+    }
 
     case lexer::NOT: // not_expression
-        CHECK_TOKEN_AND_CONSUME(lexer::NOT, "'!'");
+    {
+        CHECK_TOKEN_AND_CONSUME(lexer::NOT, "'!'", not_token);
         ok = parse_primary_expression(primary);
         CHECK_ERROR(ok);
-        SET_NODE_FROM(std::make_shared<NotExpressionNode>(lineno, colno, primary));
+        SET_NODE_FROM(std::make_shared<NotExpressionNode>(lineno, colno, primary, not_token));
         break;
+    }
 
     case lexer::BOOLEAN: // primary_expression
     case lexer::FLOOR: // primary_expression
@@ -203,10 +212,10 @@ bool RecursiveDescentParser::parse_invocation_expression(InvocationExpressionNod
     IdentifierNodePtr func_name;
     AbstractExpressionNodePtr arg;
 
-    CHECK_TOKEN_AND_CONSUME(lexer::IDENTIFIER, "an identifier (function or subprocedure)");
+    CHECK_TOKEN_AND_CONSUME(lexer::IDENTIFIER, "an identifier (function or subprocedure)", id_token);
     func_name = TO_IDENTIFIER_NODE();
 
-    CHECK_TOKEN_AND_CONSUME(lexer::OPEN_PAREN, "'(");
+    CHECK_TOKEN_AND_CONSUME(lexer::OPEN_PAREN, "'(", open_paren);
     UPDATE_TOKEN_LOOKAHEAD();
     // optional expr
     if (!TOKEN_IS(lexer::CLOSE_PAREN)) {
@@ -216,9 +225,9 @@ bool RecursiveDescentParser::parse_invocation_expression(InvocationExpressionNod
 
         UPDATE_TOKEN_LOOKAHEAD();
     }
-    CHECK_TOKEN_AND_CONSUME(lexer::CLOSE_PAREN, "')'");
+    CHECK_TOKEN_AND_CONSUME(lexer::CLOSE_PAREN, "')'", close_paren);
 
-    SET_NODE(func_name, arg);
+    SET_NODE(func_name, arg, open_paren, close_paren);
 
     LEAVE_PARSE_FRAME();
 }
@@ -227,10 +236,12 @@ bool RecursiveDescentParser::parse_parenthesized_expression(ParenthesizedExpress
 {
     ENTER_PARSE_FRAME();
 
-    CHECK_TOKEN_AND_CONSUME(lexer::OPEN_PAREN, "'('");
+    CHECK_TOKEN_AND_CONSUME(lexer::OPEN_PAREN, "'('", open_paren);
     AbstractExpressionNodePtr expr;
     bool ok = parse_expression(expr);
-    CHECK_TOKEN_AND_CONSUME(lexer::CLOSE_PAREN, "')'");
+    CHECK_TOKEN_AND_CONSUME(lexer::CLOSE_PAREN, "')'", close_paren);
+
+    SET_NODE(expr, open_paren, close_paren);
 
     LEAVE_PARSE_FRAME();
 }

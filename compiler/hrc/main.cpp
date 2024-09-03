@@ -1,9 +1,11 @@
+#include <cstdlib>
 #include <spdlog/spdlog.h>
 
 #include "ASTNodeForward.h"
 #include "ASTNodeGraphvizBuilder.h"
 #include "CompilerOptions.h"
 #include "FileManager.h"
+#include "Formatter.h"
 #include "HRLLexer.h"
 #include "RecursiveDescentParser.h"
 #include "TerminalColor.h"
@@ -38,6 +40,7 @@ int main(int argc, char **argv)
     int result = lexer.lex(file, fileManager.get_input_filename(), tokens);
     if (result != 0) {
         spdlog::error("Error occured during lexical analysis");
+        abort();
     }
 
     // For now, let's write to stdout if there's no output file available, or output fails to open.
@@ -54,8 +57,15 @@ int main(int argc, char **argv)
     hrl::parser::RecursiveDescentParser parser(tokens);
     hrl::parser::CompilationUnitNodePtr compilation_unit;
     bool parsed = parser.parse(compilation_unit);
+    if (!parsed) {
+        spdlog::error("Error occured during parsing");
+        abort();
+    }
     hrl::parser::ASTNodeGraphvizBuilder graphviz(compilation_unit);
     graphviz.generate_graphviz();
+
+    hrl::parser::ASTNodeFormatterVisitor formatter;
+    formatter.format(compilation_unit);
 
     return 0;
 }
