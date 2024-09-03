@@ -79,7 +79,9 @@ void ASTNodeFormatterVisitor::visit(VariableDeclarationNodePtr node)
     }
 };
 
-void ASTNodeFormatterVisitor::visit(VariableAssignmentNodePtr node) {};
+void ASTNodeFormatterVisitor::visit(VariableAssignmentNodePtr node) {
+    
+};
 void ASTNodeFormatterVisitor::visit(FloorAssignmentNodePtr node) {};
 void ASTNodeFormatterVisitor::visit(BinaryExpressionNodePtr node) {};
 void ASTNodeFormatterVisitor::visit(NegativeExpressionNodePtr node) {};
