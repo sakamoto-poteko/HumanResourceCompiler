@@ -12,6 +12,8 @@
 #include <boost/range/adaptors.hpp>
 #include <boost/range/algorithm.hpp>
 
+#include <spdlog/spdlog.h>
+
 #include "ASTNode.h"
 #include "ASTNodeForward.h"
 #include "Formatter.h"
@@ -44,6 +46,9 @@ OPEN_PARSER_NAMESPACE
 
 void ASTNodeFormatterVisitor::format(CompilationUnitNodePtr node)
 {
+    // FIXME: format is not yet supported
+    spdlog::error("Format is not yet supported");
+    throw;
     node->accept(this);
 
     std::ostringstream buffer;
@@ -80,7 +85,7 @@ void ASTNodeFormatterVisitor::visit(VariableDeclarationNodePtr node)
 };
 
 void ASTNodeFormatterVisitor::visit(VariableAssignmentNodePtr node) {
-    
+
 };
 void ASTNodeFormatterVisitor::visit(FloorAssignmentNodePtr node) {};
 void ASTNodeFormatterVisitor::visit(BinaryExpressionNodePtr node) {};

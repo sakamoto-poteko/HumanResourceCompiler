@@ -5,7 +5,7 @@
 #include "ASTNodeGraphvizBuilder.h"
 #include "CompilerOptions.h"
 #include "FileManager.h"
-// #include "Formatter.h"
+#include "Formatter.h"
 #include "HRLLexer.h"
 #include "RecursiveDescentParser.h"
 #include "TerminalColor.h"
@@ -64,8 +64,8 @@ int main(int argc, char **argv)
     hrl::parser::ASTNodeGraphvizBuilder graphviz(compilation_unit);
     graphviz.generate_graphviz();
 
-    // hrl::parser::ASTNodeFormatterVisitor formatter;
-    // formatter.format(compilation_unit);
+    hrl::parser::ASTNodeFormatterVisitor formatter;
+    formatter.format(compilation_unit);
 
     return 0;
 }
