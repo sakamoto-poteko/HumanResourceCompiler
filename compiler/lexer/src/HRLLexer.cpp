@@ -25,7 +25,7 @@ HRLLexer::~HRLLexer()
 {
 }
 
-int HRLLexer::lex(FILE *in, const std::string &filepath, std::vector<TokenPtr> &result)
+bool HRLLexer::lex(FILE *in, const std::string &filepath, std::vector<TokenPtr> &result)
 {
     lexer_finalize(); // clean up if there's previous lexing context
     lexer_initialize(in);
@@ -45,18 +45,23 @@ int HRLLexer::lex(FILE *in, const std::string &filepath, std::vector<TokenPtr> &
     } while (currentTokenId > 0);
 
     if (currentTokenId == END) {
+        // this is required that the formatter correctly handles first-line comment
+        // so it create a new line for the first line comment instead try to hook it to a void "previous line"
+        if (!r.empty() && !r.front()->metadata().empty()) {
+            r.front()->prepend_metadata_newline();
+        }
         result.swap(r);
-        return 0;
+        return true;
     }
 
     if (currentTokenId == ERROR) {
         const auto &token = r.back();
         print_tokenization_error(filepath, token->lineno(), token->colno(), token->width(), token->token_text(), lines);
-        return -1;
+        return false;
     }
     // this is not supposed to happen. tokenization ended but not with either END or ERROR.
     // this must be a bug
-    return -1;
+    return false;
 }
 
 int HRLLexer::lexer_initialize(FILE *in)

@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "ASTNode.h"
+#include "ASTNodeForward.h"
 #include "ASTNodeVisitor.h"
 #include "HRLToken.h"
 #include "hrl_global.h"
@@ -116,6 +117,7 @@ protected:
     virtual void traverse_floor_inits(const std::vector<FloorBoxInitStatementNodePtr> &floor_inits);
     virtual void traverse_subroutines(const std::vector<AbstractSubroutineNodePtr> &subroutines);
     virtual void traverse_top_level_decls(const std::vector<VariableDeclarationStatementNodePtr> &tlds);
+    virtual void traverse_statements(const std::vector<AbstractStatementNodePtr> &statements);
 };
 
 CLOSE_PARSER_NAMESPACE

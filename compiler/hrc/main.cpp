@@ -37,8 +37,8 @@ int main(int argc, char **argv)
     HRLLexer lexer;
     std::vector<TokenPtr> tokens;
 
-    int result = lexer.lex(file, fileManager.get_input_filename(), tokens);
-    if (result != 0) {
+    bool ok = lexer.lex(file, fileManager.get_input_filename(), tokens);
+    if (!ok) {
         spdlog::error("Error occured during lexical analysis");
         abort();
     }

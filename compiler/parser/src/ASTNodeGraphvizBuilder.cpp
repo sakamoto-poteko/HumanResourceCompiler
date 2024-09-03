@@ -17,8 +17,9 @@ ASTNodeGraphvizBuilder::Vertex ASTNodeGraphvizBuilder::enter_and_create_vertex(c
 {
     Vertex vertex = _graph.add_vertex(NodeProperty {
         .name = name,
+        .value = value,
         .terminal = terminal,
-        .value = value });
+    });
 
     if (!_ancestors.empty()) {
         _graph.add_edge(_ancestors.top(), vertex);

@@ -15,8 +15,7 @@
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            "environment": [],            
-            "internalConsoleOptions": "openOnSessionStart",
+            "environment": [],
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
@@ -34,6 +33,7 @@
             },
             "osx": {
                 "MIMode": "lldb",
+                "internalConsoleOptions": "openOnSessionStart",
             },
             "linux": {
                 "MIMode": "gdb",

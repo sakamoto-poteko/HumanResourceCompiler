@@ -15,7 +15,7 @@
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            "environment": [],            
+            "environment": [],
             "internalConsoleOptions": "openOnSessionStart",
             "setupCommands": [
                 {
@@ -34,6 +34,7 @@
             },
             "osx": {
                 "MIMode": "lldb",
+                "internalConsoleOptions": "openOnSessionStart",
             },
             "linux": {
                 "MIMode": "gdb",

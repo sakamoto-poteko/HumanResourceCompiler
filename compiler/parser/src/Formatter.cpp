@@ -24,6 +24,12 @@ OPEN_PARSER_NAMESPACE
 #define BEGIN_VISIT() \
     bool comments_written = false;
 
+#define DECL_TOKEN(var_name, func) \
+    const auto &var_name = node->func;
+
+#define WRITE_SEMICOLON() \
+    WRITE_FOLLOWING_TOKEN(semicolon, false, false);
+
 #define WRITE_FIRST_TOKEN(token, add_space_after)         \
     comments_written = process_preceding_metadata(token); \
     create_line(token, add_space_after);
@@ -42,6 +48,7 @@ void ASTNodeFormatterVisitor::format(CompilationUnitNodePtr node)
 
     std::ostringstream buffer;
 
+    buffer << "REFORMATTED:" << std::endl;
     for (const auto &line : _lines) {
         buffer << line.get_content() << std::endl;
     }
@@ -53,7 +60,25 @@ void ASTNodeFormatterVisitor::visit(IdentifierNodePtr node) {};
 void ASTNodeFormatterVisitor::visit(IntegerLiteralNodePtr node) {};
 void ASTNodeFormatterVisitor::visit(BooleanLiteralNodePtr node) {};
 void ASTNodeFormatterVisitor::visit(BinaryOperatorNodePtr node) {};
-void ASTNodeFormatterVisitor::visit(VariableDeclarationNodePtr node) {};
+
+void ASTNodeFormatterVisitor::visit(VariableDeclarationNodePtr node)
+{
+    BEGIN_VISIT();
+
+    DECL_TOKEN(let, get_let_token());
+    DECL_TOKEN(var_name, get_var_name()->get_token());
+
+    DECL_TOKEN(eq, get_equals());
+
+    WRITE_FIRST_TOKEN(let, false);
+    WRITE_FOLLOWING_TOKEN(var_name, true, false);
+
+    if (eq) {
+        WRITE_FOLLOWING_TOKEN(eq, true, true);
+        node->get_expr()->accept(this);
+    }
+};
+
 void ASTNodeFormatterVisitor::visit(VariableAssignmentNodePtr node) {};
 void ASTNodeFormatterVisitor::visit(FloorAssignmentNodePtr node) {};
 void ASTNodeFormatterVisitor::visit(BinaryExpressionNodePtr node) {};
@@ -68,20 +93,31 @@ void ASTNodeFormatterVisitor::visit(InvocationExpressionNodePtr node) {};
 void ASTNodeFormatterVisitor::visit(IfStatementNodePtr node) {};
 void ASTNodeFormatterVisitor::visit(WhileStatementNodePtr node) {};
 void ASTNodeFormatterVisitor::visit(ForStatementNodePtr node) {};
-void ASTNodeFormatterVisitor::visit(ReturnStatementNodePtr node) {};
+
+void ASTNodeFormatterVisitor::visit(ReturnStatementNodePtr node)
+{
+    BEGIN_VISIT();
+
+    DECL_TOKEN(return_token, get_return_token());
+    DECL_TOKEN(semicolon, get_semicolon());
+
+    WRITE_FIRST_TOKEN(return_token, false);
+    node->get_expr()->accept(this);
+    WRITE_SEMICOLON();
+};
 
 void ASTNodeFormatterVisitor::visit(FloorBoxInitStatementNodePtr node)
 {
-    BEGIN_VISIT()
+    BEGIN_VISIT();
 
-    const auto &init_token = node->get_init_token();
-    const auto &floor_token = node->get_floor_token();
-    const auto &open_bracket = node->get_open_bracket();
-    const auto &index = node->get_floor_index();
-    const auto &close_bracket = node->get_close_bracket();
-    const auto &eq = node->get_equal_token();
-    const auto &val = node->get_value_token();
-    const auto &semicolon = node->get_semicolon();
+    DECL_TOKEN(init_token, get_init_token());
+    DECL_TOKEN(floor_token, get_floor_token());
+    DECL_TOKEN(open_bracket, get_open_bracket());
+    DECL_TOKEN(index, get_floor_index());
+    DECL_TOKEN(close_bracket, get_close_bracket());
+    DECL_TOKEN(eq, get_equal_token());
+    DECL_TOKEN(val, get_value_token());
+    DECL_TOKEN(semicolon, get_semicolon());
 
     WRITE_FIRST_TOKEN(init_token, false);
     WRITE_FOLLOWING_TOKEN(floor_token, true, false);
@@ -90,14 +126,62 @@ void ASTNodeFormatterVisitor::visit(FloorBoxInitStatementNodePtr node)
     WRITE_FOLLOWING_TOKEN(close_bracket, false, false);
     WRITE_FOLLOWING_TOKEN(eq, true, true);
     WRITE_FOLLOWING_TOKEN(val, false, false);
-    WRITE_FOLLOWING_TOKEN(semicolon, false, false);
+    WRITE_SEMICOLON();
 };
 
-void ASTNodeFormatterVisitor::visit(FloorMaxInitStatementNodePtr node) {};
-void ASTNodeFormatterVisitor::visit(EmptyStatementNodePtr node) {};
-void ASTNodeFormatterVisitor::visit(StatementBlockNodePtr node) {};
-void ASTNodeFormatterVisitor::visit(VariableDeclarationStatementNodePtr node) {};
-void ASTNodeFormatterVisitor::visit(VariableAssignmentStatementNodePtr node) {};
+void ASTNodeFormatterVisitor::visit(FloorMaxInitStatementNodePtr node)
+{
+    BEGIN_VISIT();
+
+    DECL_TOKEN(init_token, get_init_token());
+    DECL_TOKEN(floormax_token, get_floor_max_token());
+    DECL_TOKEN(eq, get_equals());
+    DECL_TOKEN(value, get_value_token());
+    DECL_TOKEN(semicolon, get_semicolon());
+
+    WRITE_FIRST_TOKEN(init_token, false);
+    WRITE_FOLLOWING_TOKEN(floormax_token, true, false);
+    WRITE_FOLLOWING_TOKEN(eq, true, true);
+    WRITE_FOLLOWING_TOKEN(value, false, false);
+    WRITE_SEMICOLON();
+};
+
+void ASTNodeFormatterVisitor::visit(EmptyStatementNodePtr node)
+{
+    BEGIN_VISIT();
+    WRITE_FIRST_TOKEN(node->get_semicolon(), false);
+};
+
+void ASTNodeFormatterVisitor::visit(StatementBlockNodePtr node)
+{
+    BEGIN_VISIT();
+    DECL_TOKEN(open_brace, get_open_brace());
+    DECL_TOKEN(close_brace, get_close_brace());
+
+    WRITE_FIRST_TOKEN(open_brace, false);
+    ++_indent_level;
+    traverse_statements(node->get_statements());
+    --_indent_level;
+    WRITE_FIRST_TOKEN(close_brace, false);
+};
+
+void ASTNodeFormatterVisitor::visit(VariableDeclarationStatementNodePtr node)
+{
+    BEGIN_VISIT();
+
+    node->get_variable_decl()->accept(this);
+    DECL_TOKEN(semicolon, get_semicolon());
+    WRITE_SEMICOLON();
+};
+
+void ASTNodeFormatterVisitor::visit(VariableAssignmentStatementNodePtr node)
+{
+    BEGIN_VISIT();
+    DECL_TOKEN(semicolon, get_semicolon());
+    node->get_variable_assignment()->accept(this);
+    WRITE_SEMICOLON();
+};
+
 void ASTNodeFormatterVisitor::visit(FloorAssignmentStatementNodePtr node) {};
 void ASTNodeFormatterVisitor::visit(InvocationStatementNodePtr node) {};
 void ASTNodeFormatterVisitor::visit(SubprocDefinitionNodePtr node) {};
@@ -107,9 +191,9 @@ void ASTNodeFormatterVisitor::visit(ImportDirectiveNodePtr node)
 {
     BEGIN_VISIT();
 
-    const auto &import_token = node->get_import_token();
-    const auto &module_token = node->get_module_name()->get_token();
-    const auto &semicolon = node->get_semicolon();
+    DECL_TOKEN(import_token, get_import_token());
+    DECL_TOKEN(module_token, get_module_name()->get_token());
+    DECL_TOKEN(semicolon, get_semicolon());
 
     WRITE_FIRST_TOKEN(import_token, true);
     WRITE_FOLLOWING_TOKEN(module_token, false, false)
@@ -261,12 +345,30 @@ void ASTNodeFormatterVisitor::traverse_floor_inits(const std::vector<FloorBoxIni
 
 void ASTNodeFormatterVisitor::traverse_subroutines(const std::vector<AbstractSubroutineNodePtr> &subroutines)
 {
-    //
+    if (!subroutines.empty()) {
+        create_line();
+
+        for (const auto &subroutine : subroutines) {
+            subroutine->accept(this);
+        }
+    }
 }
 
 void ASTNodeFormatterVisitor::traverse_top_level_decls(const std::vector<VariableDeclarationStatementNodePtr> &tlds)
 {
-    //
+    if (!tlds.empty()) {
+        create_line();
+        for (const auto &tld : tlds) {
+            tld->accept(this);
+        }
+    }
+}
+
+void ASTNodeFormatterVisitor::traverse_statements(const std::vector<AbstractStatementNodePtr> &statements)
+{
+    for (const auto &stmt : statements) {
+        stmt->accept(this);
+    }
 }
 
 std::string ASTNodeFormatterVisitor::strip_comment(StringPtr comment)

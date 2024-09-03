@@ -116,6 +116,8 @@ public:
 
     const std::vector<TokenMetadata> &metadata() const { return _metadata; }
 
+    void prepend_metadata_newline() { _metadata.insert(_metadata.begin(), TokenMetadata { .type = TokenMetadata::Newline }); }
+
 protected:
     TokenId _token_id;
 
