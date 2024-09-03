@@ -1,3 +1,5 @@
+// import other modules
+import xxx;
 import lang_mod;
 
 // only single line comments allowed

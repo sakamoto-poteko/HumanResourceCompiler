@@ -13,6 +13,7 @@
 #include <boost/range/algorithm.hpp>
 
 #include "ASTNode.h"
+#include "ASTNodeForward.h"
 #include "Formatter.h"
 #include "hrl_global.h"
 #include "lexer_global.h"
@@ -68,7 +69,30 @@ void ASTNodeFormatterVisitor::visit(IfStatementNodePtr node) {};
 void ASTNodeFormatterVisitor::visit(WhileStatementNodePtr node) {};
 void ASTNodeFormatterVisitor::visit(ForStatementNodePtr node) {};
 void ASTNodeFormatterVisitor::visit(ReturnStatementNodePtr node) {};
-void ASTNodeFormatterVisitor::visit(FloorBoxInitStatementNodePtr node) {};
+
+void ASTNodeFormatterVisitor::visit(FloorBoxInitStatementNodePtr node)
+{
+    BEGIN_VISIT()
+
+    const auto &init_token = node->get_init_token();
+    const auto &floor_token = node->get_floor_token();
+    const auto &open_bracket = node->get_open_bracket();
+    const auto &index = node->get_floor_index();
+    const auto &close_bracket = node->get_close_bracket();
+    const auto &eq = node->get_equal_token();
+    const auto &val = node->get_value_token();
+    const auto &semicolon = node->get_semicolon();
+
+    WRITE_FIRST_TOKEN(init_token, false);
+    WRITE_FOLLOWING_TOKEN(floor_token, true, false);
+    WRITE_FOLLOWING_TOKEN(open_bracket, false, false);
+    WRITE_FOLLOWING_TOKEN(index, false, false);
+    WRITE_FOLLOWING_TOKEN(close_bracket, false, false);
+    WRITE_FOLLOWING_TOKEN(eq, true, true);
+    WRITE_FOLLOWING_TOKEN(val, false, false);
+    WRITE_FOLLOWING_TOKEN(semicolon, false, false);
+};
+
 void ASTNodeFormatterVisitor::visit(FloorMaxInitStatementNodePtr node) {};
 void ASTNodeFormatterVisitor::visit(EmptyStatementNodePtr node) {};
 void ASTNodeFormatterVisitor::visit(StatementBlockNodePtr node) {};
@@ -145,6 +169,15 @@ bool ASTNodeFormatterVisitor::process_preceding_metadata(lexer::TokenPtr token)
         }
     }
 
+    // remove the last newline
+    if (groups.back().is_newline) {
+        groups.pop_back();
+    }
+
+    if (groups.empty()) {
+        return false;
+    }
+
     // from the second element to the last, if it's a new line, we create a new line
     // otherwise, we create comment lines.
     for (auto it = std::next(groups.begin()); it != groups.end(); ++it) {
@@ -160,25 +193,31 @@ bool ASTNodeFormatterVisitor::process_preceding_metadata(lexer::TokenPtr token)
 
 void ASTNodeFormatterVisitor::create_line(lexer::TokenPtr token, bool add_space_after)
 {
-    _lines.emplace_back(_indent_level, get_text_from_token(token));
-    if (add_space_after) {
-        _lines.back().append_space();
+    if (token) {
+        _lines.emplace_back(_indent_level, get_text_from_token(token));
+        if (add_space_after) {
+            _lines.back().append_space();
+        }
+    } else {
+        create_line();
     }
 }
 
 void ASTNodeFormatterVisitor::append_line(lexer::TokenPtr token, bool add_space_before, bool add_space_after)
 {
-    if (_lines.empty()) {
-        // NOTE: add_space_before is ignored here.
-        create_line(token, add_space_after);
-    } else {
-        auto &last = _lines.back();
-        if (add_space_before) {
-            last.append_space();
-        }
-        last.append_content(get_text_from_token(token));
-        if (add_space_after) {
-            last.append_space();
+    if (token) {
+        if (_lines.empty()) {
+            // NOTE: add_space_before is ignored here.
+            create_line(token, add_space_after);
+        } else {
+            auto &last = _lines.back();
+            if (add_space_before) {
+                last.append_space();
+            }
+            last.append_content(get_text_from_token(token));
+            if (add_space_after) {
+                last.append_space();
+            }
         }
     }
 }
@@ -210,7 +249,14 @@ void ASTNodeFormatterVisitor::traverse_import_directives(const std::vector<Impor
 
 void ASTNodeFormatterVisitor::traverse_floor_inits(const std::vector<FloorBoxInitStatementNodePtr> &floor_inits)
 {
-    //
+    auto sorted = floor_inits;
+    std::sort(sorted.begin(), sorted.end(), [](const FloorBoxInitStatementNodePtr &first, const FloorBoxInitStatementNodePtr &second) {
+        return first->get_index()->get_value() < second->get_index()->get_value();
+    });
+
+    for (const auto &init : floor_inits) {
+        init->accept(this);
+    }
 }
 
 void ASTNodeFormatterVisitor::traverse_subroutines(const std::vector<AbstractSubroutineNodePtr> &subroutines)
