@@ -14,8 +14,8 @@
 
 #include <spdlog/spdlog.h>
 
-#include "ASTNode.h"
-#include "ASTNodeForward.h"
+#include "ParseTreeNode.h"
+#include "ParseTreeNodeForward.h"
 #include "Formatter.h"
 #include "hrl_global.h"
 #include "lexer_global.h"
@@ -44,7 +44,7 @@ OPEN_PARSER_NAMESPACE
         append_line(token, add_space_before, add_space_after);          \
     }
 
-void ASTNodeFormatterVisitor::format(CompilationUnitNodePtr node)
+void ParseTreeNodeFormatterVisitor::format(CompilationUnitNodePtr node)
 {
     // FIXME: format is not yet supported
     spdlog::error("Format is not yet supported");
@@ -61,12 +61,12 @@ void ASTNodeFormatterVisitor::format(CompilationUnitNodePtr node)
     std::cout << buffer.str() << std::endl;
 };
 
-void ASTNodeFormatterVisitor::visit(IdentifierNodePtr node) {};
-void ASTNodeFormatterVisitor::visit(IntegerLiteralNodePtr node) {};
-void ASTNodeFormatterVisitor::visit(BooleanLiteralNodePtr node) {};
-void ASTNodeFormatterVisitor::visit(BinaryOperatorNodePtr node) {};
+void ParseTreeNodeFormatterVisitor::visit(IdentifierNodePtr node) {};
+void ParseTreeNodeFormatterVisitor::visit(IntegerLiteralNodePtr node) {};
+void ParseTreeNodeFormatterVisitor::visit(BooleanLiteralNodePtr node) {};
+void ParseTreeNodeFormatterVisitor::visit(BinaryOperatorNodePtr node) {};
 
-void ASTNodeFormatterVisitor::visit(VariableDeclarationNodePtr node)
+void ParseTreeNodeFormatterVisitor::visit(VariableDeclarationNodePtr node)
 {
     BEGIN_VISIT();
 
@@ -84,24 +84,24 @@ void ASTNodeFormatterVisitor::visit(VariableDeclarationNodePtr node)
     }
 };
 
-void ASTNodeFormatterVisitor::visit(VariableAssignmentNodePtr node) {
+void ParseTreeNodeFormatterVisitor::visit(VariableAssignmentNodePtr node) {
 
 };
-void ASTNodeFormatterVisitor::visit(FloorAssignmentNodePtr node) {};
-void ASTNodeFormatterVisitor::visit(BinaryExpressionNodePtr node) {};
-void ASTNodeFormatterVisitor::visit(NegativeExpressionNodePtr node) {};
-void ASTNodeFormatterVisitor::visit(PositiveExpressionNodePtr node) {};
-void ASTNodeFormatterVisitor::visit(NotExpressionNodePtr node) {};
-void ASTNodeFormatterVisitor::visit(IncrementExpressionNodePtr node) {};
-void ASTNodeFormatterVisitor::visit(DecrementExpressionNodePtr node) {};
-void ASTNodeFormatterVisitor::visit(FloorAccessNodePtr node) {};
-void ASTNodeFormatterVisitor::visit(ParenthesizedExpressionNodePtr node) {};
-void ASTNodeFormatterVisitor::visit(InvocationExpressionNodePtr node) {};
-void ASTNodeFormatterVisitor::visit(IfStatementNodePtr node) {};
-void ASTNodeFormatterVisitor::visit(WhileStatementNodePtr node) {};
-void ASTNodeFormatterVisitor::visit(ForStatementNodePtr node) {};
+void ParseTreeNodeFormatterVisitor::visit(FloorAssignmentNodePtr node) {};
+void ParseTreeNodeFormatterVisitor::visit(BinaryExpressionNodePtr node) {};
+void ParseTreeNodeFormatterVisitor::visit(NegativeExpressionNodePtr node) {};
+void ParseTreeNodeFormatterVisitor::visit(PositiveExpressionNodePtr node) {};
+void ParseTreeNodeFormatterVisitor::visit(NotExpressionNodePtr node) {};
+void ParseTreeNodeFormatterVisitor::visit(IncrementExpressionNodePtr node) {};
+void ParseTreeNodeFormatterVisitor::visit(DecrementExpressionNodePtr node) {};
+void ParseTreeNodeFormatterVisitor::visit(FloorAccessNodePtr node) {};
+void ParseTreeNodeFormatterVisitor::visit(ParenthesizedExpressionNodePtr node) {};
+void ParseTreeNodeFormatterVisitor::visit(InvocationExpressionNodePtr node) {};
+void ParseTreeNodeFormatterVisitor::visit(IfStatementNodePtr node) {};
+void ParseTreeNodeFormatterVisitor::visit(WhileStatementNodePtr node) {};
+void ParseTreeNodeFormatterVisitor::visit(ForStatementNodePtr node) {};
 
-void ASTNodeFormatterVisitor::visit(ReturnStatementNodePtr node)
+void ParseTreeNodeFormatterVisitor::visit(ReturnStatementNodePtr node)
 {
     BEGIN_VISIT();
 
@@ -113,7 +113,7 @@ void ASTNodeFormatterVisitor::visit(ReturnStatementNodePtr node)
     WRITE_SEMICOLON();
 };
 
-void ASTNodeFormatterVisitor::visit(FloorBoxInitStatementNodePtr node)
+void ParseTreeNodeFormatterVisitor::visit(FloorBoxInitStatementNodePtr node)
 {
     BEGIN_VISIT();
 
@@ -136,7 +136,7 @@ void ASTNodeFormatterVisitor::visit(FloorBoxInitStatementNodePtr node)
     WRITE_SEMICOLON();
 };
 
-void ASTNodeFormatterVisitor::visit(FloorMaxInitStatementNodePtr node)
+void ParseTreeNodeFormatterVisitor::visit(FloorMaxInitStatementNodePtr node)
 {
     BEGIN_VISIT();
 
@@ -153,13 +153,13 @@ void ASTNodeFormatterVisitor::visit(FloorMaxInitStatementNodePtr node)
     WRITE_SEMICOLON();
 };
 
-void ASTNodeFormatterVisitor::visit(EmptyStatementNodePtr node)
+void ParseTreeNodeFormatterVisitor::visit(EmptyStatementNodePtr node)
 {
     BEGIN_VISIT();
     WRITE_FIRST_TOKEN(node->get_semicolon(), false);
 };
 
-void ASTNodeFormatterVisitor::visit(StatementBlockNodePtr node)
+void ParseTreeNodeFormatterVisitor::visit(StatementBlockNodePtr node)
 {
     BEGIN_VISIT();
     DECL_TOKEN(open_brace, get_open_brace());
@@ -172,7 +172,7 @@ void ASTNodeFormatterVisitor::visit(StatementBlockNodePtr node)
     WRITE_FIRST_TOKEN(close_brace, false);
 };
 
-void ASTNodeFormatterVisitor::visit(VariableDeclarationStatementNodePtr node)
+void ParseTreeNodeFormatterVisitor::visit(VariableDeclarationStatementNodePtr node)
 {
     BEGIN_VISIT();
 
@@ -181,7 +181,7 @@ void ASTNodeFormatterVisitor::visit(VariableDeclarationStatementNodePtr node)
     WRITE_SEMICOLON();
 };
 
-void ASTNodeFormatterVisitor::visit(VariableAssignmentStatementNodePtr node)
+void ParseTreeNodeFormatterVisitor::visit(VariableAssignmentStatementNodePtr node)
 {
     BEGIN_VISIT();
     DECL_TOKEN(semicolon, get_semicolon());
@@ -189,12 +189,12 @@ void ASTNodeFormatterVisitor::visit(VariableAssignmentStatementNodePtr node)
     WRITE_SEMICOLON();
 };
 
-void ASTNodeFormatterVisitor::visit(FloorAssignmentStatementNodePtr node) {};
-void ASTNodeFormatterVisitor::visit(InvocationStatementNodePtr node) {};
-void ASTNodeFormatterVisitor::visit(SubprocDefinitionNodePtr node) {};
-void ASTNodeFormatterVisitor::visit(FunctionDefinitionNodePtr node) {};
+void ParseTreeNodeFormatterVisitor::visit(FloorAssignmentStatementNodePtr node) {};
+void ParseTreeNodeFormatterVisitor::visit(InvocationStatementNodePtr node) {};
+void ParseTreeNodeFormatterVisitor::visit(SubprocDefinitionNodePtr node) {};
+void ParseTreeNodeFormatterVisitor::visit(FunctionDefinitionNodePtr node) {};
 
-void ASTNodeFormatterVisitor::visit(ImportDirectiveNodePtr node)
+void ParseTreeNodeFormatterVisitor::visit(ImportDirectiveNodePtr node)
 {
     BEGIN_VISIT();
 
@@ -207,7 +207,7 @@ void ASTNodeFormatterVisitor::visit(ImportDirectiveNodePtr node)
     WRITE_FOLLOWING_TOKEN(semicolon, false, false)
 };
 
-void ASTNodeFormatterVisitor::visit(CompilationUnitNodePtr node)
+void ParseTreeNodeFormatterVisitor::visit(CompilationUnitNodePtr node)
 {
     traverse_import_directives(node->get_imports());
     traverse_floor_inits(node->get_floor_inits());
@@ -216,7 +216,7 @@ void ASTNodeFormatterVisitor::visit(CompilationUnitNodePtr node)
     traverse_subroutines(node->get_subroutines());
 };
 
-bool ASTNodeFormatterVisitor::process_preceding_metadata(lexer::TokenPtr token)
+bool ParseTreeNodeFormatterVisitor::process_preceding_metadata(lexer::TokenPtr token)
 {
     const std::vector<lexer::TokenMetadata> &token_metadata = token->metadata();
 
@@ -282,7 +282,7 @@ bool ASTNodeFormatterVisitor::process_preceding_metadata(lexer::TokenPtr token)
     return true;
 }
 
-void ASTNodeFormatterVisitor::create_line(lexer::TokenPtr token, bool add_space_after)
+void ParseTreeNodeFormatterVisitor::create_line(lexer::TokenPtr token, bool add_space_after)
 {
     if (token) {
         _lines.emplace_back(_indent_level, get_text_from_token(token));
@@ -294,7 +294,7 @@ void ASTNodeFormatterVisitor::create_line(lexer::TokenPtr token, bool add_space_
     }
 }
 
-void ASTNodeFormatterVisitor::append_line(lexer::TokenPtr token, bool add_space_before, bool add_space_after)
+void ParseTreeNodeFormatterVisitor::append_line(lexer::TokenPtr token, bool add_space_before, bool add_space_after)
 {
     if (token) {
         if (_lines.empty()) {
@@ -313,19 +313,19 @@ void ASTNodeFormatterVisitor::append_line(lexer::TokenPtr token, bool add_space_
     }
 }
 
-void ASTNodeFormatterVisitor::create_line()
+void ParseTreeNodeFormatterVisitor::create_line()
 {
     _lines.emplace_back(0, std::string());
 }
 
-void ASTNodeFormatterVisitor::create_line(const CommentGroup &comment_group)
+void ParseTreeNodeFormatterVisitor::create_line(const CommentGroup &comment_group)
 {
     for (auto &comment : comment_group.comments) {
         _lines.emplace_back(_indent_level, strip_comment(comment));
     }
 }
 
-void ASTNodeFormatterVisitor::traverse_import_directives(const std::vector<ImportDirectiveNodePtr> &imports)
+void ParseTreeNodeFormatterVisitor::traverse_import_directives(const std::vector<ImportDirectiveNodePtr> &imports)
 {
     // sort the imports with module names, ascending
     auto sorted = imports;
@@ -338,7 +338,7 @@ void ASTNodeFormatterVisitor::traverse_import_directives(const std::vector<Impor
     }
 }
 
-void ASTNodeFormatterVisitor::traverse_floor_inits(const std::vector<FloorBoxInitStatementNodePtr> &floor_inits)
+void ParseTreeNodeFormatterVisitor::traverse_floor_inits(const std::vector<FloorBoxInitStatementNodePtr> &floor_inits)
 {
     auto sorted = floor_inits;
     std::sort(sorted.begin(), sorted.end(), [](const FloorBoxInitStatementNodePtr &first, const FloorBoxInitStatementNodePtr &second) {
@@ -350,7 +350,7 @@ void ASTNodeFormatterVisitor::traverse_floor_inits(const std::vector<FloorBoxIni
     }
 }
 
-void ASTNodeFormatterVisitor::traverse_subroutines(const std::vector<AbstractSubroutineNodePtr> &subroutines)
+void ParseTreeNodeFormatterVisitor::traverse_subroutines(const std::vector<AbstractSubroutineNodePtr> &subroutines)
 {
     if (!subroutines.empty()) {
         create_line();
@@ -361,7 +361,7 @@ void ASTNodeFormatterVisitor::traverse_subroutines(const std::vector<AbstractSub
     }
 }
 
-void ASTNodeFormatterVisitor::traverse_top_level_decls(const std::vector<VariableDeclarationStatementNodePtr> &tlds)
+void ParseTreeNodeFormatterVisitor::traverse_top_level_decls(const std::vector<VariableDeclarationStatementNodePtr> &tlds)
 {
     if (!tlds.empty()) {
         create_line();
@@ -371,21 +371,21 @@ void ASTNodeFormatterVisitor::traverse_top_level_decls(const std::vector<Variabl
     }
 }
 
-void ASTNodeFormatterVisitor::traverse_statements(const std::vector<AbstractStatementNodePtr> &statements)
+void ParseTreeNodeFormatterVisitor::traverse_statements(const std::vector<AbstractStatementNodePtr> &statements)
 {
     for (const auto &stmt : statements) {
         stmt->accept(this);
     }
 }
 
-std::string ASTNodeFormatterVisitor::strip_comment(StringPtr comment)
+std::string ParseTreeNodeFormatterVisitor::strip_comment(StringPtr comment)
 {
     std::string str = *comment;
     boost::algorithm::trim(str);
     return str;
 }
 
-std::string ASTNodeFormatterVisitor::get_text_from_token(lexer::TokenPtr token)
+std::string ParseTreeNodeFormatterVisitor::get_text_from_token(lexer::TokenPtr token)
 {
     if (!(token->token_text()) || token->token_text()->empty()) {
         switch (token->token_id()) {

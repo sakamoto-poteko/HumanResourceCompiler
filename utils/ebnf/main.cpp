@@ -17,8 +17,8 @@
 
 #include <spdlog/spdlog.h>
 
-#include "ASTNode.h"
-#include "ASTNodeVisitor.h"
+#include "ParseTreeNode.h"
+#include "ParseTreeNodeVisitor.h"
 #include "DependencyGraphAnalyzer.h"
 #include "DependencyGraphBuilder.h"
 #include "Tasks.h"
@@ -217,12 +217,12 @@ int main(int argc, char **argv)
     std::fclose(yyin);
 
     DependencyGraphBuilder builder(root, args.tokens, args.start_symbol);
-    boost::directed_graph<ASTNodePtr> dependency_graph;
+    boost::directed_graph<ParseTreeNodePtr> dependency_graph;
     builder.build();
     builder.get_dependency_graph(dependency_graph);
 
     if (args.reprint_ebnf) {
-        ASTPrintVisitor visitor;
+        ParseTreePrintVisitor visitor;
         visitor.accept(root);
         std::cout << std::endl;
     }

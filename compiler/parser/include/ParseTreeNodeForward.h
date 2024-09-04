@@ -1,5 +1,5 @@
-#ifndef ASTNODEFORWARD_H
-#define ASTNODEFORWARD_H
+#ifndef PARSE_TREE_NODE_FORWARD_H
+#define PARSE_TREE_NODE_FORWARD_H
 
 #include <memory>
 
@@ -7,7 +7,7 @@
 
 OPEN_PARSER_NAMESPACE
 
-class ASTNode;
+class ParseTreeNode;
 class IdentifierNode;
 class IntegerLiteralNode;
 class BooleanLiteralNode;
@@ -56,7 +56,7 @@ class FunctionDefinitionNode;
 class ImportDirectiveNode;
 class CompilationUnitNode;
 
-using ASTNodePtr = std::shared_ptr<ASTNode>;
+using ParseTreeNodePtr = std::shared_ptr<ParseTreeNode>;
 using IdentifierNodePtr = std::shared_ptr<IdentifierNode>;
 using IntegerLiteralNodePtr = std::shared_ptr<IntegerLiteralNode>;
 using BooleanLiteralNodePtr = std::shared_ptr<BooleanLiteralNode>;

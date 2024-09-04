@@ -19,7 +19,7 @@
 
 #include <spdlog/spdlog.h>
 
-#include "ASTNode.h"
+#include "ParseTreeNode.h"
 #include "DependencyGraphAnalyzer.h"
 
 #include "Tasks.h"

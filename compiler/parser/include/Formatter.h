@@ -6,9 +6,9 @@
 #include <string>
 #include <vector>
 
-#include "ASTNode.h"
-#include "ASTNodeForward.h"
-#include "ASTNodeVisitor.h"
+#include "ParseTreeNode.h"
+#include "ParseTreeNodeForward.h"
+#include "ParseTreeNodeVisitor.h"
 #include "HRLToken.h"
 #include "hrl_global.h"
 #include "lexer_global.h"
@@ -56,7 +56,7 @@ protected:
     int _indentation_level;
 };
 
-class ASTNodeFormatterVisitor : public ASTNodeVisitor {
+class ParseTreeNodeFormatterVisitor : public ParseTreeNodeVisitor {
 public:
     virtual void format(CompilationUnitNodePtr node);
 

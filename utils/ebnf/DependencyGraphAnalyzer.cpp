@@ -12,8 +12,8 @@
 
 #include <spdlog/spdlog.h>
 
-#include "ASTNode.h"
-#include "ASTNodeForward.h"
+#include "ParseTreeNode.h"
+#include "ParseTreeNodeForward.h"
 #include "DependencyGraphAnalyzer.h"
 
 void DependencyGraphAnalyzer::find_unreachable()
@@ -339,7 +339,7 @@ bool DependencyGraphAnalyzer::get_topological_rule_order(std::vector<ProductionN
     if (_state) {
         order.clear();
         for (auto it = _state->reversed_topo.rbegin(); it != _state->reversed_topo.rend(); ++it) {
-            const ASTNodePtr &node = _graph[*it];
+            const ParseTreeNodePtr &node = _graph[*it];
             if (ProductionNodePtr production = std::dynamic_pointer_cast<ProductionNode>(node)) {
                 order.push_back(production);
             }

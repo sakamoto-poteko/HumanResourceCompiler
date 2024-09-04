@@ -1,57 +1,57 @@
-#include "ASTNode.h"
-#include "ASTNodeVisitor.h"
+#include "ParseTreeNode.h"
+#include "ParseTreeNodeVisitor.h"
 
-void SyntaxNode::accept(ASTNodeVisitor *visitor)
+void SyntaxNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->accept(shared_from_this_casted<SyntaxNode>());
 };
 
-void ProductionNode::accept(ASTNodeVisitor *visitor)
+void ProductionNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->accept(shared_from_this_casted<ProductionNode>());
 };
 
-void ExpressionNode::accept(ASTNodeVisitor *visitor)
+void ExpressionNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->accept(shared_from_this_casted<ExpressionNode>());
 };
 
-void TermNode::accept(ASTNodeVisitor *visitor)
+void TermNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->accept(shared_from_this_casted<TermNode>());
 };
 
-void FactorNode::accept(ASTNodeVisitor *visitor)
+void FactorNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->accept(shared_from_this_casted<FactorNode>());
 };
 
-void IdentifierNode::accept(ASTNodeVisitor *visitor)
+void IdentifierNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->accept(shared_from_this_casted<IdentifierNode>());
 };
 
-void LiteralNode::accept(ASTNodeVisitor *visitor)
+void LiteralNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->accept(shared_from_this_casted<LiteralNode>());
 };
 
-void OptionalNode::accept(ASTNodeVisitor *visitor)
+void OptionalNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->accept(shared_from_this_casted<OptionalNode>());
 };
 
-void RepeatedNode::accept(ASTNodeVisitor *visitor)
+void RepeatedNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->accept(shared_from_this_casted<RepeatedNode>());
 };
 
-void GroupedNode::accept(ASTNodeVisitor *visitor)
+void GroupedNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->accept(shared_from_this_casted<GroupedNode>());
 };
 
-void EpsilonNode::accept(ASTNodeVisitor *visitor)
+void EpsilonNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->accept(shared_from_this_casted<EpsilonNode>());
 }

@@ -1,7 +1,7 @@
 %{
 
 #include <cstdio>
-#include "ASTNode.h"
+#include "ParseTreeNode.h"
 
 #include "parser.h"
 

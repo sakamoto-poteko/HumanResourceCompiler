@@ -1,8 +1,8 @@
 #include <cstdlib>
 #include <spdlog/spdlog.h>
 
-#include "ASTNodeForward.h"
-#include "ASTNodeGraphvizBuilder.h"
+#include "ParseTreeNodeForward.h"
+#include "ParseTreeNodeGraphvizBuilder.h"
 #include "CompilerOptions.h"
 #include "FileManager.h"
 #include "Formatter.h"
@@ -45,7 +45,7 @@ int main(int argc, char **argv)
 
     // For now, let's write to stdout if there's no output file available, or output fails to open.
     // We have only lexer stage.
-    // When it comes to AST it'll be complicated
+    // When it comes to ParseTree it'll be complicated
     FILE *output = fileManager.open_output_file();
     if (output == nullptr) {
         output = stdout;
@@ -61,11 +61,11 @@ int main(int argc, char **argv)
         spdlog::error("Error occured during parsing");
         abort();
     }
-    hrl::parser::ASTNodeGraphvizBuilder graphviz(compilation_unit);
+    hrl::parser::ParseTreeNodeGraphvizBuilder graphviz(compilation_unit);
     graphviz.generate_graphviz();
 
-    hrl::parser::ASTNodeFormatterVisitor formatter;
-    formatter.format(compilation_unit);
+    hrl::parser::ParseTreeNodeFormatterVisitor formatter;
+    // formatter.format(compilation_unit); // Format not yet supported
 
     return 0;
 }

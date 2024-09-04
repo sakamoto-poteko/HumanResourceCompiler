@@ -1,16 +1,16 @@
-#ifndef ASTNODEVISITOR_H
-#define ASTNODEVISITOR_H
+#ifndef PARSE_TREE_NODE_VISITOR_H
+#define PARSE_TREE_NODE_VISITOR_H
 
 #include "parser_global.h"
 
-#include "ASTNodeForward.h"
+#include "ParseTreeNodeForward.h"
 
 OPEN_PARSER_NAMESPACE
 
-class ASTNodeVisitor {
+class ParseTreeNodeVisitor {
 public:
-    ASTNodeVisitor() = default;
-    virtual ~ASTNodeVisitor() = default;
+    ParseTreeNodeVisitor() = default;
+    virtual ~ParseTreeNodeVisitor() = default;
 
     virtual void visit(IdentifierNodePtr node) = 0;
     virtual void visit(IntegerLiteralNodePtr node) = 0;

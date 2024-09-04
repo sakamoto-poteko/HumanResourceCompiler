@@ -1,25 +1,25 @@
-#ifndef ASTNODE_H
-#define ASTNODE_H
+#ifndef ParseTreeNODE_H
+#define ParseTreeNODE_H
 
 #include <memory>
 #include <string>
 #include <vector>
 
-#include "ASTNodeForward.h" // IWYU pragma: export
+#include "ParseTreeNodeForward.h" // IWYU pragma: export
 
-class ASTNodeVisitor;
+class ParseTreeNodeVisitor;
 
-class ASTNode : public std::enable_shared_from_this<ASTNode> {
+class ParseTreeNode : public std::enable_shared_from_this<ParseTreeNode> {
 public:
-    ASTNode(int lineno, int colno)
+    ParseTreeNode(int lineno, int colno)
         : _lineno(lineno)
         , _colno(colno)
     {
     }
 
-    virtual ~ASTNode() = default;
+    virtual ~ParseTreeNode() = default;
 
-    virtual void accept(ASTNodeVisitor *visitor) = 0;
+    virtual void accept(ParseTreeNodeVisitor *visitor) = 0;
 
     int lineno()
     {
@@ -44,46 +44,46 @@ protected:
     int _colno;
 };
 
-class SyntaxNode : public ASTNode {
+class SyntaxNode : public ParseTreeNode {
 public:
     std::vector<ProductionNodePtr> productions;
 
     explicit SyntaxNode(int lineno, int colno)
-        : ASTNode(lineno, colno)
+        : ParseTreeNode(lineno, colno)
     {
     }
 
-    virtual void accept(ASTNodeVisitor *visitor) override;
+    virtual void accept(ParseTreeNodeVisitor *visitor) override;
 
     const char *name() override;
 };
 
 // Production node
-class ProductionNode : public ASTNode {
+class ProductionNode : public ParseTreeNode {
 public:
     std::string id;
     ExpressionNodePtr expression;
 
     ProductionNode(std::string id, ExpressionNodePtr expr, int lineno,
         int colno)
-        : ASTNode(lineno, colno)
+        : ParseTreeNode(lineno, colno)
         , id(std::move(id))
         , expression(std::move(expr))
     {
     }
 
-    virtual void accept(ASTNodeVisitor *visitor) override;
+    virtual void accept(ParseTreeNodeVisitor *visitor) override;
 
     const char *name() override;
 };
 
 // Expression node
-class ExpressionNode : public ASTNode {
+class ExpressionNode : public ParseTreeNode {
 public:
     std::vector<TermNodePtr> terms;
 
     explicit ExpressionNode(int lineno, int colno)
-        : ASTNode(lineno, colno)
+        : ParseTreeNode(lineno, colno)
     {
     }
 
@@ -92,18 +92,18 @@ public:
         terms.push_back(std::move(term));
     }
 
-    virtual void accept(ASTNodeVisitor *visitor) override;
+    virtual void accept(ParseTreeNodeVisitor *visitor) override;
 
     const char *name() override;
 };
 
 // Term node
-class TermNode : public ASTNode {
+class TermNode : public ParseTreeNode {
 public:
     std::vector<FactorNodePtr> factors;
 
     explicit TermNode(int lineno, int colno)
-        : ASTNode(lineno, colno)
+        : ParseTreeNode(lineno, colno)
     {
     }
 
@@ -112,127 +112,127 @@ public:
         factors.push_back(std::move(factor));
     }
 
-    virtual void accept(ASTNodeVisitor *visitor) override;
+    virtual void accept(ParseTreeNodeVisitor *visitor) override;
 
     const char *name() override;
 };
 
 // Factor node
-class FactorNode : public ASTNode {
+class FactorNode : public ParseTreeNode {
 public:
-    ASTNodePtr node;
+    ParseTreeNodePtr node;
     LiteralNodePtr literal;
     IdentifierNodePtr identifier;
 
     explicit FactorNode(IdentifierNodePtr id, int lineno, int colno)
-        : ASTNode(lineno, colno)
+        : ParseTreeNode(lineno, colno)
         , identifier(id)
     {
     }
 
     explicit FactorNode(LiteralNodePtr lit, int lineno, int colno)
-        : ASTNode(lineno, colno)
+        : ParseTreeNode(lineno, colno)
         , literal(lit)
     {
     }
 
-    explicit FactorNode(ASTNodePtr value, int lineno, int colno)
-        : ASTNode(lineno, colno)
+    explicit FactorNode(ParseTreeNodePtr value, int lineno, int colno)
+        : ParseTreeNode(lineno, colno)
         , node(value)
     {
     }
 
-    virtual void accept(ASTNodeVisitor *visitor) override;
+    virtual void accept(ParseTreeNodeVisitor *visitor) override;
 
     const char *name() override;
 };
 
-class IdentifierNode : public ASTNode {
+class IdentifierNode : public ParseTreeNode {
 public:
     std::string value;
 
     explicit IdentifierNode(std::string value, int lineno, int colno)
-        : ASTNode(lineno, colno)
+        : ParseTreeNode(lineno, colno)
         , value(std::move(value))
     {
     }
 
-    virtual void accept(ASTNodeVisitor *visitor) override;
+    virtual void accept(ParseTreeNodeVisitor *visitor) override;
 
     const char *name() override;
 };
 
-class LiteralNode : public ASTNode {
+class LiteralNode : public ParseTreeNode {
 public:
     std::string value;
 
     explicit LiteralNode(std::string value, int lineno, int colno)
-        : ASTNode(lineno, colno)
+        : ParseTreeNode(lineno, colno)
         , value(std::move(value))
     {
     }
 
-    virtual void accept(ASTNodeVisitor *visitor) override;
+    virtual void accept(ParseTreeNodeVisitor *visitor) override;
 
     const char *name() override;
 };
 
 // Optional node
-class OptionalNode : public ASTNode {
+class OptionalNode : public ParseTreeNode {
 public:
-    ASTNodePtr expression;
+    ParseTreeNodePtr expression;
 
-    explicit OptionalNode(ASTNodePtr expr, int lineno, int colno)
-        : ASTNode(lineno, colno)
+    explicit OptionalNode(ParseTreeNodePtr expr, int lineno, int colno)
+        : ParseTreeNode(lineno, colno)
         , expression(std::move(expr))
     {
     }
 
-    virtual void accept(ASTNodeVisitor *visitor) override;
+    virtual void accept(ParseTreeNodeVisitor *visitor) override;
 
     const char *name() override;
 };
 
 // Repeated node
-class RepeatedNode : public ASTNode {
+class RepeatedNode : public ParseTreeNode {
 public:
-    ASTNodePtr expression;
+    ParseTreeNodePtr expression;
 
-    explicit RepeatedNode(ASTNodePtr expr, int lineno, int colno)
-        : ASTNode(lineno, colno)
+    explicit RepeatedNode(ParseTreeNodePtr expr, int lineno, int colno)
+        : ParseTreeNode(lineno, colno)
         , expression(std::move(expr))
     {
     }
 
-    virtual void accept(ASTNodeVisitor *visitor) override;
+    virtual void accept(ParseTreeNodeVisitor *visitor) override;
 
     const char *name() override;
 };
 
 // Grouped node
-class GroupedNode : public ASTNode {
+class GroupedNode : public ParseTreeNode {
 public:
-    ASTNodePtr expression;
+    ParseTreeNodePtr expression;
 
-    explicit GroupedNode(ASTNodePtr expr, int lineno, int colno)
-        : ASTNode(lineno, colno)
+    explicit GroupedNode(ParseTreeNodePtr expr, int lineno, int colno)
+        : ParseTreeNode(lineno, colno)
         , expression(std::move(expr))
     {
     }
 
-    virtual void accept(ASTNodeVisitor *visitor) override;
+    virtual void accept(ParseTreeNodeVisitor *visitor) override;
 
     const char *name() override;
 };
 
-class EpsilonNode : public ASTNode {
+class EpsilonNode : public ParseTreeNode {
 public:
     explicit EpsilonNode(int lineno, int colno)
-        : ASTNode(lineno, colno)
+        : ParseTreeNode(lineno, colno)
     {
     }
 
-    virtual void accept(ASTNodeVisitor *visitor) override;
+    virtual void accept(ParseTreeNodeVisitor *visitor) override;
 
     const char *name() override;
 };

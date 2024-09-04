@@ -1,164 +1,164 @@
-#include "ASTNode.h"
-#include "ASTNodeVisitor.h"
+#include "ParseTreeNode.h"
+#include "ParseTreeNodeVisitor.h"
 
 OPEN_PARSER_NAMESPACE
 
-void IdentifierNode::accept(ASTNodeVisitor *visitor)
+void IdentifierNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<IdentifierNode>());
 }
 
-void IntegerLiteralNode::accept(ASTNodeVisitor *visitor)
+void IntegerLiteralNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<IntegerLiteralNode>());
 }
 
-void BooleanLiteralNode::accept(ASTNodeVisitor *visitor)
+void BooleanLiteralNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<BooleanLiteralNode>());
 }
 
-void BinaryOperatorNode::accept(ASTNodeVisitor *visitor)
+void BinaryOperatorNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<BinaryOperatorNode>());
 }
 
-void VariableDeclarationNode::accept(ASTNodeVisitor *visitor)
+void VariableDeclarationNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<VariableDeclarationNode>());
 }
 
-void VariableAssignmentNode::accept(ASTNodeVisitor *visitor)
+void VariableAssignmentNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<VariableAssignmentNode>());
 }
 
-void FloorAssignmentNode::accept(ASTNodeVisitor *visitor)
+void FloorAssignmentNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<FloorAssignmentNode>());
 }
 
-void BinaryExpressionNode::accept(ASTNodeVisitor *visitor)
+void BinaryExpressionNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<BinaryExpressionNode>());
 }
 
-void IncrementExpressionNode::accept(ASTNodeVisitor *visitor)
+void IncrementExpressionNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<IncrementExpressionNode>());
 }
 
-void DecrementExpressionNode::accept(ASTNodeVisitor *visitor)
+void DecrementExpressionNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<DecrementExpressionNode>());
 }
 
-void FloorAccessNode::accept(ASTNodeVisitor *visitor)
+void FloorAccessNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<FloorAccessNode>());
 }
 
-void ParenthesizedExpressionNode::accept(ASTNodeVisitor *visitor)
+void ParenthesizedExpressionNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<ParenthesizedExpressionNode>());
 }
 
-void InvocationExpressionNode::accept(ASTNodeVisitor *visitor)
+void InvocationExpressionNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<InvocationExpressionNode>());
 }
 
-void IfStatementNode::accept(ASTNodeVisitor *visitor)
+void IfStatementNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<IfStatementNode>());
 }
 
-void WhileStatementNode::accept(ASTNodeVisitor *visitor)
+void WhileStatementNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<WhileStatementNode>());
 }
 
-void ForStatementNode::accept(ASTNodeVisitor *visitor)
+void ForStatementNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<ForStatementNode>());
 }
 
-void ReturnStatementNode::accept(ASTNodeVisitor *visitor)
+void ReturnStatementNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<ReturnStatementNode>());
 }
 
-void FloorBoxInitStatementNode::accept(ASTNodeVisitor *visitor)
+void FloorBoxInitStatementNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<FloorBoxInitStatementNode>());
 }
 
-void FloorMaxInitStatementNode::accept(ASTNodeVisitor *visitor)
+void FloorMaxInitStatementNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<FloorMaxInitStatementNode>());
 }
 
-void EmptyStatementNode::accept(ASTNodeVisitor *visitor)
+void EmptyStatementNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<EmptyStatementNode>());
 }
 
-void StatementBlockNode::accept(ASTNodeVisitor *visitor)
+void StatementBlockNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<StatementBlockNode>());
 }
 
-void SubprocDefinitionNode::accept(ASTNodeVisitor *visitor)
+void SubprocDefinitionNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<SubprocDefinitionNode>());
 }
 
-void FunctionDefinitionNode::accept(ASTNodeVisitor *visitor)
+void FunctionDefinitionNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<FunctionDefinitionNode>());
 }
 
-void ImportDirectiveNode::accept(ASTNodeVisitor *visitor)
+void ImportDirectiveNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<ImportDirectiveNode>());
 }
 
-void CompilationUnitNode::accept(ASTNodeVisitor *visitor)
+void CompilationUnitNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<CompilationUnitNode>());
 }
 
-void VariableDeclarationStatementNode::accept(ASTNodeVisitor *visitor)
+void VariableDeclarationStatementNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<VariableDeclarationStatementNode>());
 }
 
-void VariableAssignmentStatementNode::accept(ASTNodeVisitor *visitor)
+void VariableAssignmentStatementNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<VariableAssignmentStatementNode>());
 }
 
-void FloorAssignmentStatementNode::accept(ASTNodeVisitor *visitor)
+void FloorAssignmentStatementNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<FloorAssignmentStatementNode>());
 }
 
-void NegativeExpressionNode::accept(ASTNodeVisitor *visitor)
+void NegativeExpressionNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<NegativeExpressionNode>());
 }
 
-void PositiveExpressionNode::accept(ASTNodeVisitor *visitor)
+void PositiveExpressionNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<PositiveExpressionNode>());
 }
 
-void NotExpressionNode::accept(ASTNodeVisitor *visitor)
+void NotExpressionNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<NotExpressionNode>());
 }
 
-void InvocationStatementNode::accept(ASTNodeVisitor *visitor)
+void InvocationStatementNode::accept(ParseTreeNodeVisitor *visitor)
 {
     visitor->visit(shared_from_this_casted<InvocationStatementNode>());
 }

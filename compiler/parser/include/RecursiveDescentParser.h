@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "ASTNodeForward.h"
+#include "ParseTreeNodeForward.h"
 #include "HRLToken.h"
 #include "hrl_global.h"
 #include "lexer_global.h"

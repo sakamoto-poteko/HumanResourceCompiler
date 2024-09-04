@@ -5,14 +5,14 @@
 #include <string>
 #include <memory>
 
-#include "ASTNode.h"
+#include "ParseTreeNode.h"
 
 extern char *yytext;
 extern int yylex();
 extern int yycolno;
 extern int yylineno;
 void yyerror(const char *s);
-std::shared_ptr<SyntaxNode> root; // This will hold the root of the AST
+std::shared_ptr<SyntaxNode> root; // This will hold the root of the ParseTree
 %}
 
 %locations
@@ -111,15 +111,15 @@ factor:
     }
     | optional
     {
-        $$ = new FactorNode(ASTNodePtr($1), @1.first_line, @1.first_column);
+        $$ = new FactorNode(ParseTreeNodePtr($1), @1.first_line, @1.first_column);
     }
     | repeated
     {
-        $$ = new FactorNode(ASTNodePtr($1), @1.first_line, @1.first_column);
+        $$ = new FactorNode(ParseTreeNodePtr($1), @1.first_line, @1.first_column);
     }
     | grouped
     {
-        $$ = new FactorNode(ASTNodePtr($1), @1.first_line, @1.first_column);
+        $$ = new FactorNode(ParseTreeNodePtr($1), @1.first_line, @1.first_column);
     }
     ;
 
@@ -129,21 +129,21 @@ epsilon:
 optional:
     LBRACKET expression RBRACKET
     {
-        $$ = new OptionalNode(ASTNodePtr($2), @2.first_line, @2.first_column);
+        $$ = new OptionalNode(ParseTreeNodePtr($2), @2.first_line, @2.first_column);
     }
     ;
 
 repeated:
     LBRACE expression RBRACE
     {
-        $$ = new RepeatedNode(ASTNodePtr($2), @2.first_line, @2.first_column);
+        $$ = new RepeatedNode(ParseTreeNodePtr($2), @2.first_line, @2.first_column);
     }
     ;
 
 grouped:
     LPAREN expression RPAREN
     {
-        $$ = new GroupedNode(ASTNodePtr($2), @2.first_line, @2.first_column);
+        $$ = new GroupedNode(ParseTreeNodePtr($2), @2.first_line, @2.first_column);
     }
     ;
 %%

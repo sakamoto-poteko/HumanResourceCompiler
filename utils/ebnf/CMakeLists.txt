@@ -18,9 +18,9 @@ bison_target(PARSER "parser.y" "${PARSER_OUT}" DEFINES_FILE "parser.h")
 add_executable(${PROJECT_NAME}
 main.cpp
 Tasks.cpp
-ASTNode.cpp
-ASTNodeVisitor.cpp
-ASTPrintVisitor.cpp
+ParseTreeNode.cpp
+ParseTreeNodeVisitor.cpp
+ParseTreePrintVisitor.cpp
 DependencyGraphBuilder.cpp
 DependencyGraphAnalyzer.cpp
 ${LEXER_OUT}

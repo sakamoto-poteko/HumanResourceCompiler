@@ -1,11 +1,11 @@
-#ifndef ASTNODE_H
-#define ASTNODE_H
+#ifndef PARSE_TREE_NODE_H
+#define PARSE_TREE_NODE_H
 
 #include <memory>
 #include <utility>
 #include <vector>
 
-#include "ASTNodeForward.h"
+#include "ParseTreeNodeForward.h"
 #include "HRLToken.h"
 #include "hrl_global.h"
 #include "lexer_global.h"
@@ -13,19 +13,19 @@
 
 OPEN_PARSER_NAMESPACE
 
-class ASTNodeVisitor;
+class ParseTreeNodeVisitor;
 
-class ASTNode : public std::enable_shared_from_this<ASTNode> {
+class ParseTreeNode : public std::enable_shared_from_this<ParseTreeNode> {
 public:
-    ASTNode(int lineno, int colno)
+    ParseTreeNode(int lineno, int colno)
         : _lineno(lineno)
         , _colno(colno)
     {
     }
 
-    virtual ~ASTNode() = default;
+    virtual ~ParseTreeNode() = default;
 
-    virtual void accept(ASTNodeVisitor *visitor) = 0;
+    virtual void accept(ParseTreeNodeVisitor *visitor) = 0;
 
     int lineno()
     {
@@ -50,10 +50,10 @@ protected:
     int _colno;
 };
 
-class AbstractExpressionNode : public ASTNode {
+class AbstractExpressionNode : public ParseTreeNode {
 public:
     AbstractExpressionNode(int lineno, int colno)
-        : ASTNode(lineno, colno)
+        : ParseTreeNode(lineno, colno)
     {
     }
 };
@@ -86,7 +86,7 @@ public:
 
     const char *type() override { return "Identifier"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     StringPtr get_value() const { return _name; }
 
@@ -108,7 +108,7 @@ public:
 
     const char *type() override { return "IntegerLiteral"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     int get_value() const { return _value; }
 
@@ -130,7 +130,7 @@ public:
 
     const char *type() override { return "BooleanLiteral"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     bool get_value() const { return _value; }
 
@@ -141,10 +141,10 @@ private:
     lexer::TokenPtr _token;
 };
 
-class BinaryOperatorNode : public ASTNode {
+class BinaryOperatorNode : public ParseTreeNode {
 public:
     BinaryOperatorNode(const lexer::TokenPtr &token)
-        : ASTNode(token->lineno(), token->colno())
+        : ParseTreeNode(token->lineno(), token->colno())
         , _op(get_binary_operator_from_token_id(token->token_id()))
         , _token(token)
     {
@@ -332,7 +332,7 @@ public:
         }
     }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     BinaryOperator get_op() const { return _op; }
 
@@ -344,10 +344,10 @@ private:
 };
 
 // Variable and Function Nodes
-class VariableDeclarationNode : public ASTNode {
+class VariableDeclarationNode : public ParseTreeNode {
 public:
     VariableDeclarationNode(int lineno, int colno, IdentifierNodePtr var_name, AbstractExpressionNodePtr expr, lexer::TokenPtr let_token, lexer::TokenPtr equals)
-        : ASTNode(lineno, colno)
+        : ParseTreeNode(lineno, colno)
         , _var_name(std::move(var_name))
         , _expr(std::move(expr))
         , _let_token(std::move(let_token))
@@ -357,7 +357,7 @@ public:
 
     const char *type() override { return "VariableDeclaration"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     IdentifierNodePtr get_var_name() const { return _var_name; }
 
@@ -375,10 +375,10 @@ private:
     lexer::TokenPtr _equals;
 };
 
-class VariableAssignmentNode : public ASTNode {
+class VariableAssignmentNode : public ParseTreeNode {
 public:
     VariableAssignmentNode(int lineno, int colno, IdentifierNodePtr var_name, AbstractExpressionNodePtr expr, lexer::TokenPtr eq)
-        : ASTNode(lineno, colno)
+        : ParseTreeNode(lineno, colno)
         , _var_name(std::move(var_name))
         , _expr(std::move(expr))
         , _eq(std::move(eq))
@@ -387,7 +387,7 @@ public:
 
     const char *type() override { return "VariableAssignment"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     IdentifierNodePtr get_var_name() const { return _var_name; }
 
@@ -401,10 +401,10 @@ private:
     lexer::TokenPtr _eq;
 };
 
-class FloorAssignmentNode : public ASTNode {
+class FloorAssignmentNode : public ParseTreeNode {
 public:
     FloorAssignmentNode(int lineno, int colno, FloorAccessNodePtr floor_access, AbstractExpressionNodePtr expr, lexer::TokenPtr eq)
-        : ASTNode(lineno, colno)
+        : ParseTreeNode(lineno, colno)
         , _floor_access(std::move(floor_access))
         , _expr(std::move(expr))
         , _eq(std::move(eq))
@@ -413,7 +413,7 @@ public:
 
     const char *type() override { return "FloorAssignment"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     FloorAccessNodePtr get_floor_access() const { return _floor_access; }
 
@@ -440,7 +440,7 @@ public:
 
     const char *type() override { return "BinaryExpression"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     AbstractExpressionNodePtr get_left() const { return _left; }
 
@@ -465,7 +465,7 @@ public:
 
     const char *type() override { return "NotExpression"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     AbstractPrimaryExpressionNodePtr get_expr() const { return _expr; }
 
@@ -487,7 +487,7 @@ public:
 
     const char *type() override { return "PositiveExpression"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     AbstractPrimaryExpressionNodePtr get_expr() const { return _expr; }
 
@@ -509,7 +509,7 @@ public:
 
     const char *type() override { return "NegativeExpression"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     AbstractPrimaryExpressionNodePtr get_expr() const { return _expr; }
 
@@ -531,7 +531,7 @@ public:
 
     const char *type() override { return "IncrementExpression"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     IdentifierNodePtr get_var_name() const { return _var_name; }
 
@@ -553,7 +553,7 @@ public:
 
     const char *type() override { return "DecrementExpression"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     IdentifierNodePtr get_var_name() const { return _var_name; }
 
@@ -577,7 +577,7 @@ public:
 
     const char *type() override { return "FloorAccess"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     AbstractExpressionNodePtr get_index_expr() const { return _index_expr; }
 
@@ -606,7 +606,7 @@ public:
 
     const char *type() override { return "ParenthesizedExpression"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     AbstractExpressionNodePtr get_expr() const { return _expr; }
 
@@ -633,7 +633,7 @@ public:
 
     const char *type() override { return "InvocationExpression"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     IdentifierNodePtr get_func_name() const { return _func_name; }
 
@@ -651,10 +651,10 @@ private:
 };
 
 // Statement Nodes
-class AbstractStatementNode : public ASTNode {
+class AbstractStatementNode : public ParseTreeNode {
 public:
     AbstractStatementNode(int lineno, int colno)
-        : ASTNode(lineno, colno)
+        : ParseTreeNode(lineno, colno)
     {
     }
 };
@@ -700,7 +700,7 @@ public:
 
     const char *type() override { return "IfStatement"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     AbstractExpressionNodePtr get_condition() const { return _condition; }
 
@@ -742,7 +742,7 @@ public:
 
     const char *type() override { return "WhileStatement"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     AbstractExpressionNodePtr get_condition() const { return _condition; }
 
@@ -807,9 +807,9 @@ public:
 
     const char *type() override { return "ForStatement"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
-    ASTNodePtr get_init_stmt() const
+    ParseTreeNodePtr get_init_stmt() const
     {
         if (_init_stmt_assignment) {
             return _init_stmt_assignment;
@@ -859,7 +859,7 @@ public:
 
     const char *type() override { return "ReturnStatement"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     AbstractExpressionNodePtr get_expr() const { return _expr; }
 
@@ -884,7 +884,7 @@ public:
 
     const char *type() override { return "InvocationStatement"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     InvocationExpressionNodePtr get_expr() const { return _expr; }
 
@@ -906,7 +906,7 @@ public:
 
     const char *type() override { return "FloorAssignmentStatement"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     FloorAssignmentNodePtr get_floor_assignment() const { return _assignment; }
 
@@ -928,7 +928,7 @@ public:
 
     const char *type() override { return "VariableAssignmentStatement"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     VariableAssignmentNodePtr get_variable_assignment() const { return _assignment; }
 
@@ -950,7 +950,7 @@ public:
 
     const char *type() override { return "VariableDeclarationStatement"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     VariableDeclarationNodePtr get_variable_decl() const { return decl; }
 
@@ -983,7 +983,7 @@ public:
 
     const char *type() override { return "FloorBoxInitStatement"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     IntegerLiteralNodePtr get_index() const { return _index; }
 
@@ -1034,7 +1034,7 @@ public:
 
     const char *type() override { return "FloorMaxInitStatement"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     IntegerLiteralNodePtr get_value() const { return _value; }
 
@@ -1067,7 +1067,7 @@ public:
 
     const char *type() override { return "EmptyStatement"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     lexer::TokenPtr get_semicolon() const { return _semicolon; }
 
@@ -1087,7 +1087,7 @@ public:
 
     const char *type() override { return "StatementBlock"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     const std::vector<AbstractStatementNodePtr> &get_statements() const { return _statements; }
 
@@ -1102,10 +1102,10 @@ private:
 };
 
 // Function and Subprocedure Nodes
-class AbstractSubroutineNode : public ASTNode {
+class AbstractSubroutineNode : public ParseTreeNode {
 public:
     AbstractSubroutineNode(int lineno, int colno, IdentifierNodePtr function_name, IdentifierNodePtr formal_parameter, StatementBlockNodePtr body)
-        : ASTNode(lineno, colno)
+        : ParseTreeNode(lineno, colno)
         , _function_name(std::move(function_name))
         , _formal_parameter(std::move(formal_parameter))
         , _body(std::move(body))
@@ -1136,7 +1136,7 @@ public:
 
     const char *type() override { return "AbstractSubroutineNode"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     lexer::TokenPtr get_function_token() const { return _function_token; }
 
@@ -1163,7 +1163,7 @@ public:
 
     const char *type() override { return "SubprocDefinition"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     lexer::TokenPtr get_sub_token() const { return _sub_token; }
 
@@ -1177,10 +1177,10 @@ private:
     lexer::TokenPtr _close_brace;
 };
 
-class ImportDirectiveNode : public ASTNode {
+class ImportDirectiveNode : public ParseTreeNode {
 public:
     ImportDirectiveNode(int lineno, int colno, IdentifierNodePtr module_name, lexer::TokenPtr import_token, lexer::TokenPtr semicolon)
-        : ASTNode(lineno, colno)
+        : ParseTreeNode(lineno, colno)
         , _module_name(std::move(module_name))
         , _import_token(std::move(import_token))
         , _semicolon(std::move(semicolon))
@@ -1189,7 +1189,7 @@ public:
 
     const char *type() override { return "ImportDirective"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     IdentifierNodePtr get_module_name() const { return _module_name; }
 
@@ -1204,7 +1204,7 @@ private:
 };
 
 // Compilation Unit Node
-class CompilationUnitNode : public ASTNode {
+class CompilationUnitNode : public ParseTreeNode {
 public:
     CompilationUnitNode(
         int lineno, int colno,
@@ -1213,7 +1213,7 @@ public:
         FloorMaxInitStatementNodePtr floor_max,
         std::vector<VariableDeclarationStatementNodePtr> top_level_decls,
         std::vector<AbstractSubroutineNodePtr> subroutines)
-        : ASTNode(lineno, colno)
+        : ParseTreeNode(lineno, colno)
         , _imports(std::move(imports))
         , _floor_inits(std::move(floor_inits))
         , _floor_max(std::move(floor_max))
@@ -1224,7 +1224,7 @@ public:
 
     const char *type() override { return "CompilationUnit"; }
 
-    void accept(ASTNodeVisitor *visitor) override;
+    void accept(ParseTreeNodeVisitor *visitor) override;
 
     const std::vector<ImportDirectiveNodePtr> &get_imports() const { return _imports; }
 
@@ -1245,7 +1245,7 @@ private:
 };
 
 template <typename T>
-concept convertible_to_ASTNodePtr = std::convertible_to<T, ASTNodePtr>;
+concept convertible_to_ParseTreeNodePtr = std::convertible_to<T, ParseTreeNodePtr>;
 
 CLOSE_PARSER_NAMESPACE
 

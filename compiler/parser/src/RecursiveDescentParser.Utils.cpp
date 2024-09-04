@@ -6,7 +6,7 @@
 
 #include <spdlog/spdlog.h>
 
-#include "ASTNode.h"
+#include "ParseTreeNode.h"
 #include "HRLToken.h"
 #include "RecursiveDescentParser.h"
 #include "hrl_global.h"
