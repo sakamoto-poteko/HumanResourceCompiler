@@ -11,6 +11,7 @@ add_library(${PROJECT_NAME}
     src/RecursiveDescentParser.Utils.cpp
     src/ParseTreeNodeGraphvizBuilder.cpp
     src/Formatter.cpp
+    src/ASTNode.cpp
     "${OUTPUT_BASE}.h"
     "${OUTPUT_BASE}.cpp"
 )
