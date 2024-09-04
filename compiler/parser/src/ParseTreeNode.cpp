@@ -3,164 +3,164 @@
 
 OPEN_PARSER_NAMESPACE
 
-void IdentifierNode::accept(ParseTreeNodeVisitor *visitor)
+void IdentifierPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<IdentifierNode>());
+    visitor->visit(shared_from_this_casted<IdentifierPTNode>());
 }
 
-void IntegerLiteralNode::accept(ParseTreeNodeVisitor *visitor)
+void IntegerLiteralPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<IntegerLiteralNode>());
+    visitor->visit(shared_from_this_casted<IntegerLiteralPTNode>());
 }
 
-void BooleanLiteralNode::accept(ParseTreeNodeVisitor *visitor)
+void BooleanLiteralPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<BooleanLiteralNode>());
+    visitor->visit(shared_from_this_casted<BooleanLiteralPTNode>());
 }
 
-void BinaryOperatorNode::accept(ParseTreeNodeVisitor *visitor)
+void BinaryOperatorPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<BinaryOperatorNode>());
+    visitor->visit(shared_from_this_casted<BinaryOperatorPTNode>());
 }
 
-void VariableDeclarationNode::accept(ParseTreeNodeVisitor *visitor)
+void VariableDeclarationPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<VariableDeclarationNode>());
+    visitor->visit(shared_from_this_casted<VariableDeclarationPTNode>());
 }
 
-void VariableAssignmentNode::accept(ParseTreeNodeVisitor *visitor)
+void VariableAssignmentPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<VariableAssignmentNode>());
+    visitor->visit(shared_from_this_casted<VariableAssignmentPTNode>());
 }
 
-void FloorAssignmentNode::accept(ParseTreeNodeVisitor *visitor)
+void FloorAssignmentPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<FloorAssignmentNode>());
+    visitor->visit(shared_from_this_casted<FloorAssignmentPTNode>());
 }
 
-void BinaryExpressionNode::accept(ParseTreeNodeVisitor *visitor)
+void BinaryExpressionPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<BinaryExpressionNode>());
+    visitor->visit(shared_from_this_casted<BinaryExpressionPTNode>());
 }
 
-void IncrementExpressionNode::accept(ParseTreeNodeVisitor *visitor)
+void IncrementExpressionPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<IncrementExpressionNode>());
+    visitor->visit(shared_from_this_casted<IncrementExpressionPTNode>());
 }
 
-void DecrementExpressionNode::accept(ParseTreeNodeVisitor *visitor)
+void DecrementExpressionPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<DecrementExpressionNode>());
+    visitor->visit(shared_from_this_casted<DecrementExpressionPTNode>());
 }
 
-void FloorAccessNode::accept(ParseTreeNodeVisitor *visitor)
+void FloorAccessPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<FloorAccessNode>());
+    visitor->visit(shared_from_this_casted<FloorAccessPTNode>());
 }
 
-void ParenthesizedExpressionNode::accept(ParseTreeNodeVisitor *visitor)
+void ParenthesizedExpressionPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<ParenthesizedExpressionNode>());
+    visitor->visit(shared_from_this_casted<ParenthesizedExpressionPTNode>());
 }
 
-void InvocationExpressionNode::accept(ParseTreeNodeVisitor *visitor)
+void InvocationExpressionPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<InvocationExpressionNode>());
+    visitor->visit(shared_from_this_casted<InvocationExpressionPTNode>());
 }
 
-void IfStatementNode::accept(ParseTreeNodeVisitor *visitor)
+void IfStatementPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<IfStatementNode>());
+    visitor->visit(shared_from_this_casted<IfStatementPTNode>());
 }
 
-void WhileStatementNode::accept(ParseTreeNodeVisitor *visitor)
+void WhileStatementPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<WhileStatementNode>());
+    visitor->visit(shared_from_this_casted<WhileStatementPTNode>());
 }
 
-void ForStatementNode::accept(ParseTreeNodeVisitor *visitor)
+void ForStatementPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<ForStatementNode>());
+    visitor->visit(shared_from_this_casted<ForStatementPTNode>());
 }
 
-void ReturnStatementNode::accept(ParseTreeNodeVisitor *visitor)
+void ReturnStatementPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<ReturnStatementNode>());
+    visitor->visit(shared_from_this_casted<ReturnStatementPTNode>());
 }
 
-void FloorBoxInitStatementNode::accept(ParseTreeNodeVisitor *visitor)
+void FloorBoxInitStatementPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<FloorBoxInitStatementNode>());
+    visitor->visit(shared_from_this_casted<FloorBoxInitStatementPTNode>());
 }
 
-void FloorMaxInitStatementNode::accept(ParseTreeNodeVisitor *visitor)
+void FloorMaxInitStatementPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<FloorMaxInitStatementNode>());
+    visitor->visit(shared_from_this_casted<FloorMaxInitStatementPTNode>());
 }
 
-void EmptyStatementNode::accept(ParseTreeNodeVisitor *visitor)
+void EmptyStatementPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<EmptyStatementNode>());
+    visitor->visit(shared_from_this_casted<EmptyStatementPTNode>());
 }
 
-void StatementBlockNode::accept(ParseTreeNodeVisitor *visitor)
+void StatementBlockPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<StatementBlockNode>());
+    visitor->visit(shared_from_this_casted<StatementBlockPTNode>());
 }
 
-void SubprocDefinitionNode::accept(ParseTreeNodeVisitor *visitor)
+void SubprocDefinitionPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<SubprocDefinitionNode>());
+    visitor->visit(shared_from_this_casted<SubprocDefinitionPTNode>());
 }
 
-void FunctionDefinitionNode::accept(ParseTreeNodeVisitor *visitor)
+void FunctionDefinitionPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<FunctionDefinitionNode>());
+    visitor->visit(shared_from_this_casted<FunctionDefinitionPTNode>());
 }
 
-void ImportDirectiveNode::accept(ParseTreeNodeVisitor *visitor)
+void ImportDirectivePTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<ImportDirectiveNode>());
+    visitor->visit(shared_from_this_casted<ImportDirectivePTNode>());
 }
 
-void CompilationUnitNode::accept(ParseTreeNodeVisitor *visitor)
+void CompilationUnitPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<CompilationUnitNode>());
+    visitor->visit(shared_from_this_casted<CompilationUnitPTNode>());
 }
 
-void VariableDeclarationStatementNode::accept(ParseTreeNodeVisitor *visitor)
+void VariableDeclarationStatementPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<VariableDeclarationStatementNode>());
+    visitor->visit(shared_from_this_casted<VariableDeclarationStatementPTNode>());
 }
 
-void VariableAssignmentStatementNode::accept(ParseTreeNodeVisitor *visitor)
+void VariableAssignmentStatementPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<VariableAssignmentStatementNode>());
+    visitor->visit(shared_from_this_casted<VariableAssignmentStatementPTNode>());
 }
 
-void FloorAssignmentStatementNode::accept(ParseTreeNodeVisitor *visitor)
+void FloorAssignmentStatementPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<FloorAssignmentStatementNode>());
+    visitor->visit(shared_from_this_casted<FloorAssignmentStatementPTNode>());
 }
 
-void NegativeExpressionNode::accept(ParseTreeNodeVisitor *visitor)
+void NegativeExpressionPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<NegativeExpressionNode>());
+    visitor->visit(shared_from_this_casted<NegativeExpressionPTNode>());
 }
 
-void PositiveExpressionNode::accept(ParseTreeNodeVisitor *visitor)
+void PositiveExpressionPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<PositiveExpressionNode>());
+    visitor->visit(shared_from_this_casted<PositiveExpressionPTNode>());
 }
 
-void NotExpressionNode::accept(ParseTreeNodeVisitor *visitor)
+void NotExpressionPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<NotExpressionNode>());
+    visitor->visit(shared_from_this_casted<NotExpressionPTNode>());
 }
 
-void InvocationStatementNode::accept(ParseTreeNodeVisitor *visitor)
+void InvocationStatementPTNode::accept(ParseTreeNodeVisitor *visitor)
 {
-    visitor->visit(shared_from_this_casted<InvocationStatementNode>());
+    visitor->visit(shared_from_this_casted<InvocationStatementPTNode>());
 }
 
 CLOSE_PARSER_NAMESPACE

@@ -108,7 +108,7 @@ std::string ParseTreeNodeGraphvizBuilder::generate_graphviz()
     return dotfile.str();
 }
 
-ParseTreeNodeGraphvizBuilder::ParseTreeNodeGraphvizBuilder(const CompilationUnitNodePtr &root)
+ParseTreeNodeGraphvizBuilder::ParseTreeNodeGraphvizBuilder(const CompilationUnitPTNodePtr &root)
     : _root(root)
 {
 }
@@ -117,39 +117,31 @@ ParseTreeNodeGraphvizBuilder::~ParseTreeNodeGraphvizBuilder()
 {
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(IdentifierNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(IdentifierPTNodePtr node)
 {
     enter_and_create_vertex(node->type(), *node->get_value(), true);
     leave();
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(IntegerLiteralNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(IntegerLiteralPTNodePtr node)
 {
     enter_and_create_vertex(node->type(), std::to_string(node->get_value()), true);
     leave();
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(BooleanLiteralNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(BooleanLiteralPTNodePtr node)
 {
     enter_and_create_vertex(node->type(), node->get_value() ? "true" : "false", true);
     leave();
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(BinaryOperatorNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(BinaryOperatorPTNodePtr node)
 {
-    enter_and_create_vertex(node->type(), BinaryOperatorNode::get_binary_operator_string(node->get_op()), true);
+    enter_and_create_vertex(node->type(), BinaryOperatorPTNode::get_binary_operator_string(node->get_op()), true);
     leave();
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(VariableDeclarationNodePtr node)
-{
-    enter_and_create_vertex(node->type());
-    traverse(node->get_var_name());
-    traverse(node->get_expr());
-    leave();
-}
-
-void ParseTreeNodeGraphvizBuilder::visit(VariableAssignmentNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(VariableDeclarationPTNodePtr node)
 {
     enter_and_create_vertex(node->type());
     traverse(node->get_var_name());
@@ -157,7 +149,15 @@ void ParseTreeNodeGraphvizBuilder::visit(VariableAssignmentNodePtr node)
     leave();
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(FloorAssignmentNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(VariableAssignmentPTNodePtr node)
+{
+    enter_and_create_vertex(node->type());
+    traverse(node->get_var_name());
+    traverse(node->get_expr());
+    leave();
+}
+
+void ParseTreeNodeGraphvizBuilder::visit(FloorAssignmentPTNodePtr node)
 {
     enter_and_create_vertex(node->type());
     traverse(node->get_floor_access());
@@ -165,9 +165,9 @@ void ParseTreeNodeGraphvizBuilder::visit(FloorAssignmentNodePtr node)
     leave();
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(BinaryExpressionNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(BinaryExpressionPTNodePtr node)
 {
-    enter_and_create_vertex(node->type(), BinaryOperatorNode::get_binary_operator_string(node->get_op()->get_op()), false);
+    enter_and_create_vertex(node->type(), BinaryOperatorPTNode::get_binary_operator_string(node->get_op()->get_op()), false);
 
     traverse(node->get_left());
     traverse(node->get_right());
@@ -175,35 +175,35 @@ void ParseTreeNodeGraphvizBuilder::visit(BinaryExpressionNodePtr node)
     leave();
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(IncrementExpressionNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(IncrementExpressionPTNodePtr node)
 {
     enter_and_create_vertex(node->type());
     traverse(node->get_var_name());
     leave();
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(DecrementExpressionNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(DecrementExpressionPTNodePtr node)
 {
     enter_and_create_vertex(node->type());
     traverse(node->get_var_name());
     leave();
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(FloorAccessNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(FloorAccessPTNodePtr node)
 {
     enter_and_create_vertex(node->type());
     traverse(node->get_index_expr());
     leave();
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(ParenthesizedExpressionNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(ParenthesizedExpressionPTNodePtr node)
 {
     enter_and_create_vertex(node->type());
     traverse(node->get_expr());
     leave();
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(InvocationExpressionNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(InvocationExpressionPTNodePtr node)
 {
     enter_and_create_vertex(node->type());
     traverse(node->get_func_name());
@@ -216,7 +216,7 @@ void ParseTreeNodeGraphvizBuilder::visit(InvocationExpressionNodePtr node)
     leave();
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(IfStatementNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(IfStatementPTNodePtr node)
 {
     enter_and_create_vertex(node->type());
 
@@ -235,7 +235,7 @@ void ParseTreeNodeGraphvizBuilder::visit(IfStatementNodePtr node)
     leave();
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(WhileStatementNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(WhileStatementPTNodePtr node)
 {
     enter_and_create_vertex(node->type());
 
@@ -250,7 +250,7 @@ void ParseTreeNodeGraphvizBuilder::visit(WhileStatementNodePtr node)
     leave();
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(ForStatementNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(ForStatementPTNodePtr node)
 {
     enter_and_create_vertex(node->type());
 
@@ -273,7 +273,7 @@ void ParseTreeNodeGraphvizBuilder::visit(ForStatementNodePtr node)
     leave();
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(ReturnStatementNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(ReturnStatementPTNodePtr node)
 {
     enter_and_create_vertex(node->type());
 
@@ -282,7 +282,7 @@ void ParseTreeNodeGraphvizBuilder::visit(ReturnStatementNodePtr node)
     leave();
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(FloorBoxInitStatementNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(FloorBoxInitStatementPTNodePtr node)
 {
     enter_and_create_vertex(node->type());
 
@@ -297,20 +297,20 @@ void ParseTreeNodeGraphvizBuilder::visit(FloorBoxInitStatementNodePtr node)
     leave();
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(FloorMaxInitStatementNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(FloorMaxInitStatementPTNodePtr node)
 {
     enter_and_create_vertex(node->type());
     traverse(node->get_value());
     leave();
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(EmptyStatementNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(EmptyStatementPTNodePtr node)
 {
     enter_and_create_vertex(node->type());
     leave();
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(StatementBlockNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(StatementBlockPTNodePtr node)
 {
     enter_and_create_vertex(node->type());
 
@@ -319,7 +319,7 @@ void ParseTreeNodeGraphvizBuilder::visit(StatementBlockNodePtr node)
     leave();
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(SubprocDefinitionNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(SubprocDefinitionPTNodePtr node)
 {
     enter_and_create_vertex(node->type());
 
@@ -334,7 +334,7 @@ void ParseTreeNodeGraphvizBuilder::visit(SubprocDefinitionNodePtr node)
     leave();
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(FunctionDefinitionNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(FunctionDefinitionPTNodePtr node)
 {
     enter_and_create_vertex(node->type());
 
@@ -349,14 +349,14 @@ void ParseTreeNodeGraphvizBuilder::visit(FunctionDefinitionNodePtr node)
     leave();
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(ImportDirectiveNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(ImportDirectivePTNodePtr node)
 {
     enter_and_create_vertex(node->type());
     traverse(node->get_module_name());
     leave();
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(CompilationUnitNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(CompilationUnitPTNodePtr node)
 {
     enter_and_create_vertex(node->type());
 
@@ -369,43 +369,43 @@ void ParseTreeNodeGraphvizBuilder::visit(CompilationUnitNodePtr node)
     leave();
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(VariableDeclarationStatementNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(VariableDeclarationStatementPTNodePtr node)
 {
     traverse(node->get_variable_decl());
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(VariableAssignmentStatementNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(VariableAssignmentStatementPTNodePtr node)
 {
     traverse(node->get_variable_assignment());
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(FloorAssignmentStatementNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(FloorAssignmentStatementPTNodePtr node)
 {
     traverse(node->get_floor_assignment());
 };
 
-void ParseTreeNodeGraphvizBuilder::visit(NegativeExpressionNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(NegativeExpressionPTNodePtr node)
 {
     enter_and_create_vertex(node->type());
     traverse(node->get_expr());
     leave();
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(PositiveExpressionNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(PositiveExpressionPTNodePtr node)
 {
     enter_and_create_vertex(node->type());
     traverse(node->get_expr());
     leave();
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(NotExpressionNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(NotExpressionPTNodePtr node)
 {
     enter_and_create_vertex(node->type());
     traverse(node->get_expr());
     leave();
 }
 
-void ParseTreeNodeGraphvizBuilder::visit(InvocationStatementNodePtr node)
+void ParseTreeNodeGraphvizBuilder::visit(InvocationStatementPTNodePtr node)
 {
     enter_and_create_vertex(node->type());
     traverse(node->get_expr());

@@ -22,7 +22,7 @@ public:
         };
     virtual ~RecursiveDescentParser() = default;
 
-    virtual bool parse(CompilationUnitNodePtr &result);
+    virtual bool parse(CompilationUnitPTNodePtr &result);
 
 protected:
     std::vector<lexer::TokenPtr> _tokens;
@@ -35,36 +35,36 @@ protected:
     lexer::TokenId lookahead_id() const;
     void consume();
 
-    bool parse_compilation_unit(CompilationUnitNodePtr &node);
-    bool parse_import_directive(ImportDirectiveNodePtr &node);
-    bool parse_floor_box_init_statement(FloorBoxInitStatementNodePtr &node);
-    bool parse_floor_max_statement(FloorMaxInitStatementNodePtr &node);
-    bool parse_function_definition(FunctionDefinitionNodePtr &node);
-    bool parse_subproc_definition(SubprocDefinitionNodePtr &node);
-    bool parse_statement_block(StatementBlockNodePtr &node);
-    bool parse_statement(AbstractStatementNodePtr &node);
-    bool parse_variable_declaration_statement(VariableDeclarationStatementNodePtr &node);
-    bool parse_variable_declaration(VariableDeclarationNodePtr &node);
-    bool parse_floor_assignment_statement(FloorAssignmentStatementNodePtr &node);
-    bool parse_floor_assignment(FloorAssignmentNodePtr &node);
-    bool parse_floor_access(FloorAccessNodePtr &node);
-    bool parse_variable_assignment_statement(VariableAssignmentStatementNodePtr &node);
-    bool parse_variable_assignment(VariableAssignmentNodePtr &node);
-    bool parse_invocation_statement(InvocationStatementNodePtr &node);
-    bool parse_embedded_statement(AbstractEmbeddedStatementNodePtr &node);
-    bool parse_if_statement(IfStatementNodePtr &node);
-    bool parse_while_statement(WhileStatementNodePtr &node);
-    bool parse_for_statement(ForStatementNodePtr &node);
-    bool parse_return_statement(ReturnStatementNodePtr &node);
-    bool parse_empty_statement(EmptyStatementNodePtr &node);
+    bool parse_compilation_unit(CompilationUnitPTNodePtr &node);
+    bool parse_import_directive(ImportDirectivePTNodePtr &node);
+    bool parse_floor_box_init_statement(FloorBoxInitStatementPTNodePtr &node);
+    bool parse_floor_max_statement(FloorMaxInitStatementPTNodePtr &node);
+    bool parse_function_definition(FunctionDefinitionPTNodePtr &node);
+    bool parse_subproc_definition(SubprocDefinitionPTNodePtr &node);
+    bool parse_statement_block(StatementBlockPTNodePtr &node);
+    bool parse_statement(AbstractStatementPTNodePtr &node);
+    bool parse_variable_declaration_statement(VariableDeclarationStatementPTNodePtr &node);
+    bool parse_variable_declaration(VariableDeclarationPTNodePtr &node);
+    bool parse_floor_assignment_statement(FloorAssignmentStatementPTNodePtr &node);
+    bool parse_floor_assignment(FloorAssignmentPTNodePtr &node);
+    bool parse_floor_access(FloorAccessPTNodePtr &node);
+    bool parse_variable_assignment_statement(VariableAssignmentStatementPTNodePtr &node);
+    bool parse_variable_assignment(VariableAssignmentPTNodePtr &node);
+    bool parse_invocation_statement(InvocationStatementPTNodePtr &node);
+    bool parse_embedded_statement(AbstractEmbeddedStatementPTNodePtr &node);
+    bool parse_if_statement(IfStatementPTNodePtr &node);
+    bool parse_while_statement(WhileStatementPTNodePtr &node);
+    bool parse_for_statement(ForStatementPTNodePtr &node);
+    bool parse_return_statement(ReturnStatementPTNodePtr &node);
+    bool parse_empty_statement(EmptyStatementPTNodePtr &node);
 
-    bool parse_expression(AbstractExpressionNodePtr &node);
-    bool parse_unary_expression(AbstractUnaryExpressionNodePtr &node);
-    bool parse_primary_expression(AbstractPrimaryExpressionNodePtr &node);
-    bool parse_invocation_expression(InvocationExpressionNodePtr &node);
-    bool parse_parenthesized_expression(ParenthesizedExpressionNodePtr &node);
+    bool parse_expression(AbstractExpressionPTNodePtr &node);
+    bool parse_unary_expression(AbstractUnaryExpressionPTNodePtr &node);
+    bool parse_primary_expression(AbstractPrimaryExpressionPTNodePtr &node);
+    bool parse_invocation_expression(InvocationExpressionPTNodePtr &node);
+    bool parse_parenthesized_expression(ParenthesizedExpressionPTNodePtr &node);
 
-    bool parse_precedence_climbing(AbstractExpressionNodePtr &result, AbstractExpressionNodePtr lhs, int min_precedence);
+    bool parse_precedence_climbing(AbstractExpressionPTNodePtr &result, AbstractExpressionPTNodePtr lhs, int min_precedence);
 
     void push_error(const std::string &expect, const lexer::TokenPtr &got, int lineno = -1, int colno = -1, int width = -1);
     void push_error(const std::string &message, int lineno, int colno, int width);

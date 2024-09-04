@@ -55,7 +55,7 @@ int main(int argc, char **argv)
     fclose(file);
 
     hrl::parser::RecursiveDescentParser parser(tokens);
-    hrl::parser::CompilationUnitNodePtr compilation_unit;
+    hrl::parser::CompilationUnitPTNodePtr compilation_unit;
     bool parsed = parser.parse(compilation_unit);
     if (!parsed) {
         spdlog::error("Error occured during parsing");

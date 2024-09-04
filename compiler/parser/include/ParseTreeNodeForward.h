@@ -8,101 +8,101 @@
 OPEN_PARSER_NAMESPACE
 
 class ParseTreeNode;
-class IdentifierNode;
-class IntegerLiteralNode;
-class BooleanLiteralNode;
-class BinaryOperatorNode;
+class IdentifierPTNode;
+class IntegerLiteralPTNode;
+class BooleanLiteralPTNode;
+class BinaryOperatorPTNode;
 
-class VariableDeclarationNode;
-class VariableAssignmentNode;
-class FloorAssignmentNode;
+class VariableDeclarationPTNode;
+class VariableAssignmentPTNode;
+class FloorAssignmentPTNode;
 
-class PositiveExpressionNode;
-class NegativeExpressionNode;
-class NotExpressionNode;
-class AbstractExpressionNode;
-class BinaryExpressionNode;
-class AbstractUnaryExpressionNode;
-class IncrementExpressionNode;
-class DecrementExpressionNode;
-class FloorAccessNode;
-class AbstractPrimaryExpressionNode;
-class ParenthesizedExpressionNode;
-class InvocationExpressionNode;
+class PositiveExpressionPTNode;
+class NegativeExpressionPTNode;
+class NotExpressionPTNode;
+class AbstractExpressionPTNode;
+class BinaryExpressionPTNode;
+class AbstractUnaryExpressionPTNode;
+class IncrementExpressionPTNode;
+class DecrementExpressionPTNode;
+class FloorAccessPTNode;
+class AbstractPrimaryExpressionPTNode;
+class ParenthesizedExpressionPTNode;
+class InvocationExpressionPTNode;
 
-class AbstractStatementNode;
-class AbstractEmbeddedStatementNode;
-class AbstractSelectionStatementNode;
-class AbstractIterationStatementNode;
-class AbstractSubroutineNode;
+class AbstractStatementPTNode;
+class AbstractEmbeddedStatementPTNode;
+class AbstractSelectionStatementPTNode;
+class AbstractIterationStatementPTNode;
+class AbstractSubroutinePTNode;
 
-class IfStatementNode;
-class WhileStatementNode;
-class ForStatementNode;
-class ReturnStatementNode;
-class FloorBoxInitStatementNode;
-class FloorMaxInitStatementNode;
-class EmptyStatementNode;
-class StatementBlockNode;
-class FloorAssignmentStatementNode;
-class VariableAssignmentStatementNode;
-class VariableDeclarationStatementNode;
-class InvocationStatementNode;
+class IfStatementPTNode;
+class WhileStatementPTNode;
+class ForStatementPTNode;
+class ReturnStatementPTNode;
+class FloorBoxInitStatementPTNode;
+class FloorMaxInitStatementPTNode;
+class EmptyStatementPTNode;
+class StatementBlockPTNode;
+class FloorAssignmentStatementPTNode;
+class VariableAssignmentStatementPTNode;
+class VariableDeclarationStatementPTNode;
+class InvocationStatementPTNode;
 
-class SubroutineNode;
-class SubprocDefinitionNode;
-class FunctionDefinitionNode;
+class SubroutinePTNode;
+class SubprocDefinitionPTNode;
+class FunctionDefinitionPTNode;
 
-class ImportDirectiveNode;
-class CompilationUnitNode;
+class ImportDirectivePTNode;
+class CompilationUnitPTNode;
 
-using ParseTreeNodePtr = std::shared_ptr<ParseTreeNode>;
-using IdentifierNodePtr = std::shared_ptr<IdentifierNode>;
-using IntegerLiteralNodePtr = std::shared_ptr<IntegerLiteralNode>;
-using BooleanLiteralNodePtr = std::shared_ptr<BooleanLiteralNode>;
-using BinaryOperatorNodePtr = std::shared_ptr<BinaryOperatorNode>;
+using ParseTreePTNodePtr = std::shared_ptr<ParseTreeNode>;
+using IdentifierPTNodePtr = std::shared_ptr<IdentifierPTNode>;
+using IntegerLiteralPTNodePtr = std::shared_ptr<IntegerLiteralPTNode>;
+using BooleanLiteralPTNodePtr = std::shared_ptr<BooleanLiteralPTNode>;
+using BinaryOperatorPTNodePtr = std::shared_ptr<BinaryOperatorPTNode>;
 
-using VariableDeclarationNodePtr = std::shared_ptr<VariableDeclarationNode>;
-using VariableAssignmentNodePtr = std::shared_ptr<VariableAssignmentNode>;
-using FloorAssignmentNodePtr = std::shared_ptr<FloorAssignmentNode>;
-using FloorAssignmentStatementNodePtr = std::shared_ptr<FloorAssignmentStatementNode>;
-using VariableAssignmentStatementNodePtr = std::shared_ptr<VariableAssignmentStatementNode>;
-using VariableDeclarationStatementNodePtr = std::shared_ptr<VariableDeclarationStatementNode>;
+using VariableDeclarationPTNodePtr = std::shared_ptr<VariableDeclarationPTNode>;
+using VariableAssignmentPTNodePtr = std::shared_ptr<VariableAssignmentPTNode>;
+using FloorAssignmentPTNodePtr = std::shared_ptr<FloorAssignmentPTNode>;
+using FloorAssignmentStatementPTNodePtr = std::shared_ptr<FloorAssignmentStatementPTNode>;
+using VariableAssignmentStatementPTNodePtr = std::shared_ptr<VariableAssignmentStatementPTNode>;
+using VariableDeclarationStatementPTNodePtr = std::shared_ptr<VariableDeclarationStatementPTNode>;
 
-using AbstractExpressionNodePtr = std::shared_ptr<AbstractExpressionNode>;
-using BinaryExpressionNodePtr = std::shared_ptr<BinaryExpressionNode>;
-using AbstractUnaryExpressionNodePtr = std::shared_ptr<AbstractUnaryExpressionNode>;
-using IncrementExpressionNodePtr = std::shared_ptr<IncrementExpressionNode>;
-using DecrementExpressionNodePtr = std::shared_ptr<DecrementExpressionNode>;
-using FloorAccessNodePtr = std::shared_ptr<FloorAccessNode>;
-using AbstractPrimaryExpressionNodePtr = std::shared_ptr<AbstractPrimaryExpressionNode>;
-using ParenthesizedExpressionNodePtr = std::shared_ptr<ParenthesizedExpressionNode>;
-using InvocationExpressionNodePtr = std::shared_ptr<InvocationExpressionNode>;
-using PositiveExpressionNodePtr = std::shared_ptr<PositiveExpressionNode>;
-using NegativeExpressionNodePtr = std::shared_ptr<NegativeExpressionNode>;
-using NotExpressionNodePtr = std::shared_ptr<NotExpressionNode>;
+using AbstractExpressionPTNodePtr = std::shared_ptr<AbstractExpressionPTNode>;
+using BinaryExpressionPTNodePtr = std::shared_ptr<BinaryExpressionPTNode>;
+using AbstractUnaryExpressionPTNodePtr = std::shared_ptr<AbstractUnaryExpressionPTNode>;
+using IncrementExpressionPTNodePtr = std::shared_ptr<IncrementExpressionPTNode>;
+using DecrementExpressionPTNodePtr = std::shared_ptr<DecrementExpressionPTNode>;
+using FloorAccessPTNodePtr = std::shared_ptr<FloorAccessPTNode>;
+using AbstractPrimaryExpressionPTNodePtr = std::shared_ptr<AbstractPrimaryExpressionPTNode>;
+using ParenthesizedExpressionPTNodePtr = std::shared_ptr<ParenthesizedExpressionPTNode>;
+using InvocationExpressionPTNodePtr = std::shared_ptr<InvocationExpressionPTNode>;
+using PositiveExpressionPTNodePtr = std::shared_ptr<PositiveExpressionPTNode>;
+using NegativeExpressionPTNodePtr = std::shared_ptr<NegativeExpressionPTNode>;
+using NotExpressionPTNodePtr = std::shared_ptr<NotExpressionPTNode>;
 
-using AbstractStatementNodePtr = std::shared_ptr<AbstractStatementNode>;
-using AbstractEmbeddedStatementNodePtr = std::shared_ptr<AbstractEmbeddedStatementNode>;
-using AbstractSelectionStatementNodePtr = std::shared_ptr<AbstractSelectionStatementNode>;
-using AbstractIterationStatementNodePtr = std::shared_ptr<AbstractIterationStatementNode>;
-using AbstractSubroutineNodePtr = std::shared_ptr<AbstractSubroutineNode>;
+using AbstractStatementPTNodePtr = std::shared_ptr<AbstractStatementPTNode>;
+using AbstractEmbeddedStatementPTNodePtr = std::shared_ptr<AbstractEmbeddedStatementPTNode>;
+using AbstractSelectionStatementPTNodePtr = std::shared_ptr<AbstractSelectionStatementPTNode>;
+using AbstractIterationStatementPTNodePtr = std::shared_ptr<AbstractIterationStatementPTNode>;
+using AbstractSubroutinePTNodePtr = std::shared_ptr<AbstractSubroutinePTNode>;
 
-using IfStatementNodePtr = std::shared_ptr<IfStatementNode>;
-using WhileStatementNodePtr = std::shared_ptr<WhileStatementNode>;
-using ForStatementNodePtr = std::shared_ptr<ForStatementNode>;
-using ReturnStatementNodePtr = std::shared_ptr<ReturnStatementNode>;
-using FloorBoxInitStatementNodePtr = std::shared_ptr<FloorBoxInitStatementNode>;
-using FloorMaxInitStatementNodePtr = std::shared_ptr<FloorMaxInitStatementNode>;
-using EmptyStatementNodePtr = std::shared_ptr<EmptyStatementNode>;
-using StatementBlockNodePtr = std::shared_ptr<StatementBlockNode>;
-using InvocationStatementNodePtr = std::shared_ptr<InvocationStatementNode>;
+using IfStatementPTNodePtr = std::shared_ptr<IfStatementPTNode>;
+using WhileStatementPTNodePtr = std::shared_ptr<WhileStatementPTNode>;
+using ForStatementPTNodePtr = std::shared_ptr<ForStatementPTNode>;
+using ReturnStatementPTNodePtr = std::shared_ptr<ReturnStatementPTNode>;
+using FloorBoxInitStatementPTNodePtr = std::shared_ptr<FloorBoxInitStatementPTNode>;
+using FloorMaxInitStatementPTNodePtr = std::shared_ptr<FloorMaxInitStatementPTNode>;
+using EmptyStatementPTNodePtr = std::shared_ptr<EmptyStatementPTNode>;
+using StatementBlockPTNodePtr = std::shared_ptr<StatementBlockPTNode>;
+using InvocationStatementPTNodePtr = std::shared_ptr<InvocationStatementPTNode>;
 
-using FunctionDefinitionNodePtr = std::shared_ptr<FunctionDefinitionNode>;
-using SubprocDefinitionNodePtr = std::shared_ptr<SubprocDefinitionNode>;
+using FunctionDefinitionPTNodePtr = std::shared_ptr<FunctionDefinitionPTNode>;
+using SubprocDefinitionPTNodePtr = std::shared_ptr<SubprocDefinitionPTNode>;
 
-using ImportDirectiveNodePtr = std::shared_ptr<ImportDirectiveNode>;
-using CompilationUnitNodePtr = std::shared_ptr<CompilationUnitNode>;
+using ImportDirectivePTNodePtr = std::shared_ptr<ImportDirectivePTNode>;
+using CompilationUnitPTNodePtr = std::shared_ptr<CompilationUnitPTNode>;
 
 CLOSE_PARSER_NAMESPACE
 

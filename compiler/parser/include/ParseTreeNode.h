@@ -50,35 +50,35 @@ protected:
     int _colno;
 };
 
-class AbstractExpressionNode : public ParseTreeNode {
+class AbstractExpressionPTNode : public ParseTreeNode {
 public:
-    AbstractExpressionNode(int lineno, int colno)
+    AbstractExpressionPTNode(int lineno, int colno)
         : ParseTreeNode(lineno, colno)
     {
     }
 };
 
-class AbstractUnaryExpressionNode : public AbstractExpressionNode {
+class AbstractUnaryExpressionPTNode : public AbstractExpressionPTNode {
 public:
-    AbstractUnaryExpressionNode(int lineno, int colno)
-        : AbstractExpressionNode(lineno, colno)
+    AbstractUnaryExpressionPTNode(int lineno, int colno)
+        : AbstractExpressionPTNode(lineno, colno)
     {
     }
 };
 
-class AbstractPrimaryExpressionNode : public AbstractUnaryExpressionNode {
+class AbstractPrimaryExpressionPTNode : public AbstractUnaryExpressionPTNode {
 public:
-    AbstractPrimaryExpressionNode(int lineno, int colno)
-        : AbstractUnaryExpressionNode(lineno, colno)
+    AbstractPrimaryExpressionPTNode(int lineno, int colno)
+        : AbstractUnaryExpressionPTNode(lineno, colno)
     {
     }
 };
 
 // Terminal Nodes
-class IdentifierNode : public AbstractPrimaryExpressionNode {
+class IdentifierPTNode : public AbstractPrimaryExpressionPTNode {
 public:
-    IdentifierNode(const lexer::IdentifierTokenPtr &token)
-        : AbstractPrimaryExpressionNode(token->lineno(), token->colno())
+    IdentifierPTNode(const lexer::IdentifierTokenPtr &token)
+        : AbstractPrimaryExpressionPTNode(token->lineno(), token->colno())
         , _name(token->get_value())
         , _token(token)
     {
@@ -97,10 +97,10 @@ private:
     lexer::TokenPtr _token;
 };
 
-class IntegerLiteralNode : public AbstractPrimaryExpressionNode {
+class IntegerLiteralPTNode : public AbstractPrimaryExpressionPTNode {
 public:
-    IntegerLiteralNode(const lexer::IntegerTokenPtr &token)
-        : AbstractPrimaryExpressionNode(token->lineno(), token->colno())
+    IntegerLiteralPTNode(const lexer::IntegerTokenPtr &token)
+        : AbstractPrimaryExpressionPTNode(token->lineno(), token->colno())
         , _value(token->get_value())
         , _token(token)
     {
@@ -119,10 +119,10 @@ private:
     lexer::TokenPtr _token;
 };
 
-class BooleanLiteralNode : public AbstractPrimaryExpressionNode {
+class BooleanLiteralPTNode : public AbstractPrimaryExpressionPTNode {
 public:
-    BooleanLiteralNode(const lexer::BooleanTokenPtr &token)
-        : AbstractPrimaryExpressionNode(token->lineno(), token->colno())
+    BooleanLiteralPTNode(const lexer::BooleanTokenPtr &token)
+        : AbstractPrimaryExpressionPTNode(token->lineno(), token->colno())
         , _value(token->get_value())
         , _token(token)
     {
@@ -141,9 +141,9 @@ private:
     lexer::TokenPtr _token;
 };
 
-class BinaryOperatorNode : public ParseTreeNode {
+class BinaryOperatorPTNode : public ParseTreeNode {
 public:
-    BinaryOperatorNode(const lexer::TokenPtr &token)
+    BinaryOperatorPTNode(const lexer::TokenPtr &token)
         : ParseTreeNode(token->lineno(), token->colno())
         , _op(get_binary_operator_from_token_id(token->token_id()))
         , _token(token)
@@ -344,9 +344,9 @@ private:
 };
 
 // Variable and Function Nodes
-class VariableDeclarationNode : public ParseTreeNode {
+class VariableDeclarationPTNode : public ParseTreeNode {
 public:
-    VariableDeclarationNode(int lineno, int colno, IdentifierNodePtr var_name, AbstractExpressionNodePtr expr, lexer::TokenPtr let_token, lexer::TokenPtr equals)
+    VariableDeclarationPTNode(int lineno, int colno, IdentifierPTNodePtr var_name, AbstractExpressionPTNodePtr expr, lexer::TokenPtr let_token, lexer::TokenPtr equals)
         : ParseTreeNode(lineno, colno)
         , _var_name(std::move(var_name))
         , _expr(std::move(expr))
@@ -359,25 +359,25 @@ public:
 
     void accept(ParseTreeNodeVisitor *visitor) override;
 
-    IdentifierNodePtr get_var_name() const { return _var_name; }
+    IdentifierPTNodePtr get_var_name() const { return _var_name; }
 
     // the optional equals part
-    AbstractExpressionNodePtr get_expr() const { return _expr; }
+    AbstractExpressionPTNodePtr get_expr() const { return _expr; }
 
     lexer::TokenPtr get_let_token() const { return _let_token; }
 
     lexer::TokenPtr get_equals() const { return _equals; }
 
 private:
-    IdentifierNodePtr _var_name;
-    AbstractExpressionNodePtr _expr;
+    IdentifierPTNodePtr _var_name;
+    AbstractExpressionPTNodePtr _expr;
     lexer::TokenPtr _let_token;
     lexer::TokenPtr _equals;
 };
 
-class VariableAssignmentNode : public ParseTreeNode {
+class VariableAssignmentPTNode : public ParseTreeNode {
 public:
-    VariableAssignmentNode(int lineno, int colno, IdentifierNodePtr var_name, AbstractExpressionNodePtr expr, lexer::TokenPtr eq)
+    VariableAssignmentPTNode(int lineno, int colno, IdentifierPTNodePtr var_name, AbstractExpressionPTNodePtr expr, lexer::TokenPtr eq)
         : ParseTreeNode(lineno, colno)
         , _var_name(std::move(var_name))
         , _expr(std::move(expr))
@@ -389,21 +389,21 @@ public:
 
     void accept(ParseTreeNodeVisitor *visitor) override;
 
-    IdentifierNodePtr get_var_name() const { return _var_name; }
+    IdentifierPTNodePtr get_var_name() const { return _var_name; }
 
-    AbstractExpressionNodePtr get_expr() const { return _expr; }
+    AbstractExpressionPTNodePtr get_expr() const { return _expr; }
 
     lexer::TokenPtr get_eq() const { return _eq; }
 
 private:
-    IdentifierNodePtr _var_name;
-    AbstractExpressionNodePtr _expr;
+    IdentifierPTNodePtr _var_name;
+    AbstractExpressionPTNodePtr _expr;
     lexer::TokenPtr _eq;
 };
 
-class FloorAssignmentNode : public ParseTreeNode {
+class FloorAssignmentPTNode : public ParseTreeNode {
 public:
-    FloorAssignmentNode(int lineno, int colno, FloorAccessNodePtr floor_access, AbstractExpressionNodePtr expr, lexer::TokenPtr eq)
+    FloorAssignmentPTNode(int lineno, int colno, FloorAccessPTNodePtr floor_access, AbstractExpressionPTNodePtr expr, lexer::TokenPtr eq)
         : ParseTreeNode(lineno, colno)
         , _floor_access(std::move(floor_access))
         , _expr(std::move(expr))
@@ -415,23 +415,23 @@ public:
 
     void accept(ParseTreeNodeVisitor *visitor) override;
 
-    FloorAccessNodePtr get_floor_access() const { return _floor_access; }
+    FloorAccessPTNodePtr get_floor_access() const { return _floor_access; }
 
-    AbstractExpressionNodePtr get_expr() const { return _expr; }
+    AbstractExpressionPTNodePtr get_expr() const { return _expr; }
 
     lexer::TokenPtr get_eq() const { return _eq; }
 
 private:
-    FloorAccessNodePtr _floor_access;
-    AbstractExpressionNodePtr _expr;
+    FloorAccessPTNodePtr _floor_access;
+    AbstractExpressionPTNodePtr _expr;
     lexer::TokenPtr _eq;
 };
 
 // Expression Nodes
-class BinaryExpressionNode : public AbstractExpressionNode {
+class BinaryExpressionPTNode : public AbstractExpressionPTNode {
 public:
-    BinaryExpressionNode(int lineno, int colno, AbstractExpressionNodePtr left, BinaryOperatorNodePtr op, AbstractExpressionNodePtr right)
-        : AbstractExpressionNode(lineno, colno)
+    BinaryExpressionPTNode(int lineno, int colno, AbstractExpressionPTNodePtr left, BinaryOperatorPTNodePtr op, AbstractExpressionPTNodePtr right)
+        : AbstractExpressionPTNode(lineno, colno)
         , _left(std::move(left))
         , _op(std::move(op))
         , _right(std::move(right))
@@ -442,22 +442,22 @@ public:
 
     void accept(ParseTreeNodeVisitor *visitor) override;
 
-    AbstractExpressionNodePtr get_left() const { return _left; }
+    AbstractExpressionPTNodePtr get_left() const { return _left; }
 
-    BinaryOperatorNodePtr get_op() const { return _op; }
+    BinaryOperatorPTNodePtr get_op() const { return _op; }
 
-    AbstractExpressionNodePtr get_right() const { return _right; }
+    AbstractExpressionPTNodePtr get_right() const { return _right; }
 
 private:
-    AbstractExpressionNodePtr _left;
-    BinaryOperatorNodePtr _op;
-    AbstractExpressionNodePtr _right;
+    AbstractExpressionPTNodePtr _left;
+    BinaryOperatorPTNodePtr _op;
+    AbstractExpressionPTNodePtr _right;
 };
 
-class NotExpressionNode : public AbstractUnaryExpressionNode {
+class NotExpressionPTNode : public AbstractUnaryExpressionPTNode {
 public:
-    NotExpressionNode(int lineno, int colno, AbstractPrimaryExpressionNodePtr expr, lexer::TokenPtr not_token)
-        : AbstractUnaryExpressionNode(lineno, colno)
+    NotExpressionPTNode(int lineno, int colno, AbstractPrimaryExpressionPTNodePtr expr, lexer::TokenPtr not_token)
+        : AbstractUnaryExpressionPTNode(lineno, colno)
         , _expr(std::move(expr))
         , _not_token(std::move(not_token))
     {
@@ -467,19 +467,19 @@ public:
 
     void accept(ParseTreeNodeVisitor *visitor) override;
 
-    AbstractPrimaryExpressionNodePtr get_expr() const { return _expr; }
+    AbstractPrimaryExpressionPTNodePtr get_expr() const { return _expr; }
 
     lexer::TokenPtr get_not() const { return _not_token; }
 
 private:
-    AbstractPrimaryExpressionNodePtr _expr;
+    AbstractPrimaryExpressionPTNodePtr _expr;
     lexer::TokenPtr _not_token;
 };
 
-class PositiveExpressionNode : public AbstractUnaryExpressionNode {
+class PositiveExpressionPTNode : public AbstractUnaryExpressionPTNode {
 public:
-    PositiveExpressionNode(int lineno, int colno, AbstractPrimaryExpressionNodePtr expr, lexer::TokenPtr plus_token)
-        : AbstractUnaryExpressionNode(lineno, colno)
+    PositiveExpressionPTNode(int lineno, int colno, AbstractPrimaryExpressionPTNodePtr expr, lexer::TokenPtr plus_token)
+        : AbstractUnaryExpressionPTNode(lineno, colno)
         , _expr(std::move(expr))
         , _plus_token(std::move(plus_token))
     {
@@ -489,19 +489,19 @@ public:
 
     void accept(ParseTreeNodeVisitor *visitor) override;
 
-    AbstractPrimaryExpressionNodePtr get_expr() const { return _expr; }
+    AbstractPrimaryExpressionPTNodePtr get_expr() const { return _expr; }
 
     lexer::TokenPtr get_plus_token() { return _plus_token; }
 
 private:
-    AbstractPrimaryExpressionNodePtr _expr;
+    AbstractPrimaryExpressionPTNodePtr _expr;
     lexer::TokenPtr _plus_token;
 };
 
-class NegativeExpressionNode : public AbstractUnaryExpressionNode {
+class NegativeExpressionPTNode : public AbstractUnaryExpressionPTNode {
 public:
-    NegativeExpressionNode(int lineno, int colno, AbstractPrimaryExpressionNodePtr expr, lexer::TokenPtr minus_token)
-        : AbstractUnaryExpressionNode(lineno, colno)
+    NegativeExpressionPTNode(int lineno, int colno, AbstractPrimaryExpressionPTNodePtr expr, lexer::TokenPtr minus_token)
+        : AbstractUnaryExpressionPTNode(lineno, colno)
         , _expr(std::move(expr))
         , _minus_token(std::move(minus_token))
     {
@@ -511,19 +511,19 @@ public:
 
     void accept(ParseTreeNodeVisitor *visitor) override;
 
-    AbstractPrimaryExpressionNodePtr get_expr() const { return _expr; }
+    AbstractPrimaryExpressionPTNodePtr get_expr() const { return _expr; }
 
     lexer::TokenPtr get_minus_token() const { return _minus_token; }
 
 private:
-    AbstractPrimaryExpressionNodePtr _expr;
+    AbstractPrimaryExpressionPTNodePtr _expr;
     lexer::TokenPtr _minus_token;
 };
 
-class IncrementExpressionNode : public AbstractUnaryExpressionNode {
+class IncrementExpressionPTNode : public AbstractUnaryExpressionPTNode {
 public:
-    IncrementExpressionNode(int lineno, int colno, IdentifierNodePtr var_name, lexer::TokenPtr increment_token)
-        : AbstractUnaryExpressionNode(lineno, colno)
+    IncrementExpressionPTNode(int lineno, int colno, IdentifierPTNodePtr var_name, lexer::TokenPtr increment_token)
+        : AbstractUnaryExpressionPTNode(lineno, colno)
         , _var_name(std::move(var_name))
         , _increment_token(std::move(increment_token))
     {
@@ -533,19 +533,19 @@ public:
 
     void accept(ParseTreeNodeVisitor *visitor) override;
 
-    IdentifierNodePtr get_var_name() const { return _var_name; }
+    IdentifierPTNodePtr get_var_name() const { return _var_name; }
 
     lexer::TokenPtr get_increment_token() const { return _increment_token; }
 
 private:
-    IdentifierNodePtr _var_name;
+    IdentifierPTNodePtr _var_name;
     lexer::TokenPtr _increment_token;
 };
 
-class DecrementExpressionNode : public AbstractUnaryExpressionNode {
+class DecrementExpressionPTNode : public AbstractUnaryExpressionPTNode {
 public:
-    DecrementExpressionNode(int lineno, int colno, IdentifierNodePtr var_name, lexer::TokenPtr decrement_token)
-        : AbstractUnaryExpressionNode(lineno, colno)
+    DecrementExpressionPTNode(int lineno, int colno, IdentifierPTNodePtr var_name, lexer::TokenPtr decrement_token)
+        : AbstractUnaryExpressionPTNode(lineno, colno)
         , _var_name(std::move(var_name))
         , _decrement_token(std::move(decrement_token))
     {
@@ -555,19 +555,19 @@ public:
 
     void accept(ParseTreeNodeVisitor *visitor) override;
 
-    IdentifierNodePtr get_var_name() const { return _var_name; }
+    IdentifierPTNodePtr get_var_name() const { return _var_name; }
 
     lexer::TokenPtr get_decrement_token() const { return _decrement_token; }
 
 private:
-    IdentifierNodePtr _var_name;
+    IdentifierPTNodePtr _var_name;
     lexer::TokenPtr _decrement_token;
 };
 
-class FloorAccessNode : public AbstractPrimaryExpressionNode {
+class FloorAccessPTNode : public AbstractPrimaryExpressionPTNode {
 public:
-    FloorAccessNode(int lineno, int colno, AbstractExpressionNodePtr index_expr, lexer::TokenPtr floor, lexer::TokenPtr open_bracket, lexer::TokenPtr close_bracket)
-        : AbstractPrimaryExpressionNode(lineno, colno)
+    FloorAccessPTNode(int lineno, int colno, AbstractExpressionPTNodePtr index_expr, lexer::TokenPtr floor, lexer::TokenPtr open_bracket, lexer::TokenPtr close_bracket)
+        : AbstractPrimaryExpressionPTNode(lineno, colno)
         , _index_expr(std::move(index_expr))
         , _floor(std::move(floor))
         , _open_bracket(std::move(open_bracket))
@@ -579,7 +579,7 @@ public:
 
     void accept(ParseTreeNodeVisitor *visitor) override;
 
-    AbstractExpressionNodePtr get_index_expr() const { return _index_expr; }
+    AbstractExpressionPTNodePtr get_index_expr() const { return _index_expr; }
 
     lexer::TokenPtr get_floor() const { return _floor; }
 
@@ -588,16 +588,16 @@ public:
     lexer::TokenPtr get_close_bracket() const { return _close_bracket; }
 
 private:
-    AbstractExpressionNodePtr _index_expr;
+    AbstractExpressionPTNodePtr _index_expr;
     lexer::TokenPtr _floor;
     lexer::TokenPtr _open_bracket;
     lexer::TokenPtr _close_bracket;
 };
 
-class ParenthesizedExpressionNode : public AbstractPrimaryExpressionNode {
+class ParenthesizedExpressionPTNode : public AbstractPrimaryExpressionPTNode {
 public:
-    ParenthesizedExpressionNode(int lineno, int colno, AbstractExpressionNodePtr expr, lexer::TokenPtr open_paren, lexer::TokenPtr close_paren)
-        : AbstractPrimaryExpressionNode(lineno, colno)
+    ParenthesizedExpressionPTNode(int lineno, int colno, AbstractExpressionPTNodePtr expr, lexer::TokenPtr open_paren, lexer::TokenPtr close_paren)
+        : AbstractPrimaryExpressionPTNode(lineno, colno)
         , _expr(std::move(expr))
         , _open_paren(std::move(open_paren))
         , _close_paren(std::move(close_paren))
@@ -608,22 +608,22 @@ public:
 
     void accept(ParseTreeNodeVisitor *visitor) override;
 
-    AbstractExpressionNodePtr get_expr() const { return _expr; }
+    AbstractExpressionPTNodePtr get_expr() const { return _expr; }
 
     lexer::TokenPtr get_open_paren() const { return _open_paren; }
 
     lexer::TokenPtr get_close_paren() const { return _close_paren; }
 
 private:
-    AbstractExpressionNodePtr _expr;
+    AbstractExpressionPTNodePtr _expr;
     lexer::TokenPtr _open_paren;
     lexer::TokenPtr _close_paren;
 };
 
-class InvocationExpressionNode : public AbstractPrimaryExpressionNode {
+class InvocationExpressionPTNode : public AbstractPrimaryExpressionPTNode {
 public:
-    InvocationExpressionNode(int lineno, int colno, IdentifierNodePtr func_name, AbstractExpressionNodePtr arg, lexer::TokenPtr open_paren, lexer::TokenPtr close_paren)
-        : AbstractPrimaryExpressionNode(lineno, colno)
+    InvocationExpressionPTNode(int lineno, int colno, IdentifierPTNodePtr func_name, AbstractExpressionPTNodePtr arg, lexer::TokenPtr open_paren, lexer::TokenPtr close_paren)
+        : AbstractPrimaryExpressionPTNode(lineno, colno)
         , _func_name(std::move(func_name))
         , _arg(std::move(arg))
         , _open_paren(std::move(open_paren))
@@ -635,59 +635,59 @@ public:
 
     void accept(ParseTreeNodeVisitor *visitor) override;
 
-    IdentifierNodePtr get_func_name() const { return _func_name; }
+    IdentifierPTNodePtr get_func_name() const { return _func_name; }
 
-    AbstractExpressionNodePtr get_arg() const { return _arg; }
+    AbstractExpressionPTNodePtr get_arg() const { return _arg; }
 
     lexer::TokenPtr get_open_paren() const { return _open_paren; }
 
     lexer::TokenPtr get_close_paren() const { return _close_paren; }
 
 private:
-    IdentifierNodePtr _func_name;
-    AbstractExpressionNodePtr _arg;
+    IdentifierPTNodePtr _func_name;
+    AbstractExpressionPTNodePtr _arg;
     lexer::TokenPtr _open_paren;
     lexer::TokenPtr _close_paren;
 };
 
 // Statement Nodes
-class AbstractStatementNode : public ParseTreeNode {
+class AbstractStatementPTNode : public ParseTreeNode {
 public:
-    AbstractStatementNode(int lineno, int colno)
+    AbstractStatementPTNode(int lineno, int colno)
         : ParseTreeNode(lineno, colno)
     {
     }
 };
 
-class AbstractEmbeddedStatementNode : public AbstractStatementNode {
+class AbstractEmbeddedStatementPTNode : public AbstractStatementPTNode {
 public:
-    AbstractEmbeddedStatementNode(int lineno, int colno)
-        : AbstractStatementNode(lineno, colno)
+    AbstractEmbeddedStatementPTNode(int lineno, int colno)
+        : AbstractStatementPTNode(lineno, colno)
     {
     }
 };
 
-class AbstractSelectionStatementNode : public AbstractEmbeddedStatementNode {
+class AbstractSelectionStatementPTNode : public AbstractEmbeddedStatementPTNode {
 public:
-    AbstractSelectionStatementNode(int lineno, int colno)
-        : AbstractEmbeddedStatementNode(lineno, colno)
+    AbstractSelectionStatementPTNode(int lineno, int colno)
+        : AbstractEmbeddedStatementPTNode(lineno, colno)
     {
     }
 };
 
-class AbstractIterationStatementNode : public AbstractEmbeddedStatementNode {
+class AbstractIterationStatementPTNode : public AbstractEmbeddedStatementPTNode {
 public:
-    AbstractIterationStatementNode(int lineno, int colno)
-        : AbstractEmbeddedStatementNode(lineno, colno)
+    AbstractIterationStatementPTNode(int lineno, int colno)
+        : AbstractEmbeddedStatementPTNode(lineno, colno)
     {
     }
 };
 
-class IfStatementNode : public AbstractSelectionStatementNode {
+class IfStatementPTNode : public AbstractSelectionStatementPTNode {
 public:
-    IfStatementNode(int lineno, int colno, AbstractExpressionNodePtr condition, AbstractEmbeddedStatementNodePtr then_stmt, AbstractEmbeddedStatementNodePtr else_stmt,
+    IfStatementPTNode(int lineno, int colno, AbstractExpressionPTNodePtr condition, AbstractEmbeddedStatementPTNodePtr then_stmt, AbstractEmbeddedStatementPTNodePtr else_stmt,
         lexer::TokenPtr if_token, lexer::TokenPtr cond_open_paren, lexer::TokenPtr cond_close_paren, lexer::TokenPtr else_token)
-        : AbstractSelectionStatementNode(lineno, colno)
+        : AbstractSelectionStatementPTNode(lineno, colno)
         , _condition(std::move(condition))
         , _then_stmt(std::move(then_stmt))
         , _else_stmt(std::move(else_stmt))
@@ -702,11 +702,11 @@ public:
 
     void accept(ParseTreeNodeVisitor *visitor) override;
 
-    AbstractExpressionNodePtr get_condition() const { return _condition; }
+    AbstractExpressionPTNodePtr get_condition() const { return _condition; }
 
-    AbstractEmbeddedStatementNodePtr get_then_stmt() const { return _then_stmt; }
+    AbstractEmbeddedStatementPTNodePtr get_then_stmt() const { return _then_stmt; }
 
-    AbstractEmbeddedStatementNodePtr get_else_stmt() const { return _else_stmt; }
+    AbstractEmbeddedStatementPTNodePtr get_else_stmt() const { return _else_stmt; }
 
     lexer::TokenPtr get_if_token() const { return _if_token; }
 
@@ -717,9 +717,9 @@ public:
     lexer::TokenPtr get_else_token() const { return _else_token; }
 
 private:
-    AbstractExpressionNodePtr _condition;
-    AbstractEmbeddedStatementNodePtr _then_stmt;
-    AbstractEmbeddedStatementNodePtr _else_stmt;
+    AbstractExpressionPTNodePtr _condition;
+    AbstractEmbeddedStatementPTNodePtr _then_stmt;
+    AbstractEmbeddedStatementPTNodePtr _else_stmt;
 
     lexer::TokenPtr _if_token;
     lexer::TokenPtr _cond_open_paren;
@@ -727,11 +727,11 @@ private:
     lexer::TokenPtr _else_token;
 };
 
-class WhileStatementNode : public AbstractIterationStatementNode {
+class WhileStatementPTNode : public AbstractIterationStatementPTNode {
 public:
-    WhileStatementNode(int lineno, int colno, AbstractExpressionNodePtr condition, AbstractEmbeddedStatementNodePtr body,
+    WhileStatementPTNode(int lineno, int colno, AbstractExpressionPTNodePtr condition, AbstractEmbeddedStatementPTNodePtr body,
         lexer::TokenPtr while_token, lexer::TokenPtr while_open_paren, lexer::TokenPtr while_close_paren)
-        : AbstractIterationStatementNode(lineno, colno)
+        : AbstractIterationStatementPTNode(lineno, colno)
         , _condition(std::move(condition))
         , _body(std::move(body))
         , _while_token(std::move(while_token))
@@ -744,9 +744,9 @@ public:
 
     void accept(ParseTreeNodeVisitor *visitor) override;
 
-    AbstractExpressionNodePtr get_condition() const { return _condition; }
+    AbstractExpressionPTNodePtr get_condition() const { return _condition; }
 
-    AbstractEmbeddedStatementNodePtr get_body() const { return _body; }
+    AbstractEmbeddedStatementPTNodePtr get_body() const { return _body; }
 
     lexer::TokenPtr get_while_token() const { return _while_token; }
 
@@ -755,23 +755,23 @@ public:
     lexer::TokenPtr get_while_close_paren() const { return _while_close_paren; }
 
 private:
-    AbstractExpressionNodePtr _condition;
-    AbstractEmbeddedStatementNodePtr _body;
+    AbstractExpressionPTNodePtr _condition;
+    AbstractEmbeddedStatementPTNodePtr _body;
     lexer::TokenPtr _while_token;
     lexer::TokenPtr _while_open_paren;
     lexer::TokenPtr _while_close_paren;
 };
 
-class ForStatementNode : public AbstractIterationStatementNode {
+class ForStatementPTNode : public AbstractIterationStatementPTNode {
 public:
-    ForStatementNode(
+    ForStatementPTNode(
         int lineno, int colno,
-        VariableAssignmentNodePtr init_stmt,
-        AbstractExpressionNodePtr condition,
-        AbstractExpressionNodePtr update_stmt,
-        AbstractEmbeddedStatementNodePtr body,
+        VariableAssignmentPTNodePtr init_stmt,
+        AbstractExpressionPTNodePtr condition,
+        AbstractExpressionPTNodePtr update_stmt,
+        AbstractEmbeddedStatementPTNodePtr body,
         lexer::TokenPtr for_token, lexer::TokenPtr open_paren, lexer::TokenPtr comma1, lexer::TokenPtr comma2, lexer::TokenPtr close_paren)
-        : AbstractIterationStatementNode(lineno, colno)
+        : AbstractIterationStatementPTNode(lineno, colno)
         , _init_stmt_assignment(std::move(init_stmt))
         , _condition(std::move(condition))
         , _update_stmt(std::move(update_stmt))
@@ -785,14 +785,14 @@ public:
     {
     }
 
-    ForStatementNode(
+    ForStatementPTNode(
         int lineno, int colno,
-        VariableDeclarationNodePtr init_stmt,
-        AbstractExpressionNodePtr condition,
-        AbstractExpressionNodePtr update_stmt,
-        AbstractEmbeddedStatementNodePtr body,
+        VariableDeclarationPTNodePtr init_stmt,
+        AbstractExpressionPTNodePtr condition,
+        AbstractExpressionPTNodePtr update_stmt,
+        AbstractEmbeddedStatementPTNodePtr body,
         lexer::TokenPtr for_token, lexer::TokenPtr open_paren, lexer::TokenPtr comma1, lexer::TokenPtr comma2, lexer::TokenPtr close_paren)
-        : AbstractIterationStatementNode(lineno, colno)
+        : AbstractIterationStatementPTNode(lineno, colno)
         , _init_stmt_declaration(std::move(init_stmt))
         , _condition(std::move(condition))
         , _update_stmt(std::move(update_stmt))
@@ -809,7 +809,7 @@ public:
 
     void accept(ParseTreeNodeVisitor *visitor) override;
 
-    ParseTreeNodePtr get_init_stmt() const
+    ParseTreePTNodePtr get_init_stmt() const
     {
         if (_init_stmt_assignment) {
             return _init_stmt_assignment;
@@ -818,11 +818,11 @@ public:
         }
     }
 
-    AbstractExpressionNodePtr get_condition() const { return _condition; }
+    AbstractExpressionPTNodePtr get_condition() const { return _condition; }
 
-    AbstractExpressionNodePtr get_update_stmt() const { return _update_stmt; }
+    AbstractExpressionPTNodePtr get_update_stmt() const { return _update_stmt; }
 
-    AbstractEmbeddedStatementNodePtr get_body() const { return _body; }
+    AbstractEmbeddedStatementPTNodePtr get_body() const { return _body; }
 
     lexer::TokenPtr get_for_token() const { return _for_token; }
 
@@ -835,11 +835,11 @@ public:
     lexer::TokenPtr get_close_paren() const { return _close_paren; }
 
 private:
-    VariableAssignmentNodePtr _init_stmt_assignment;
-    VariableDeclarationNodePtr _init_stmt_declaration;
-    AbstractExpressionNodePtr _condition;
-    AbstractExpressionNodePtr _update_stmt;
-    AbstractEmbeddedStatementNodePtr _body;
+    VariableAssignmentPTNodePtr _init_stmt_assignment;
+    VariableDeclarationPTNodePtr _init_stmt_declaration;
+    AbstractExpressionPTNodePtr _condition;
+    AbstractExpressionPTNodePtr _update_stmt;
+    AbstractEmbeddedStatementPTNodePtr _body;
     lexer::TokenPtr _for_token;
     lexer::TokenPtr _open_paren;
     lexer::TokenPtr _comma1;
@@ -847,10 +847,10 @@ private:
     lexer::TokenPtr _close_paren;
 };
 
-class ReturnStatementNode : public AbstractEmbeddedStatementNode {
+class ReturnStatementPTNode : public AbstractEmbeddedStatementPTNode {
 public:
-    ReturnStatementNode(int lineno, int colno, AbstractExpressionNodePtr expr, lexer::TokenPtr return_token, lexer::TokenPtr semicolon)
-        : AbstractEmbeddedStatementNode(lineno, colno)
+    ReturnStatementPTNode(int lineno, int colno, AbstractExpressionPTNodePtr expr, lexer::TokenPtr return_token, lexer::TokenPtr semicolon)
+        : AbstractEmbeddedStatementPTNode(lineno, colno)
         , _expr(std::move(expr))
         , _return_token(std::move(return_token))
         , _semicolon(std::move(semicolon))
@@ -861,22 +861,22 @@ public:
 
     void accept(ParseTreeNodeVisitor *visitor) override;
 
-    AbstractExpressionNodePtr get_expr() const { return _expr; }
+    AbstractExpressionPTNodePtr get_expr() const { return _expr; }
 
     lexer::TokenPtr get_return_token() const { return _return_token; }
 
     lexer::TokenPtr get_semicolon() const { return _semicolon; }
 
 private:
-    AbstractExpressionNodePtr _expr;
+    AbstractExpressionPTNodePtr _expr;
     lexer::TokenPtr _return_token;
     lexer::TokenPtr _semicolon;
 };
 
-class InvocationStatementNode : public AbstractEmbeddedStatementNode {
+class InvocationStatementPTNode : public AbstractEmbeddedStatementPTNode {
 public:
-    InvocationStatementNode(int lineno, int colno, InvocationExpressionNodePtr expr, lexer::TokenPtr semicolon)
-        : AbstractEmbeddedStatementNode(lineno, colno)
+    InvocationStatementPTNode(int lineno, int colno, InvocationExpressionPTNodePtr expr, lexer::TokenPtr semicolon)
+        : AbstractEmbeddedStatementPTNode(lineno, colno)
         , _expr(std::move(expr))
         , _semicolon(std::move(semicolon))
     {
@@ -886,19 +886,19 @@ public:
 
     void accept(ParseTreeNodeVisitor *visitor) override;
 
-    InvocationExpressionNodePtr get_expr() const { return _expr; }
+    InvocationExpressionPTNodePtr get_expr() const { return _expr; }
 
     lexer::TokenPtr get_semicolon() const { return _semicolon; }
 
 private:
-    InvocationExpressionNodePtr _expr;
+    InvocationExpressionPTNodePtr _expr;
     lexer::TokenPtr _semicolon;
 };
 
-class FloorAssignmentStatementNode : public AbstractEmbeddedStatementNode {
+class FloorAssignmentStatementPTNode : public AbstractEmbeddedStatementPTNode {
 public:
-    FloorAssignmentStatementNode(int lineno, int colno, FloorAssignmentNodePtr assignment, lexer::TokenPtr semicolon)
-        : AbstractEmbeddedStatementNode(lineno, colno)
+    FloorAssignmentStatementPTNode(int lineno, int colno, FloorAssignmentPTNodePtr assignment, lexer::TokenPtr semicolon)
+        : AbstractEmbeddedStatementPTNode(lineno, colno)
         , _assignment(std::move(assignment))
         , _semicolon(std::move(semicolon))
     {
@@ -908,19 +908,19 @@ public:
 
     void accept(ParseTreeNodeVisitor *visitor) override;
 
-    FloorAssignmentNodePtr get_floor_assignment() const { return _assignment; }
+    FloorAssignmentPTNodePtr get_floor_assignment() const { return _assignment; }
 
     lexer::TokenPtr get_semicolon() const { return _semicolon; }
 
 private:
-    FloorAssignmentNodePtr _assignment;
+    FloorAssignmentPTNodePtr _assignment;
     lexer::TokenPtr _semicolon;
 };
 
-class VariableAssignmentStatementNode : public AbstractEmbeddedStatementNode {
+class VariableAssignmentStatementPTNode : public AbstractEmbeddedStatementPTNode {
 public:
-    VariableAssignmentStatementNode(int lineno, int colno, VariableAssignmentNodePtr assignment, lexer::TokenPtr semicolon)
-        : AbstractEmbeddedStatementNode(lineno, colno)
+    VariableAssignmentStatementPTNode(int lineno, int colno, VariableAssignmentPTNodePtr assignment, lexer::TokenPtr semicolon)
+        : AbstractEmbeddedStatementPTNode(lineno, colno)
         , _assignment(std::move(assignment))
         , _semicolon(std::move(semicolon))
     {
@@ -930,19 +930,19 @@ public:
 
     void accept(ParseTreeNodeVisitor *visitor) override;
 
-    VariableAssignmentNodePtr get_variable_assignment() const { return _assignment; }
+    VariableAssignmentPTNodePtr get_variable_assignment() const { return _assignment; }
 
     lexer::TokenPtr get_semicolon() const { return _semicolon; }
 
 private:
-    VariableAssignmentNodePtr _assignment;
+    VariableAssignmentPTNodePtr _assignment;
     lexer::TokenPtr _semicolon;
 };
 
-class VariableDeclarationStatementNode : public AbstractStatementNode {
+class VariableDeclarationStatementPTNode : public AbstractStatementPTNode {
 public:
-    VariableDeclarationStatementNode(int lineno, int colno, VariableDeclarationNodePtr decl, lexer::TokenPtr semicolon)
-        : AbstractStatementNode(lineno, colno)
+    VariableDeclarationStatementPTNode(int lineno, int colno, VariableDeclarationPTNodePtr decl, lexer::TokenPtr semicolon)
+        : AbstractStatementPTNode(lineno, colno)
         , decl(std::move(decl))
         , _semicolon(std::move(semicolon))
     {
@@ -952,22 +952,22 @@ public:
 
     void accept(ParseTreeNodeVisitor *visitor) override;
 
-    VariableDeclarationNodePtr get_variable_decl() const { return decl; }
+    VariableDeclarationPTNodePtr get_variable_decl() const { return decl; }
 
     lexer::TokenPtr get_semicolon() const { return _semicolon; }
 
 private:
-    VariableDeclarationNodePtr decl;
+    VariableDeclarationPTNodePtr decl;
     lexer::TokenPtr _semicolon;
 };
 
-class FloorBoxInitStatementNode : public AbstractStatementNode {
+class FloorBoxInitStatementPTNode : public AbstractStatementPTNode {
 public:
-    FloorBoxInitStatementNode(int lineno, int colno, IntegerLiteralNodePtr index, IntegerLiteralNodePtr value,
+    FloorBoxInitStatementPTNode(int lineno, int colno, IntegerLiteralPTNodePtr index, IntegerLiteralPTNodePtr value,
         lexer::TokenPtr init_token, lexer::TokenPtr floor_token,
         lexer::TokenPtr open_bracket, lexer::TokenPtr floor_index_token, lexer::TokenPtr close_bracket,
         lexer::TokenPtr equal_token, lexer::TokenPtr value_token, lexer::TokenPtr semicolon)
-        : AbstractStatementNode(lineno, colno)
+        : AbstractStatementPTNode(lineno, colno)
         , _index(std::move(index))
         , _value(std::move(value))
         , _init_token(std::move(init_token))
@@ -985,9 +985,9 @@ public:
 
     void accept(ParseTreeNodeVisitor *visitor) override;
 
-    IntegerLiteralNodePtr get_index() const { return _index; }
+    IntegerLiteralPTNodePtr get_index() const { return _index; }
 
-    IntegerLiteralNodePtr get_value() const { return _value; }
+    IntegerLiteralPTNodePtr get_value() const { return _value; }
 
     lexer::TokenPtr get_init_token() const { return _init_token; }
 
@@ -1006,8 +1006,8 @@ public:
     lexer::TokenPtr get_semicolon() const { return _semicolon; }
 
 private:
-    IntegerLiteralNodePtr _index;
-    IntegerLiteralNodePtr _value;
+    IntegerLiteralPTNodePtr _index;
+    IntegerLiteralPTNodePtr _value;
     lexer::TokenPtr _init_token;
     lexer::TokenPtr _floor_token;
     lexer::TokenPtr _open_bracket;
@@ -1018,11 +1018,11 @@ private:
     lexer::TokenPtr _semicolon;
 };
 
-class FloorMaxInitStatementNode : public AbstractStatementNode {
+class FloorMaxInitStatementPTNode : public AbstractStatementPTNode {
 public:
-    FloorMaxInitStatementNode(int lineno, int colno, IntegerLiteralNodePtr value,
+    FloorMaxInitStatementPTNode(int lineno, int colno, IntegerLiteralPTNodePtr value,
         lexer::TokenPtr init_token, lexer::TokenPtr floor_max_token, lexer::TokenPtr equals, lexer::TokenPtr value_token, lexer::TokenPtr semicolon)
-        : AbstractStatementNode(lineno, colno)
+        : AbstractStatementPTNode(lineno, colno)
         , _value(std::move(value))
         , _init_token(std::move(init_token))
         , _floor_max_token(std::move(floor_max_token))
@@ -1036,7 +1036,7 @@ public:
 
     void accept(ParseTreeNodeVisitor *visitor) override;
 
-    IntegerLiteralNodePtr get_value() const { return _value; }
+    IntegerLiteralPTNodePtr get_value() const { return _value; }
 
     lexer::TokenPtr get_init_token() const { return _init_token; }
 
@@ -1049,7 +1049,7 @@ public:
     lexer::TokenPtr get_semicolon() const { return _semicolon; }
 
 private:
-    IntegerLiteralNodePtr _value;
+    IntegerLiteralPTNodePtr _value;
     lexer::TokenPtr _init_token;
     lexer::TokenPtr _floor_max_token;
     lexer::TokenPtr _equals;
@@ -1057,10 +1057,10 @@ private:
     lexer::TokenPtr _semicolon;
 };
 
-class EmptyStatementNode : public AbstractEmbeddedStatementNode {
+class EmptyStatementPTNode : public AbstractEmbeddedStatementPTNode {
 public:
-    EmptyStatementNode(int lineno, int colno, lexer::TokenPtr semicolon)
-        : AbstractEmbeddedStatementNode(lineno, colno)
+    EmptyStatementPTNode(int lineno, int colno, lexer::TokenPtr semicolon)
+        : AbstractEmbeddedStatementPTNode(lineno, colno)
         , _semicolon(std::move(semicolon))
     {
     }
@@ -1075,10 +1075,10 @@ private:
     lexer::TokenPtr _semicolon;
 };
 
-class StatementBlockNode : public AbstractEmbeddedStatementNode {
+class StatementBlockPTNode : public AbstractEmbeddedStatementPTNode {
 public:
-    StatementBlockNode(int lineno, int colno, const std::vector<AbstractStatementNodePtr> &statements, lexer::TokenPtr open_brace, lexer::TokenPtr close_brace)
-        : AbstractEmbeddedStatementNode(lineno, colno)
+    StatementBlockPTNode(int lineno, int colno, const std::vector<AbstractStatementPTNodePtr> &statements, lexer::TokenPtr open_brace, lexer::TokenPtr close_brace)
+        : AbstractEmbeddedStatementPTNode(lineno, colno)
         , _statements(statements)
         , _open_brace(std::move(open_brace))
         , _close_brace(std::move(close_brace))
@@ -1089,22 +1089,22 @@ public:
 
     void accept(ParseTreeNodeVisitor *visitor) override;
 
-    const std::vector<AbstractStatementNodePtr> &get_statements() const { return _statements; }
+    const std::vector<AbstractStatementPTNodePtr> &get_statements() const { return _statements; }
 
     lexer::TokenPtr get_open_brace() const { return _open_brace; }
 
     lexer::TokenPtr get_close_brace() const { return _close_brace; }
 
 private:
-    std::vector<AbstractStatementNodePtr> _statements;
+    std::vector<AbstractStatementPTNodePtr> _statements;
     lexer::TokenPtr _open_brace;
     lexer::TokenPtr _close_brace;
 };
 
 // Function and Subprocedure Nodes
-class AbstractSubroutineNode : public ParseTreeNode {
+class AbstractSubroutinePTNode : public ParseTreeNode {
 public:
-    AbstractSubroutineNode(int lineno, int colno, IdentifierNodePtr function_name, IdentifierNodePtr formal_parameter, StatementBlockNodePtr body)
+    AbstractSubroutinePTNode(int lineno, int colno, IdentifierPTNodePtr function_name, IdentifierPTNodePtr formal_parameter, StatementBlockPTNodePtr body)
         : ParseTreeNode(lineno, colno)
         , _function_name(std::move(function_name))
         , _formal_parameter(std::move(formal_parameter))
@@ -1112,22 +1112,22 @@ public:
     {
     }
 
-    IdentifierNodePtr get_function_name() const { return _function_name; }
+    IdentifierPTNodePtr get_function_name() const { return _function_name; }
 
-    IdentifierNodePtr get_formal_parameter() const { return _formal_parameter; }
+    IdentifierPTNodePtr get_formal_parameter() const { return _formal_parameter; }
 
-    StatementBlockNodePtr get_body() const { return _body; }
+    StatementBlockPTNodePtr get_body() const { return _body; }
 
 protected:
-    IdentifierNodePtr _function_name;
-    IdentifierNodePtr _formal_parameter;
-    StatementBlockNodePtr _body;
+    IdentifierPTNodePtr _function_name;
+    IdentifierPTNodePtr _formal_parameter;
+    StatementBlockPTNodePtr _body;
 };
 
-class FunctionDefinitionNode : public AbstractSubroutineNode {
+class FunctionDefinitionPTNode : public AbstractSubroutinePTNode {
 public:
-    FunctionDefinitionNode(int lineno, int colno, IdentifierNodePtr function_name, IdentifierNodePtr formal_parameter, StatementBlockNodePtr body, lexer::TokenPtr function_token, lexer::TokenPtr open_brace, lexer::TokenPtr close_brace)
-        : AbstractSubroutineNode(lineno, colno, std::move(function_name), std::move(formal_parameter), std::move(body))
+    FunctionDefinitionPTNode(int lineno, int colno, IdentifierPTNodePtr function_name, IdentifierPTNodePtr formal_parameter, StatementBlockPTNodePtr body, lexer::TokenPtr function_token, lexer::TokenPtr open_brace, lexer::TokenPtr close_brace)
+        : AbstractSubroutinePTNode(lineno, colno, std::move(function_name), std::move(formal_parameter), std::move(body))
         , _function_token(std::move(function_token))
         , _open_brace(std::move(open_brace))
         , _close_brace(std::move(close_brace))
@@ -1150,11 +1150,11 @@ private:
     lexer::TokenPtr _close_brace;
 };
 
-class SubprocDefinitionNode : public AbstractSubroutineNode {
+class SubprocDefinitionPTNode : public AbstractSubroutinePTNode {
 public:
-    SubprocDefinitionNode(int lineno, int colno, IdentifierNodePtr function_name, IdentifierNodePtr formal_parameter, StatementBlockNodePtr body,
+    SubprocDefinitionPTNode(int lineno, int colno, IdentifierPTNodePtr function_name, IdentifierPTNodePtr formal_parameter, StatementBlockPTNodePtr body,
         lexer::TokenPtr sub_token, lexer::TokenPtr open_brace, lexer::TokenPtr close_brace)
-        : AbstractSubroutineNode(lineno, colno, std::move(function_name), std::move(formal_parameter), std::move(body))
+        : AbstractSubroutinePTNode(lineno, colno, std::move(function_name), std::move(formal_parameter), std::move(body))
         , _sub_token(std::move(sub_token))
         , _open_brace(std::move(open_brace))
         , _close_brace(std::move(close_brace))
@@ -1177,9 +1177,9 @@ private:
     lexer::TokenPtr _close_brace;
 };
 
-class ImportDirectiveNode : public ParseTreeNode {
+class ImportDirectivePTNode : public ParseTreeNode {
 public:
-    ImportDirectiveNode(int lineno, int colno, IdentifierNodePtr module_name, lexer::TokenPtr import_token, lexer::TokenPtr semicolon)
+    ImportDirectivePTNode(int lineno, int colno, IdentifierPTNodePtr module_name, lexer::TokenPtr import_token, lexer::TokenPtr semicolon)
         : ParseTreeNode(lineno, colno)
         , _module_name(std::move(module_name))
         , _import_token(std::move(import_token))
@@ -1191,28 +1191,28 @@ public:
 
     void accept(ParseTreeNodeVisitor *visitor) override;
 
-    IdentifierNodePtr get_module_name() const { return _module_name; }
+    IdentifierPTNodePtr get_module_name() const { return _module_name; }
 
     lexer::TokenPtr get_import_token() const { return _import_token; }
 
     lexer::TokenPtr get_semicolon() const { return _semicolon; }
 
 private:
-    IdentifierNodePtr _module_name;
+    IdentifierPTNodePtr _module_name;
     lexer::TokenPtr _import_token;
     lexer::TokenPtr _semicolon;
 };
 
 // Compilation Unit Node
-class CompilationUnitNode : public ParseTreeNode {
+class CompilationUnitPTNode : public ParseTreeNode {
 public:
-    CompilationUnitNode(
+    CompilationUnitPTNode(
         int lineno, int colno,
-        std::vector<ImportDirectiveNodePtr> imports,
-        std::vector<FloorBoxInitStatementNodePtr> floor_inits,
-        FloorMaxInitStatementNodePtr floor_max,
-        std::vector<VariableDeclarationStatementNodePtr> top_level_decls,
-        std::vector<AbstractSubroutineNodePtr> subroutines)
+        std::vector<ImportDirectivePTNodePtr> imports,
+        std::vector<FloorBoxInitStatementPTNodePtr> floor_inits,
+        FloorMaxInitStatementPTNodePtr floor_max,
+        std::vector<VariableDeclarationStatementPTNodePtr> top_level_decls,
+        std::vector<AbstractSubroutinePTNodePtr> subroutines)
         : ParseTreeNode(lineno, colno)
         , _imports(std::move(imports))
         , _floor_inits(std::move(floor_inits))
@@ -1226,26 +1226,26 @@ public:
 
     void accept(ParseTreeNodeVisitor *visitor) override;
 
-    const std::vector<ImportDirectiveNodePtr> &get_imports() const { return _imports; }
+    const std::vector<ImportDirectivePTNodePtr> &get_imports() const { return _imports; }
 
-    const std::vector<FloorBoxInitStatementNodePtr> &get_floor_inits() const { return _floor_inits; }
+    const std::vector<FloorBoxInitStatementPTNodePtr> &get_floor_inits() const { return _floor_inits; }
 
-    const FloorMaxInitStatementNodePtr &get_floor_max() const { return _floor_max; }
+    const FloorMaxInitStatementPTNodePtr &get_floor_max() const { return _floor_max; }
 
-    const std::vector<VariableDeclarationStatementNodePtr> &get_top_level_decls() const { return _top_level_decls; }
+    const std::vector<VariableDeclarationStatementPTNodePtr> &get_top_level_decls() const { return _top_level_decls; }
 
-    const std::vector<AbstractSubroutineNodePtr> &get_subroutines() const { return _subroutines; }
+    const std::vector<AbstractSubroutinePTNodePtr> &get_subroutines() const { return _subroutines; }
 
 private:
-    std::vector<ImportDirectiveNodePtr> _imports;
-    std::vector<FloorBoxInitStatementNodePtr> _floor_inits;
-    FloorMaxInitStatementNodePtr _floor_max;
-    std::vector<VariableDeclarationStatementNodePtr> _top_level_decls;
-    std::vector<AbstractSubroutineNodePtr> _subroutines;
+    std::vector<ImportDirectivePTNodePtr> _imports;
+    std::vector<FloorBoxInitStatementPTNodePtr> _floor_inits;
+    FloorMaxInitStatementPTNodePtr _floor_max;
+    std::vector<VariableDeclarationStatementPTNodePtr> _top_level_decls;
+    std::vector<AbstractSubroutinePTNodePtr> _subroutines;
 };
 
 template <typename T>
-concept convertible_to_ParseTreeNodePtr = std::convertible_to<T, ParseTreeNodePtr>;
+concept convertible_to_ParseTreeNodePtr = std::convertible_to<T, ParseTreePTNodePtr>;
 
 CLOSE_PARSER_NAMESPACE
 

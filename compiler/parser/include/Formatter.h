@@ -58,40 +58,40 @@ protected:
 
 class ParseTreeNodeFormatterVisitor : public ParseTreeNodeVisitor {
 public:
-    virtual void format(CompilationUnitNodePtr node);
+    virtual void format(CompilationUnitPTNodePtr node);
 
-    virtual void visit(IdentifierNodePtr node) override;
-    virtual void visit(IntegerLiteralNodePtr node) override;
-    virtual void visit(BooleanLiteralNodePtr node) override;
-    virtual void visit(BinaryOperatorNodePtr node) override;
-    virtual void visit(VariableDeclarationNodePtr node) override;
-    virtual void visit(VariableAssignmentNodePtr node) override;
-    virtual void visit(FloorAssignmentNodePtr node) override;
-    virtual void visit(BinaryExpressionNodePtr node) override;
-    virtual void visit(NegativeExpressionNodePtr node) override;
-    virtual void visit(PositiveExpressionNodePtr node) override;
-    virtual void visit(NotExpressionNodePtr node) override;
-    virtual void visit(IncrementExpressionNodePtr node) override;
-    virtual void visit(DecrementExpressionNodePtr node) override;
-    virtual void visit(FloorAccessNodePtr node) override;
-    virtual void visit(ParenthesizedExpressionNodePtr node) override;
-    virtual void visit(InvocationExpressionNodePtr node) override;
-    virtual void visit(IfStatementNodePtr node) override;
-    virtual void visit(WhileStatementNodePtr node) override;
-    virtual void visit(ForStatementNodePtr node) override;
-    virtual void visit(ReturnStatementNodePtr node) override;
-    virtual void visit(FloorBoxInitStatementNodePtr node) override;
-    virtual void visit(FloorMaxInitStatementNodePtr node) override;
-    virtual void visit(EmptyStatementNodePtr node) override;
-    virtual void visit(StatementBlockNodePtr node) override;
-    virtual void visit(VariableDeclarationStatementNodePtr node) override;
-    virtual void visit(VariableAssignmentStatementNodePtr node) override;
-    virtual void visit(FloorAssignmentStatementNodePtr node) override;
-    virtual void visit(InvocationStatementNodePtr node) override;
-    virtual void visit(SubprocDefinitionNodePtr node) override;
-    virtual void visit(FunctionDefinitionNodePtr node) override;
-    virtual void visit(ImportDirectiveNodePtr node) override;
-    virtual void visit(CompilationUnitNodePtr node) override;
+    virtual void visit(IdentifierPTNodePtr node) override;
+    virtual void visit(IntegerLiteralPTNodePtr node) override;
+    virtual void visit(BooleanLiteralPTNodePtr node) override;
+    virtual void visit(BinaryOperatorPTNodePtr node) override;
+    virtual void visit(VariableDeclarationPTNodePtr node) override;
+    virtual void visit(VariableAssignmentPTNodePtr node) override;
+    virtual void visit(FloorAssignmentPTNodePtr node) override;
+    virtual void visit(BinaryExpressionPTNodePtr node) override;
+    virtual void visit(NegativeExpressionPTNodePtr node) override;
+    virtual void visit(PositiveExpressionPTNodePtr node) override;
+    virtual void visit(NotExpressionPTNodePtr node) override;
+    virtual void visit(IncrementExpressionPTNodePtr node) override;
+    virtual void visit(DecrementExpressionPTNodePtr node) override;
+    virtual void visit(FloorAccessPTNodePtr node) override;
+    virtual void visit(ParenthesizedExpressionPTNodePtr node) override;
+    virtual void visit(InvocationExpressionPTNodePtr node) override;
+    virtual void visit(IfStatementPTNodePtr node) override;
+    virtual void visit(WhileStatementPTNodePtr node) override;
+    virtual void visit(ForStatementPTNodePtr node) override;
+    virtual void visit(ReturnStatementPTNodePtr node) override;
+    virtual void visit(FloorBoxInitStatementPTNodePtr node) override;
+    virtual void visit(FloorMaxInitStatementPTNodePtr node) override;
+    virtual void visit(EmptyStatementPTNodePtr node) override;
+    virtual void visit(StatementBlockPTNodePtr node) override;
+    virtual void visit(VariableDeclarationStatementPTNodePtr node) override;
+    virtual void visit(VariableAssignmentStatementPTNodePtr node) override;
+    virtual void visit(FloorAssignmentStatementPTNodePtr node) override;
+    virtual void visit(InvocationStatementPTNodePtr node) override;
+    virtual void visit(SubprocDefinitionPTNodePtr node) override;
+    virtual void visit(FunctionDefinitionPTNodePtr node) override;
+    virtual void visit(ImportDirectivePTNodePtr node) override;
+    virtual void visit(CompilationUnitPTNodePtr node) override;
 
 protected:
     std::vector<FormatterLine> _lines;
@@ -113,11 +113,11 @@ protected:
      */
     virtual bool process_preceding_metadata(lexer::TokenPtr token);
 
-    virtual void traverse_import_directives(const std::vector<ImportDirectiveNodePtr> &imports);
-    virtual void traverse_floor_inits(const std::vector<FloorBoxInitStatementNodePtr> &floor_inits);
-    virtual void traverse_subroutines(const std::vector<AbstractSubroutineNodePtr> &subroutines);
-    virtual void traverse_top_level_decls(const std::vector<VariableDeclarationStatementNodePtr> &tlds);
-    virtual void traverse_statements(const std::vector<AbstractStatementNodePtr> &statements);
+    virtual void traverse_import_directives(const std::vector<ImportDirectivePTNodePtr> &imports);
+    virtual void traverse_floor_inits(const std::vector<FloorBoxInitStatementPTNodePtr> &floor_inits);
+    virtual void traverse_subroutines(const std::vector<AbstractSubroutinePTNodePtr> &subroutines);
+    virtual void traverse_top_level_decls(const std::vector<VariableDeclarationStatementPTNodePtr> &tlds);
+    virtual void traverse_statements(const std::vector<AbstractStatementPTNodePtr> &statements);
 };
 
 CLOSE_PARSER_NAMESPACE
