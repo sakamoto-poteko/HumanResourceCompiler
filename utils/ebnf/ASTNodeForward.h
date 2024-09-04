@@ -1,9 +1,9 @@
-#ifndef ParseTreeNODEFORWARD_H
-#define ParseTreeNODEFORWARD_H
+#ifndef ASTNODEFORWARD_H
+#define ASTNODEFORWARD_H
 
 #include <memory>
 
-class ParseTreeNode;
+class ASTNode;
 class SyntaxNode;
 class ProductionNode;
 class ExpressionNode;
@@ -16,7 +16,7 @@ class LiteralNode;
 class IdentifierNode;
 class EpsilonNode;
 
-using ParseTreeNodePtr = std::shared_ptr<ParseTreeNode>;
+using ASTNodePtr = std::shared_ptr<ASTNode>;
 using SyntaxNodePtr = std::shared_ptr<SyntaxNode>;
 using ProductionNodePtr = std::shared_ptr<ProductionNode>;
 using ExpressionNodePtr = std::shared_ptr<ExpressionNode>;
@@ -29,4 +29,4 @@ using IdentifierNodePtr = std::shared_ptr<IdentifierNode>;
 using LiteralNodePtr = std::shared_ptr<LiteralNode>;
 using EpsilonNodePtr = std::shared_ptr<EpsilonNode>;
 
-#endif // !ParseTreeNODEFORWARD_H
+#endif // !ASTNODEFORWARD_H

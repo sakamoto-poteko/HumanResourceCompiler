@@ -1,7 +1,7 @@
-#ifndef ParseTreeEXTENDEDINFO_H
-#define ParseTreeEXTENDEDINFO_H
+#ifndef ASTEXTENDEDINFO_H
+#define ASTEXTENDEDINFO_H
 
-struct ParseTreeExtendedInfo {
+struct ASTExtendedInfo {
 };
 
 #endif

@@ -1,13 +1,13 @@
-#ifndef ParseTreeNODEVISITOR_H
-#define ParseTreeNODEVISITOR_H
+#ifndef ASTNODEVISITOR_H
+#define ASTNODEVISITOR_H
 
-#include "ParseTreeNode.h"
-#include "ParseTreeNodeForward.h"
+#include "ASTNode.h"
+#include "ASTNodeForward.h"
 
-class ParseTreeNodeVisitor {
+class ASTNodeVisitor {
 public:
-    ParseTreeNodeVisitor();
-    virtual ~ParseTreeNodeVisitor();
+    ASTNodeVisitor();
+    virtual ~ASTNodeVisitor();
 
     virtual int accept(SyntaxNodePtr node) = 0;
     virtual int accept(ProductionNodePtr node) = 0;
@@ -22,9 +22,9 @@ public:
     virtual int accept(EpsilonNodePtr node) = 0;
 };
 
-class ParseTreePrintVisitor : public ParseTreeNodeVisitor {
+class ASTPrintVisitor : public ASTNodeVisitor {
 public:
-    virtual ~ParseTreePrintVisitor() = default;
+    virtual ~ASTPrintVisitor() = default;
 
     virtual int accept(SyntaxNodePtr node) override;
     virtual int accept(ProductionNodePtr node) override;

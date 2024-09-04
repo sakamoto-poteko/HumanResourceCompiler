@@ -1,9 +1,9 @@
 #include <iostream>
 
-#include "ParseTreeNode.h"
-#include "ParseTreeNodeVisitor.h"
+#include "ASTNode.h"
+#include "ASTNodeVisitor.h"
 
-int ParseTreePrintVisitor::accept(SyntaxNodePtr node)
+int ASTPrintVisitor::accept(SyntaxNodePtr node)
 {
     for (const auto &prod : node->productions) {
         prod->accept(this);
@@ -11,7 +11,7 @@ int ParseTreePrintVisitor::accept(SyntaxNodePtr node)
     return 0;
 }
 
-int ParseTreePrintVisitor::accept(ProductionNodePtr node)
+int ASTPrintVisitor::accept(ProductionNodePtr node)
 {
     std::cout << node->id << " ::= ";
     node->expression->accept(this);
@@ -19,7 +19,7 @@ int ParseTreePrintVisitor::accept(ProductionNodePtr node)
     return 0;
 }
 
-int ParseTreePrintVisitor::accept(ExpressionNodePtr node)
+int ASTPrintVisitor::accept(ExpressionNodePtr node)
 {
     bool first = true;
     for (const auto &term : node->terms) {
@@ -33,7 +33,7 @@ int ParseTreePrintVisitor::accept(ExpressionNodePtr node)
     return 0;
 }
 
-int ParseTreePrintVisitor::accept(TermNodePtr node)
+int ASTPrintVisitor::accept(TermNodePtr node)
 {
     for (const auto &factor : node->factors) {
         factor->accept(this);
@@ -42,7 +42,7 @@ int ParseTreePrintVisitor::accept(TermNodePtr node)
     return 0;
 }
 
-int ParseTreePrintVisitor::accept(FactorNodePtr node)
+int ASTPrintVisitor::accept(FactorNodePtr node)
 {
     if (node->node) {
         node->node->accept(this);
@@ -58,7 +58,7 @@ int ParseTreePrintVisitor::accept(FactorNodePtr node)
     return 0;
 }
 
-int ParseTreePrintVisitor::accept(OptionalNodePtr node)
+int ASTPrintVisitor::accept(OptionalNodePtr node)
 {
     std::cout << "[ ";
     node->expression->accept(this);
@@ -66,7 +66,7 @@ int ParseTreePrintVisitor::accept(OptionalNodePtr node)
     return 0;
 }
 
-int ParseTreePrintVisitor::accept(RepeatedNodePtr node)
+int ASTPrintVisitor::accept(RepeatedNodePtr node)
 {
     std::cout << "{ ";
     node->expression->accept(this);
@@ -74,7 +74,7 @@ int ParseTreePrintVisitor::accept(RepeatedNodePtr node)
     return 0;
 }
 
-int ParseTreePrintVisitor::accept(GroupedNodePtr node)
+int ASTPrintVisitor::accept(GroupedNodePtr node)
 {
     std::cout << "( ";
     node->expression->accept(this);
@@ -82,19 +82,19 @@ int ParseTreePrintVisitor::accept(GroupedNodePtr node)
     return 0;
 }
 
-int ParseTreePrintVisitor::accept(IdentifierNodePtr node)
+int ASTPrintVisitor::accept(IdentifierNodePtr node)
 {
     std::cout << node->value;
     return 0;
 }
 
-int ParseTreePrintVisitor::accept(LiteralNodePtr node)
+int ASTPrintVisitor::accept(LiteralNodePtr node)
 {
     std::cout << node->value;
     return 0;
 }
 
-int ParseTreePrintVisitor::accept(EpsilonNodePtr node)
+int ASTPrintVisitor::accept(EpsilonNodePtr node)
 {
     std::cout << "(epsilon)";
     return 0;

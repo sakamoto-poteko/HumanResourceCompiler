@@ -1,6 +1,6 @@
-#include "ParseTreeNode.h"
-#include "ParseTreeNodeVisitor.h"
+#include "ASTNode.h"
+#include "ASTNodeVisitor.h"
 
-ParseTreeNodeVisitor::ParseTreeNodeVisitor() { }
+ASTNodeVisitor::ASTNodeVisitor() { }
 
-ParseTreeNodeVisitor::~ParseTreeNodeVisitor() { }
+ASTNodeVisitor::~ASTNodeVisitor() { }

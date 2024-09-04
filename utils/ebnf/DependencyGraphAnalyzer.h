@@ -10,7 +10,7 @@
 
 #include <boost/graph/directed_graph.hpp>
 
-#include "ParseTreeNodeForward.h"
+#include "ASTNodeForward.h"
 #include "FirstFollowElement.h"
 
 template <class T>
@@ -100,11 +100,11 @@ struct InfoWithLoc {
 
 class DependencyGraphAnalyzer {
 public:
-    using Graph = boost::directed_graph<ParseTreeNodePtr>;
+    using Graph = boost::directed_graph<ASTNodePtr>;
     using Vertex = Graph::vertex_descriptor;
     using Edge = Graph::edge_descriptor;
 
-    DependencyGraphAnalyzer(const boost::directed_graph<ParseTreeNodePtr> &graph,
+    DependencyGraphAnalyzer(const boost::directed_graph<ASTNodePtr> &graph,
         std::set<std::string> tokens,
         const std::string &root_syntax_name)
         : _graph(graph)
@@ -149,7 +149,7 @@ protected:
     virtual void analyze_first_first_conflict();
     virtual void compute_follow_set();
 
-    const boost::directed_graph<ParseTreeNodePtr> &_graph;
+    const boost::directed_graph<ASTNodePtr> &_graph;
     std::set<std::string> _tokens;
     std::string _root_symbol_name;
 

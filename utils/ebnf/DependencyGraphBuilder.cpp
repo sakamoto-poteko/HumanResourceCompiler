@@ -6,7 +6,7 @@
 #include <boost/graph/directed_graph.hpp>
 #include <boost/graph/graphviz.hpp>
 
-#include "ParseTreeNode.h"
+#include "ASTNode.h"
 #include "DependencyGraphBuilder.h"
 
 // Quick & dirty
@@ -62,7 +62,7 @@ bool DependencyGraphBuilder::write_graphviz(const std::string &path)
     boost::write_graphviz(
         dotfile, _state->dependency_graph,
         [this](std::ostream &out, Vertex &v) {
-            const ParseTreeNodePtr &node = _state->dependency_graph[v];
+            const ASTNodePtr &node = _state->dependency_graph[v];
             if (auto syntax = std::dynamic_pointer_cast<SyntaxNode>(node)) {
                 out << "[label=\"Syntax\" shape=diamond]";
             } else if (auto literal = std::dynamic_pointer_cast<LiteralNode>(node)) {

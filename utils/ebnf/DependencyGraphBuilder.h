@@ -1,5 +1,5 @@
-#ifndef ParseTreeDEPGRAPHBUILDERVISITOR_H
-#define ParseTreeDEPGRAPHBUILDERVISITOR_H
+#ifndef ASTDEPGRAPHBUILDERVISITOR_H
+#define ASTDEPGRAPHBUILDERVISITOR_H
 
 #include <map>
 #include <set>
@@ -9,13 +9,13 @@
 
 #include <boost/graph/directed_graph.hpp>
 
-#include "ParseTreeNodeForward.h"
-#include "ParseTreeNodeVisitor.h"
+#include "ASTNodeForward.h"
+#include "ASTNodeVisitor.h"
 
-class DependencyGraphBuilder : protected ParseTreeNodeVisitor {
+class DependencyGraphBuilder : protected ASTNodeVisitor {
 public:
-    using Vertex = boost::directed_graph<ParseTreeNodePtr>::vertex_descriptor;
-    using Edge = boost::directed_graph<ParseTreeNodePtr>::edge_descriptor;
+    using Vertex = boost::directed_graph<ASTNodePtr>::vertex_descriptor;
+    using Edge = boost::directed_graph<ASTNodePtr>::edge_descriptor;
 
     DependencyGraphBuilder(SyntaxNodePtr node, std::set<std::string> tokens,
         const std::string &root_syntax_name)
@@ -29,7 +29,7 @@ public:
 
     virtual void build();
     virtual bool write_graphviz(const std::string &path);
-    virtual bool get_dependency_graph(boost::directed_graph<ParseTreeNodePtr> &graph)
+    virtual bool get_dependency_graph(boost::directed_graph<ASTNodePtr> &graph)
     {
         if (_state) {
             graph = _state->dependency_graph;
@@ -61,7 +61,7 @@ protected:
         std::map<std::string, Vertex> productions;
         std::vector<std::string> warnings;
         std::string current_rule;
-        boost::directed_graph<ParseTreeNodePtr> dependency_graph;
+        boost::directed_graph<ASTNodePtr> dependency_graph;
     };
 
     std::unique_ptr<VisitState> _state;
