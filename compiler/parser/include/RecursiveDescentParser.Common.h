@@ -25,13 +25,13 @@ OPEN_PARSER_NAMESPACE
     std::static_pointer_cast<hrl::lexer::IdentifierToken>(token)
 
 #define TO_IDENTIFIER_NODE() \
-    std::make_shared<IdentifierNode>(std::static_pointer_cast<hrl::lexer::IdentifierToken>(token))
+    std::make_shared<IdentifierPTNode>(std::static_pointer_cast<hrl::lexer::IdentifierToken>(token))
 
 #define TO_INTEGER_NODE() \
-    std::make_shared<IntegerLiteralNode>(std::static_pointer_cast<hrl::lexer::IntegerToken>(token))
+    std::make_shared<IntegerLiteralPTNode>(std::static_pointer_cast<hrl::lexer::IntegerToken>(token))
 
 #define TO_BOOLEAN_NODE() \
-    std::make_shared<BooleanLiteralNode>(std::static_pointer_cast<hrl::lexer::BooleanToken>(token))
+    std::make_shared<BooleanLiteralPTNode>(std::static_pointer_cast<hrl::lexer::BooleanToken>(token))
 
 #define CHECK_TOKEN_AND_CONSUME(expected_token, expected_message, token_name) \
     token = lookahead();                                                      \
