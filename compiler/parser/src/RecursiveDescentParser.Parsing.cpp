@@ -1,10 +1,7 @@
-#include <iterator>
 #include <list>
 #include <memory>
 #include <string>
 #include <vector>
-
-#include <boost/format.hpp>
 
 #include <spdlog/spdlog.h>
 
@@ -13,8 +10,6 @@
 #include "HRLToken.h"
 #include "RecursiveDescentParser.Common.h"
 #include "RecursiveDescentParser.h"
-#include "hrl_global.h"
-#include "lexer_global.h"
 
 OPEN_PARSER_NAMESPACE
 
@@ -125,7 +120,7 @@ bool RecursiveDescentParser::parse_import_directive(ImportDirectivePTNodePtr &no
 
     CHECK_TOKEN_AND_CONSUME(lexer::IMPORT, "'import'", import_token);
 
-    CHECK_TOKEN_AND_CONSUME(lexer::IDENTIFIER, "an identifier", _)
+    CHECK_TOKEN_AND_CONSUME(lexer::IDENTIFIER, "an identifier", _);
     identifier = TO_IDENTIFIER_NODE();
 
     CHECK_TOKEN_AND_CONSUME(lexer::T, "';'", semicolon);
@@ -406,6 +401,7 @@ bool RecursiveDescentParser::parse_variable_assignment(VariableAssignmentPTNodeP
 
     AbstractExpressionPTNodePtr expr;
     bool ok = parse_expression(expr);
+    CHECK_ERROR(ok);
 
     SET_NODE(variable, expr, equals);
 
@@ -587,7 +583,7 @@ bool RecursiveDescentParser::parse_for_statement(ForStatementPTNodePtr &node)
             if (ok) {
                 CLEAR_ERROR_BEYOND();
             } else {
-                CHECK_ERROR_MSG(false, "for init statment should either be variable assignment or variable declaration",
+                CHECK_ERROR_MSG(false, "for init statement should either be variable assignment or variable declaration",
                     token->lineno(), token->colno(), token->width());
             }
         }

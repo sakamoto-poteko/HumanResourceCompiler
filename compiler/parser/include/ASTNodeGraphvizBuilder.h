@@ -16,8 +16,8 @@ OPEN_PARSER_NAMESPACE
 
 class ASTNodeGraphvizBuilder : public ASTNodeVisitor {
 public:
-    ASTNodeGraphvizBuilder(CompilationUnitASTNodePtr ast);
-    ~ASTNodeGraphvizBuilder();
+    explicit ASTNodeGraphvizBuilder(CompilationUnitASTNodePtr ast);
+    ~ASTNodeGraphvizBuilder() override = default;
 
     enum NodeType {
         Literal,
@@ -101,7 +101,7 @@ protected:
         }
     }
 
-    std::string escape_graphviz(const std::string &text);
+    static std::string escape_graphviz(const std::string &text);
 
 private:
 };

@@ -4,18 +4,16 @@
 #include <string>
 
 #include <boost/graph/graphviz.hpp>
+#include <utility>
 
-#include "ASTNode.h"
 #include "ASTNodeGraphvizBuilder.h"
 #include "hrl_global.h"
 #include "parser_global.h"
 
 OPEN_PARSER_NAMESPACE
 
-ASTNodeGraphvizBuilder::~ASTNodeGraphvizBuilder() { }
-
 ASTNodeGraphvizBuilder::ASTNodeGraphvizBuilder(CompilationUnitASTNodePtr ast)
-    : _root(ast)
+    : _root(std::move(ast))
 {
 }
 
@@ -49,8 +47,8 @@ std::string ASTNodeGraphvizBuilder::escape_graphviz(const std::string &text)
 {
     std::string escaped;
 
-    for (auto it = text.begin(); it != text.end(); ++it) {
-        switch (*it) {
+    for (char it : text) {
+        switch (it) {
         case '\\':
             escaped.append("\\\\");
             break;
@@ -61,7 +59,7 @@ std::string ASTNodeGraphvizBuilder::escape_graphviz(const std::string &text)
             escaped.append("\\\"");
             break;
         default:
-            escaped.push_back(*it);
+            escaped.push_back(it);
             break;
         }
     }
@@ -84,23 +82,23 @@ std::string ASTNodeGraphvizBuilder::generate_graphviz()
             switch (node.type) {
             case Literal:
                 out << "[label=\"" << escape_graphviz(node.label)
-                    << "\" shape=note style=\"filled\" fillcolor=lightcoral fontname=Courier]";
+                    << R"(" shape=note style="filled" fillcolor=lightcoral fontname=Courier])";
                 break;
             case Expression:
                 out << "[label=\"" << escape_graphviz(node.label)
-                    << "\" shape=rect style=\"rounded,filled\" fillcolor=lightblue fontname=Helvetica]";
+                    << R"(" shape=rect style="rounded,filled" fillcolor=lightblue fontname=Helvetica])";
                 break;
             case Statement:
                 out << "[label=\"" << escape_graphviz(node.label)
-                    << "\" shape=rect style=\"rounded,filled\" fillcolor=lightgreen fontname=Helvetica]";
+                    << R"(" shape=rect style="rounded,filled" fillcolor=lightgreen fontname=Helvetica])";
                 break;
             case Structure:
                 out << "[label=\"" << escape_graphviz(node.label)
-                    << "\" shape=diamond style=\"filled\" fillcolor=orange fontname=Helvetica]";
+                    << R"(" shape=diamond style="filled" fillcolor=orange fontname=Helvetica])";
                 break;
             case Operator:
                 out << "[label=\"" << escape_graphviz(node.label)
-                    << "\" shape=circle style=\"filled\" fillcolor=lightblue fontname=Helvetica]";
+                    << R"(" shape=circle style="filled" fillcolor=lightblue fontname=Helvetica])";
                 break;
             default:
                 throw;

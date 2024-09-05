@@ -6,4 +6,6 @@
 
 typedef std::shared_ptr<std::string> StringPtr;
 
+#define UNUSED(x) (void)(x)
+
 #endif

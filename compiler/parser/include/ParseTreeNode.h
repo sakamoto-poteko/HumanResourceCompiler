@@ -27,15 +27,9 @@ public:
 
     virtual void accept(ParseTreeNodeVisitor *visitor) = 0;
 
-    int lineno()
-    {
-        return _lineno;
-    }
+    int lineno() const { return _lineno; }
 
-    int colno()
-    {
-        return _colno;
-    }
+    int colno() const { return _colno; }
 
     virtual const char *type() = 0;
 
@@ -77,7 +71,7 @@ public:
 // Terminal Nodes
 class IdentifierPTNode : public AbstractPrimaryExpressionPTNode {
 public:
-    IdentifierPTNode(const lexer::IdentifierTokenPtr &token)
+    explicit IdentifierPTNode(const lexer::IdentifierTokenPtr &token)
         : AbstractPrimaryExpressionPTNode(token->lineno(), token->colno())
         , _name(token->get_value())
         , _token(token)
@@ -99,7 +93,7 @@ private:
 
 class IntegerLiteralPTNode : public AbstractPrimaryExpressionPTNode {
 public:
-    IntegerLiteralPTNode(const lexer::IntegerTokenPtr &token)
+    explicit IntegerLiteralPTNode(const lexer::IntegerTokenPtr &token)
         : AbstractPrimaryExpressionPTNode(token->lineno(), token->colno())
         , _value(token->get_value())
         , _token(token)
@@ -121,7 +115,7 @@ private:
 
 class BooleanLiteralPTNode : public AbstractPrimaryExpressionPTNode {
 public:
-    BooleanLiteralPTNode(const lexer::BooleanTokenPtr &token)
+    explicit BooleanLiteralPTNode(const lexer::BooleanTokenPtr &token)
         : AbstractPrimaryExpressionPTNode(token->lineno(), token->colno())
         , _value(token->get_value())
         , _token(token)
@@ -143,7 +137,7 @@ private:
 
 class BinaryOperatorPTNode : public ParseTreeNode {
 public:
-    BinaryOperatorPTNode(const lexer::TokenPtr &token)
+    explicit BinaryOperatorPTNode(const lexer::TokenPtr &token)
         : ParseTreeNode(token->lineno(), token->colno())
         , _op(get_binary_operator_from_token_id(token->token_id()))
         , _token(token)

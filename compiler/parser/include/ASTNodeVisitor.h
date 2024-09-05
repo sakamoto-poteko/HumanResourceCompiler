@@ -8,9 +8,9 @@ OPEN_PARSER_NAMESPACE
 
 class ASTNodeVisitor {
 public:
-    ASTNodeVisitor() { }
+    ASTNodeVisitor() = default;
 
-    virtual ~ASTNodeVisitor() { }
+    virtual ~ASTNodeVisitor() = default;
 
     virtual int visit(IntegerASTNodePtr node) = 0;
     virtual int visit(BooleanASTNodePtr node) = 0;

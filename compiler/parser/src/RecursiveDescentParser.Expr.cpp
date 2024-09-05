@@ -1,10 +1,7 @@
-#include <iterator>
 #include <list>
 #include <memory>
 #include <string>
-#include <vector>
 
-#include <boost/format.hpp>
 
 #include <spdlog/spdlog.h>
 
@@ -13,8 +10,6 @@
 #include "ParseTreeNodeForward.h"
 #include "RecursiveDescentParser.Common.h"
 #include "RecursiveDescentParser.h"
-#include "hrl_global.h"
-#include "lexer_global.h"
 
 OPEN_PARSER_NAMESPACE
 
@@ -38,8 +33,6 @@ bool RecursiveDescentParser::parse_precedence_climbing(AbstractExpressionPTNodeP
 {
     ENTER_PARSE_FRAME();
 
-    // FIXME: impl
-
     while (lexer::is_token_binary_operator(token->token_id())
         && BinaryOperatorPTNode::get_operator_precedence(token->token_id()) >= min_precedence) {
 
@@ -54,7 +47,7 @@ bool RecursiveDescentParser::parse_precedence_climbing(AbstractExpressionPTNodeP
         CHECK_ERROR(ok);
         rhs = std::static_pointer_cast<AbstractExpressionPTNode>(rhs_unary);
 
-        UPDATE_TOKEN_LOOKAHEAD()
+        UPDATE_TOKEN_LOOKAHEAD();
 
         while (lexer::is_token_binary_operator(token->token_id())) {
             bool is_left_assoc = BinaryOperatorPTNode::get_operator_associativity(token->token_id()) == BinaryOperatorPTNode::LEFT_TO_RIGHT;
@@ -82,7 +75,7 @@ bool RecursiveDescentParser::parse_precedence_climbing(AbstractExpressionPTNodeP
     result = lhs;
 
     LEAVE_PARSE_FRAME();
-};
+}
 
 bool RecursiveDescentParser::parse_unary_expression(AbstractUnaryExpressionPTNodePtr &node)
 {
@@ -199,7 +192,7 @@ bool RecursiveDescentParser::parse_primary_expression(AbstractPrimaryExpressionP
         SET_NODE_FROM(parenthesized_expr);
         break;
     default:
-        CHECK_ERROR_MSG(false, "Expect a primary expression (literal/floor access/invocation/parathensized) but got '" + *token->token_text() + "'", token->lineno(), token->colno(), token->width());
+        CHECK_ERROR_MSG(false, "Expect a primary expression (literal/floor access/invocation/parenthesized) but got '" + *token->token_text() + "'", token->lineno(), token->colno(), token->width());
     }
 
     LEAVE_PARSE_FRAME();
@@ -236,8 +229,11 @@ bool RecursiveDescentParser::parse_parenthesized_expression(ParenthesizedExpress
     ENTER_PARSE_FRAME();
 
     CHECK_TOKEN_AND_CONSUME(lexer::OPEN_PAREN, "'('", open_paren);
+
     AbstractExpressionPTNodePtr expr;
     bool ok = parse_expression(expr);
+    CHECK_ERROR(ok);
+
     CHECK_TOKEN_AND_CONSUME(lexer::CLOSE_PAREN, "')'", close_paren);
 
     SET_NODE(expr, open_paren, close_paren);

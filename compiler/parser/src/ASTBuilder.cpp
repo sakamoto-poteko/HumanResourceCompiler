@@ -2,35 +2,30 @@
 
 #include <memory>
 #include <optional>
+#include <utility>
 #include <vector>
 
 #include "ASTBuilder.h"
 #include "ASTNode.h"
-#include "ASTNodeForward.h"
 #include "ParseTreeNode.h"
-#include "hrl_global.h"
 #include "parser_global.h"
 
 OPEN_PARSER_NAMESPACE
 
 #define SET_RESULT(NodeType, ...)                                                                                                                        \
     _result_stack.push(std::static_pointer_cast<ASTNode>(std::make_shared<NodeType>(node->lineno(), node->colno(), -1, -1 __VA_OPT__(, ) __VA_ARGS__))); \
-    return;
+    return
 
-ASTBuilder::ASTBuilder(const CompilationUnitPTNodePtr &root)
-    : _root(root)
+ASTBuilder::ASTBuilder(CompilationUnitPTNodePtr root)
+    : _root(std::move(root))
 {
     // Constructor implementation (if any)
 }
 
-ASTBuilder::~ASTBuilder()
-{
-    // Destructor implementation (if any)
-}
 
 void ASTBuilder::visit(IdentifierPTNodePtr node)
 {
-    // Will be called when evaulating expression
+    // Will be called when evaluating expression
     // In this case it's a variable access node
     // If it's not the case, the visit_and_cast will raise, since it's a bad cast.
     SET_RESULT(VariableAccessASTNode, node->get_value());
@@ -55,7 +50,7 @@ void ASTBuilder::visit(BinaryOperatorPTNodePtr node)
 void ASTBuilder::visit(VariableDeclarationPTNodePtr node)
 {
     StringPtr var_name = node->get_var_name()->get_value();
-    AbstractExpressionASTNodePtr value_expr = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_expr());
+    auto value_expr = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_expr());
 
     VariableAssignmentASTNodePtr assignment = std::make_shared<VariableAssignmentASTNode>(
         node->get_equals()->lineno(), node->get_equals()->colno(), -1, -1,
@@ -67,23 +62,23 @@ void ASTBuilder::visit(VariableDeclarationPTNodePtr node)
 void ASTBuilder::visit(VariableAssignmentPTNodePtr node)
 {
     StringPtr var_name = node->get_var_name()->get_value();
-    AbstractExpressionASTNodePtr value_expr = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_expr());
+    auto value_expr = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_expr());
 
     SET_RESULT(VariableAssignmentASTNode, var_name, value_expr);
 }
 
 void ASTBuilder::visit(FloorAssignmentPTNodePtr node)
 {
-    AbstractExpressionASTNodePtr floor_number = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_floor_access()->get_index_expr());
-    AbstractExpressionASTNodePtr value_expr = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_expr());
+    auto floor_number = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_floor_access()->get_index_expr());
+    auto value_expr = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_expr());
 
     SET_RESULT(FloorAssignmentASTNode, floor_number, value_expr);
 }
 
 void ASTBuilder::visit(BinaryExpressionPTNodePtr node)
 {
-    AbstractExpressionASTNodePtr left = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_left());
-    AbstractExpressionASTNodePtr right = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_right());
+    auto left = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_left());
+    auto right = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_right());
 
     switch (node->get_op()->get_op()) {
     case BinaryOperatorPTNode::GE:
@@ -119,7 +114,7 @@ void ASTBuilder::visit(BinaryExpressionPTNodePtr node)
 
 void ASTBuilder::visit(NegativeExpressionPTNodePtr node)
 {
-    AbstractExpressionASTNodePtr expr = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_expr());
+    auto expr = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_expr());
 
     SET_RESULT(NegativeExpressionASTNode, expr);
 }
@@ -132,7 +127,7 @@ void ASTBuilder::visit(PositiveExpressionPTNodePtr node)
 
 void ASTBuilder::visit(NotExpressionPTNodePtr node)
 {
-    AbstractExpressionASTNodePtr expr = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_expr());
+    auto expr = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_expr());
 
     SET_RESULT(NotExpressionASTNode, expr);
 }
@@ -153,7 +148,7 @@ void ASTBuilder::visit(DecrementExpressionPTNodePtr node)
 
 void ASTBuilder::visit(FloorAccessPTNodePtr node)
 {
-    AbstractExpressionASTNodePtr index = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_index_expr());
+    auto index = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_index_expr());
 
     SET_RESULT(FloorAccessASTNode, index);
 }
@@ -166,37 +161,37 @@ void ASTBuilder::visit(ParenthesizedExpressionPTNodePtr node)
 
 void ASTBuilder::visit(InvocationExpressionPTNodePtr node)
 {
-    AbstractExpressionASTNodePtr expr = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_arg());
+    auto expr = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_arg());
     SET_RESULT(InvocationExpressionASTNode, node->get_func_name()->get_value(), expr);
 }
 
 void ASTBuilder::visit(IfStatementPTNodePtr node)
 {
-    AbstractExpressionASTNodePtr condition = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_condition());
-    AbstractEmbeddedStatementASTNodePtr then_body = visit_and_cast<AbstractEmbeddedStatementASTNodePtr>(node->get_then_stmt());
-    AbstractEmbeddedStatementASTNodePtr else_body = visit_and_cast<AbstractEmbeddedStatementASTNodePtr>(node->get_else_stmt());
+    auto condition = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_condition());
+    auto then_body = visit_and_cast<AbstractEmbeddedStatementASTNodePtr>(node->get_then_stmt());
+    auto else_body = visit_and_cast<AbstractEmbeddedStatementASTNodePtr>(node->get_else_stmt());
     SET_RESULT(IfStatementASTNode, condition, then_body, else_body);
 }
 
 void ASTBuilder::visit(WhileStatementPTNodePtr node)
 {
-    AbstractExpressionASTNodePtr condition = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_condition());
-    AbstractEmbeddedStatementASTNodePtr body = visit_and_cast<AbstractEmbeddedStatementASTNodePtr>(node->get_body());
+    auto condition = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_condition());
+    auto body = visit_and_cast<AbstractEmbeddedStatementASTNodePtr>(node->get_body());
     SET_RESULT(WhileStatementASTNode, condition, body);
 }
 
 void ASTBuilder::visit(ForStatementPTNodePtr node)
 {
-    AbstractStatementASTNodePtr init = visit_and_cast<AbstractStatementASTNodePtr>(node->get_init_stmt());
-    AbstractExpressionASTNodePtr condition = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_condition());
-    AbstractStatementASTNodePtr update = visit_and_cast<AbstractStatementASTNodePtr>(node->get_update_stmt());
-    AbstractEmbeddedStatementASTNodePtr body = visit_and_cast<AbstractEmbeddedStatementASTNodePtr>(node->get_body());
+    auto init = visit_and_cast<AbstractStatementASTNodePtr>(node->get_init_stmt());
+    auto condition = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_condition());
+    auto update = visit_and_cast<AbstractStatementASTNodePtr>(node->get_update_stmt());
+    auto body = visit_and_cast<AbstractEmbeddedStatementASTNodePtr>(node->get_body());
     SET_RESULT(ForStatementASTNode, init, condition, update, body);
 }
 
 void ASTBuilder::visit(ReturnStatementPTNodePtr node)
 {
-    AbstractExpressionASTNodePtr expr = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_expr());
+    auto expr = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_expr());
     SET_RESULT(ReturnStatementASTNode, expr);
 }
 
@@ -216,7 +211,7 @@ void ASTBuilder::visit(FloorMaxInitStatementPTNodePtr node)
 
 void ASTBuilder::visit(EmptyStatementPTNodePtr node)
 {
-    SET_RESULT(EmptyStatementASTNode)
+    SET_RESULT(EmptyStatementASTNode);
 }
 
 void ASTBuilder::visit(StatementBlockPTNodePtr node)
@@ -227,7 +222,7 @@ void ASTBuilder::visit(StatementBlockPTNodePtr node)
         stmts.push_back(visit_and_cast<AbstractStatementASTNodePtr>(stmt));
     }
 
-    SET_RESULT(StatementBlockASTNode, stmts)
+    SET_RESULT(StatementBlockASTNode, stmts);
 }
 
 void ASTBuilder::visit(VariableDeclarationStatementPTNodePtr node)

@@ -6,7 +6,7 @@
 OPEN_PARSER_NAMESPACE
 
 #define VISIT_NODE() \
-    return visitor->visit(shared_from_this_casted<std::remove_reference_t<decltype(*this)>>());
+    return visitor->visit(shared_from_this_casted<std::remove_reference_t<decltype(*this)>>())
 
 // begin
 
@@ -81,4 +81,5 @@ int EmptyStatementASTNode::accept(ASTNodeVisitor *visitor) { VISIT_NODE(); }
 int FloorBoxInitStatementASTNode::accept(ASTNodeVisitor *visitor) { VISIT_NODE(); }
 
 CLOSE_PARSER_NAMESPACE
+
 // end

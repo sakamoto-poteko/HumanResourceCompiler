@@ -1,5 +1,5 @@
-#ifndef ASTBUILDER_H
-#define ASTBUILDER_H
+#ifndef AST_BUILDER_H
+#define AST_BUILDER_H
 
 #include <cassert>
 
@@ -16,43 +16,43 @@ OPEN_PARSER_NAMESPACE
 
 class ASTBuilder : public ParseTreeNodeVisitor {
 public:
-    ASTBuilder(const CompilationUnitPTNodePtr &root);
-    virtual ~ASTBuilder();
+    explicit ASTBuilder(CompilationUnitPTNodePtr root);
+    ~ASTBuilder() override = default;
 
     bool build(CompilationUnitASTNodePtr &result);
 
-    virtual void visit(IdentifierPTNodePtr node) override;
-    virtual void visit(IntegerLiteralPTNodePtr node) override;
-    virtual void visit(BooleanLiteralPTNodePtr node) override;
-    virtual void visit(BinaryOperatorPTNodePtr node) override;
-    virtual void visit(VariableDeclarationPTNodePtr node) override;
-    virtual void visit(VariableAssignmentPTNodePtr node) override;
-    virtual void visit(FloorAssignmentPTNodePtr node) override;
-    virtual void visit(BinaryExpressionPTNodePtr node) override;
-    virtual void visit(NegativeExpressionPTNodePtr node) override;
-    virtual void visit(PositiveExpressionPTNodePtr node) override;
-    virtual void visit(NotExpressionPTNodePtr node) override;
-    virtual void visit(IncrementExpressionPTNodePtr node) override;
-    virtual void visit(DecrementExpressionPTNodePtr node) override;
-    virtual void visit(FloorAccessPTNodePtr node) override;
-    virtual void visit(ParenthesizedExpressionPTNodePtr node) override;
-    virtual void visit(InvocationExpressionPTNodePtr node) override;
-    virtual void visit(IfStatementPTNodePtr node) override;
-    virtual void visit(WhileStatementPTNodePtr node) override;
-    virtual void visit(ForStatementPTNodePtr node) override;
-    virtual void visit(ReturnStatementPTNodePtr node) override;
-    virtual void visit(FloorBoxInitStatementPTNodePtr node) override;
-    virtual void visit(FloorMaxInitStatementPTNodePtr node) override;
-    virtual void visit(EmptyStatementPTNodePtr node) override;
-    virtual void visit(StatementBlockPTNodePtr node) override;
-    virtual void visit(VariableDeclarationStatementPTNodePtr node) override;
-    virtual void visit(VariableAssignmentStatementPTNodePtr node) override;
-    virtual void visit(FloorAssignmentStatementPTNodePtr node) override;
-    virtual void visit(InvocationStatementPTNodePtr node) override;
-    virtual void visit(SubprocDefinitionPTNodePtr node) override;
-    virtual void visit(FunctionDefinitionPTNodePtr node) override;
-    virtual void visit(ImportDirectivePTNodePtr node) override;
-    virtual void visit(CompilationUnitPTNodePtr node) override;
+    void visit(IdentifierPTNodePtr node) override;
+    void visit(IntegerLiteralPTNodePtr node) override;
+    void visit(BooleanLiteralPTNodePtr node) override;
+    void visit(BinaryOperatorPTNodePtr node) override;
+    void visit(VariableDeclarationPTNodePtr node) override;
+    void visit(VariableAssignmentPTNodePtr node) override;
+    void visit(FloorAssignmentPTNodePtr node) override;
+    void visit(BinaryExpressionPTNodePtr node) override;
+    void visit(NegativeExpressionPTNodePtr node) override;
+    void visit(PositiveExpressionPTNodePtr node) override;
+    void visit(NotExpressionPTNodePtr node) override;
+    void visit(IncrementExpressionPTNodePtr node) override;
+    void visit(DecrementExpressionPTNodePtr node) override;
+    void visit(FloorAccessPTNodePtr node) override;
+    void visit(ParenthesizedExpressionPTNodePtr node) override;
+    void visit(InvocationExpressionPTNodePtr node) override;
+    void visit(IfStatementPTNodePtr node) override;
+    void visit(WhileStatementPTNodePtr node) override;
+    void visit(ForStatementPTNodePtr node) override;
+    void visit(ReturnStatementPTNodePtr node) override;
+    void visit(FloorBoxInitStatementPTNodePtr node) override;
+    void visit(FloorMaxInitStatementPTNodePtr node) override;
+    void visit(EmptyStatementPTNodePtr node) override;
+    void visit(StatementBlockPTNodePtr node) override;
+    void visit(VariableDeclarationStatementPTNodePtr node) override;
+    void visit(VariableAssignmentStatementPTNodePtr node) override;
+    void visit(FloorAssignmentStatementPTNodePtr node) override;
+    void visit(InvocationStatementPTNodePtr node) override;
+    void visit(SubprocDefinitionPTNodePtr node) override;
+    void visit(FunctionDefinitionPTNodePtr node) override;
+    void visit(ImportDirectivePTNodePtr node) override;
+    void visit(CompilationUnitPTNodePtr node) override;
 
 protected:
     CompilationUnitPTNodePtr _root;
@@ -76,7 +76,7 @@ protected:
         }
     }
 
-    IntegerASTNodePtr make_literal_node(IntegerLiteralPTNodePtr node)
+    static IntegerASTNodePtr make_literal_node(const IntegerLiteralPTNodePtr& node)
     {
         IntegerASTNodePtr val_expr = std::make_shared<IntegerASTNode>(node->lineno(), node->colno(), node->lineno(), node->lineno() + node->get_token()->width(), node->get_value());
         return val_expr;

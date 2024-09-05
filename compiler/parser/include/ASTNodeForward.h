@@ -19,7 +19,6 @@ class FloorAssignmentASTNode;
 class FloorAccessASTNode;
 class EmptyStatementASTNode;
 
-// class PositiveExpressionASTNode;
 class AbstractExpressionASTNode;
 class AbstractUnaryExpressionASTNode;
 class AbstractPrimaryExpressionASTNode;
@@ -56,7 +55,6 @@ class WhileStatementASTNode;
 class ForStatementASTNode;
 class ReturnStatementASTNode;
 class FloorBoxInitStatementASTNode;
-class FloorMaxInitStatementASTNode;
 class StatementBlockASTNode;
 
 class SubprocDefinitionASTNode;

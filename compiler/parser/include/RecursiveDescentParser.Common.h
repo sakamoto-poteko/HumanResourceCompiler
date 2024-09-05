@@ -7,7 +7,7 @@ OPEN_PARSER_NAMESPACE
 
 #define LEAVE_PARSE_FRAME() \
     leave_parse_frame();    \
-    return true;
+    return true
 
 #define ENTER_PARSE_FRAME()                        \
     enter_parse_frame();                           \
@@ -15,11 +15,10 @@ OPEN_PARSER_NAMESPACE
     int lineno = token->lineno();                  \
     int colno = token->colno();                    \
     int width = token->width();                    \
-    std::list<std::string>::iterator last_error_it \
-        = _errors.empty() ? _errors.end() : std::prev(_errors.end());
+    auto last_error_it = _errors.empty() ? _errors.end() : std::prev(_errors.end())
 
 #define CLEAR_ERROR_BEYOND() \
-    pop_error_till(last_error_it);
+    pop_error_till(last_error_it)
 
 #define TO_IDENTIFIER_TOKEN() \
     std::static_pointer_cast<hrl::lexer::IdentifierToken>(token)
@@ -41,41 +40,26 @@ OPEN_PARSER_NAMESPACE
         revert_parse_frame();                                                 \
         return false;                                                         \
     }                                                                         \
-    consume();
+    consume()
 
 #define CONSUME_TOKEN() \
-    consume();
+    consume()
 
 #define UPDATE_TOKEN_LOOKAHEAD() \
-    token = lookahead();
-
-// #define CHECK_TOKEN(expected_token, expected_message) \
-//     token = lookahead();                              \
-//     if (token->token_id() != expected_token) {        \
-//         push_error(expected_message, token);          \
-//         revert_parse_frame();                         \
-//         return false;                                 \
-//     }
-
-#define CHECK_ERROR_NO_LINE(ok, msg) \
-    if (!(ok)) {                     \
-        push_error((msg));           \
-        revert_parse_frame();        \
-        return false;                \
-    }
+    token = lookahead()
 
 #define CHECK_ERROR_MSG(ok, msg, lineno, colno, width) \
     if (!(ok)) {                                       \
         push_error((msg), lineno, colno, width);       \
         revert_parse_frame();                          \
         return false;                                  \
-    }
+    }0 // 0 is required to suppress empty statement check
 
 #define CHECK_ERROR(ok)       \
     if (!(ok)) {              \
         revert_parse_frame(); \
         return false;         \
-    }
+    }0  // 0 is required to suppress empty statement check
 
 #define TOKEN_IS(id) \
     (token->token_id() == (id))
