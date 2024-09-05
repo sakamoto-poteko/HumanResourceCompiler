@@ -43,6 +43,8 @@ for (int i = 0; i < yyleng; ++i) { if (yytext[i] == '\n') { last_token_newline =
 "else"                          { return ELSE;  }
 "while"                         { return WHILE; }
 "for"                           { return FOR;   }
+"break"                         { return BREAK;     }
+"continue"                      { return CONTINUE;  }
 
 ">="                            { return GE; }
 "<="                            { return LE; }

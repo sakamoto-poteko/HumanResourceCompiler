@@ -54,6 +54,8 @@ class IfStatementASTNode;
 class WhileStatementASTNode;
 class ForStatementASTNode;
 class ReturnStatementASTNode;
+class ContinueStatementASTNode;
+class BreakStatementASTNode;
 class FloorBoxInitStatementASTNode;
 class StatementBlockASTNode;
 
@@ -108,6 +110,8 @@ using IfStatementASTNodePtr = std::shared_ptr<IfStatementASTNode>;
 using WhileStatementASTNodePtr = std::shared_ptr<WhileStatementASTNode>;
 using ForStatementASTNodePtr = std::shared_ptr<ForStatementASTNode>;
 using ReturnStatementASTNodePtr = std::shared_ptr<ReturnStatementASTNode>;
+using BreakStatementASTNodePtr = std::shared_ptr<BreakStatementASTNode>;
+using ContinueStatementASTNodePtr = std::shared_ptr<ContinueStatementASTNode>;
 using FloorBoxInitStatementASTNodePtr = std::shared_ptr<FloorBoxInitStatementASTNode>;
 using StatementBlockASTNodePtr = std::shared_ptr<StatementBlockASTNode>;
 

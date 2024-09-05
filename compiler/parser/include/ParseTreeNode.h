@@ -834,6 +834,26 @@ private:
     lexer::TokenPtr _close_paren;
 };
 
+class BreakContinueStatementPTNode : public AbstractEmbeddedStatementPTNode {
+public:
+    BreakContinueStatementPTNode(int lineno, int colno, bool is_break)
+        : AbstractEmbeddedStatementPTNode(lineno, colno)
+        , _is_break(is_break)
+    {
+    }
+
+    const char *type() override { return _is_break ? "BreakStatement" : "ContinueStatement"; }
+
+    void accept(ParseTreeNodeVisitor *visitor) override;
+
+    bool is_break() const { return _is_break; }
+
+    bool is_continue() const { return !_is_break; }
+
+private:
+    bool _is_break;
+};
+
 class ReturnStatementPTNode : public AbstractEmbeddedStatementPTNode {
 public:
     ReturnStatementPTNode(int lineno, int colno, AbstractExpressionPTNodePtr expr, lexer::TokenPtr return_token, lexer::TokenPtr semicolon)

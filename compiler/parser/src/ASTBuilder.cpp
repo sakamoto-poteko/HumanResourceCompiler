@@ -7,6 +7,7 @@
 
 #include "ASTBuilder.h"
 #include "ASTNode.h"
+#include "ASTNodeForward.h"
 #include "ParseTreeNode.h"
 #include "parser_global.h"
 
@@ -310,6 +311,15 @@ void ASTBuilder::visit(CompilationUnitPTNodePtr node)
     }
 
     SET_RESULT(CompilationUnitASTNode, imports, floor_inits, floor_max, var_decls, subroutines);
+}
+
+void ASTBuilder::visit(BreakContinueStatementPTNodePtr node)
+{
+    if (node->is_break()) {
+        SET_RESULT(BreakStatementASTNode);
+    } else {
+        SET_RESULT(ContinueStatementASTNode);
+    }
 }
 
 bool ASTBuilder::build(CompilationUnitASTNodePtr &result)

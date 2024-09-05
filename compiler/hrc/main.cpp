@@ -66,7 +66,7 @@ int main(int argc, char **argv)
     hrl::parser::ParseTreeNodeGraphvizBuilder graphviz(compilation_unit);
     graphviz.generate_graphviz();
 
-    hrl::parser::ParseTreeNodeFormatterVisitor formatter;
+    // hrl::parser::ParseTreeNodeFormatterVisitor formatter;
     // formatter.format(compilation_unit); // Format not yet supported
 
     hrl::parser::CompilationUnitASTNodePtr ast;

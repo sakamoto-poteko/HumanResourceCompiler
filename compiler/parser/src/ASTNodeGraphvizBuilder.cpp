@@ -100,6 +100,10 @@ std::string ASTNodeGraphvizBuilder::generate_graphviz()
                 out << "[label=\"" << escape_graphviz(node.label)
                     << R"(" shape=circle style="filled" fillcolor=lightblue fontname=Helvetica])";
                 break;
+            case Flow:
+                out << "[label=\"" << escape_graphviz(node.label)
+                    << R"(" shape=cds style="filled" fillcolor=peachpuff fontname=Helvetica])";
+                break;
             default:
                 throw;
             }
@@ -468,13 +472,27 @@ int ASTNodeGraphvizBuilder::visit(ForStatementASTNodePtr node)
 int ASTNodeGraphvizBuilder::visit(ReturnStatementASTNodePtr node)
 {
     // Graphviz logic for ReturnStatementASTNode
-    enter_and_create_vertex("Return", Statement);
+    enter_and_create_vertex("Return", Flow);
 
     traverse(node->get_expression());
 
     leave();
     return 0;
 }
+
+int ASTNodeGraphvizBuilder::visit(BreakStatementASTNodePtr node)
+{
+    enter_and_create_vertex("Break", Flow);
+    leave();
+    return 0;
+};
+
+int ASTNodeGraphvizBuilder::visit(ContinueStatementASTNodePtr node)
+{
+    enter_and_create_vertex("Continue", Flow);
+    leave();
+    return 0;
+};
 
 int ASTNodeGraphvizBuilder::visit(StatementBlockASTNodePtr node)
 {

@@ -408,5 +408,11 @@ void ParseTreeNodeGraphvizBuilder::visit(InvocationStatementPTNodePtr node)
     leave();
 }
 
+void hrl::parser::ParseTreeNodeGraphvizBuilder::visit(BreakContinueStatementPTNodePtr node)
+{
+    enter_and_create_vertex(node->type());
+    leave();
+}
+
 CLOSE_PARSER_NAMESPACE
 // end

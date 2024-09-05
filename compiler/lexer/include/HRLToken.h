@@ -14,7 +14,7 @@ enum TokenId : int {
     END = 0,
 
     IMPORT = 256,
-    RETURN,
+    
     LET,
     INIT,
     FLOOR,
@@ -25,6 +25,10 @@ enum TokenId : int {
     BOOLEAN,
     INTEGER,
     IDENTIFIER,
+
+    RETURN,
+    BREAK,
+    CONTINUE,
 
     IF,
     ELSE,

@@ -163,5 +163,10 @@ void InvocationStatementPTNode::accept(ParseTreeNodeVisitor *visitor)
     visitor->visit(shared_from_this_casted<InvocationStatementPTNode>());
 }
 
+void BreakContinueStatementPTNode::accept(ParseTreeNodeVisitor *visitor)
+{
+    visitor->visit(shared_from_this_casted<BreakContinueStatementPTNode>());
+}
+
 CLOSE_PARSER_NAMESPACE
 // end

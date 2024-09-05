@@ -80,6 +80,10 @@ int EmptyStatementASTNode::accept(ASTNodeVisitor *visitor) { VISIT_NODE(); }
 
 int FloorBoxInitStatementASTNode::accept(ASTNodeVisitor *visitor) { VISIT_NODE(); }
 
+int BreakStatementASTNode::accept(ASTNodeVisitor *visitor) { VISIT_NODE(); }
+
+int ContinueStatementASTNode::accept(ASTNodeVisitor *visitor) { VISIT_NODE(); }
+
 CLOSE_PARSER_NAMESPACE
 
 // end
