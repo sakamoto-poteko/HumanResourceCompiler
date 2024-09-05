@@ -98,6 +98,8 @@ TokenPtr HRLLexer::tokenize()
         // these are keywords and operators. no extra info stored in the token
     case IMPORT:
     case RETURN:
+    case CONTINUE:
+    case BREAK:
     case LET:
     case INIT:
     case FLOOR:

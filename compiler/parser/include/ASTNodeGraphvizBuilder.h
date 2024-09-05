@@ -25,6 +25,7 @@ public:
         Statement,
         Structure,
         Operator,
+        Flow,
     };
 
     struct NodeProperty {
@@ -69,6 +70,8 @@ public:
     int visit(WhileStatementASTNodePtr node) override;
     int visit(ForStatementASTNodePtr node) override;
     int visit(ReturnStatementASTNodePtr node) override;
+    int visit(BreakStatementASTNodePtr node) override;
+    int visit(ContinueStatementASTNodePtr node) override;
     int visit(StatementBlockASTNodePtr node) override;
     int visit(SubprocDefinitionASTNodePtr node) override;
     int visit(FunctionDefinitionASTNodePtr node) override;

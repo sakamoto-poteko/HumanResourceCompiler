@@ -640,6 +640,32 @@ private:
     AbstractExpressionASTNodePtr _expression;
 };
 
+class BreakStatementASTNode : public AbstractEmbeddedStatementASTNode {
+public:
+    BreakStatementASTNode(int lineno, int colno, int last_lineno, int last_colno)
+        : AbstractEmbeddedStatementASTNode(lineno, colno, last_lineno, last_colno)
+    {
+    }
+
+    int accept(ASTNodeVisitor *visitor) override;
+
+protected:
+private:
+};
+
+class ContinueStatementASTNode : public AbstractEmbeddedStatementASTNode {
+public:
+    ContinueStatementASTNode(int lineno, int colno, int last_lineno, int last_colno)
+        : AbstractEmbeddedStatementASTNode(lineno, colno, last_lineno, last_colno)
+    {
+    }
+
+    int accept(ASTNodeVisitor *visitor) override;
+
+protected:
+private:
+};
+
 // StatementBlockASTNode
 class StatementBlockASTNode : public AbstractEmbeddedStatementASTNode {
 public:

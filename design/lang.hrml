@@ -12,6 +12,7 @@ init floor_max = 10;
 function countdown(a) {
     for (let i = a, i >= 0, --i) {
         outbox(i);
+        continue;
     }
 
     return a;
@@ -35,6 +36,8 @@ sub start() {
             outbox(a);
         } else if (a == b && !(a != 0 || b > 5)){
             outbox(b);
+            break;
+            a = 0;
         } else
             outbox(0);
         
@@ -44,4 +47,5 @@ sub start() {
         floor[3] = floor[b] + c;
         outbox(c);
     }
+    return;
 }

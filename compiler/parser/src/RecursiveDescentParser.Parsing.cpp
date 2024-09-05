@@ -299,6 +299,8 @@ bool RecursiveDescentParser::parse_statement(AbstractStatementPTNodePtr &node)
     case lexer::OPEN_BRACE: // embedded_statement
     case lexer::FLOOR: // embedded_statement
     case lexer::IDENTIFIER: // embedded_statement
+    case lexer::BREAK: // embedded_statement
+    case lexer::CONTINUE: // embedded_statement
         ok = parse_embedded_statement(embedded_statement);
         CHECK_ERROR(ok);
         SET_NODE_FROM(embedded_statement);
@@ -421,6 +423,7 @@ bool RecursiveDescentParser::parse_embedded_statement(AbstractEmbeddedStatementP
     FloorAssignmentStatementPTNodePtr floor_assignment;
     VariableAssignmentStatementPTNodePtr var_assignment;
     InvocationStatementPTNodePtr invocation;
+    BreakContinueStatementPTNodePtr breakcont;
     bool ok;
 
     switch (token->token_id()) {
@@ -465,6 +468,22 @@ bool RecursiveDescentParser::parse_embedded_statement(AbstractEmbeddedStatementP
         CHECK_ERROR(ok);
         SET_NODE_FROM(return_statement);
         break;
+    case lexer::BREAK: // break_statement
+    {
+        CHECK_TOKEN_AND_CONSUME(lexer::BREAK, "'break'", break_token);
+        CHECK_TOKEN_AND_CONSUME(lexer::T, "';'", semicolon);
+        breakcont = std::make_shared<BreakContinueStatementPTNode>(break_token->lineno(), break_token->colno(), true);
+        SET_NODE_FROM(breakcont);
+        break;
+    }
+    case lexer::CONTINUE: // continue_statement
+    {
+        CHECK_TOKEN_AND_CONSUME(lexer::CONTINUE, "'continue'", cont_token);
+        CHECK_TOKEN_AND_CONSUME(lexer::T, "';'", semicolon);
+        breakcont = std::make_shared<BreakContinueStatementPTNode>(cont_token->lineno(), cont_token->colno(), false);
+        SET_NODE_FROM(breakcont);
+        break;
+    }
     case lexer::T: // empty_statement
         ok = parse_empty_statement(empty_statement);
         CHECK_ERROR(ok);
@@ -628,11 +647,14 @@ bool RecursiveDescentParser::parse_return_statement(ReturnStatementPTNodePtr &no
     ENTER_PARSE_FRAME();
 
     CHECK_TOKEN_AND_CONSUME(lexer::RETURN, "'return'", return_token);
-
-    bool ok;
     AbstractExpressionPTNodePtr expr;
-    ok = parse_expression(expr);
-    CHECK_ERROR(ok);
+
+    UPDATE_TOKEN_LOOKAHEAD();
+    if (token->token_id() != lexer::T) {
+        bool ok;
+        ok = parse_expression(expr);
+        CHECK_ERROR(ok);
+    }
 
     CHECK_TOKEN_AND_CONSUME(lexer::T, "';'", semicolon);
 

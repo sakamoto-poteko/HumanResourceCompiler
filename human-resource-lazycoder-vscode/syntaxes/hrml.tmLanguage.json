@@ -21,7 +21,7 @@
             "patterns": [
                 {
                     "name": "keyword.control.hrml",
-                    "match": "\\b(sub|function|return|if|else|for|while|true|false)\\b"
+                    "match": "\\b(sub|function|return|if|else|for|while|true|false|break|continue)\\b"
                 },
                 {
                     "name": "keyword.other.hrml",

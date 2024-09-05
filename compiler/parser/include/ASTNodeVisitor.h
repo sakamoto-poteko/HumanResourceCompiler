@@ -43,6 +43,8 @@ public:
     virtual int visit(WhileStatementASTNodePtr node) = 0;
     virtual int visit(ForStatementASTNodePtr node) = 0;
     virtual int visit(ReturnStatementASTNodePtr node) = 0;
+    virtual int visit(BreakStatementASTNodePtr node) = 0;
+    virtual int visit(ContinueStatementASTNodePtr node) = 0;
     virtual int visit(StatementBlockASTNodePtr node) = 0;
     virtual int visit(SubprocDefinitionASTNodePtr node) = 0;
     virtual int visit(FunctionDefinitionASTNodePtr node) = 0;

@@ -41,6 +41,7 @@ public:
     void visit(WhileStatementPTNodePtr node) override;
     void visit(ForStatementPTNodePtr node) override;
     void visit(ReturnStatementPTNodePtr node) override;
+    void visit(BreakContinueStatementPTNodePtr node) override;
     void visit(FloorBoxInitStatementPTNodePtr node) override;
     void visit(FloorMaxInitStatementPTNodePtr node) override;
     void visit(EmptyStatementPTNodePtr node) override;

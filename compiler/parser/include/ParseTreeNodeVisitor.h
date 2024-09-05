@@ -32,6 +32,7 @@ public:
     virtual void visit(WhileStatementPTNodePtr node) = 0;
     virtual void visit(ForStatementPTNodePtr node) = 0;
     virtual void visit(ReturnStatementPTNodePtr node) = 0;
+    virtual void visit(BreakContinueStatementPTNodePtr node) = 0;
     virtual void visit(FloorBoxInitStatementPTNodePtr node) = 0;
     virtual void visit(FloorMaxInitStatementPTNodePtr node) = 0;
     virtual void visit(EmptyStatementPTNodePtr node) = 0;
