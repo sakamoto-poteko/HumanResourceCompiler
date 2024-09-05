@@ -1,6 +1,7 @@
 #ifndef ASTNODE_H
 #define ASTNODE_H
 
+#include <map>
 #include <memory>
 #include <optional>
 #include <utility>
@@ -13,6 +14,20 @@
 OPEN_PARSER_NAMESPACE
 
 class ASTNodeVisitor;
+
+class ASTNodeAttribute : public std::enable_shared_from_this<ASTNodeAttribute> {
+public:
+    ASTNodeAttribute() = default;
+    virtual ~ASTNodeAttribute() = default;
+};
+
+enum class ParserASTNodeAttributeId : int {
+    // range 0000-0999
+    // No attributes
+};
+
+using ASTNodeAttributePtr
+    = std::shared_ptr<ASTNodeAttribute>;
 
 class ASTNode : public std::enable_shared_from_this<ASTNode> {
 public:
@@ -36,6 +51,21 @@ public:
 
     int last_colno() const { return _last_colno; }
 
+    ASTNodeAttributePtr get_attribute(int attribute_id) const
+    {
+        auto it = _attributes.find(attribute_id);
+        if (it == _attributes.end()) {
+            return ASTNodeAttributePtr();
+        } else {
+            return it->second;
+        }
+    }
+
+    void set_attribute(int attribute_id, ASTNodeAttributePtr attr)
+    {
+        _attributes[attribute_id] = attr;
+    }
+
 protected:
     template <typename T>
     std::shared_ptr<T> shared_from_this_casted()
@@ -48,6 +78,7 @@ private:
     int _colno;
     int _last_lineno;
     int _last_colno;
+    std::map<int, ASTNodeAttributePtr> _attributes;
 };
 
 class AbstractStatementASTNode : public ASTNode {

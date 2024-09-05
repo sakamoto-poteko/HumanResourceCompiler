@@ -9,5 +9,5 @@ Utilities.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(${PROJECT_NAME} PRIVATE hrc_parser hrc_lexer hrc_util)
+target_link_libraries(${PROJECT_NAME} PRIVATE hrc_semanalyzer hrc_parser hrc_lexer hrc_util)
 target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog_header_only)
