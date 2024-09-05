@@ -101,7 +101,7 @@ std::string ParseTreeNodeGraphvizBuilder::generate_graphviz()
               << dotfile.str()
               << std::endl;
 
-    std::ofstream out("build/out.dot");
+    std::ofstream out("build/pt.dot");
     out << dotfile.str();
     out.close();
 
