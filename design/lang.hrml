@@ -47,4 +47,5 @@ sub start() {
         floor[3] = floor[b] + c;
         outbox(c);
     }
+    return;
 }

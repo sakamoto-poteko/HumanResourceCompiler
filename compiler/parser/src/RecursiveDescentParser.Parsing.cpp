@@ -647,11 +647,14 @@ bool RecursiveDescentParser::parse_return_statement(ReturnStatementPTNodePtr &no
     ENTER_PARSE_FRAME();
 
     CHECK_TOKEN_AND_CONSUME(lexer::RETURN, "'return'", return_token);
-
-    bool ok;
     AbstractExpressionPTNodePtr expr;
-    ok = parse_expression(expr);
-    CHECK_ERROR(ok);
+
+    UPDATE_TOKEN_LOOKAHEAD();
+    if (token->token_id() != lexer::T) {
+        bool ok;
+        ok = parse_expression(expr);
+        CHECK_ERROR(ok);
+    }
 
     CHECK_TOKEN_AND_CONSUME(lexer::T, "';'", semicolon);
 
