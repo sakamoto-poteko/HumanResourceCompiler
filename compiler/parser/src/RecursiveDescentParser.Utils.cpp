@@ -7,10 +7,7 @@
 #include <spdlog/spdlog.h>
 
 #include "ParseTreeNode.h"
-#include "HRLToken.h"
 #include "RecursiveDescentParser.h"
-#include "hrl_global.h"
-#include "lexer_global.h"
 #include "parser_global.h"
 
 OPEN_PARSER_NAMESPACE
@@ -79,15 +76,6 @@ const lexer::TokenPtr &RecursiveDescentParser::lookahead() const
         return _tokens.at(_token_pointer);
     } else {
         return NULL_TOKEN;
-    }
-}
-
-lexer::TokenId RecursiveDescentParser::lookahead_id() const
-{
-    if (_token_pointer < _tokens.size()) {
-        return _tokens.at(_token_pointer)->token_id();
-    } else {
-        return lexer::END;
     }
 }
 

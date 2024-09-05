@@ -49,7 +49,6 @@ class VariableAssignmentStatementPTNode;
 class VariableDeclarationStatementPTNode;
 class InvocationStatementPTNode;
 
-class SubroutinePTNode;
 class SubprocDefinitionPTNode;
 class FunctionDefinitionPTNode;
 

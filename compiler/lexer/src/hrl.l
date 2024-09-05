@@ -59,12 +59,13 @@ for (int i = 0; i < yyleng; ++i) { if (yytext[i] == '\n') { last_token_newline =
 "]"                             { return CLOSE_BRACKET;}
 ","                             { return COMMA;        }
 
-"&"                             { return AND;          }
-"|"                             { return OR;           }
+"&&"                            { return AND;          }
+"||"                            { return OR;           }
 
 "++"                            { return ADDADD;       }
-"+"                             { return ADD;          }
 "--"                            { return SUBSUB;       }
+"!"                             { return NOT;          }
+"+"                             { return ADD;          }
 "-"                             { return SUB;          }
 "*"                             { return MUL;          }
 "/"                             { return DIV;          }

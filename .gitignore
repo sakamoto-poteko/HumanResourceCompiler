@@ -691,3 +691,4 @@ FodyWeavers.xsd
 .idea
 
 build/
+cmake-build*/

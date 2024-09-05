@@ -1,11 +1,10 @@
-#include <cstdlib>
-
 #include <fstream>
 #include <iostream>
 #include <ostream>
 #include <string>
 
 #include <boost/graph/graphviz.hpp>
+#include <utility>
 
 #include "ParseTreeNode.h"
 #include "ParseTreeNodeGraphvizBuilder.h"
@@ -15,6 +14,7 @@ OPEN_PARSER_NAMESPACE
 
 ParseTreeNodeGraphvizBuilder::Vertex ParseTreeNodeGraphvizBuilder::enter_and_create_vertex(const std::string &name, const std::string &value, bool terminal)
 {
+    UNUSED(terminal);
     Vertex vertex = _graph.add_vertex(NodeProperty {
         .name = name,
         .value = value,
@@ -43,8 +43,8 @@ std::string ParseTreeNodeGraphvizBuilder::escape_graphviz(const std::string &tex
 {
     std::string escaped;
 
-    for (auto it = text.begin(); it != text.end(); ++it) {
-        switch (*it) {
+    for (char it : text) {
+        switch (it) {
         case '\\':
             escaped.append("\\\\");
             break;
@@ -55,7 +55,7 @@ std::string ParseTreeNodeGraphvizBuilder::escape_graphviz(const std::string &tex
             escaped.append("\\\"");
             break;
         default:
-            escaped.push_back(*it);
+            escaped.push_back(it);
             break;
         }
     }
@@ -84,10 +84,10 @@ std::string ParseTreeNodeGraphvizBuilder::generate_graphviz()
 
         if (node.terminal) {
             out << "[label=\"" << escape_graphviz(label)
-                << "\" shape=note style=\"filled\" fillcolor=lightcoral fontname=Courier]";
+                << R"(" shape=note style="filled" fillcolor=lightcoral fontname=Courier])";
         } else {
             out << "[label=\"" << escape_graphviz(label)
-                << "\" shape=rect style=\"rounded,filled\" fillcolor=lightgreen fontname=Helvetica]";
+                << R"(" shape=rect style="rounded,filled" fillcolor=lightgreen fontname=Helvetica])";
         } },
         // edge
         [](std::ostream &out, const Edge &e) {
@@ -101,19 +101,15 @@ std::string ParseTreeNodeGraphvizBuilder::generate_graphviz()
               << dotfile.str()
               << std::endl;
 
-    std::ofstream out("build/out.dot");
+    std::ofstream out("build/pt.dot");
     out << dotfile.str();
     out.close();
 
     return dotfile.str();
 }
 
-ParseTreeNodeGraphvizBuilder::ParseTreeNodeGraphvizBuilder(const CompilationUnitPTNodePtr &root)
-    : _root(root)
-{
-}
-
-ParseTreeNodeGraphvizBuilder::~ParseTreeNodeGraphvizBuilder()
+ParseTreeNodeGraphvizBuilder::ParseTreeNodeGraphvizBuilder(CompilationUnitPTNodePtr root)
+    : _root(std::move(root))
 {
 }
 
@@ -382,7 +378,7 @@ void ParseTreeNodeGraphvizBuilder::visit(VariableAssignmentStatementPTNodePtr no
 void ParseTreeNodeGraphvizBuilder::visit(FloorAssignmentStatementPTNodePtr node)
 {
     traverse(node->get_floor_assignment());
-};
+}
 
 void ParseTreeNodeGraphvizBuilder::visit(NegativeExpressionPTNodePtr node)
 {
@@ -410,7 +406,7 @@ void ParseTreeNodeGraphvizBuilder::visit(InvocationStatementPTNodePtr node)
     enter_and_create_vertex(node->type());
     traverse(node->get_expr());
     leave();
-};
+}
 
 CLOSE_PARSER_NAMESPACE
 // end

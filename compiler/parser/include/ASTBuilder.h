@@ -1,11 +1,12 @@
-#ifndef PARSE_TREE_NODE_GRAPHVIZBUILDER_H
-#define PARSE_TREE_NODE_GRAPHVIZBUILDER_H
+#ifndef AST_BUILDER_H
+#define AST_BUILDER_H
+
+#include <cassert>
 
 #include <stack>
-#include <string>
 
-#include <boost/graph/directed_graph.hpp>
-
+#include "ASTNode.h"
+#include "ASTNodeForward.h"
 #include "ParseTreeNode.h"
 #include "ParseTreeNodeForward.h"
 #include "ParseTreeNodeVisitor.h"
@@ -13,22 +14,12 @@
 
 OPEN_PARSER_NAMESPACE
 
-class ParseTreeNodeGraphvizBuilder : public ParseTreeNodeVisitor {
+class ASTBuilder : public ParseTreeNodeVisitor {
 public:
-    explicit ParseTreeNodeGraphvizBuilder(CompilationUnitPTNodePtr root);
-    ~ParseTreeNodeGraphvizBuilder() override = default;
+    explicit ASTBuilder(CompilationUnitPTNodePtr root);
+    ~ASTBuilder() override = default;
 
-    struct NodeProperty {
-        std::string name;
-        std::string value;
-        bool terminal;
-    };
-
-    using Graph = boost::directed_graph<NodeProperty>;
-    using Vertex = Graph::vertex_descriptor;
-    using Edge = Graph::edge_descriptor;
-
-    virtual std::string generate_graphviz();
+    bool build(CompilationUnitASTNodePtr &result);
 
     void visit(IdentifierPTNodePtr node) override;
     void visit(IntegerLiteralPTNodePtr node) override;
@@ -64,32 +55,31 @@ public:
     void visit(CompilationUnitPTNodePtr node) override;
 
 protected:
-    std::stack<Vertex> _ancestors;
-    Graph _graph;
     CompilationUnitPTNodePtr _root;
+    std::stack<ASTNodePtr> _result_stack;
 
-    Vertex enter_and_create_vertex(const std::string &name, bool terminal = false);
-    Vertex enter_and_create_vertex(const std::string &name, const std::string &value, bool terminal = false);
-    virtual void leave();
-
-    static std::string escape_graphviz(const std::string &text);
-
-    template <typename Container>
-        requires std::ranges::range<Container> && convertible_to_ParseTreeNodePtr<std::ranges::range_value_t<Container>>
-    void traverse(const Container &nodes)
+    template <typename ASTNodePtrT, typename ParseTreeNodePtrT>
+        requires convertible_to_ASTNodePtr<ASTNodePtrT> && convertible_to_ParseTreeNodePtr<ParseTreeNodePtrT>
+    inline ASTNodePtrT visit_and_cast(ParseTreeNodePtrT target)
     {
-        for (const auto &node : nodes) {
-            node->accept(this);
+        using ElementType = typename ASTNodePtrT::element_type;
+
+        if (target) {
+            target->accept(this);
+            auto top = _result_stack.top();
+            ASTNodePtrT result = std::dynamic_pointer_cast<ElementType>(top);
+            assert(result);
+            _result_stack.pop();
+            return result;
+        } else {
+            return ASTNodePtrT();
         }
     }
 
-    template <typename T>
-        requires convertible_to_ParseTreeNodePtr<T>
-    void traverse(const T &node)
+    static IntegerASTNodePtr make_literal_node(const IntegerLiteralPTNodePtr &node)
     {
-        if (node) {
-            node->accept(this);
-        }
+        IntegerASTNodePtr val_expr = std::make_shared<IntegerASTNode>(node->lineno(), node->colno(), node->lineno(), node->lineno() + node->get_token()->width(), node->get_value());
+        return val_expr;
     }
 
 private:

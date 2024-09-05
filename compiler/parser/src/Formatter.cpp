@@ -14,9 +14,9 @@
 
 #include <spdlog/spdlog.h>
 
+#include "Formatter.h"
 #include "ParseTreeNode.h"
 #include "ParseTreeNodeForward.h"
-#include "Formatter.h"
 #include "hrl_global.h"
 #include "lexer_global.h"
 #include "lexer_helper.h"

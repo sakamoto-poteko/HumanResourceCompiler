@@ -5,8 +5,8 @@
 #include <utility>
 #include <vector>
 
-#include "ParseTreeNodeForward.h"
 #include "HRLToken.h"
+#include "ParseTreeNodeForward.h"
 #include "hrl_global.h"
 #include "lexer_global.h"
 #include "parser_global.h"
@@ -27,15 +27,9 @@ public:
 
     virtual void accept(ParseTreeNodeVisitor *visitor) = 0;
 
-    int lineno()
-    {
-        return _lineno;
-    }
+    int lineno() const { return _lineno; }
 
-    int colno()
-    {
-        return _colno;
-    }
+    int colno() const { return _colno; }
 
     virtual const char *type() = 0;
 
@@ -77,7 +71,7 @@ public:
 // Terminal Nodes
 class IdentifierPTNode : public AbstractPrimaryExpressionPTNode {
 public:
-    IdentifierPTNode(const lexer::IdentifierTokenPtr &token)
+    explicit IdentifierPTNode(const lexer::IdentifierTokenPtr &token)
         : AbstractPrimaryExpressionPTNode(token->lineno(), token->colno())
         , _name(token->get_value())
         , _token(token)
@@ -99,7 +93,7 @@ private:
 
 class IntegerLiteralPTNode : public AbstractPrimaryExpressionPTNode {
 public:
-    IntegerLiteralPTNode(const lexer::IntegerTokenPtr &token)
+    explicit IntegerLiteralPTNode(const lexer::IntegerTokenPtr &token)
         : AbstractPrimaryExpressionPTNode(token->lineno(), token->colno())
         , _value(token->get_value())
         , _token(token)
@@ -121,7 +115,7 @@ private:
 
 class BooleanLiteralPTNode : public AbstractPrimaryExpressionPTNode {
 public:
-    BooleanLiteralPTNode(const lexer::BooleanTokenPtr &token)
+    explicit BooleanLiteralPTNode(const lexer::BooleanTokenPtr &token)
         : AbstractPrimaryExpressionPTNode(token->lineno(), token->colno())
         , _value(token->get_value())
         , _token(token)
@@ -143,7 +137,7 @@ private:
 
 class BinaryOperatorPTNode : public ParseTreeNode {
 public:
-    BinaryOperatorPTNode(const lexer::TokenPtr &token)
+    explicit BinaryOperatorPTNode(const lexer::TokenPtr &token)
         : ParseTreeNode(token->lineno(), token->colno())
         , _op(get_binary_operator_from_token_id(token->token_id()))
         , _token(token)
@@ -160,15 +154,12 @@ public:
 
         AND,
         OR,
-        NOT,
 
         ADD,
         SUB,
         MUL,
         DIV,
         MOD,
-
-        EQ,
     };
 
     static const char *get_binary_operator_string(BinaryOperator op)
@@ -190,8 +181,6 @@ public:
             return "AND";
         case OR:
             return "OR";
-        case NOT:
-            return "NOT";
         case ADD:
             return "ADD";
         case SUB:
@@ -202,8 +191,6 @@ public:
             return "DIV";
         case MOD:
             return "MOD";
-        case EQ:
-            return "EQ";
         default:
             return "Unknown";
         }
@@ -229,8 +216,6 @@ public:
             return AND;
         case lexer::TokenId::OR:
             return OR;
-        case lexer::TokenId::NOT:
-            return NOT;
         case lexer::TokenId::ADD:
             return ADD;
         case lexer::TokenId::SUB:
@@ -818,6 +803,8 @@ public:
         }
     }
 
+    bool is_init_stmt_decl() { return _init_stmt_declaration.operator bool(); }
+
     AbstractExpressionPTNodePtr get_condition() const { return _condition; }
 
     AbstractExpressionPTNodePtr get_update_stmt() const { return _update_stmt; }
@@ -1245,7 +1232,10 @@ private:
 };
 
 template <typename T>
-concept convertible_to_ParseTreeNodePtr = std::convertible_to<T, ParseTreePTNodePtr>;
+concept convertible_to_ParseTreeNodePtr = requires {
+    typename T::element_type;
+    requires std::convertible_to<T, ParseTreePTNodePtr> && std::is_same_v<T, std::shared_ptr<typename T::element_type>>;
+};
 
 CLOSE_PARSER_NAMESPACE
 

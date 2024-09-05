@@ -1,12 +1,14 @@
 #include <cstdlib>
 #include <spdlog/spdlog.h>
 
-#include "ParseTreeNodeForward.h"
-#include "ParseTreeNodeGraphvizBuilder.h"
+#include "ASTBuilder.h"
+#include "ASTNodeGraphvizBuilder.h"
 #include "CompilerOptions.h"
 #include "FileManager.h"
 #include "Formatter.h"
 #include "HRLLexer.h"
+#include "ParseTreeNodeForward.h"
+#include "ParseTreeNodeGraphvizBuilder.h"
 #include "RecursiveDescentParser.h"
 #include "TerminalColor.h"
 #include "Utilities.h"
@@ -66,6 +68,16 @@ int main(int argc, char **argv)
 
     hrl::parser::ParseTreeNodeFormatterVisitor formatter;
     // formatter.format(compilation_unit); // Format not yet supported
+
+    hrl::parser::CompilationUnitASTNodePtr ast;
+    hrl::parser::ASTBuilder builder(compilation_unit);
+    if (!builder.build(ast)) {
+        spdlog::error("Error occured during AST construction");
+        abort();
+    }
+
+    hrl::parser::ASTNodeGraphvizBuilder graphviz_ast(ast);
+    graphviz_ast.generate_graphviz();
 
     return 0;
 }

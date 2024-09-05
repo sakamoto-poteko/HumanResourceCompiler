@@ -33,7 +33,7 @@ sub start() {
         let b = inbox();
         if (a > b) {
             outbox(a);
-        } else if (a == b){
+        } else if (a == b && !(a != 0 || b > 5)){
             outbox(b);
         } else
             outbox(0);
