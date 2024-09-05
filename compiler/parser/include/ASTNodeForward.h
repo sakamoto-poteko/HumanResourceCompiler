@@ -17,6 +17,7 @@ class VariableAssignmentASTNode;
 class VariableAccessASTNode;
 class FloorAssignmentASTNode;
 class FloorAccessASTNode;
+class EmptyStatementASTNode;
 
 // class PositiveExpressionASTNode;
 class AbstractExpressionASTNode;
@@ -58,7 +59,6 @@ class FloorBoxInitStatementASTNode;
 class FloorMaxInitStatementASTNode;
 class StatementBlockASTNode;
 
-class SubroutineASTNode;
 class SubprocDefinitionASTNode;
 class FunctionDefinitionASTNode;
 
@@ -99,7 +99,7 @@ using AndExpressionASTNodePtr = std::shared_ptr<AndExpressionASTNode>;
 using OrExpressionASTNodePtr = std::shared_ptr<OrExpressionASTNode>;
 
 using InvocationExpressionASTNodePtr = std::shared_ptr<InvocationExpressionASTNode>;
-
+using EmptyStatementASTNodePtr = std::shared_ptr<EmptyStatementASTNode>;
 using AbstractStatementASTNodePtr = std::shared_ptr<AbstractStatementASTNode>;
 using AbstractEmbeddedStatementASTNodePtr = std::shared_ptr<AbstractEmbeddedStatementASTNode>;
 using AbstractSelectionStatementASTNodePtr = std::shared_ptr<AbstractSelectionStatementASTNode>;
@@ -112,10 +112,9 @@ using WhileStatementASTNodePtr = std::shared_ptr<WhileStatementASTNode>;
 using ForStatementASTNodePtr = std::shared_ptr<ForStatementASTNode>;
 using ReturnStatementASTNodePtr = std::shared_ptr<ReturnStatementASTNode>;
 using FloorBoxInitStatementASTNodePtr = std::shared_ptr<FloorBoxInitStatementASTNode>;
-using FloorMaxInitStatementASTNodePtr = std::shared_ptr<FloorMaxInitStatementASTNode>;
 using StatementBlockASTNodePtr = std::shared_ptr<StatementBlockASTNode>;
 
-using SubroutineASTNodePtr = std::shared_ptr<SubroutineASTNode>;
+using AbstractSubroutineASTNodePtr = std::shared_ptr<AbstractSubroutineASTNode>;
 using SubprocDefinitionASTNodePtr = std::shared_ptr<SubprocDefinitionASTNode>;
 using FunctionDefinitionASTNodePtr = std::shared_ptr<FunctionDefinitionASTNode>;
 

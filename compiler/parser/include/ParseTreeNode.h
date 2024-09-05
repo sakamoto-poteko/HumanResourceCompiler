@@ -5,8 +5,8 @@
 #include <utility>
 #include <vector>
 
-#include "ParseTreeNodeForward.h"
 #include "HRLToken.h"
+#include "ParseTreeNodeForward.h"
 #include "hrl_global.h"
 #include "lexer_global.h"
 #include "parser_global.h"
@@ -160,15 +160,12 @@ public:
 
         AND,
         OR,
-        NOT,
 
         ADD,
         SUB,
         MUL,
         DIV,
         MOD,
-
-        EQ,
     };
 
     static const char *get_binary_operator_string(BinaryOperator op)
@@ -190,8 +187,6 @@ public:
             return "AND";
         case OR:
             return "OR";
-        case NOT:
-            return "NOT";
         case ADD:
             return "ADD";
         case SUB:
@@ -202,8 +197,6 @@ public:
             return "DIV";
         case MOD:
             return "MOD";
-        case EQ:
-            return "EQ";
         default:
             return "Unknown";
         }
@@ -229,8 +222,6 @@ public:
             return AND;
         case lexer::TokenId::OR:
             return OR;
-        case lexer::TokenId::NOT:
-            return NOT;
         case lexer::TokenId::ADD:
             return ADD;
         case lexer::TokenId::SUB:
@@ -818,6 +809,8 @@ public:
         }
     }
 
+    bool is_init_stmt_decl() { return _init_stmt_declaration.operator bool(); }
+
     AbstractExpressionPTNodePtr get_condition() const { return _condition; }
 
     AbstractExpressionPTNodePtr get_update_stmt() const { return _update_stmt; }
@@ -1245,7 +1238,10 @@ private:
 };
 
 template <typename T>
-concept convertible_to_ParseTreeNodePtr = std::convertible_to<T, ParseTreePTNodePtr>;
+concept convertible_to_ParseTreeNodePtr = requires {
+    typename T::element_type;
+    requires std::convertible_to<T, ParseTreePTNodePtr> && std::is_same_v<T, std::shared_ptr<typename T::element_type>>;
+};
 
 CLOSE_PARSER_NAMESPACE
 

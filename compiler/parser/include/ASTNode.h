@@ -2,16 +2,12 @@
 #define ASTNODE_H
 
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include "ASTNodeForward.h"
-#include "ParseTreeNodeForward.h"
 #include "hrl_global.h"
 #include "parser_global.h"
-
-#define VISIT_NODE(x) \
-    (void)(x);        \
-    return 0; // nothing
 
 OPEN_PARSER_NAMESPACE
 
@@ -19,10 +15,11 @@ class ASTNodeVisitor;
 
 class ASTNode : public std::enable_shared_from_this<ASTNode> {
 public:
-    ASTNode(int lineno, int colno, int width)
+    ASTNode(int lineno, int colno, int last_lineno, int last_colno)
         : _lineno(lineno)
         , _colno(colno)
-        , _width(width)
+        , _last_lineno(last_lineno)
+        , _last_colno(last_colno)
     {
     }
 
@@ -34,20 +31,45 @@ public:
 
     int colno() { return _colno; }
 
-    int width() { return _width; }
+    int last_lineno() { return _last_lineno; }
+
+    int last_colno() { return _last_colno; }
 
 protected:
+    template <typename T>
+    std::shared_ptr<T> shared_from_this_casted()
+    {
+        return std::static_pointer_cast<T>(shared_from_this());
+    }
+
 private:
     int _lineno;
     int _colno;
-    int _width;
+    int _last_lineno;
+    int _last_colno;
+};
+
+class AbstractStatementASTNode : public ASTNode {
+public:
+    AbstractStatementASTNode(int lineno, int colno, int last_lineno, int last_colno)
+        : ASTNode(lineno, colno, last_lineno, last_colno)
+    {
+    }
+};
+
+class AbstractEmbeddedStatementASTNode : public AbstractStatementASTNode {
+public:
+    AbstractEmbeddedStatementASTNode(int lineno, int colno, int last_lineno, int last_colno)
+        : AbstractStatementASTNode(lineno, colno, last_lineno, last_colno)
+    {
+    }
 };
 
 // AbstractExpressionASTNode
-class AbstractExpressionASTNode : public ASTNode {
+class AbstractExpressionASTNode : public AbstractEmbeddedStatementASTNode {
 public:
-    AbstractExpressionASTNode(int lineno, int colno, int width)
-        : ASTNode(lineno, colno, width)
+    AbstractExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno)
+        : AbstractEmbeddedStatementASTNode(lineno, colno, last_lineno, last_colno)
     {
     }
 };
@@ -55,8 +77,8 @@ public:
 // AbstractUnaryExpressionASTNode
 class AbstractUnaryExpressionASTNode : public AbstractExpressionASTNode {
 public:
-    AbstractUnaryExpressionASTNode(int lineno, int colno, int width)
-        : AbstractExpressionASTNode(lineno, colno, width)
+    AbstractUnaryExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno)
+        : AbstractExpressionASTNode(lineno, colno, last_lineno, last_colno)
     {
     }
 
@@ -67,8 +89,8 @@ private:
 // AbstractPrimaryExpressionASTNode
 class AbstractPrimaryExpressionASTNode : public AbstractExpressionASTNode {
 public:
-    AbstractPrimaryExpressionASTNode(int lineno, int colno, int width)
-        : AbstractExpressionASTNode(lineno, colno, width)
+    AbstractPrimaryExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno)
+        : AbstractExpressionASTNode(lineno, colno, last_lineno, last_colno)
     {
     }
 };
@@ -76,8 +98,8 @@ public:
 // AbstractBinaryExpressionASTNode
 class AbstractBinaryExpressionASTNode : public AbstractExpressionASTNode {
 public:
-    AbstractBinaryExpressionASTNode(int lineno, int colno, int width, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
-        : AbstractExpressionASTNode(lineno, colno, width)
+    AbstractBinaryExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
+        : AbstractExpressionASTNode(lineno, colno, last_lineno, last_colno)
         , _left(left)
         , _right(right)
     {
@@ -93,33 +115,35 @@ private:
     AbstractExpressionASTNodePtr _right;
 };
 
-class AbstractStatementASTNode : public ASTNode {
-public:
-    AbstractStatementASTNode(int lineno, int colno, int width)
-        : ASTNode(lineno, colno, width)
-    {
-    }
-};
-
 class AbstractSubroutineASTNode : public ASTNode {
 public:
-    AbstractSubroutineASTNode(int lineno, int colno, int width)
-        : ASTNode(lineno, colno, width)
+    AbstractSubroutineASTNode(int lineno, int colno, int last_lineno, int last_colno)
+        : ASTNode(lineno, colno, last_lineno, last_colno)
     {
     }
 };
 
-class IntegerASTNode : public ASTNode {
+class EmptyStatementASTNode : public AbstractEmbeddedStatementASTNode {
 public:
-    IntegerASTNode(int lineno, int colno, int width, int value)
-        : ASTNode(lineno, colno, width)
+    EmptyStatementASTNode(int lineno, int colno, int last_lineno, int last_colno)
+        : AbstractEmbeddedStatementASTNode(lineno, colno, last_lineno, last_colno)
+    {
+    }
+
+    int accept(ASTNodeVisitor *visitor) override;
+};
+
+class IntegerASTNode : public AbstractPrimaryExpressionASTNode {
+public:
+    IntegerASTNode(int lineno, int colno, int last_lineno, int last_colno, int value)
+        : AbstractPrimaryExpressionASTNode(lineno, colno, last_lineno, last_colno)
         , _value(value)
     {
     }
 
     int accept(ASTNodeVisitor *visitor) override;
 
-    int get_value();
+    int get_value() { return _value; }
 
 protected:
 private:
@@ -127,10 +151,10 @@ private:
 };
 
 // BooleanASTNode
-class BooleanASTNode : public ASTNode {
+class BooleanASTNode : public AbstractPrimaryExpressionASTNode {
 public:
-    BooleanASTNode(int lineno, int colno, int width, bool value)
-        : ASTNode(lineno, colno, width)
+    BooleanASTNode(int lineno, int colno, int last_lineno, int last_colno, bool value)
+        : AbstractPrimaryExpressionASTNode(lineno, colno, last_lineno, last_colno)
         , _value(value)
     {
     }
@@ -145,10 +169,10 @@ private:
 };
 
 // VariableDeclarationASTNode
-class VariableDeclarationASTNode : public ASTNode {
+class VariableDeclarationASTNode : public AbstractStatementASTNode {
 public:
-    VariableDeclarationASTNode(int lineno, int colno, int width, StringPtr name, VariableAssignmentASTNodePtr assignment)
-        : ASTNode(lineno, colno, width)
+    VariableDeclarationASTNode(int lineno, int colno, int last_lineno, int last_colno, StringPtr name, VariableAssignmentASTNodePtr assignment)
+        : AbstractStatementASTNode(lineno, colno, last_lineno, last_colno)
         , _name(name)
         , _assignment(assignment)
     {
@@ -167,10 +191,10 @@ private:
 };
 
 // VariableAssignmentASTNode
-class VariableAssignmentASTNode : public ASTNode {
+class VariableAssignmentASTNode : public AbstractEmbeddedStatementASTNode {
 public:
-    VariableAssignmentASTNode(int lineno, int colno, int width, StringPtr name, AbstractExpressionASTNodePtr value)
-        : ASTNode(lineno, colno, width)
+    VariableAssignmentASTNode(int lineno, int colno, int last_lineno, int last_colno, StringPtr name, AbstractExpressionASTNodePtr value)
+        : AbstractEmbeddedStatementASTNode(lineno, colno, last_lineno, last_colno)
         , _name(name)
         , _value(value)
     {
@@ -191,8 +215,8 @@ private:
 // VariableAccessASTNode
 class VariableAccessASTNode : public AbstractPrimaryExpressionASTNode {
 public:
-    VariableAccessASTNode(int lineno, int colno, int width, StringPtr name)
-        : AbstractPrimaryExpressionASTNode(lineno, colno, width)
+    VariableAccessASTNode(int lineno, int colno, int last_lineno, int last_colno, StringPtr name)
+        : AbstractPrimaryExpressionASTNode(lineno, colno, last_lineno, last_colno)
         , _name(name)
     {
     }
@@ -206,11 +230,27 @@ private:
     StringPtr _name;
 };
 
-// FloorAssignmentASTNode
-class FloorAssignmentASTNode : public ASTNode {
+class FloorBoxInitStatementASTNode : public ASTNode {
 public:
-    FloorAssignmentASTNode(int lineno, int colno, int width, int floor_number, AbstractExpressionASTNodePtr value)
-        : ASTNode(lineno, colno, width)
+    FloorBoxInitStatementASTNode(int lineno, int colno, int last_lineno, int last_colno, FloorAssignmentASTNodePtr assignment)
+        : ASTNode(lineno, colno, last_lineno, last_colno)
+        , _assignment(assignment)
+    {
+    }
+
+    int accept(ASTNodeVisitor *visitor) override;
+
+    FloorAssignmentASTNodePtr get_assignment() { return _assignment; }
+
+private:
+    FloorAssignmentASTNodePtr _assignment;
+};
+
+// FloorAssignmentASTNode
+class FloorAssignmentASTNode : public AbstractEmbeddedStatementASTNode {
+public:
+    FloorAssignmentASTNode(int lineno, int colno, int last_lineno, int last_colno, AbstractExpressionASTNodePtr floor_number, AbstractExpressionASTNodePtr value)
+        : AbstractEmbeddedStatementASTNode(lineno, colno, last_lineno, last_colno)
         , _floor_number(floor_number)
         , _value(value)
     {
@@ -218,39 +258,40 @@ public:
 
     int accept(ASTNodeVisitor *visitor) override;
 
-    int get_floor_number() { return _floor_number; }
+    AbstractExpressionASTNodePtr get_floor_number() { return _floor_number; }
 
     AbstractExpressionASTNodePtr get_value() { return _value; }
 
 protected:
 private:
-    int _floor_number;
+    AbstractExpressionASTNodePtr _floor_number;
     AbstractExpressionASTNodePtr _value;
 };
 
 // FloorAccessASTNode
-class FloorAccessASTNode : public ASTNode {
+class FloorAccessASTNode : public AbstractPrimaryExpressionASTNode {
 public:
-    FloorAccessASTNode(int lineno, int colno, int width, int floor_number)
-        : ASTNode(lineno, colno, width)
-        , _floor_number(floor_number)
+    FloorAccessASTNode(int lineno, int colno, int last_lineno, int last_colno, AbstractExpressionASTNodePtr index_expr)
+        : AbstractPrimaryExpressionASTNode(lineno, colno, last_lineno, last_colno)
+        , _index_expr(index_expr)
     {
     }
 
     int accept(ASTNodeVisitor *visitor) override;
 
-    int get_floor_number() { return _floor_number; }
+    AbstractExpressionASTNodePtr get_index_expr() { return _index_expr; }
 
 protected:
 private:
-    int _floor_number;
+    AbstractExpressionASTNodePtr _index_expr;
 };
 
 // NegativeExpressionASTNode
 class NegativeExpressionASTNode : public AbstractUnaryExpressionASTNode {
 public:
-    NegativeExpressionASTNode(int lineno, int colno, int width, AbstractExpressionASTNodePtr operand)
-        : AbstractUnaryExpressionASTNode(lineno, colno, width)
+    NegativeExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno, AbstractExpressionASTNodePtr operand)
+        : AbstractUnaryExpressionASTNode(lineno, colno, last_lineno, last_colno)
+        , _operand(operand)
     {
     }
 
@@ -265,12 +306,13 @@ private:
 // NotExpressionASTNode
 class NotExpressionASTNode : public AbstractUnaryExpressionASTNode {
 public:
-    NotExpressionASTNode(int lineno, int colno, int width, AbstractExpressionASTNodePtr operand)
-        : AbstractUnaryExpressionASTNode(lineno, colno, width)
+    NotExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno, AbstractExpressionASTNodePtr operand)
+        : AbstractUnaryExpressionASTNode(lineno, colno, last_lineno, last_colno)
+        , _operand(operand)
     {
     }
 
-    int accept(ASTNodeVisitor *visitor) override { VISIT_NODE(visitor); }
+    int accept(ASTNodeVisitor *visitor) override;
 
     AbstractExpressionASTNodePtr get_operand() { return _operand; }
 
@@ -281,8 +323,8 @@ private:
 // IncrementExpressionASTNode
 class IncrementExpressionASTNode : public AbstractUnaryExpressionASTNode {
 public:
-    IncrementExpressionASTNode(int lineno, int colno, int width, StringPtr var_name)
-        : AbstractUnaryExpressionASTNode(lineno, colno, width)
+    IncrementExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno, StringPtr var_name)
+        : AbstractUnaryExpressionASTNode(lineno, colno, last_lineno, last_colno)
         , _var_name(var_name)
     {
     }
@@ -298,8 +340,8 @@ private:
 // DecrementExpressionASTNode
 class DecrementExpressionASTNode : public AbstractUnaryExpressionASTNode {
 public:
-    DecrementExpressionASTNode(int lineno, int colno, int width, StringPtr var_name)
-        : AbstractUnaryExpressionASTNode(lineno, colno, width)
+    DecrementExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno, StringPtr var_name)
+        : AbstractUnaryExpressionASTNode(lineno, colno, last_lineno, last_colno)
         , _var_name(var_name)
     {
     }
@@ -315,8 +357,8 @@ private:
 // AddExpressionASTNode
 class AddExpressionASTNode : public AbstractBinaryExpressionASTNode {
 public:
-    AddExpressionASTNode(int lineno, int colno, int width, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
-        : AbstractBinaryExpressionASTNode(lineno, colno, width, left, right)
+    AddExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
+        : AbstractBinaryExpressionASTNode(lineno, colno, last_lineno, last_colno, left, right)
     {
     }
 
@@ -326,8 +368,8 @@ public:
 // SubExpressionASTNode
 class SubExpressionASTNode : public AbstractBinaryExpressionASTNode {
 public:
-    SubExpressionASTNode(int lineno, int colno, int width, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
-        : AbstractBinaryExpressionASTNode(lineno, colno, width, left, right)
+    SubExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
+        : AbstractBinaryExpressionASTNode(lineno, colno, last_lineno, last_colno, left, right)
     {
     }
 
@@ -337,8 +379,8 @@ public:
 // MulExpressionASTNode
 class MulExpressionASTNode : public AbstractBinaryExpressionASTNode {
 public:
-    MulExpressionASTNode(int lineno, int colno, int width, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
-        : AbstractBinaryExpressionASTNode(lineno, colno, width, left, right)
+    MulExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
+        : AbstractBinaryExpressionASTNode(lineno, colno, last_lineno, last_colno, left, right)
     {
     }
 
@@ -348,8 +390,8 @@ public:
 // DivExpressionASTNode
 class DivExpressionASTNode : public AbstractBinaryExpressionASTNode {
 public:
-    DivExpressionASTNode(int lineno, int colno, int width, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
-        : AbstractBinaryExpressionASTNode(lineno, colno, width, left, right)
+    DivExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
+        : AbstractBinaryExpressionASTNode(lineno, colno, last_lineno, last_colno, left, right)
     {
     }
 
@@ -359,8 +401,8 @@ public:
 // ModExpressionASTNode
 class ModExpressionASTNode : public AbstractBinaryExpressionASTNode {
 public:
-    ModExpressionASTNode(int lineno, int colno, int width, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
-        : AbstractBinaryExpressionASTNode(lineno, colno, width, left, right)
+    ModExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
+        : AbstractBinaryExpressionASTNode(lineno, colno, last_lineno, last_colno, left, right)
     {
     }
 
@@ -370,8 +412,8 @@ public:
 // EqualExpressionASTNode
 class EqualExpressionASTNode : public AbstractBinaryExpressionASTNode {
 public:
-    EqualExpressionASTNode(int lineno, int colno, int width, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
-        : AbstractBinaryExpressionASTNode(lineno, colno, width, left, right)
+    EqualExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
+        : AbstractBinaryExpressionASTNode(lineno, colno, last_lineno, last_colno, left, right)
     {
     }
 
@@ -381,8 +423,8 @@ public:
 // NotEqualExpressionASTNode
 class NotEqualExpressionASTNode : public AbstractBinaryExpressionASTNode {
 public:
-    NotEqualExpressionASTNode(int lineno, int colno, int width, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
-        : AbstractBinaryExpressionASTNode(lineno, colno, width, left, right)
+    NotEqualExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
+        : AbstractBinaryExpressionASTNode(lineno, colno, last_lineno, last_colno, left, right)
     {
     }
 
@@ -392,8 +434,8 @@ public:
 // GreaterThanExpressionASTNode
 class GreaterThanExpressionASTNode : public AbstractBinaryExpressionASTNode {
 public:
-    GreaterThanExpressionASTNode(int lineno, int colno, int width, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
-        : AbstractBinaryExpressionASTNode(lineno, colno, width, left, right)
+    GreaterThanExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
+        : AbstractBinaryExpressionASTNode(lineno, colno, last_lineno, last_colno, left, right)
     {
     }
 
@@ -403,8 +445,8 @@ public:
 // GreaterEqualExpressionASTNode
 class GreaterEqualExpressionASTNode : public AbstractBinaryExpressionASTNode {
 public:
-    GreaterEqualExpressionASTNode(int lineno, int colno, int width, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
-        : AbstractBinaryExpressionASTNode(lineno, colno, width, left, right)
+    GreaterEqualExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
+        : AbstractBinaryExpressionASTNode(lineno, colno, last_lineno, last_colno, left, right)
     {
     }
 
@@ -414,8 +456,8 @@ public:
 // LessThanExpressionASTNode
 class LessThanExpressionASTNode : public AbstractBinaryExpressionASTNode {
 public:
-    LessThanExpressionASTNode(int lineno, int colno, int width, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
-        : AbstractBinaryExpressionASTNode(lineno, colno, width, left, right)
+    LessThanExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
+        : AbstractBinaryExpressionASTNode(lineno, colno, last_lineno, last_colno, left, right)
     {
     }
 
@@ -425,8 +467,8 @@ public:
 // LessEqualExpressionASTNode
 class LessEqualExpressionASTNode : public AbstractBinaryExpressionASTNode {
 public:
-    LessEqualExpressionASTNode(int lineno, int colno, int width, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
-        : AbstractBinaryExpressionASTNode(lineno, colno, width, left, right)
+    LessEqualExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
+        : AbstractBinaryExpressionASTNode(lineno, colno, last_lineno, last_colno, left, right)
     {
     }
 
@@ -436,8 +478,8 @@ public:
 // AndExpressionASTNode
 class AndExpressionASTNode : public AbstractBinaryExpressionASTNode {
 public:
-    AndExpressionASTNode(int lineno, int colno, int width, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
-        : AbstractBinaryExpressionASTNode(lineno, colno, width, left, right)
+    AndExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
+        : AbstractBinaryExpressionASTNode(lineno, colno, last_lineno, last_colno, left, right)
     {
     }
 
@@ -447,8 +489,8 @@ public:
 // OrExpressionASTNode
 class OrExpressionASTNode : public AbstractBinaryExpressionASTNode {
 public:
-    OrExpressionASTNode(int lineno, int colno, int width, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
-        : AbstractBinaryExpressionASTNode(lineno, colno, width, left, right)
+    OrExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
+        : AbstractBinaryExpressionASTNode(lineno, colno, last_lineno, last_colno, left, right)
     {
     }
 
@@ -458,8 +500,8 @@ public:
 // InvocationExpressionASTNode
 class InvocationExpressionASTNode : public AbstractPrimaryExpressionASTNode {
 public:
-    InvocationExpressionASTNode(int lineno, int colno, int width, StringPtr func_name, AbstractExpressionASTNodePtr arg)
-        : AbstractPrimaryExpressionASTNode(lineno, colno, width)
+    InvocationExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno, StringPtr func_name, AbstractExpressionASTNodePtr arg)
+        : AbstractPrimaryExpressionASTNode(lineno, colno, last_lineno, last_colno)
         , _func_name(func_name)
         , _args(arg)
     {
@@ -477,11 +519,28 @@ private:
     AbstractExpressionASTNodePtr _args;
 };
 
-// IfStatementASTNode
-class IfStatementASTNode : public AbstractStatementASTNode {
+class InvocationStatementASTNode : public AbstractEmbeddedStatementASTNode {
 public:
-    IfStatementASTNode(int lineno, int colno, int width, AbstractExpressionASTNodePtr condition, StatementsVector then_branch, StatementsVector else_branch)
-        : AbstractStatementASTNode(lineno, colno, width)
+    InvocationStatementASTNode(InvocationExpressionASTNodePtr invocation)
+        : AbstractEmbeddedStatementASTNode(invocation->last_lineno(), invocation->colno(), invocation->last_lineno(), invocation->last_colno())
+        , _invocation(invocation)
+    {
+    }
+
+    int accept(ASTNodeVisitor *visitor) override;
+
+    InvocationExpressionASTNodePtr get_invocation() { return _invocation; }
+
+protected:
+private:
+    InvocationExpressionASTNodePtr _invocation;
+};
+
+// IfStatementASTNode
+class IfStatementASTNode : public AbstractEmbeddedStatementASTNode {
+public:
+    IfStatementASTNode(int lineno, int colno, int last_lineno, int last_colno, AbstractExpressionASTNodePtr condition, AbstractEmbeddedStatementASTNodePtr then_branch, AbstractEmbeddedStatementASTNodePtr else_branch)
+        : AbstractEmbeddedStatementASTNode(lineno, colno, last_lineno, last_colno)
         , _condition(condition)
         , _then_branch(then_branch)
         , _else_branch(else_branch)
@@ -490,24 +549,24 @@ public:
 
     int accept(ASTNodeVisitor *visitor) override;
 
-    AbstractExpressionASTNodePtr get_condition() { return _condition; }
+    AbstractExpressionASTNodePtr get_condition() const { return _condition; }
 
-    const StatementsVector &get_then_branch() const { return _then_branch; }
+    AbstractEmbeddedStatementASTNodePtr get_then_branch() const { return _then_branch; }
 
-    const StatementsVector &get_else_branch() const { return _else_branch; }
+    AbstractEmbeddedStatementASTNodePtr get_else_branch() const { return _else_branch; }
 
 protected:
 private:
     AbstractExpressionASTNodePtr _condition;
-    StatementsVector _then_branch;
-    StatementsVector _else_branch;
+    AbstractEmbeddedStatementASTNodePtr _then_branch;
+    AbstractEmbeddedStatementASTNodePtr _else_branch;
 };
 
 // WhileStatementASTNode
-class WhileStatementASTNode : public AbstractStatementASTNode {
+class WhileStatementASTNode : public AbstractEmbeddedStatementASTNode {
 public:
-    WhileStatementASTNode(int lineno, int colno, int width, AbstractExpressionASTNodePtr condition, StatementsVector body)
-        : AbstractStatementASTNode(lineno, colno, width)
+    WhileStatementASTNode(int lineno, int colno, int last_lineno, int last_colno, AbstractExpressionASTNodePtr condition, AbstractEmbeddedStatementASTNodePtr body)
+        : AbstractEmbeddedStatementASTNode(lineno, colno, last_lineno, last_colno)
         , _condition(condition)
         , _body(body)
     {
@@ -517,20 +576,20 @@ public:
 
     AbstractExpressionASTNodePtr get_condition() { return _condition; }
 
-    StatementsVector get_body() { return _body; }
+    AbstractEmbeddedStatementASTNodePtr get_body() { return _body; }
 
 protected:
 private:
     AbstractExpressionASTNodePtr _condition;
-    StatementsVector _body;
+    AbstractEmbeddedStatementASTNodePtr _body;
 };
 
 // ForStatementASTNode
-class ForStatementASTNode : public AbstractStatementASTNode {
+class ForStatementASTNode : public AbstractEmbeddedStatementASTNode {
 public:
-    ForStatementASTNode(int lineno, int colno, int width, AbstractStatementASTNodePtr initializer, AbstractExpressionASTNodePtr condition, AbstractStatementASTNodePtr update, StatementsVector body)
-        : AbstractStatementASTNode(lineno, colno, width)
-        , _initializer(initializer)
+    ForStatementASTNode(int lineno, int colno, int last_lineno, int last_colno, AbstractStatementASTNodePtr init, AbstractExpressionASTNodePtr condition, AbstractStatementASTNodePtr update, AbstractEmbeddedStatementASTNodePtr body)
+        : AbstractEmbeddedStatementASTNode(lineno, colno, last_lineno, last_colno)
+        , _init(init)
         , _condition(condition)
         , _update(update)
         , _body(body)
@@ -539,27 +598,29 @@ public:
 
     int accept(ASTNodeVisitor *visitor) override;
 
-    AbstractStatementASTNodePtr get_initializer() { return _initializer; }
+    AbstractStatementASTNodePtr get_init() { return _init; }
 
     AbstractExpressionASTNodePtr get_condition() { return _condition; }
 
     AbstractStatementASTNodePtr get_update() { return _update; }
 
-    StatementsVector get_body() { return _body; }
+    AbstractEmbeddedStatementASTNodePtr get_body() { return _body; }
 
 protected:
 private:
-    AbstractStatementASTNodePtr _initializer;
+    VariableDeclarationASTNodePtr _init_decl;
+    VariableAssignmentASTNodePtr _init_assign;
+    AbstractStatementASTNodePtr _init;
     AbstractExpressionASTNodePtr _condition;
     AbstractStatementASTNodePtr _update;
-    StatementsVector _body;
+    AbstractEmbeddedStatementASTNodePtr _body;
 };
 
 // ReturnStatementASTNode
-class ReturnStatementASTNode : public AbstractStatementASTNode {
+class ReturnStatementASTNode : public AbstractEmbeddedStatementASTNode {
 public:
-    ReturnStatementASTNode(int lineno, int colno, int width, AbstractExpressionASTNodePtr expression)
-        : AbstractStatementASTNode(lineno, colno, width)
+    ReturnStatementASTNode(int lineno, int colno, int last_lineno, int last_colno, AbstractExpressionASTNodePtr expression)
+        : AbstractEmbeddedStatementASTNode(lineno, colno, last_lineno, last_colno)
         , _expression(expression)
     {
     }
@@ -574,10 +635,10 @@ private:
 };
 
 // StatementBlockASTNode
-class StatementBlockASTNode : public AbstractStatementASTNode {
+class StatementBlockASTNode : public AbstractEmbeddedStatementASTNode {
 public:
-    StatementBlockASTNode(int lineno, int colno, int width, StatementsVector statements)
-        : AbstractStatementASTNode(lineno, colno, width)
+    StatementBlockASTNode(int lineno, int colno, int last_lineno, int last_colno, StatementsVector statements)
+        : AbstractEmbeddedStatementASTNode(lineno, colno, last_lineno, last_colno)
         , _statements(statements)
     {
     }
@@ -593,8 +654,8 @@ private:
 
 class SubprocDefinitionASTNode : public AbstractSubroutineASTNode {
 public:
-    SubprocDefinitionASTNode(int lineno, int colno, int width, StringPtr name, StringPtr parameter, StatementBlockASTNodePtr body)
-        : AbstractSubroutineASTNode(lineno, colno, width)
+    SubprocDefinitionASTNode(int lineno, int colno, int last_lineno, int last_colno, StringPtr name, StringPtr parameter, StatementBlockASTNodePtr body)
+        : AbstractSubroutineASTNode(lineno, colno, last_lineno, last_colno)
         , _name(name)
         , _parameter(parameter)
         , _body(body)
@@ -605,7 +666,7 @@ public:
 
     StringPtr get_name() { return _name; }
 
-    StringPtr get_parameters() { return _parameter; }
+    StringPtr get_parameter() { return _parameter; }
 
     StatementBlockASTNodePtr get_body() { return _body; }
 
@@ -618,10 +679,9 @@ private:
 
 class FunctionDefinitionASTNode : public AbstractSubroutineASTNode {
 public:
-    FunctionDefinitionASTNode(int lineno, int colno, int width, StringPtr name, StringPtr return_type, StringPtr parameter, StatementBlockASTNodePtr body)
-        : AbstractSubroutineASTNode(lineno, colno, width)
+    FunctionDefinitionASTNode(int lineno, int colno, int last_lineno, int last_colno, StringPtr name, StringPtr parameter, StatementBlockASTNodePtr body)
+        : AbstractSubroutineASTNode(lineno, colno, last_lineno, last_colno)
         , _name(name)
-        , _return_type(return_type)
         , _parameter(parameter)
         , _body(body)
     {
@@ -631,8 +691,6 @@ public:
 
     StringPtr get_name() { return _name; }
 
-    StringPtr get_return_type() { return _return_type; }
-
     StringPtr get_parameter() { return _parameter; }
 
     StatementBlockASTNodePtr get_body() { return _body; }
@@ -640,7 +698,6 @@ public:
 protected:
 private:
     StringPtr _name;
-    StringPtr _return_type;
     StringPtr _parameter;
     StatementBlockASTNodePtr _body;
 };
@@ -648,13 +705,13 @@ private:
 // CompilationUnitASTNode
 class CompilationUnitASTNode : public ASTNode {
 public:
-    CompilationUnitASTNode(int lineno, int colno, int width,
-        std::vector<ImportDirectivePTNodePtr> imports,
+    CompilationUnitASTNode(int lineno, int colno, int last_lineno, int last_colno,
+        std::vector<StringPtr> imports,
         std::vector<FloorBoxInitStatementASTNodePtr> floor_inits,
-        FloorMaxInitStatementASTNodePtr floor_max,
+        std::optional<int> floor_max,
         std::vector<VariableDeclarationASTNodePtr> var_decls,
         std::vector<AbstractSubroutineASTNodePtr> subroutines)
-        : ASTNode(lineno, colno, width)
+        : ASTNode(lineno, colno, last_lineno, last_colno)
         , _imports(imports)
         , _floor_inits(floor_inits)
         , _floor_max(floor_max)
@@ -665,11 +722,11 @@ public:
 
     int accept(ASTNodeVisitor *visitor) override;
 
-    const std::vector<ImportDirectivePTNodePtr> &get_imports() const { return _imports; }
+    const std::vector<StringPtr> &get_imports() const { return _imports; }
 
     const std::vector<FloorBoxInitStatementASTNodePtr> &get_floor_inits() const { return _floor_inits; }
 
-    FloorMaxInitStatementASTNodePtr get_floor_max() { return _floor_max; }
+    std::optional<int> get_floor_max() { return _floor_max; }
 
     const std::vector<VariableDeclarationASTNodePtr> &get_var_decls() const { return _var_decls; }
 
@@ -677,11 +734,17 @@ public:
 
 protected:
 private:
-    std::vector<ImportDirectivePTNodePtr> _imports;
+    std::vector<StringPtr> _imports;
     std::vector<FloorBoxInitStatementASTNodePtr> _floor_inits;
-    FloorMaxInitStatementASTNodePtr _floor_max;
+    std::optional<int> _floor_max;
     std::vector<VariableDeclarationASTNodePtr> _var_decls;
     std::vector<AbstractSubroutineASTNodePtr> _subroutines;
+};
+
+template <typename T>
+concept convertible_to_ASTNodePtr = requires {
+    typename T::element_type;
+    requires std::convertible_to<T, ASTNodePtr> && std::is_same_v<T, std::shared_ptr<typename T::element_type>>;
 };
 
 CLOSE_PARSER_NAMESPACE

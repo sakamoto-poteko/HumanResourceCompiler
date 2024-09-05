@@ -8,9 +8,9 @@
 
 #include <spdlog/spdlog.h>
 
+#include "HRLToken.h"
 #include "ParseTreeNode.h"
 #include "ParseTreeNodeForward.h"
-#include "HRLToken.h"
 #include "RecursiveDescentParser.Common.h"
 #include "RecursiveDescentParser.h"
 #include "hrl_global.h"
@@ -103,7 +103,6 @@ bool RecursiveDescentParser::parse_unary_expression(AbstractUnaryExpressionPTNod
 
     case lexer::SUB: // negative_expression
     {
-        IncrementExpressionPTNodePtr increment;
         CHECK_TOKEN_AND_CONSUME(lexer::SUB, "'-'", sub_token);
         ok = parse_primary_expression(primary);
         CHECK_ERROR(ok);
@@ -118,12 +117,13 @@ bool RecursiveDescentParser::parse_unary_expression(AbstractUnaryExpressionPTNod
         SET_NODE_FROM(std::make_shared<IncrementExpressionPTNode>(lineno, colno, TO_IDENTIFIER_NODE(), inc_token));
         break;
     }
+    
     case lexer::SUBSUB: // decrement_expression
     {
         DecrementExpressionPTNodePtr decrement;
         CHECK_TOKEN_AND_CONSUME(lexer::SUBSUB, "'--'", dec_token);
         CHECK_TOKEN_AND_CONSUME(lexer::IDENTIFIER, "an identifier (variable name)", id_token);
-        SET_NODE_FROM(std::make_shared<IncrementExpressionPTNode>(lineno, colno, TO_IDENTIFIER_NODE(), dec_token));
+        SET_NODE_FROM(std::make_shared<DecrementExpressionPTNode>(lineno, colno, TO_IDENTIFIER_NODE(), dec_token));
         break;
     }
 
@@ -219,7 +219,6 @@ bool RecursiveDescentParser::parse_invocation_expression(InvocationExpressionPTN
     UPDATE_TOKEN_LOOKAHEAD();
     // optional expr
     if (!TOKEN_IS(lexer::CLOSE_PAREN)) {
-        AbstractExpressionPTNodePtr arg;
         bool ok = parse_expression(arg);
         CHECK_ERROR(ok);
 

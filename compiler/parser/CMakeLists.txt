@@ -12,6 +12,9 @@ add_library(${PROJECT_NAME}
     src/ParseTreeNodeGraphvizBuilder.cpp
     src/Formatter.cpp
     src/ASTNode.cpp
+    src/ASTNodeVisitor.cpp
+    src/ASTBuilder.cpp
+    src/ASTNodeGraphvizBuilder.cpp
     "${OUTPUT_BASE}.h"
     "${OUTPUT_BASE}.cpp"
 )
