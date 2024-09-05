@@ -7,8 +7,8 @@
 #include <string>
 #include <vector>
 
-#include "ParseTreeNodeForward.h"
 #include "HRLToken.h"
+#include "ParseTreeNodeForward.h"
 #include "hrl_global.h"
 #include "lexer_global.h"
 #include "parser_global.h"
@@ -18,8 +18,7 @@ OPEN_PARSER_NAMESPACE
 class RecursiveDescentParser {
 public:
     explicit RecursiveDescentParser(const std::vector<lexer::TokenPtr> &token_list)
-        : _tokens(token_list) {
-        };
+        : _tokens(token_list) {};
     virtual ~RecursiveDescentParser() = default;
 
     virtual bool parse(CompilationUnitPTNodePtr &result);

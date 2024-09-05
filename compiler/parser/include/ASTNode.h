@@ -120,14 +120,15 @@ public:
     AbstractBinaryExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right, ASTBinaryOperator op)
         : AbstractExpressionASTNode(lineno, colno, last_lineno, last_colno)
         , _left(std::move(left))
-        , _right(std::move(right)),
-        _op(op)
+        , _right(std::move(right))
+        , _op(op)
     {
     }
 
-
     AbstractExpressionASTNodePtr get_left() { return _left; }
+
     AbstractExpressionASTNodePtr get_right() { return _right; }
+
     ASTBinaryOperator get_op() const { return _op; }
 
 protected:

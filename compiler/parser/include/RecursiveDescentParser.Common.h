@@ -9,12 +9,12 @@ OPEN_PARSER_NAMESPACE
     leave_parse_frame();    \
     return true
 
-#define ENTER_PARSE_FRAME()                        \
-    enter_parse_frame();                           \
-    lexer::TokenPtr token = lookahead();           \
-    int lineno = token->lineno();                  \
-    int colno = token->colno();                    \
-    int width = token->width();                    \
+#define ENTER_PARSE_FRAME()              \
+    enter_parse_frame();                 \
+    lexer::TokenPtr token = lookahead(); \
+    int lineno = token->lineno();        \
+    int colno = token->colno();          \
+    int width = token->width();          \
     auto last_error_it = _errors.empty() ? _errors.end() : std::prev(_errors.end())
 
 #define CLEAR_ERROR_BEYOND() \
@@ -53,13 +53,15 @@ OPEN_PARSER_NAMESPACE
         push_error((msg), lineno, colno, width);       \
         revert_parse_frame();                          \
         return false;                                  \
-    }0 // 0 is required to suppress empty statement check
+    }                                                  \
+    0 // 0 is required to suppress empty statement check
 
 #define CHECK_ERROR(ok)       \
     if (!(ok)) {              \
         revert_parse_frame(); \
         return false;         \
-    }0  // 0 is required to suppress empty statement check
+    }                         \
+    0 // 0 is required to suppress empty statement check
 
 #define TOKEN_IS(id) \
     (token->token_id() == (id))

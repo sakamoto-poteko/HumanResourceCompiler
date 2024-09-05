@@ -2,7 +2,6 @@
 #include <memory>
 #include <string>
 
-
 #include <spdlog/spdlog.h>
 
 #include "HRLToken.h"
@@ -110,7 +109,7 @@ bool RecursiveDescentParser::parse_unary_expression(AbstractUnaryExpressionPTNod
         SET_NODE_FROM(std::make_shared<IncrementExpressionPTNode>(lineno, colno, TO_IDENTIFIER_NODE(), inc_token));
         break;
     }
-    
+
     case lexer::SUBSUB: // decrement_expression
     {
         DecrementExpressionPTNodePtr decrement;

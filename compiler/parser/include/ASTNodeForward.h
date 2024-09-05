@@ -62,7 +62,6 @@ class FunctionDefinitionASTNode;
 
 class CompilationUnitASTNode;
 
-
 using ASTNodePtr = std::shared_ptr<ASTNode>;
 using IntegerASTNodePtr = std::shared_ptr<IntegerASTNode>;
 using BooleanASTNodePtr = std::shared_ptr<BooleanASTNode>;

@@ -5,9 +5,9 @@
 
 #include <spdlog/spdlog.h>
 
+#include "HRLToken.h"
 #include "ParseTreeNode.h"
 #include "ParseTreeNodeForward.h"
-#include "HRLToken.h"
 #include "RecursiveDescentParser.Common.h"
 #include "RecursiveDescentParser.h"
 

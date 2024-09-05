@@ -22,7 +22,6 @@ ASTBuilder::ASTBuilder(CompilationUnitPTNodePtr root)
     // Constructor implementation (if any)
 }
 
-
 void ASTBuilder::visit(IdentifierPTNodePtr node)
 {
     // Will be called when evaluating expression

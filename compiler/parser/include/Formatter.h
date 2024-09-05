@@ -6,10 +6,10 @@
 #include <string>
 #include <vector>
 
+#include "HRLToken.h"
 #include "ParseTreeNode.h"
 #include "ParseTreeNodeForward.h"
 #include "ParseTreeNodeVisitor.h"
-#include "HRLToken.h"
 #include "hrl_global.h"
 #include "lexer_global.h"
 #include "lexer_helper.h"
