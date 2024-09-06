@@ -15,17 +15,18 @@ OPEN_SEMANALYZER_NAMESPACE
 
 class ScopeInfoAttribute : public parser::ASTNodeAttribute {
 public:
-    ScopeInfoAttribute(const std::string scope_name)
-        : _scope_name(scope_name)
+    ScopeInfoAttribute(const std::string scope_id)
+        : _scope_id(scope_id)
     {
     }
 
     ~ScopeInfoAttribute() override = default;
 
-    const int ATTRIBUTE_ID = SemAnalzyerASTNodeAttributeId::ATTR_SEMANALYZER_SYMBOL;
+    int get_type() override;
+    std::string to_string() override;
 
 private:
-    std::string _scope_name;
+    std::string _scope_id;
 };
 
 using ScopeInfoAttributePtr = std::shared_ptr<ScopeInfoAttribute>;
@@ -41,7 +42,7 @@ public:
      * @brief Get the ancestor scopes of \p scope_id
      *
      * @param scope_id
-     * @return std::vector<std::string> Suppose scope_id is a.b.c.d, the function returns { "a.b.c.d", "a.b.c", "a.b", "a" }
+     * @return std::vector<std::string> Suppose scope_id is a.b.c.d, the function returns { "a.b.c.d", "a.b.c", "a.b", "a", "" }
      */
     static std::vector<std::string> get_ancestor_scopes(const std::string &scope_id);
 

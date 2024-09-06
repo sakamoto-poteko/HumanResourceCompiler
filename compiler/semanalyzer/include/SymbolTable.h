@@ -18,7 +18,8 @@ enum class SymbolType {
     SUBROUTINE,
 };
 
-struct Symbol : public parser::ASTNodeAttribute {
+class Symbol : public parser::ASTNodeAttribute {
+public:
     SymbolType type;
     std::string name;
 
@@ -38,6 +39,10 @@ struct Symbol : public parser::ASTNodeAttribute {
         , definition(std::move(definition))
     {
     }
+
+    int get_type() override { return SemAnalzyerASTNodeAttributeId::ATTR_SEMANALYZER_SYMBOL; }
+
+    std::string to_string() override;
 };
 
 using SymbolPtr = std::shared_ptr<Symbol>;
@@ -45,7 +50,7 @@ using SymbolPtr = std::shared_ptr<Symbol>;
 class SymbolTable {
 public:
     SymbolTable();
-    ~SymbolTable();
+    ~SymbolTable() = default;
 
     /**
      * @brief Add \p symbol to the symbol table with \p scope_id
@@ -96,6 +101,12 @@ public:
 private:
     // map<scope id, hash<symbol name, symbol>>
     std::map<std::string, std::unordered_map<std::string, SymbolPtr>> _scopes;
+
+    /**
+     * @brief Create outbox/inbox symbols
+     *
+     */
+    void create_library_symbols();
 };
 
 using SymbolTablePtr = std::shared_ptr<SymbolTable>;

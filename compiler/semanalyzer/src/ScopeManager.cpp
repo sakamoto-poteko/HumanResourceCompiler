@@ -70,9 +70,19 @@ std::vector<std::string> ScopeManager::get_ancestor_scopes(const std::string &sc
         result.push_back(boost::algorithm::join(std::vector<std::string>(parts.begin(), parts.begin() + i), separator));
     }
 
+    result.push_back("");
     return result;
 };
 
-CLOSE_SEMANALYZER_NAMESPACE
+int ScopeInfoAttribute::get_type()
+{
+    return SemAnalzyerASTNodeAttributeId::ATTR_SEMANALYZER_SYMBOL;
+}
 
+std::string ScopeInfoAttribute::to_string()
+{
+    return "scope: " + _scope_id;
+}
+
+CLOSE_SEMANALYZER_NAMESPACE
 // end

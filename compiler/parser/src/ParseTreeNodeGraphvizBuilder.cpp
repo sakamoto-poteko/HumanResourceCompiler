@@ -63,8 +63,9 @@ std::string ParseTreeNodeGraphvizBuilder::escape_graphviz(const std::string &tex
     return escaped;
 }
 
-std::string ParseTreeNodeGraphvizBuilder::generate_graphviz()
+std::string ParseTreeNodeGraphvizBuilder::generate_graphviz(const std::string &path)
 {
+    _graph.clear();
     _root->accept(this);
 
     std::stringstream dotfile;
@@ -101,7 +102,7 @@ std::string ParseTreeNodeGraphvizBuilder::generate_graphviz()
               << dotfile.str()
               << std::endl;
 
-    std::ofstream out("build/pt.dot");
+    std::ofstream out(path);
     out << dotfile.str();
     out.close();
 

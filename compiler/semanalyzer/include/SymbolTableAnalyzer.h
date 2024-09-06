@@ -2,11 +2,13 @@
 #define SYMBOLTABLEBUILDER_H
 
 #include "ASTNode.h"
+#include "ASTNodeForward.h"
 #include "ASTNodeVisitor.h"
 #include "ScopeManager.h"
 #include "SymbolTable.h"
 #include "hrl_global.h"
 #include "semanalyzer_global.h"
+#include <stack>
 #include <string>
 
 OPEN_SEMANALYZER_NAMESPACE
@@ -18,7 +20,7 @@ using namespace parser;
  * It also verifies function calls and variable usage against the symbol table
  * to ensure correct usage of predefined symbols.
  */
-class SymbolTableBuilder : ASTNodeVisitor {
+class SymbolTableAnalyzer : ASTNodeVisitor {
 public:
     /**
      * @brief Construct a new Symbol Table Builder object
@@ -26,13 +28,13 @@ public:
      * @param root The root node of AST
      * @param symbol_table The existing table. This can be useful when the program has imports.
      */
-    SymbolTableBuilder(CompilationUnitASTNodePtr root, SymbolTablePtr symbol_table = nullptr)
+    SymbolTableAnalyzer(CompilationUnitASTNodePtr root, SymbolTablePtr symbol_table = nullptr)
         : _root(std::move(root))
         , _symbol_table(std::move(symbol_table))
     {
     }
 
-    ~SymbolTableBuilder() override = default;
+    ~SymbolTableAnalyzer() override = default;
 
     bool build(SymbolTablePtr &symbol_table);
 
@@ -76,12 +78,16 @@ public:
     int visit(CompilationUnitASTNodePtr node) override;
 
 protected:
+    std::stack<ASTNodePtr> _ancestors;
     CompilationUnitASTNodePtr _root;
     SymbolTablePtr _symbol_table;
     ScopeManager _scope_manager;
 
+    int visit_binary_expression(AbstractBinaryExpressionASTNodePtr node);
     int visit_subroutine(AbstractSubroutineASTNodePtr node);
-    int lookup_and_attach_symbol_to_node_or_report_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node);
+    int attach_symbol_or_log_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node);
+    int add_symbol_or_log_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node);
+    void attach_scope_id(const ASTNodePtr &node);
 
     void log_redefinition_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node);
     void log_undefined_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node);

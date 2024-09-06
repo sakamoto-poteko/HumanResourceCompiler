@@ -5,6 +5,7 @@
 #include <string>
 
 #include <boost/graph/directed_graph.hpp>
+#include <vector>
 
 #include "ASTNode.h"
 #include "ASTNodeForward.h"
@@ -31,13 +32,14 @@ public:
     struct NodeProperty {
         std::string label;
         NodeType type;
+        std::vector<std::string> attributes;
     };
 
     using Graph = boost::directed_graph<NodeProperty>;
     using Vertex = Graph::vertex_descriptor;
     using Edge = Graph::edge_descriptor;
 
-    virtual std::string generate_graphviz();
+    virtual std::string generate_graphviz(const std::string &filepath, const std::set<int> enabled_attributes = std::set<int>());
 
     int visit(IntegerASTNodePtr node) override;
     int visit(BooleanASTNodePtr node) override;
@@ -79,11 +81,12 @@ public:
 
 protected:
     std::stack<Vertex> _ancestors;
+    std::set<int> _enabled_attributes;
     Graph _graph;
     CompilationUnitASTNodePtr _root;
 
-    virtual Vertex enter_and_create_vertex(const std::string &label, NodeType type);
-    virtual Vertex enter_and_create_vertex(const StringPtr &label, NodeType type);
+    virtual Vertex enter_and_create_vertex(const std::string &label, NodeType type, const ASTNodePtr &node);
+    virtual Vertex enter_and_create_vertex(const StringPtr &label, NodeType type, const ASTNodePtr &node);
     virtual int leave();
 
     template <typename Container>
@@ -105,6 +108,7 @@ protected:
     }
 
     static std::string escape_graphviz(const std::string &text);
+    static std::string escape_graphviz_html(const std::string &text);
 
 private:
 };

@@ -1,4 +1,7 @@
 #include <memory>
+#include <string>
+
+#include <boost/format.hpp>
 
 #include "ScopeManager.h"
 #include "SymbolTable.h"
@@ -6,6 +9,11 @@
 #include "semanalyzer_global.h"
 
 OPEN_SEMANALYZER_NAMESPACE
+
+SymbolTable::SymbolTable()
+{
+    create_library_symbols();
+}
 
 bool SymbolTable::add_symbol(const std::string &scope_id, SymbolPtr symbol)
 {
@@ -61,6 +69,31 @@ bool SymbolTable::lookup_symbol(const std::string &scope_id, const std::string &
 bool SymbolTable::lookup_symbol(const std::string &scope_id, const StringPtr &name, bool lookup_ancestors, SymbolPtr &symbol_out)
 {
     return lookup_symbol(scope_id, *name, lookup_ancestors, symbol_out);
+}
+
+void SymbolTable::create_library_symbols()
+{
+    StringPtr outbox = std::make_shared<std::string>("outbox");
+    StringPtr inbox = std::make_shared<std::string>("inbox");
+    // absolutely topmost scope
+    add_function_symbol("", outbox, nullptr);
+    add_function_symbol("", inbox, nullptr);
+}
+
+std::string Symbol::to_string()
+{
+    std::string type_str;
+    switch (type) {
+
+    case SymbolType::VARIABLE:
+        type_str = "Variable";
+        break;
+    case SymbolType::SUBROUTINE:
+        type_str = "Subroutine";
+        break;
+    }
+    auto str = boost::format("symbol: <%1%> %2%") % type_str % name;
+    return str.str();
 }
 
 CLOSE_SEMANALYZER_NAMESPACE

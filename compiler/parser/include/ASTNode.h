@@ -4,6 +4,7 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -19,6 +20,9 @@ class ASTNodeAttribute : public std::enable_shared_from_this<ASTNodeAttribute> {
 public:
     ASTNodeAttribute() = default;
     virtual ~ASTNodeAttribute() = default;
+
+    virtual int get_type() = 0;
+    virtual std::string to_string() = 0;
 };
 
 enum ParserASTNodeAttributeId : int {
@@ -53,20 +57,9 @@ public:
 
     int last_colno() const { return _last_colno; }
 
-    ASTNodeAttributePtr get_attribute(int attribute_id) const
-    {
-        auto it = _attributes.find(attribute_id);
-        if (it == _attributes.end()) {
-            return ASTNodeAttributePtr();
-        } else {
-            return it->second;
-        }
-    }
+    bool get_attribute(int attribute_id, ASTNodeAttributePtr &out) const;
 
-    void set_attribute(int attribute_id, ASTNodeAttributePtr attr)
-    {
-        _attributes[attribute_id] = attr;
-    }
+    void set_attribute(int attribute_id, ASTNodeAttributePtr attr);
 
 protected:
     template <typename T>

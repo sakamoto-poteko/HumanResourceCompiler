@@ -10,8 +10,10 @@
 #include "ParseTreeNodeForward.h"
 #include "ParseTreeNodeGraphvizBuilder.h"
 #include "RecursiveDescentParser.h"
+#include "SymbolTableAnalyzer.h"
 #include "TerminalColor.h"
 #include "Utilities.h"
+#include "semanalyzer_global.h"
 
 using namespace hrl::lexer;
 using namespace hrl::hrc;
@@ -64,7 +66,7 @@ int main(int argc, char **argv)
         abort();
     }
     hrl::parser::ParseTreeNodeGraphvizBuilder graphviz(compilation_unit);
-    graphviz.generate_graphviz();
+    graphviz.generate_graphviz("build/pt.dot");
 
     // hrl::parser::ParseTreeNodeFormatterVisitor formatter;
     // formatter.format(compilation_unit); // Format not yet supported
@@ -76,8 +78,26 @@ int main(int argc, char **argv)
         abort();
     }
 
+    using SemaAttrId = hrl::semanalyzer::SemAnalzyerASTNodeAttributeId;
+
     hrl::parser::ASTNodeGraphvizBuilder graphviz_ast(ast);
-    graphviz_ast.generate_graphviz();
+    graphviz_ast.generate_graphviz(
+        "build/ast.dot");
+
+    hrl::semanalyzer::SymbolTablePtr symbol_table;
+
+    hrl::semanalyzer::SymbolTableAnalyzer symbol_table_builder(ast);
+    if (!symbol_table_builder.build(symbol_table)) {
+        spdlog::error("Error occured building symbol table");
+        abort();
+    }
+
+    graphviz_ast.generate_graphviz("build/symtbl.dot",
+        std::set<int>(
+            {
+                SemaAttrId::ATTR_SEMANALYZER_SYMBOL,
+                SemaAttrId::ATTR_SEMANALYZER_SCOPE_INFO,
+            }));
 
     return 0;
 }
