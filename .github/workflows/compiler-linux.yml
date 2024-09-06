@@ -1,0 +1,37 @@
+# This workflow is for a CMake project located under the `compiler` directory running on a single platform.
+name: CMake on a single platform
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake g++ flex bison libspdlog-dev libboost-all-dev ninja-build
+
+    - name: Configure CMake
+      # Configure CMake in a 'build' subdirectory inside the `compiler` directory using Ninja.
+      run: cmake -B ${{github.workspace}}/compiler/build -S ${{github.workspace}}/compiler -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G Ninja
+
+    - name: Build
+      # Build your program inside the `compiler/build` directory using Ninja and enable parallel building.
+      run: cmake --build ${{github.workspace}}/compiler/build --config ${{env.BUILD_TYPE}} -- -j$(nproc)
+
+    - name: Test
+      working-directory: ${{github.workspace}}/compiler/build
+      # Execute tests defined by the CMake configuration.
+      run: ctest -C ${{env.BUILD_TYPE}}
