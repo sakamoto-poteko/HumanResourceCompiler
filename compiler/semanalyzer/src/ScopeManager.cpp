@@ -17,16 +17,16 @@ ScopeManager::~ScopeManager()
 {
 }
 
-std::string ScopeManager::get_scope_id() const
+std::string ScopeManager::get_current_scope_id() const
 {
-    const char delimiter[] = { DELIMITER, 0 };
+    static const char delimiter[] = { DELIMITER, 0 };
     return boost::join(_scope_names, delimiter);
 }
 
 bool ScopeManager::enter_scope(const std::string &name)
 {
     _scope_names.push_back(name);
-    auto scope_id = get_scope_id();
+    auto scope_id = get_current_scope_id();
 
     if (_all_scopes.contains(scope_id)) {
         _scope_names.pop_back();
@@ -38,12 +38,18 @@ bool ScopeManager::enter_scope(const std::string &name)
     return true;
 }
 
-bool ScopeManager::enter_anonymous_scope()
+bool ScopeManager::enter_scope(StringPtr name)
+{
+    return enter_scope(*name);
+}
+
+void ScopeManager::enter_anonymous_scope()
 {
     int id = _scope_id.top();
     _scope_id.top() += 1;
 
-    return enter_scope(std::to_string(id));
+    bool ok = enter_scope(std::to_string(id));
+    assert(ok);
 }
 
 void ScopeManager::exit_scope()
@@ -68,4 +74,5 @@ std::vector<std::string> ScopeManager::get_ancestor_scopes(const std::string &sc
 };
 
 CLOSE_SEMANALYZER_NAMESPACE
+
 // end

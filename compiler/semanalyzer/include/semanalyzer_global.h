@@ -15,9 +15,11 @@
 
 OPEN_SEMANALYZER_NAMESPACE
 
-enum class SemAnalzyerASTNodeAttributeId : int {
+enum SemAnalzyerASTNodeAttributeId : int {
     // range 1000-1999
-    SYMBOL = 1000,
+    ATTR_SEMANALYZER_BEGIN = 1000,
+    ATTR_SEMANALYZER_SYMBOL = 1000,
+    ATTR_SEMANALYZER_END = 1999,
 };
 
 CLOSE_SEMANALYZER_NAMESPACE

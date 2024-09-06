@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "ASTNode.h"
+#include "hrl_global.h"
 #include "semanalyzer_global.h"
 
 OPEN_SEMANALYZER_NAMESPACE
@@ -21,6 +22,8 @@ public:
 
     ~ScopeInfoAttribute() override = default;
 
+    const int ATTRIBUTE_ID = SemAnalzyerASTNodeAttributeId::ATTR_SEMANALYZER_SYMBOL;
+
 private:
     std::string _scope_name;
 };
@@ -32,16 +35,33 @@ public:
     ScopeManager();
     ~ScopeManager();
 
-    std::string get_scope_id() const;
+    std::string get_current_scope_id() const;
 
-    /// @brief get all the ancestor scope ids of scope_id
-    /// suppose scope_id is a.b.c.d, the function returns { "a.b.c.d", "a.b.c", "a.b", "a" }
+    /**
+     * @brief Get the ancestor scopes of \p scope_id
+     *
+     * @param scope_id
+     * @return std::vector<std::string> Suppose scope_id is a.b.c.d, the function returns { "a.b.c.d", "a.b.c", "a.b", "a" }
+     */
     static std::vector<std::string> get_ancestor_scopes(const std::string &scope_id);
 
-    /// @brief return false if conflict
+    /**
+     * @brief Enter a scope with \p name
+     *
+     * @param name The name of the current scope
+     * @return true Successfully entered the scope
+     * @return false There is a conflict in the scope name
+     */
     bool enter_scope(const std::string &name);
-    /// @brief return false if conflict
-    bool enter_anonymous_scope();
+
+    bool enter_scope(StringPtr name);
+
+    /**
+     * @brief Enter a scope without a name
+     *
+     * @return true Successfully netered the scope
+     */
+    void enter_anonymous_scope();
 
     void exit_scope();
 
