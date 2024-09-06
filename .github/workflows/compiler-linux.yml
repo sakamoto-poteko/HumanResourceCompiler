@@ -18,6 +18,11 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake g++ flex libspdlog-dev libboost-all-dev
+
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory inside the `compiler` directory.
       run: cmake -B ${{github.workspace}}/compiler/build -S ${{github.workspace}}/compiler -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
