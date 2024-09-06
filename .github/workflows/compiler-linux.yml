@@ -21,7 +21,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake g++ flex libspdlog-dev libboost-all-dev
+        sudo apt-get install -y cmake g++ flex bison libspdlog-dev libboost-all-dev
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory inside the `compiler` directory.
