@@ -1,8 +1,5 @@
-#include <__ranges/filter_view.h>
-#include <__ranges/transform_view.h>
 #include <algorithm>
 #include <fstream>
-#include <iostream>
 #include <iterator>
 #include <optional>
 #include <ranges>
@@ -145,6 +142,7 @@ std::string ASTNodeGraphvizBuilder::generate_graphviz(const std::string &filepat
     while (!_ancestors.empty()) {
         _ancestors.pop();
     }
+
     _graph.clear();
     _root->accept(this);
 
@@ -203,9 +201,9 @@ std::string ASTNodeGraphvizBuilder::generate_graphviz(const std::string &filepat
 
         [](std::ostream &out) { out << "node[ordering=out];\n"; });
 
-    std::cout << std::endl
-              << dotfile.str()
-              << std::endl;
+    // std::cout << std::endl
+    //           << dotfile.str()
+    //           << std::endl;
 
     std::ofstream out(filepath);
     out << dotfile.str();

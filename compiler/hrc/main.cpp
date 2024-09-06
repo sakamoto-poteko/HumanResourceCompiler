@@ -10,6 +10,7 @@
 #include "ParseTreeNodeForward.h"
 #include "ParseTreeNodeGraphvizBuilder.h"
 #include "RecursiveDescentParser.h"
+#include "SemanticAnalysisPassManager.h"
 #include "SymbolTableAnalyzer.h"
 #include "TerminalColor.h"
 #include "Utilities.h"
@@ -47,17 +48,17 @@ int main(int argc, char **argv)
         abort();
     }
 
-    // For now, let's write to stdout if there's no output file available, or output fails to open.
-    // We have only lexer stage.
-    // When it comes to ParseTree it'll be complicated
+    // bullshit
     FILE *output = fileManager.open_output_file();
     if (output == nullptr) {
         output = stdout;
+    } else {
+        Utilities::write_token_list_to_file(output, tokens);
     }
-    Utilities::write_token_list_to_file(output, tokens);
 
     fclose(file);
 
+    // Parser stage
     hrl::parser::RecursiveDescentParser parser(tokens);
     hrl::parser::CompilationUnitPTNodePtr compilation_unit;
     bool parsed = parser.parse(compilation_unit);
@@ -68,9 +69,6 @@ int main(int argc, char **argv)
     hrl::parser::ParseTreeNodeGraphvizBuilder graphviz(compilation_unit);
     graphviz.generate_graphviz("build/pt.dot");
 
-    // hrl::parser::ParseTreeNodeFormatterVisitor formatter;
-    // formatter.format(compilation_unit); // Format not yet supported
-
     hrl::parser::CompilationUnitASTNodePtr ast;
     hrl::parser::ASTBuilder builder(compilation_unit);
     if (!builder.build(ast)) {
@@ -78,26 +76,27 @@ int main(int argc, char **argv)
         abort();
     }
 
+    hrl::parser::ASTNodeGraphvizBuilder graphviz_ast(ast);
+    graphviz_ast.generate_graphviz("build/ast.dot");
+
+    // Sem analysis stage
     using SemaAttrId = hrl::semanalyzer::SemAnalzyerASTNodeAttributeId;
 
-    hrl::parser::ASTNodeGraphvizBuilder graphviz_ast(ast);
-    graphviz_ast.generate_graphviz(
-        "build/ast.dot");
+    hrl::semanalyzer::SemanticAnalysisPassManager sem_passmgr(ast);
+    auto symtbl_analyzer = sem_passmgr.add_pass<hrl::semanalyzer::SymbolTableAnalyzer>(
+        "SymbolTableAnalyzer",
+        "build/symtbl.dot",
+        std::set<int> {
+            SemaAttrId::ATTR_SEMANALYZER_SYMBOL,
+            SemaAttrId::ATTR_SEMANALYZER_SCOPE_INFO,
+        });
 
-    hrl::semanalyzer::SymbolTablePtr symbol_table;
-
-    hrl::semanalyzer::SymbolTableAnalyzer symbol_table_builder(ast);
-    if (!symbol_table_builder.build(symbol_table)) {
-        spdlog::error("Error occured building symbol table");
+    if (sem_passmgr.run(true) != 0) {
+        spdlog::error("Error occured running semantic analysis passes");
         abort();
     }
 
-    graphviz_ast.generate_graphviz("build/symtbl.dot",
-        std::set<int>(
-            {
-                SemaAttrId::ATTR_SEMANALYZER_SYMBOL,
-                SemaAttrId::ATTR_SEMANALYZER_SCOPE_INFO,
-            }));
+    hrl::semanalyzer::SymbolTablePtr symbol_table = symtbl_analyzer->get_symbol_table();
 
     return 0;
 }

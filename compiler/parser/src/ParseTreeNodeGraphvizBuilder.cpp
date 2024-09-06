@@ -1,5 +1,4 @@
 #include <fstream>
-#include <iostream>
 #include <ostream>
 #include <string>
 
@@ -95,12 +94,7 @@ std::string ParseTreeNodeGraphvizBuilder::generate_graphviz(const std::string &p
             //
         },
         // graph
-
         [](std::ostream &out) { out << "node[ordering=out];\n"; });
-
-    std::cout << std::endl
-              << dotfile.str()
-              << std::endl;
 
     std::ofstream out(path);
     out << dotfile.str();

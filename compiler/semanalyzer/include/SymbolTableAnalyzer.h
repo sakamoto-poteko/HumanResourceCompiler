@@ -1,15 +1,17 @@
 #ifndef SYMBOLTABLEBUILDER_H
 #define SYMBOLTABLEBUILDER_H
 
+#include <stack>
+#include <string>
+
 #include "ASTNode.h"
 #include "ASTNodeForward.h"
 #include "ASTNodeVisitor.h"
 #include "ScopeManager.h"
+#include "SemanticAnalysisPass.h"
 #include "SymbolTable.h"
 #include "hrl_global.h"
 #include "semanalyzer_global.h"
-#include <stack>
-#include <string>
 
 OPEN_SEMANALYZER_NAMESPACE
 
@@ -20,7 +22,7 @@ using namespace parser;
  * It also verifies function calls and variable usage against the symbol table
  * to ensure correct usage of predefined symbols.
  */
-class SymbolTableAnalyzer : ASTNodeVisitor {
+class SymbolTableAnalyzer : public SemanticAnalysisPass {
 public:
     /**
      * @brief Construct a new Symbol Table Builder object
@@ -28,15 +30,14 @@ public:
      * @param root The root node of AST
      * @param symbol_table The existing table. This can be useful when the program has imports.
      */
-    SymbolTableAnalyzer(CompilationUnitASTNodePtr root, SymbolTablePtr symbol_table = nullptr)
-        : _root(std::move(root))
-        , _symbol_table(std::move(symbol_table))
-    {
-    }
-
+    SymbolTableAnalyzer() = default;
     ~SymbolTableAnalyzer() override = default;
 
-    bool build(SymbolTablePtr &symbol_table);
+    int run() override;
+
+    void set_symbol_table(SymbolTablePtr &symbol_table) { _symbol_table = symbol_table; }
+
+    const SymbolTablePtr &get_symbol_table() const { return _symbol_table; }
 
     // For all visit, the return value of 0 indicate success.
     int visit(IntegerASTNodePtr node) override;
@@ -79,7 +80,6 @@ public:
 
 protected:
     std::stack<ASTNodePtr> _ancestors;
-    CompilationUnitASTNodePtr _root;
     SymbolTablePtr _symbol_table;
     ScopeManager _scope_manager;
 

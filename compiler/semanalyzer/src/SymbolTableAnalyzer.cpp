@@ -32,19 +32,14 @@ OPEN_SEMANALYZER_NAMESPACE
     }                   \
     0
 
-bool SymbolTableAnalyzer::build(SymbolTablePtr &symbol_table)
+int SymbolTableAnalyzer::run()
 {
     if (!_symbol_table) {
         _symbol_table = std::make_shared<SymbolTable>();
     }
 
     int result = visit(_root);
-    if (result == 0) {
-        symbol_table = _symbol_table;
-        return true;
-    } else {
-        return false;
-    }
+    return result;
 }
 
 int SymbolTableAnalyzer::visit(IntegerASTNodePtr node)
