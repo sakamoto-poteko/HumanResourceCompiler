@@ -21,18 +21,17 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake g++ flex bison libspdlog-dev libboost-all-dev
+        sudo apt-get install -y cmake g++ flex bison libspdlog-dev libboost-all-dev ninja-build
 
     - name: Configure CMake
-      # Configure CMake in a 'build' subdirectory inside the `compiler` directory.
-      run: cmake -B ${{github.workspace}}/compiler/build -S ${{github.workspace}}/compiler -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      # Configure CMake in a 'build' subdirectory inside the `compiler` directory using Ninja.
+      run: cmake -B ${{github.workspace}}/compiler/build -S ${{github.workspace}}/compiler -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G Ninja
 
     - name: Build
-      # Build your program inside the `compiler/build` directory.
-      run: cmake --build ${{github.workspace}}/compiler/build --config ${{env.BUILD_TYPE}}
+      # Build your program inside the `compiler/build` directory using Ninja and enable parallel building.
+      run: cmake --build ${{github.workspace}}/compiler/build --config ${{env.BUILD_TYPE}} -- -j$(nproc)
 
     - name: Test
       working-directory: ${{github.workspace}}/compiler/build
       # Execute tests defined by the CMake configuration.
       run: ctest -C ${{env.BUILD_TYPE}}
-
