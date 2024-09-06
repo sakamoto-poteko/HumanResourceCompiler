@@ -27,6 +27,13 @@ ${LEXER_OUT}
 ${PARSER_OUT}
 )
 
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    set_source_files_properties(${LEXER_OUT} ${PARSER_OUT} PROPERTIES COMPILE_FLAGS "-w")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    set_source_files_properties(${LEXER_OUT} ${PARSER_OUT} PROPERTIES COMPILE_FLAGS "/w")
+endif()
+
 target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${Boost_INCLUDE_DIRS})
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})

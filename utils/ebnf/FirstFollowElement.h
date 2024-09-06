@@ -11,9 +11,9 @@ struct FirstSetElement {
         Reference,
     };
 
-    Type type;
     // value is literal value, token value referenced name of another production
     std::string value;
+    Type type;
     // produced_by is the production id after expansion
     std::string produced_by;
 

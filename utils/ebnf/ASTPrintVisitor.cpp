@@ -2,6 +2,7 @@
 
 #include "ASTNode.h"
 #include "ASTNodeVisitor.h"
+#include "enbf_global.h"
 
 int ASTPrintVisitor::accept(SyntaxNodePtr node)
 {
@@ -96,6 +97,7 @@ int ASTPrintVisitor::accept(LiteralNodePtr node)
 
 int ASTPrintVisitor::accept(EpsilonNodePtr node)
 {
+    UNUSED(node);
     std::cout << "(epsilon)";
     return 0;
 }
