@@ -31,9 +31,11 @@ int SemanticAnalysisPassManager::run(bool fail_fast)
 {
     int result = 0;
 
-    assert(_passes.size() == _pass_names.size() == _pass_graph_filepaths.size() == _pass_graph_enabled_attrs.size());
+    assert(_passes.size() == _pass_names.size()
+        && _pass_names.size() == _pass_graph_filepaths.size()
+        && _pass_graph_filepaths.size() == _pass_graph_enabled_attrs.size());
 
-    for (int i = 0; i < _passes.size(); ++i) {
+    for (std::size_t i = 0; i < _passes.size(); ++i) {
         const auto &pass = _passes.at(i);
         const auto &pass_name = _pass_names.at(i);
         const auto &pass_path = _pass_graph_filepaths.at(i);

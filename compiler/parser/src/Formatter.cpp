@@ -23,8 +23,11 @@
 
 OPEN_PARSER_NAMESPACE
 
-#define BEGIN_VISIT() \
-    bool comments_written = false;
+#define BEGIN_VISIT()              \
+    bool comments_written = false; \
+    if (comments_written) {        \
+        UNUSED(node);              \
+    }
 
 #define DECL_TOKEN(var_name, func) \
     const auto &var_name = node->func;
@@ -59,12 +62,27 @@ void ParseTreeNodeFormatterVisitor::format(CompilationUnitPTNodePtr node)
     }
 
     std::cout << buffer.str() << std::endl;
-};
+}
 
-void ParseTreeNodeFormatterVisitor::visit(IdentifierPTNodePtr node) {};
-void ParseTreeNodeFormatterVisitor::visit(IntegerLiteralPTNodePtr node) {};
-void ParseTreeNodeFormatterVisitor::visit(BooleanLiteralPTNodePtr node) {};
-void ParseTreeNodeFormatterVisitor::visit(BinaryOperatorPTNodePtr node) {};
+void ParseTreeNodeFormatterVisitor::visit(IdentifierPTNodePtr node)
+{
+    UNUSED(node);
+}
+
+void ParseTreeNodeFormatterVisitor::visit(IntegerLiteralPTNodePtr node)
+{
+    UNUSED(node);
+}
+
+void ParseTreeNodeFormatterVisitor::visit(BooleanLiteralPTNodePtr node)
+{
+    UNUSED(node);
+}
+
+void ParseTreeNodeFormatterVisitor::visit(BinaryOperatorPTNodePtr node)
+{
+    UNUSED(node);
+}
 
 void ParseTreeNodeFormatterVisitor::visit(VariableDeclarationPTNodePtr node)
 {
@@ -82,24 +100,77 @@ void ParseTreeNodeFormatterVisitor::visit(VariableDeclarationPTNodePtr node)
         WRITE_FOLLOWING_TOKEN(eq, true, true);
         node->get_expr()->accept(this);
     }
-};
+}
 
-void ParseTreeNodeFormatterVisitor::visit(VariableAssignmentPTNodePtr node) {
+void ParseTreeNodeFormatterVisitor::visit(VariableAssignmentPTNodePtr node)
+{
+    UNUSED(node);
+}
 
-};
-void ParseTreeNodeFormatterVisitor::visit(FloorAssignmentPTNodePtr node) {};
-void ParseTreeNodeFormatterVisitor::visit(BinaryExpressionPTNodePtr node) {};
-void ParseTreeNodeFormatterVisitor::visit(NegativeExpressionPTNodePtr node) {};
-void ParseTreeNodeFormatterVisitor::visit(PositiveExpressionPTNodePtr node) {};
-void ParseTreeNodeFormatterVisitor::visit(NotExpressionPTNodePtr node) {};
-void ParseTreeNodeFormatterVisitor::visit(IncrementExpressionPTNodePtr node) {};
-void ParseTreeNodeFormatterVisitor::visit(DecrementExpressionPTNodePtr node) {};
-void ParseTreeNodeFormatterVisitor::visit(FloorAccessPTNodePtr node) {};
-void ParseTreeNodeFormatterVisitor::visit(ParenthesizedExpressionPTNodePtr node) {};
-void ParseTreeNodeFormatterVisitor::visit(InvocationExpressionPTNodePtr node) {};
-void ParseTreeNodeFormatterVisitor::visit(IfStatementPTNodePtr node) {};
-void ParseTreeNodeFormatterVisitor::visit(WhileStatementPTNodePtr node) {};
-void ParseTreeNodeFormatterVisitor::visit(ForStatementPTNodePtr node) {};
+void ParseTreeNodeFormatterVisitor::visit(FloorAssignmentPTNodePtr node)
+{
+    UNUSED(node);
+}
+
+void ParseTreeNodeFormatterVisitor::visit(BinaryExpressionPTNodePtr node)
+{
+    UNUSED(node);
+}
+
+void ParseTreeNodeFormatterVisitor::visit(NegativeExpressionPTNodePtr node)
+{
+    UNUSED(node);
+}
+
+void ParseTreeNodeFormatterVisitor::visit(PositiveExpressionPTNodePtr node)
+{
+    UNUSED(node);
+}
+
+void ParseTreeNodeFormatterVisitor::visit(NotExpressionPTNodePtr node)
+{
+    UNUSED(node);
+}
+
+void ParseTreeNodeFormatterVisitor::visit(IncrementExpressionPTNodePtr node)
+{
+    UNUSED(node);
+}
+
+void ParseTreeNodeFormatterVisitor::visit(DecrementExpressionPTNodePtr node)
+{
+    UNUSED(node);
+}
+
+void ParseTreeNodeFormatterVisitor::visit(FloorAccessPTNodePtr node)
+{
+    UNUSED(node);
+}
+
+void ParseTreeNodeFormatterVisitor::visit(ParenthesizedExpressionPTNodePtr node)
+{
+    UNUSED(node);
+}
+
+void ParseTreeNodeFormatterVisitor::visit(InvocationExpressionPTNodePtr node)
+{
+    UNUSED(node);
+}
+
+void ParseTreeNodeFormatterVisitor::visit(IfStatementPTNodePtr node)
+{
+    UNUSED(node);
+}
+
+void ParseTreeNodeFormatterVisitor::visit(WhileStatementPTNodePtr node)
+{
+    UNUSED(node);
+}
+
+void ParseTreeNodeFormatterVisitor::visit(ForStatementPTNodePtr node)
+{
+    UNUSED(node);
+}
 
 void ParseTreeNodeFormatterVisitor::visit(ReturnStatementPTNodePtr node)
 {
@@ -111,7 +182,7 @@ void ParseTreeNodeFormatterVisitor::visit(ReturnStatementPTNodePtr node)
     WRITE_FIRST_TOKEN(return_token, false);
     node->get_expr()->accept(this);
     WRITE_SEMICOLON();
-};
+}
 
 void ParseTreeNodeFormatterVisitor::visit(FloorBoxInitStatementPTNodePtr node)
 {
@@ -134,7 +205,7 @@ void ParseTreeNodeFormatterVisitor::visit(FloorBoxInitStatementPTNodePtr node)
     WRITE_FOLLOWING_TOKEN(eq, true, true);
     WRITE_FOLLOWING_TOKEN(val, false, false);
     WRITE_SEMICOLON();
-};
+}
 
 void ParseTreeNodeFormatterVisitor::visit(FloorMaxInitStatementPTNodePtr node)
 {
@@ -151,13 +222,13 @@ void ParseTreeNodeFormatterVisitor::visit(FloorMaxInitStatementPTNodePtr node)
     WRITE_FOLLOWING_TOKEN(eq, true, true);
     WRITE_FOLLOWING_TOKEN(value, false, false);
     WRITE_SEMICOLON();
-};
+}
 
 void ParseTreeNodeFormatterVisitor::visit(EmptyStatementPTNodePtr node)
 {
     BEGIN_VISIT();
     WRITE_FIRST_TOKEN(node->get_semicolon(), false);
-};
+}
 
 void ParseTreeNodeFormatterVisitor::visit(StatementBlockPTNodePtr node)
 {
@@ -170,7 +241,7 @@ void ParseTreeNodeFormatterVisitor::visit(StatementBlockPTNodePtr node)
     traverse_statements(node->get_statements());
     --_indent_level;
     WRITE_FIRST_TOKEN(close_brace, false);
-};
+}
 
 void ParseTreeNodeFormatterVisitor::visit(VariableDeclarationStatementPTNodePtr node)
 {
@@ -179,7 +250,7 @@ void ParseTreeNodeFormatterVisitor::visit(VariableDeclarationStatementPTNodePtr 
     node->get_variable_decl()->accept(this);
     DECL_TOKEN(semicolon, get_semicolon());
     WRITE_SEMICOLON();
-};
+}
 
 void ParseTreeNodeFormatterVisitor::visit(VariableAssignmentStatementPTNodePtr node)
 {
@@ -187,12 +258,27 @@ void ParseTreeNodeFormatterVisitor::visit(VariableAssignmentStatementPTNodePtr n
     DECL_TOKEN(semicolon, get_semicolon());
     node->get_variable_assignment()->accept(this);
     WRITE_SEMICOLON();
-};
+}
 
-void ParseTreeNodeFormatterVisitor::visit(FloorAssignmentStatementPTNodePtr node) {};
-void ParseTreeNodeFormatterVisitor::visit(InvocationStatementPTNodePtr node) {};
-void ParseTreeNodeFormatterVisitor::visit(SubprocDefinitionPTNodePtr node) {};
-void ParseTreeNodeFormatterVisitor::visit(FunctionDefinitionPTNodePtr node) {};
+void ParseTreeNodeFormatterVisitor::visit(FloorAssignmentStatementPTNodePtr node)
+{
+    UNUSED(node);
+}
+
+void ParseTreeNodeFormatterVisitor::visit(InvocationStatementPTNodePtr node)
+{
+    UNUSED(node);
+}
+
+void ParseTreeNodeFormatterVisitor::visit(SubprocDefinitionPTNodePtr node)
+{
+    UNUSED(node);
+}
+
+void ParseTreeNodeFormatterVisitor::visit(FunctionDefinitionPTNodePtr node)
+{
+    UNUSED(node);
+}
 
 void ParseTreeNodeFormatterVisitor::visit(ImportDirectivePTNodePtr node)
 {
@@ -205,7 +291,7 @@ void ParseTreeNodeFormatterVisitor::visit(ImportDirectivePTNodePtr node)
     WRITE_FIRST_TOKEN(import_token, true);
     WRITE_FOLLOWING_TOKEN(module_token, false, false)
     WRITE_FOLLOWING_TOKEN(semicolon, false, false)
-};
+}
 
 void ParseTreeNodeFormatterVisitor::visit(CompilationUnitPTNodePtr node)
 {
@@ -214,7 +300,7 @@ void ParseTreeNodeFormatterVisitor::visit(CompilationUnitPTNodePtr node)
     node->get_floor_max()->accept(this);
     traverse_top_level_decls(node->get_top_level_decls());
     traverse_subroutines(node->get_subroutines());
-};
+}
 
 bool ParseTreeNodeFormatterVisitor::process_preceding_metadata(lexer::TokenPtr token)
 {

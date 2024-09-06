@@ -1,3 +1,4 @@
+#include "hrl_global.h"
 #include "FileManager.h"
 
 OPEN_HRC_NAMESPACE
@@ -33,6 +34,7 @@ void FileManager::track_imported_file(const std::string &source_file, const std:
 
 bool FileManager::find_import_file(const std::string &import_name, std::string &found_path)
 {
+    UNUSED(found_path);
     // This function should search include paths and tracked imports to find the file
     // Implementation needed
     spdlog::info("Searching for import file: {}", import_name);

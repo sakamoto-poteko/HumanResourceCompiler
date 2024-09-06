@@ -72,7 +72,7 @@ std::vector<std::string> ScopeManager::get_ancestor_scopes(const std::string &sc
 
     result.push_back("");
     return result;
-};
+}
 
 int ScopeInfoAttribute::get_type()
 {

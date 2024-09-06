@@ -9,6 +9,7 @@
 #include "ASTNode.h"
 #include "ASTNodeForward.h"
 #include "ParseTreeNode.h"
+#include "hrl_global.h"
 #include "parser_global.h"
 
 OPEN_PARSER_NAMESPACE
@@ -43,6 +44,7 @@ void ASTBuilder::visit(BooleanLiteralPTNodePtr node)
 
 void ASTBuilder::visit(BinaryOperatorPTNodePtr node)
 {
+    UNUSED(node);
     assert(false);
     // passed through. won't be called
 }
@@ -206,6 +208,7 @@ void ASTBuilder::visit(FloorBoxInitStatementPTNodePtr node)
 void ASTBuilder::visit(FloorMaxInitStatementPTNodePtr node)
 {
     // This won't be called. Processed in parent.
+    UNUSED(node);
     assert(false);
 }
 
@@ -280,6 +283,7 @@ void ASTBuilder::visit(FunctionDefinitionPTNodePtr node)
 void ASTBuilder::visit(ImportDirectivePTNodePtr node)
 {
     // This won't be called. Processed in parent.
+    UNUSED(node);
     assert(false);
 }
 

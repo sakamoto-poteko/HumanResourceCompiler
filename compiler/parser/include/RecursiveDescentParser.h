@@ -1,6 +1,7 @@
 #ifndef RECURSIVE_DESCENT_PARSER_H
 #define RECURSIVE_DESCENT_PARSER_H
 
+#include <cstddef>
 #include <list>
 #include <memory>
 #include <stack>
@@ -25,7 +26,7 @@ public:
 
 protected:
     std::vector<lexer::TokenPtr> _tokens;
-    int _token_pointer = 0;
+    std::size_t _token_pointer = 0;
     std::stack<int> _parse_frame_token_pointer;
 
     std::list<std::string> _errors;

@@ -91,7 +91,8 @@ std::string ParseTreeNodeGraphvizBuilder::generate_graphviz(const std::string &p
         } },
         // edge
         [](std::ostream &out, const Edge &e) {
-            //
+            UNUSED(out);
+            UNUSED(e);
         },
         // graph
         [](std::ostream &out) { out << "node[ordering=out];\n"; });

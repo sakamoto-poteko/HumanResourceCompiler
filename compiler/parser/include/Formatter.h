@@ -51,9 +51,9 @@ public:
     void set_trailing_comments(const CommentGroup &comments) { _comment_group = comments; }
 
 protected:
+    int _indentation_level;
     std::string _content;
     CommentGroup _comment_group;
-    int _indentation_level;
 };
 
 class ParseTreeNodeFormatterVisitor : public ParseTreeNodeVisitor {

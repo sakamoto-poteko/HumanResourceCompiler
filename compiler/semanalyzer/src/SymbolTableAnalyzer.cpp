@@ -17,10 +17,11 @@
 
 OPEN_SEMANALYZER_NAMESPACE
 
-#define BEGIN_VISIT()      \
-    _ancestors.push(node); \
-    attach_scope_id(node); \
-    int result = 0, rc = 0
+#define BEGIN_VISIT()       \
+    _ancestors.push(node);  \
+    attach_scope_id(node);  \
+    int result = 0, rc = 0; \
+    UNUSED(rc)
 
 #define END_VISIT()   \
     _ancestors.pop(); \
@@ -29,8 +30,7 @@ OPEN_SEMANALYZER_NAMESPACE
 #define SET_RESULT_RC() \
     if (rc != 0) {      \
         result = rc;    \
-    }                   \
-    0
+    }
 
 int SymbolTableAnalyzer::run()
 {
