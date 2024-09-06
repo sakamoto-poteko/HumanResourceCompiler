@@ -7,6 +7,8 @@ init floor[1] = 1; // init floor[id] sets the initial value for a box on the flo
 init floor[0] = 0;
 init floor_max = 10;
 
+let globalint = 99;
+
 // A function is defined, which takes an argument. 
 // Only one or zero argument is allowed.
 function countdown(a) {
@@ -15,6 +17,7 @@ function countdown(a) {
         continue;
     }
 
+    globalint = globalint + 1;
     return a;
 }
 

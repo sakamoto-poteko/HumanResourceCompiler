@@ -1,8 +1,10 @@
 #ifndef ASTNODE_H
 #define ASTNODE_H
 
+#include <map>
 #include <memory>
 #include <optional>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -13,6 +15,24 @@
 OPEN_PARSER_NAMESPACE
 
 class ASTNodeVisitor;
+
+class ASTNodeAttribute : public std::enable_shared_from_this<ASTNodeAttribute> {
+public:
+    ASTNodeAttribute() = default;
+    virtual ~ASTNodeAttribute() = default;
+
+    virtual int get_type() = 0;
+    virtual std::string to_string() = 0;
+};
+
+enum ParserASTNodeAttributeId : int {
+    ATTR_PARSER_BEGIN = 0,
+    ATTR_PARSER_END = 999,
+    // range 0000-0999
+    // No attributes
+};
+
+using ASTNodeAttributePtr = std::shared_ptr<ASTNodeAttribute>;
 
 class ASTNode : public std::enable_shared_from_this<ASTNode> {
 public:
@@ -36,6 +56,10 @@ public:
 
     int last_colno() const { return _last_colno; }
 
+    bool get_attribute(int attribute_id, ASTNodeAttributePtr &out) const;
+
+    void set_attribute(int attribute_id, ASTNodeAttributePtr attr);
+
 protected:
     template <typename T>
     std::shared_ptr<T> shared_from_this_casted()
@@ -48,6 +72,7 @@ private:
     int _colno;
     int _last_lineno;
     int _last_colno;
+    std::map<int, ASTNodeAttributePtr> _attributes;
 };
 
 class AbstractStatementASTNode : public ASTNode {
@@ -140,10 +165,25 @@ private:
 
 class AbstractSubroutineASTNode : public ASTNode {
 public:
-    AbstractSubroutineASTNode(int lineno, int colno, int last_lineno, int last_colno)
+    AbstractSubroutineASTNode(int lineno, int colno, int last_lineno, int last_colno, StringPtr name, StringPtr parameter, StatementBlockASTNodePtr body)
         : ASTNode(lineno, colno, last_lineno, last_colno)
+        , _name(std::move(name))
+        , _parameter(std::move(parameter))
+        , _body(std::move(body))
     {
     }
+
+    StringPtr get_name() { return _name; }
+
+    StringPtr get_parameter() { return _parameter; }
+
+    StatementBlockASTNodePtr get_body() { return _body; }
+
+protected:
+private:
+    StringPtr _name;
+    StringPtr _parameter;
+    StatementBlockASTNodePtr _body;
 };
 
 class EmptyStatementASTNode : public AbstractEmbeddedStatementASTNode {
@@ -687,51 +727,27 @@ private:
 class SubprocDefinitionASTNode : public AbstractSubroutineASTNode {
 public:
     SubprocDefinitionASTNode(int lineno, int colno, int last_lineno, int last_colno, StringPtr name, StringPtr parameter, StatementBlockASTNodePtr body)
-        : AbstractSubroutineASTNode(lineno, colno, last_lineno, last_colno)
-        , _name(std::move(name))
-        , _parameter(std::move(parameter))
-        , _body(std::move(body))
+        : AbstractSubroutineASTNode(lineno, colno, last_lineno, last_colno, name, parameter, body)
     {
     }
 
     int accept(ASTNodeVisitor *visitor) override;
 
-    StringPtr get_name() { return _name; }
-
-    StringPtr get_parameter() { return _parameter; }
-
-    StatementBlockASTNodePtr get_body() { return _body; }
-
 protected:
 private:
-    StringPtr _name;
-    StringPtr _parameter;
-    StatementBlockASTNodePtr _body;
 };
 
 class FunctionDefinitionASTNode : public AbstractSubroutineASTNode {
 public:
     FunctionDefinitionASTNode(int lineno, int colno, int last_lineno, int last_colno, StringPtr name, StringPtr parameter, StatementBlockASTNodePtr body)
-        : AbstractSubroutineASTNode(lineno, colno, last_lineno, last_colno)
-        , _name(std::move(name))
-        , _parameter(std::move(parameter))
-        , _body(std::move(body))
+        : AbstractSubroutineASTNode(lineno, colno, last_lineno, last_colno, name, parameter, body)
     {
     }
 
     int accept(ASTNodeVisitor *visitor) override;
 
-    StringPtr get_name() { return _name; }
-
-    StringPtr get_parameter() { return _parameter; }
-
-    StatementBlockASTNodePtr get_body() { return _body; }
-
 protected:
 private:
-    StringPtr _name;
-    StringPtr _parameter;
-    StatementBlockASTNodePtr _body;
 };
 
 // CompilationUnitASTNode

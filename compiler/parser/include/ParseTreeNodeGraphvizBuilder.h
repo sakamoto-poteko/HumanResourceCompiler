@@ -28,7 +28,7 @@ public:
     using Vertex = Graph::vertex_descriptor;
     using Edge = Graph::edge_descriptor;
 
-    virtual std::string generate_graphviz();
+    virtual std::string generate_graphviz(const std::string &path);
 
     void visit(IdentifierPTNodePtr node) override;
     void visit(IntegerLiteralPTNodePtr node) override;

@@ -84,6 +84,22 @@ int BreakStatementASTNode::accept(ASTNodeVisitor *visitor) { VISIT_NODE(); }
 
 int ContinueStatementASTNode::accept(ASTNodeVisitor *visitor) { VISIT_NODE(); }
 
+bool ASTNode::get_attribute(int attribute_id, ASTNodeAttributePtr &out) const
+{
+    auto it = _attributes.find(attribute_id);
+    if (it == _attributes.end()) {
+        return false;
+    } else {
+        out = it->second;
+        return true;
+    }
+}
+
+void ASTNode::set_attribute(int attribute_id, ASTNodeAttributePtr attr)
+{
+    _attributes[attribute_id] = attr;
+}
+
 CLOSE_PARSER_NAMESPACE
 
 // end
