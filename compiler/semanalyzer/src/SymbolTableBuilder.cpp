@@ -194,10 +194,10 @@ int SymbolTableBuilder::visit(InvocationExpressionASTNodePtr node)
     // Implement visit logic for InvocationExpressionASTNode
     BEGIN_VISIT();
 
-    if (!lookup_symbol(node->get_func_name(), callee_symbol)) {
-        log_undefined_error(node->get_func_name(), SymbolType::SUBROUTINE, node);
-        rc = 1;
-    }
+    rc = lookup_and_attach_symbol_to_node_or_report_error(node->get_func_name(), SymbolType::SUBROUTINE, node);
+    SET_RESULT_RC();
+
+    rc = traverse(node->get_argument());
 
     return result;
 }
