@@ -38,7 +38,7 @@ endif()
 target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${Boost_INCLUDE_DIRS})
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog)
+target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog_header_only)
 
 set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Default installation directory")
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)  # On Windows use RUNTIME, on Linux/macOS, use bin
