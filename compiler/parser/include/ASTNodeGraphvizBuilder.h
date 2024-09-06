@@ -3,9 +3,9 @@
 
 #include <stack>
 #include <string>
+#include <vector>
 
 #include <boost/graph/directed_graph.hpp>
-#include <vector>
 
 #include "ASTNode.h"
 #include "ASTNodeForward.h"

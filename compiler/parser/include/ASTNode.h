@@ -32,8 +32,7 @@ enum ParserASTNodeAttributeId : int {
     // No attributes
 };
 
-using ASTNodeAttributePtr
-    = std::shared_ptr<ASTNodeAttribute>;
+using ASTNodeAttributePtr = std::shared_ptr<ASTNodeAttribute>;
 
 class ASTNode : public std::enable_shared_from_this<ASTNode> {
 public:

@@ -96,6 +96,7 @@ int main(int argc, char **argv)
         abort();
     }
 
+    // Sem analysis finished. Collecting data
     hrl::semanalyzer::SymbolTablePtr symbol_table = symtbl_analyzer->get_symbol_table();
 
     return 0;
