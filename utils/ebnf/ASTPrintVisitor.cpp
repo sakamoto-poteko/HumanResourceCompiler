@@ -2,7 +2,7 @@
 
 #include "ASTNode.h"
 #include "ASTNodeVisitor.h"
-#include "enbf_global.h"
+#include "ebnf_global.h"
 
 int ASTPrintVisitor::accept(SyntaxNodePtr node)
 {

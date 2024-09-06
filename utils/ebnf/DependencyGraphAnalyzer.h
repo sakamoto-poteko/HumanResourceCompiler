@@ -26,9 +26,9 @@ struct InfoWithLoc {
     InfoWithLoc(int row, int col, T info)
         : row(row)
         , col(col)
-        , id()
         , row2(0)
         , col2(0)
+        , id()
         , id2()
         , info(info)
     {
@@ -57,9 +57,9 @@ struct InfoWithLoc {
     InfoWithLoc(const std::string &id, int row, int col, const std::string &id2, int row2, int col2, T info)
         : row(row)
         , col(col)
-        , id(id)
         , row2(row2)
         , col2(col2)
+        , id(id)
         , id2(id2)
         , info(info)
     {

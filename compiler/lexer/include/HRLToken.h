@@ -14,7 +14,7 @@ enum TokenId : int {
     END = 0,
 
     IMPORT = 256,
-    
+
     LET,
     INIT,
     FLOOR,
@@ -120,7 +120,15 @@ public:
 
     const std::vector<TokenMetadata> &metadata() const { return _metadata; }
 
-    void prepend_metadata_newline() { _metadata.insert(_metadata.begin(), TokenMetadata { .type = TokenMetadata::Newline }); }
+    void prepend_metadata_newline()
+    {
+        _metadata.insert(
+            _metadata.begin(),
+            TokenMetadata {
+                .type = TokenMetadata::Newline,
+                .value = nullptr,
+            });
+    }
 
 protected:
     TokenId _token_id;
