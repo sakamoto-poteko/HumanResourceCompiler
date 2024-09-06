@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cstddef>
 #include <cstdlib>
 #include <iostream>
 #include <list>
@@ -15,10 +16,11 @@
 #include "ASTNode.h"
 #include "ASTNodeForward.h"
 #include "DependencyGraphAnalyzer.h"
+#include "ebnf_global.h"
 
 void DependencyGraphAnalyzer::find_unreachable()
 {
-    for (int i = 0; i < _graph.num_vertices(); i++) {
+    for (std::size_t i = 0; i < _graph.num_vertices(); i++) {
         Vertex vertex = boost::vertex(i, _graph);
         if (!_state->visited.contains(vertex)) {
             const auto &current = _graph[vertex];
@@ -33,7 +35,7 @@ void DependencyGraphAnalyzer::find_unreachable()
 
 void DependencyGraphAnalyzer::build_production_rule_map()
 {
-    for (int i = 0; i < _graph.num_vertices(); i++) {
+    for (std::size_t i = 0; i < _graph.num_vertices(); i++) {
         Vertex vertex = boost::vertex(i, _graph);
         const auto &current = _graph[vertex];
         if (auto ptr = std::dynamic_pointer_cast<ProductionNode>(current)) {
@@ -397,17 +399,17 @@ void DependencyGraphAnalyzer::compute_follow_set()
     */
 
     // iterate until no changes occur
-    bool expanded = false;
-    while (expanded) {
-        for (const auto &production : _state->productions) {
-            // propogate_follow_set_ending_with_terminal
-            // propogate_follow_set_ending_with_nonterminal
+    // bool expanded = false;
+    // while (expanded) {
+    //     for (const auto &production : _state->productions) {
+    //         // propogate_follow_set_ending_with_terminal
+    //         // propogate_follow_set_ending_with_nonterminal
 
-            // 1. for each terms in expression
-            // 2. is it the last? define `is_last_edge` stack, optional/repeated leave as is, group/id/literal set false
-            // compute_sth(prod node, expr node, out can_be_optional)
-            // for each term, compute_term(prod node, term node, out can_be_optional)
-            // for each literal/id compute_terminal(prod node, terminal node, out can_be_optional)
-        }
-    }
+    //         // 1. for each terms in expression
+    //         // 2. is it the last? define `is_last_edge` stack, optional/repeated leave as is, group/id/literal set false
+    //         // compute_sth(prod node, expr node, out can_be_optional)
+    //         // for each term, compute_term(prod node, term node, out can_be_optional)
+    //         // for each literal/id compute_terminal(prod node, terminal node, out can_be_optional)
+    //     }
+    // }
 }

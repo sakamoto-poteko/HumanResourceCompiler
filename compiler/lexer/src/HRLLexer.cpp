@@ -182,7 +182,6 @@ void HRLLexer::get_file_lines(FILE *in, std::vector<std::string> &rows)
 
     char buf[1024];
     long current_pos = ftell(in);
-    char *line;
     std::fseek(in, current_pos, SEEK_SET);
 
     std::string current_line;

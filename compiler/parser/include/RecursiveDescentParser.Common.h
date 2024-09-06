@@ -2,6 +2,7 @@
 #define RECURSIVEDESCENTPARSER_COMMON_H
 
 #include "RecursiveDescentParser.h"
+#include "hrl_global.h"
 
 OPEN_PARSER_NAMESPACE
 
@@ -9,13 +10,17 @@ OPEN_PARSER_NAMESPACE
     leave_parse_frame();    \
     return true
 
-#define ENTER_PARSE_FRAME()              \
-    enter_parse_frame();                 \
-    lexer::TokenPtr token = lookahead(); \
-    int lineno = token->lineno();        \
-    int colno = token->colno();          \
-    int width = token->width();          \
-    auto last_error_it = _errors.empty() ? _errors.end() : std::prev(_errors.end())
+#define ENTER_PARSE_FRAME()                                                          \
+    enter_parse_frame();                                                             \
+    lexer::TokenPtr token = lookahead();                                             \
+    int lineno = token->lineno();                                                    \
+    UNUSED(lineno);                                                                  \
+    int colno = token->colno();                                                      \
+    UNUSED(colno);                                                                   \
+    int width = token->width();                                                      \
+    UNUSED(width);                                                                   \
+    auto last_error_it = _errors.empty() ? _errors.end() : std::prev(_errors.end()); \
+    UNUSED(last_error_it)
 
 #define CLEAR_ERROR_BEYOND() \
     pop_error_till(last_error_it)
@@ -53,15 +58,13 @@ OPEN_PARSER_NAMESPACE
         push_error((msg), lineno, colno, width);       \
         revert_parse_frame();                          \
         return false;                                  \
-    }                                                  \
-    0 // 0 is required to suppress empty statement check
+    }
 
 #define CHECK_ERROR(ok)       \
     if (!(ok)) {              \
         revert_parse_frame(); \
         return false;         \
-    }                         \
-    0 // 0 is required to suppress empty statement check
+    }
 
 #define TOKEN_IS(id) \
     (token->token_id() == (id))

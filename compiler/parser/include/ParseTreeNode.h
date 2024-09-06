@@ -198,7 +198,6 @@ public:
 
     static BinaryOperator get_binary_operator_from_token_id(lexer::TokenId token_id)
     {
-        BinaryOperator op;
         switch (token_id) {
         case lexer::TokenId::GE:
             return GE;
@@ -227,7 +226,7 @@ public:
         case lexer::TokenId::MOD:
             return MOD;
         default:
-            // FIXME: error handling
+            //  FIXME: error handling
             throw;
         }
     }

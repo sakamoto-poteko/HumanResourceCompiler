@@ -196,14 +196,11 @@ std::string ASTNodeGraphvizBuilder::generate_graphviz(const std::string &filepat
         // edge
         [](std::ostream &out, const Edge &e) {
             //
+            UNUSED(out);
+            UNUSED(e);
         },
         // graph
-
         [](std::ostream &out) { out << "node[ordering=out];\n"; });
-
-    // std::cout << std::endl
-    //           << dotfile.str()
-    //           << std::endl;
 
     std::ofstream out(filepath);
     out << dotfile.str();
@@ -572,14 +569,14 @@ int ASTNodeGraphvizBuilder::visit(BreakStatementASTNodePtr node)
     enter_and_create_vertex("Break", Flow, node);
     leave();
     return 0;
-};
+}
 
 int ASTNodeGraphvizBuilder::visit(ContinueStatementASTNodePtr node)
 {
     enter_and_create_vertex("Continue", Flow, node);
     leave();
     return 0;
-};
+}
 
 int ASTNodeGraphvizBuilder::visit(StatementBlockASTNodePtr node)
 {
