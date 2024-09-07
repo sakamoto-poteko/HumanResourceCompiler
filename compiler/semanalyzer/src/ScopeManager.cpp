@@ -4,6 +4,7 @@
 #include <boost/algorithm/string/split.hpp>
 
 #include "ScopeManager.h"
+#include "hrl_global.h"
 #include "semanalyzer_global.h"
 
 OPEN_SEMANALYZER_NAMESPACE
@@ -49,7 +50,8 @@ void ScopeManager::enter_anonymous_scope()
     _scope_id.top() += 1;
 
     bool ok = enter_scope(std::to_string(id));
-    assert(ok);
+    UNUSED(ok);
+    assert(ok); // not supposed to happen
 }
 
 void ScopeManager::exit_scope()
