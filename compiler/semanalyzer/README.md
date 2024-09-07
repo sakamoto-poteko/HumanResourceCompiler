@@ -14,9 +14,10 @@ The following is a breakdown of pending tasks to be implemented in the semantic 
 - [ ] Add support for resolving imported module symbols.
 - [ ] Enforce distinction between global and local scopes.
 
-### Constant Folding and Propagation
+### Early Constant Folding and Propagation
 - [ ] Optimize constant expressions during the analysis phase (constant folding).
 - [ ] Propagate constants where applicable in simple expressions (constant propagation).
+- [ ] Check div by constant zero error
 
 ### Symbol Use Analysis
 - [ ] Enforce the variable assignment before use
@@ -27,5 +28,5 @@ The following is a breakdown of pending tasks to be implemented in the semantic 
 - [ ] Validate that all control paths in non-void functions return a value.
 - [ ] Verify correct usage of `break`, `continue`, and `return` statements.
 - [ ] Ensure that all code paths in a function lead to a valid return statement.
-- [ ] Check that all functions with a return statement actually return a value, and and flag unreachable after return.
+- [ ] Check that all functions with a return statement actually return a value, and flag unreachable after return.
 
