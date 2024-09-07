@@ -1,10 +1,6 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
-#ifdef _WINDOWS
-#define _CRT_SECURE_NO_WARNINGS
-#endif
-
 #include <memory>
 #include <string>
 

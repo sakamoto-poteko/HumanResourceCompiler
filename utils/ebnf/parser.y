@@ -16,7 +16,7 @@ std::shared_ptr<SyntaxNode> root; // This will hold the root of the AST
 %}
 
 %locations
- 
+
 %union {
     char* str;
     SyntaxNode* syntax;

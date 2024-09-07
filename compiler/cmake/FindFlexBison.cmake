@@ -1,9 +1,5 @@
 # FindFlexBison.cmake - A custom module to download and install Flex and Bison for Windows
-
-# Include guard: Ensure this file is only included once
-if(NOT FIND_FLEX_BISON_INCLUDED)
-    set(FIND_FLEX_BISON_INCLUDED TRUE)
-
+if(NOT TARGET FlexBison)
     include(ExternalProject)
 
     set(WINFLEXBISON_INSTALL_DIR "${CMAKE_BINARY_DIR}/tools/winflexbison")
