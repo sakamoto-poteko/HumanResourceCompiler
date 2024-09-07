@@ -13,7 +13,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 endif()
 
 # EBNF Tool
-add_subdirectory(${CMAKE_SOURCE_DIR}/deps/ebnf)
+add_subdirectory(${CMAKE_SOURCE_DIR}/../utils/ebnf ebnf-tool)
 
 add_custom_target(
     EbnfTool ALL
