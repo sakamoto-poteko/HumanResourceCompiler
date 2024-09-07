@@ -51,7 +51,6 @@ void ParseTreeNodeFormatterVisitor::format(CompilationUnitPTNodePtr node)
 {
     // FIXME: format is not yet supported
     spdlog::error("Format is not yet supported");
-    throw;
     node->accept(this);
 
     std::ostringstream buffer;
@@ -62,6 +61,7 @@ void ParseTreeNodeFormatterVisitor::format(CompilationUnitPTNodePtr node)
     }
 
     std::cout << buffer.str() << std::endl;
+    abort();
 }
 
 void ParseTreeNodeFormatterVisitor::visit(IdentifierPTNodePtr node)

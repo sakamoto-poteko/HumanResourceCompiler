@@ -15,8 +15,6 @@
 #include <boost/algorithm/string/join.hpp>
 #include <boost/format.hpp>
 
-#include <getopt.h>
-
 #include <spdlog/spdlog.h>
 
 #include "ASTNode.h"
@@ -32,9 +30,16 @@ static void write_first_follow_file(const std::string &path, const std::map<std:
 #ifndef %1%_H
 #define %1%_H
 
-#if __cplusplus < 201103L
-#error "This code requires at least C++11. Please use a compiler that supports C++11 or higher."
+#if defined(_MSVC_LANG)
+    #define CXX_STD _MSVC_LANG
+#else
+    #define CXX_STD __cplusplus
 #endif
+
+#if CXX_STD < 201103L
+    #error "This code requires at least C++11. Please use a compiler that supports C++11 or higher."
+#endif
+
 
 #include <map>
 #include <set>

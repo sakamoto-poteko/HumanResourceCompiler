@@ -3,17 +3,15 @@ project(hrlc)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_STANDARD_REQUIRED YES)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     add_compile_options(-Wall -Wextra -Wpedantic)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    add_compile_options(/W4 /WX)
+    add_compile_options(/W4 /Zc:preprocessor)
 endif()
 
 # EBNF Tool
-add_subdirectory(${CMAKE_SOURCE_DIR}/deps/ebnf)
+add_subdirectory(${CMAKE_SOURCE_DIR}/../utils/ebnf ebnf-tool)
 
 add_custom_target(
     EbnfTool ALL
@@ -21,9 +19,17 @@ add_custom_target(
 )
 
 # Compiler
-find_package(spdlog REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
 find_package(Boost CONFIG REQUIRED COMPONENTS graph)
-find_package(FLEX 2.6 REQUIRED)
+
+if(WIN32)
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+    find_package(FlexBison REQUIRED)
+
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+else()
+    find_package(FLEX 2.6 REQUIRED)
+endif()
 
 include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/include)
 

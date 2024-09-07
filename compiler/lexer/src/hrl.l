@@ -83,7 +83,7 @@ for (int i = 0; i < yyleng; ++i) { if (yytext[i] == '\n') { last_token_newline =
 [ \t]+                          { }
 [\n\r]                          { __currentToken.preceding_metadata.emplace_back(TokenMetadata {.type=TokenMetadata::Newline}); return NEWLINE; }
 
-.                               { return ERROR; }
+.                               { return TOKEN_ERROR; }
 
 %%
 

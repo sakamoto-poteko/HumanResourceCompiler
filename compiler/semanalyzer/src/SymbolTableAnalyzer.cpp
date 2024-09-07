@@ -587,7 +587,8 @@ void SymbolTableAnalyzer::log_redefinition_error(const StringPtr &name, SymbolTy
 {
     SymbolPtr defined_symbol;
     bool symbol_found = _symbol_table->lookup_symbol(_scope_manager.get_current_scope_id(), name, false, defined_symbol);
-    assert(symbol_found);
+    UNUSED(symbol_found);
+    assert(symbol_found); // won't happen
 
     ASTNodePtr first_appearance = WEAK_TO_SHARED(defined_symbol->definition);
 

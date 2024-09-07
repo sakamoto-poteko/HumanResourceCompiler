@@ -54,7 +54,7 @@ bool HRLLexer::lex(FILE *in, const std::string &filepath, std::vector<TokenPtr> 
         return true;
     }
 
-    if (currentTokenId == ERROR) {
+    if (currentTokenId == TOKEN_ERROR) {
         const auto &token = ret.back();
         print_tokenization_error(filepath, token->lineno(), token->colno(), token->width(), token->token_text());
         return false;
@@ -150,8 +150,8 @@ TokenPtr HRLLexer::tokenize()
     case END:
         token = std::make_shared<Token>(END, lineno, colno, width, std::make_shared<std::string>(yytext), __currentToken.preceding_metadata);
         break;
-    case ERROR:
-        token = std::make_shared<Token>(ERROR, lineno, colno, width, std::make_shared<std::string>(yytext), __currentToken.preceding_metadata);
+    case TOKEN_ERROR:
+        token = std::make_shared<Token>(TOKEN_ERROR, lineno, colno, width, std::make_shared<std::string>(yytext), __currentToken.preceding_metadata);
         break;
     default:
         spdlog::critical("bug: unreachable tokenize default");

@@ -21,7 +21,7 @@ struct ErrorLocation {
     int column; // could be -1
     std::size_t width;
 
-    ErrorLocation(const std::string filename, int line, int column, int width)
+    ErrorLocation(const std::string filename, int line, int column, std::size_t width)
         : file_name(filename)
         , line(line)
         , column(column)

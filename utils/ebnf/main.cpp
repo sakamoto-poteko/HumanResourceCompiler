@@ -7,13 +7,11 @@
 #include <iostream>
 #include <string>
 #include <string_view>
-#include <unistd.h>
 #include <vector>
 
 #include <boost/algorithm/string/join.hpp>
 #include <boost/format.hpp>
-
-#include <getopt.h>
+#include <boost/program_options.hpp>
 
 #include <spdlog/spdlog.h>
 
@@ -22,6 +20,8 @@
 #include "DependencyGraphAnalyzer.h"
 #include "DependencyGraphBuilder.h"
 #include "Tasks.h"
+
+namespace po = boost::program_options;
 
 int yyparse(void);
 extern SyntaxNodePtr root;
@@ -106,89 +106,75 @@ Notes:
 Arguments parse_arguments(int argc, char **argv)
 {
     Arguments args;
-    int opt;
+    po::options_description desc("Allowed options");
 
-    struct option long_options[] = {
-        { "input", required_argument, nullptr, 'i' },
-        { "start", required_argument, nullptr, 's' },
-        { "token", required_argument, nullptr, 't' },
-        { "token-file", required_argument, nullptr, 'f' },
-        { "graph", required_argument, nullptr, 'g' },
-        { "left-recursion", no_argument, nullptr, 'L' },
-        { "non-left-circular", no_argument, nullptr, 'C' },
-        { "unreachable", no_argument, nullptr, 'U' },
-        { "first-follow-set", optional_argument, nullptr, 'F' },
-        { "conflicts", no_argument, nullptr, 'N' },
-        { "reprint-ebnf", no_argument, nullptr, 'R' },
-        { "help", no_argument, nullptr, 'h' },
-        { "version", no_argument, nullptr, 'v' },
-        { nullptr, 0, nullptr, 0 }
-    };
+    desc.add_options() //
+        ("input,i", po::value<std::string>(&args.input_file), "Input file") //
+        ("start,s", po::value<std::string>(&args.start_symbol), "Start symbol") //
+        ("token,t", po::value<std::vector<std::string>>()->multitoken(), "Tokens (can be specified multiple times)") //
+        ("token-file,f", po::value<std::string>(&args.token_file), "File containing tokens") //
+        ("graph,g", po::value<std::string>(&args.graphviz_output), "Graphviz output file") //
+        ("left-recursion,L", po::bool_switch(&args.check_left_recursion), "Check for left recursion") //
+        ("non-left-circular,C", po::bool_switch(&args.check_non_left_circular), "Check for non-left circular dependencies") //
+        ("unreachable,U", po::bool_switch(&args.check_unreachable), "Check for unreachable symbols") //
+        ("first-follow-set,F", po::value<std::string>(&args.first_follow_output)->implicit_value(""), "Calculate the first-follow set") //
+        ("conflicts,N", po::bool_switch(&args.check_conflicts), "Check for conflicts") //
+        ("reprint-ebnf,R", po::bool_switch(&args.reprint_ebnf), "Reprint the EBNF") //
+        ("help,h", "Show help message") //
+        ("version,v", "Show version information");
 
-    while ((opt = getopt_long(argc, argv, "i:s:t:f:g:F::LCUNRhv", long_options, nullptr)) != -1) {
-        switch (opt) {
-        case 'i':
-            args.input_file = optarg;
-            break;
-        case 's':
-            args.start_symbol = optarg;
-            break;
-        case 't':
-            args.tokens.insert(optarg);
-            break;
-        case 'f':
-            args.token_file = optarg;
-            break;
-        case 'g':
-            args.graphviz_output = optarg;
-            args.graphviz_requested = true;
-            break;
-        case 'L': // left-recursion
-            args.check_left_recursion = true;
-            break;
-        case 'C': // non-left-circular
-            args.check_non_left_circular = true;
-            break;
-        case 'U': // unreachable
-            args.check_unreachable = true;
-            break;
-        case 'F': // first-set
-            args.calculate_first_set = true;
-            args.check_left_recursion = true; // Enforce left recursion check
-            if (optarg) {
-                args.first_follow_output = optarg;
-            }
-            break;
-        case 'R': // reprint EBNF
-            args.reprint_ebnf = true;
-            break;
-        case 'N':
-            args.check_conflicts = true;
-            break;
-        case 'h':
-            print_help(argv[0]);
-            std::exit(EXIT_SUCCESS);
-        case 'v':
-            std::cout << "Program version 1.0\n";
-            std::exit(EXIT_SUCCESS);
-        default:
-            std::cerr << "Unknown option or missing argument. Use -h or --help for help.\n";
-            std::exit(EXIT_FAILURE);
-        }
+    po::variables_map vm;
+    try {
+        po::store(po::parse_command_line(argc, argv, desc), vm);
+        po::notify(vm);
+    } catch (const po::error &ex) {
+        std::cerr << "Error: " << ex.what() << std::endl;
+        std::cerr << desc << std::endl;
+        exit(EXIT_FAILURE);
     }
 
+    // Handle help and version options
+    if (vm.count("help")) {
+        std::cout << desc << std::endl;
+        exit(EXIT_SUCCESS);
+    }
+
+    if (vm.count("version")) {
+        std::cout << "Program version 1.0\n";
+        exit(EXIT_SUCCESS);
+    }
+
+    // Handle the token argument
+    if (vm.count("token")) {
+        const auto &tokens = vm["token"].as<std::vector<std::string>>();
+        args.tokens.insert(tokens.begin(), tokens.end());
+    }
+
+    // Check if the required arguments are present
     if (args.input_file.empty()) {
         spdlog::error("Input file is required. Use -h or --help for help.");
-        std::exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
     }
 
     if (args.start_symbol.empty()) {
         spdlog::error("Start symbol is required. Use -h or --help for help.");
-        std::exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
     }
 
+    // Read tokens from file if provided
     if (!args.token_file.empty()) {
         read_tokens_from_file(args.token_file, args.tokens);
+    }
+
+    // Handle the graphviz request
+    if (!args.graphviz_output.empty()) {
+        args.graphviz_requested = true;
+    }
+
+    // Implicit first-follow set request
+    if (vm.count("first-follow-set")) {
+        args.calculate_first_set = true;
+        args.check_left_recursion = true; // Enforce left recursion check as in the original code
     }
 
     return args;

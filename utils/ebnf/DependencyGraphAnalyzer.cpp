@@ -246,35 +246,35 @@ void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent)
 
     auto determine_is_first_set_element = [&]() {
         // Must be searched bottom-to-top. There might me multiple elements with same production id when ecounter Repeated/Grouped/Optional.
-        auto first_prod_occurence = std::find_if(
+        auto first_prod_occurrence = std::find_if(
             _state->descent_path_edge_indices.cbegin(),
             _state->descent_path_edge_indices.cend(),
             [&current_production](auto &rule_idx_pair) {
                 return rule_idx_pair.first->id == current_production->id;
             });
         bool all_have_index_of_0 = std::all_of(
-            first_prod_occurence,
-            _state->descent_path_edge_indices.cend(),
-            [](auto &rule_idx_pair) {
+                first_prod_occurrence,
+                _state->descent_path_edge_indices.cend(),
+                [](auto &rule_idx_pair) {
                 return rule_idx_pair.second == 0;
             });
 
         return all_have_index_of_0;
     };
 
-    if (auto c = std::dynamic_pointer_cast<LiteralNode>(current_node)) {
+    if (auto literal = std::dynamic_pointer_cast<LiteralNode>(current_node)) {
+            _state->first_set[current_production->id].insert(FirstSetElement(literal->value, FirstSetElement::Literal));
         if (determine_is_first_set_element()) {
-            _state->first_set[current_production->id].insert(FirstSetElement(c->value, FirstSetElement::Literal));
         }
-    } else if (auto c = std::dynamic_pointer_cast<IdentifierNode>(current_node)) {
+    } else if (auto identifier = std::dynamic_pointer_cast<IdentifierNode>(current_node)) {
         if (determine_is_first_set_element()) {
-            if (_tokens.contains(c->value)) {
-                _state->first_set[current_production->id].insert(FirstSetElement(c->value, FirstSetElement::Token));
+            if (_tokens.contains(identifier->value)) {
+                _state->first_set[current_production->id].insert(FirstSetElement(identifier->value, FirstSetElement::Token));
             } else {
-                _state->first_set[current_production->id].insert(FirstSetElement(c->value, FirstSetElement::Reference));
+                _state->first_set[current_production->id].insert(FirstSetElement(identifier->value, FirstSetElement::Reference));
             }
         }
-    } else if (auto c = std::dynamic_pointer_cast<EpsilonNode>(current_node)) {
+    } else if (auto epsilon = std::dynamic_pointer_cast<EpsilonNode>(current_node)) {
         if (determine_is_first_set_element()) {
             _state->first_set[current_production->id].insert(FirstSetElement(std::string(), FirstSetElement::Epsilon));
         }
@@ -296,19 +296,19 @@ void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent)
         Increment the stack top on exit if the node is a LiteralNode, IdentifierNode, or GroupedNode.
     */
     // WARNING: NO MORE USE of current_production after this line. Same reason as above.
-    if (auto c = std::dynamic_pointer_cast<ProductionNode>(current_node)) {
+    if (auto production = std::dynamic_pointer_cast<ProductionNode>(current_node)) {
         _state->descent_path.pop_back();
-    } else if (auto c = std::dynamic_pointer_cast<TermNode>(current_node)) {
+    } else if (auto term = std::dynamic_pointer_cast<TermNode>(current_node)) {
         _state->descent_path_edge_indices.pop_back();
-    } else if (auto c = std::dynamic_pointer_cast<OptionalNode>(current_node)) {
-    } else if (auto c = std::dynamic_pointer_cast<RepeatedNode>(current_node)) {
-    } else if (auto c = std::dynamic_pointer_cast<GroupedNode>(current_node)) {
+    } else if (auto optional = std::dynamic_pointer_cast<OptionalNode>(current_node)) {
+    } else if (auto repeated = std::dynamic_pointer_cast<RepeatedNode>(current_node)) {
+    } else if (auto groped = std::dynamic_pointer_cast<GroupedNode>(current_node)) {
         ++_state->descent_path_edge_indices.back().second;
-    } else if (auto c = std::dynamic_pointer_cast<IdentifierNode>(current_node)) {
+    } else if (auto identifier = std::dynamic_pointer_cast<IdentifierNode>(current_node)) {
         ++_state->descent_path_edge_indices.back().second;
-    } else if (auto c = std::dynamic_pointer_cast<LiteralNode>(current_node)) {
+    } else if (auto literal = std::dynamic_pointer_cast<LiteralNode>(current_node)) {
         ++_state->descent_path_edge_indices.back().second;
-    } else if (auto c = std::dynamic_pointer_cast<EpsilonNode>(current_node)) {
+    } else if (auto epsilon = std::dynamic_pointer_cast<EpsilonNode>(current_node)) {
     }
 
     _state->mark.erase(current);

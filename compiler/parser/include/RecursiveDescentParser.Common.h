@@ -17,7 +17,7 @@ OPEN_PARSER_NAMESPACE
     UNUSED(lineno);                                                                  \
     int colno = token->colno();                                                      \
     UNUSED(colno);                                                                   \
-    int width = token->width();                                                      \
+    std::size_t width = token->width();                                              \
     UNUSED(width);                                                                   \
     auto last_error_it = _errors.empty() ? _errors.end() : std::prev(_errors.end()); \
     UNUSED(last_error_it)
