@@ -8,10 +8,8 @@
 
 OPEN_LEXER_NAMESPACE
 
-struct TokenMetadata
-{
-    enum Type
-    {
+struct TokenMetadata {
+    enum Type {
         Newline,
         Comment,
     };
@@ -20,15 +18,15 @@ struct TokenMetadata
     StringPtr value;
 };
 
-struct CurrentToken
-{
+struct CurrentToken {
 public:
     int integer;
     bool boolean;
     StringPtr identifier;
     std::vector<TokenMetadata> preceding_metadata;
 
-    void clear() {
+    void clear()
+    {
         integer = 0;
         boolean = false;
         identifier.reset();

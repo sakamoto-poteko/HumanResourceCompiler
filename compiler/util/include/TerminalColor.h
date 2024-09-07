@@ -1,8 +1,7 @@
 #ifndef TERMINALCOLOR_H
 #define TERMINALCOLOR_H
 
-class TerminalColor
-{
+class TerminalColor {
 public:
     TerminalColor();
     ~TerminalColor();
@@ -13,6 +12,7 @@ public:
     const char *C_LIGHT_RED = "";
 
     void reset();
+
 private:
 };
 

@@ -1,9 +1,9 @@
 #ifndef COMPILEROPTIONS_H
 #define COMPILEROPTIONS_H
 
+#include <optional>
 #include <string>
 #include <vector>
-#include <optional>
 
 #include "hrc_global.h"
 
@@ -12,7 +12,7 @@ OPEN_HRC_NAMESPACE
 struct CompilerOptions {
     std::string input_file;
     std::optional<std::string> output_file;
-    int optimization_level = 0;  // Default is -O0
+    int optimization_level = 0; // Default is -O0
     std::vector<std::string> include_paths;
     bool verbose = false;
     bool show_version = false;

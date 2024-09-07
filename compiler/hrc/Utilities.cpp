@@ -38,7 +38,7 @@ void Utilities::write_token_list_to_file(FILE *file, const std::vector<TokenPtr>
             }
             continue;
         }
-        
+
         std::fprintf(file, "%s ", token->get_token_name());
     }
 }

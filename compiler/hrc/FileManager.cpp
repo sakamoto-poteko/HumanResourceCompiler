@@ -1,5 +1,5 @@
-#include "hrl_global.h"
 #include "FileManager.h"
+#include "hrl_global.h"
 
 OPEN_HRC_NAMESPACE
 
