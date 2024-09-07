@@ -54,7 +54,7 @@ bool HRLLexer::lex(FILE *in, const std::string &filepath, std::vector<TokenPtr> 
         return true;
     }
 
-    if (currentTokenId == ERROR) {
+    if (currentTokenId == TOKEN_ERROR) {
         const auto &token = ret.back();
         print_tokenization_error(filepath, token->lineno(), token->colno(), token->width(), token->token_text());
         return false;
