@@ -1,6 +1,8 @@
-# Human Resource Machine Compiler
+# Project Name: Human Resource Machine Compiler
 
 This project aims to create a compiler for the game Human Resource Machine using a custom language called "Human Resource Machine LazyCoder Language" (HRML). The language simplifies the game's coding challenges by abstracting some of its assembly-like constructs, allowing you to write code more efficiently. The project includes components such as lexical analysis, parsing, intermediate representation (IR), code generation, and optimization.
+
+In addition, the project provides a VSCode extension for HRML language support, allowing syntax highlighting and language-specific configuration.
 
 ## Getting Started
 
@@ -14,7 +16,7 @@ Ensure you have the following dependencies installed before building the project
 - **spdlog** (for logging)
 - **Boost** (for various utilities)
 
-To install these on Ubuntu:
+To install these on Debian/Ubuntu:
 
 ```bash
 sudo apt-get update
@@ -47,21 +49,70 @@ The project is located in the `compiler/` directory. To build it using CMake, fo
    cmake --build build -- -j$(nproc)
    ```
 
-5. **Run Tests:**
+5. **Run Tests (no tests yet):**
    ```bash
    cd build
    ctest -C Release
    ```
 
-### GitHub Actions Integration
+## VSCode Extension Setup
 
-This project includes a GitHub Actions workflow that automatically builds and tests the code on every push or pull request to the `master` branch. The workflow performs the following:
+This project also includes a VSCode extension for Human Resource Machine LazyCoder (HRML) language support, which provides syntax highlighting and configuration.
 
-- Installs the necessary dependencies.
-- Configures and builds the project using CMake.
-- Runs the tests using `ctest`.
+### Development Instructions
 
-You can customize the build type by modifying the `BUILD_TYPE` environment variable in the GitHub Actions workflow file.
+1. **Install Dependencies:**
+   - Install **Node.js** and **npm** if not already installed.
+
+     ```bash
+     sudo apt-get install nodejs npm
+     ```
+
+   - Install **vsce** (Visual Studio Code Extension Manager).
+
+     ```bash
+     npm install -g @vscode/vsce
+     ```
+
+2. **Navigate to the Extension Directory:**
+   ```bash
+   cd human-resource-lazycoder-vscode
+   ```
+
+3. **Package the Extension:**
+   Run the following command to package the extension into a `.vsix` file:
+
+   ```bash
+   vsce package
+   ```
+
+4. **Install the Extension Locally:**
+   - In VSCode, press `F1`, type "Extensions: Install from VSIX...", and select the `.vsix` file generated in the previous step.
+   - You can also install it manually by running:
+
+     ```bash
+     code --install-extension path_to_vsix_file
+     ```
+
+### Installation Instructions for Users
+
+If you're not developing but just want to install the extension:
+
+1. **Download the `.vsix` File:**
+   Download the packaged extension from the repository or from a release.
+
+2. **Install the Extension in VSCode:**
+   - Open VSCode.
+   - Press `F1`, type "Extensions: Install from VSIX...", and select the `.vsix` file.
+   - Alternatively, you can use the terminal:
+
+     ```bash
+     code --install-extension path_to_vsix_file
+     ```
+
+Once installed, the extension will provide:
+- **Syntax highlighting** for `.hrml` files.
+- **Language-specific configuration** for HRML.
 
 ### Language Overview
 
