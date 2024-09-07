@@ -119,7 +119,7 @@ std::string ErrorManager::msg_to_string(CompilerMessage msg) const
                 ss << '^';
             }
         } else {
-            ss << '<';
+            ss << '^';
         }
         ss << __tc.COLOR_RESET;
     }

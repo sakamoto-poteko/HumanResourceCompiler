@@ -165,7 +165,7 @@ TokenPtr HRLLexer::tokenize()
     return token;
 }
 
-void HRLLexer::print_tokenization_error(const std::string &filepath, int lineno, int colno, int width, const StringPtr &text, const std::vector<std::string> &lines)
+void HRLLexer::print_tokenization_error(const std::string &filepath, int lineno, int colno, std::size_t width, const StringPtr &text, const std::vector<std::string> &lines)
 {
     auto fmt = boost::format("Unrecognized token '%1%'") % *text;
     _errmgr.report(

@@ -17,9 +17,9 @@ enum class ErrorSeverity {
 // Struct to represent the location of an error
 struct ErrorLocation {
     std::string file_name;
-    int line;
-    int column;
-    int width;
+    int line; // could be -1
+    int column; // could be -1
+    std::size_t width;
 
     std::string to_string() const
     {

@@ -94,7 +94,7 @@ inline bool is_token_binary_operator(TokenId token)
 
 class Token : std::enable_shared_from_this<Token> {
 public:
-    Token(TokenId tokenId, int row, int col, int width, StringPtr text, const std::vector<TokenMetadata> &metadata)
+    Token(TokenId tokenId, int row, int col, std::size_t width, StringPtr text, const std::vector<TokenMetadata> &metadata)
         : _token_id(tokenId)
         , _lineno(row)
         , _colno(col)
@@ -116,7 +116,7 @@ public:
 
     int colno() const { return _colno; }
 
-    int width() const { return _width; }
+    std::size_t width() const { return _width; }
 
     const std::vector<TokenMetadata> &metadata() const { return _metadata; }
 

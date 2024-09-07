@@ -68,8 +68,8 @@ protected:
 
     [[nodiscard]] bool parse_precedence_climbing(AbstractExpressionPTNodePtr &result, AbstractExpressionPTNodePtr lhs, int min_precedence);
 
-    void push_error(const std::string &expect, const lexer::TokenPtr &got, int lineno = -1, int colno = -1, int width = -1);
-    void push_error(int errid, const std::string &message, int lineno, int colno, int width);
+    void push_error(const std::string &expect, const lexer::TokenPtr &got, int lineno = -1, int colno = -1, std::size_t width = 0);
+    void push_error(int errid, const std::string &message, int lineno, int colno, std::size_t width);
     void pop_error();
     void pop_error_till(std::list<CompilerMessage>::iterator till_exclusive);
     void report_errors();

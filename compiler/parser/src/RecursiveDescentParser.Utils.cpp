@@ -29,7 +29,7 @@ void RecursiveDescentParser::leave_parse_frame()
     _parse_frame_token_pointer.pop();
 }
 
-void RecursiveDescentParser::push_error(const std::string &expect, const lexer::TokenPtr &got, int lineno, int colno, int width)
+void RecursiveDescentParser::push_error(const std::string &expect, const lexer::TokenPtr &got, int lineno, int colno, std::size_t width)
 {
     auto err_str = boost::format("Expect %1% but got '%2%'") % expect % *got->token_text();
     _errors.push_back(CompilerMessage {
@@ -39,7 +39,7 @@ void RecursiveDescentParser::push_error(const std::string &expect, const lexer::
             .file_name = _filename,
             .column = colno != -1 ? colno : got->colno(),
             .line = lineno != -1 ? lineno : got->lineno(),
-            .width = width != -1 ? width : got->width(),
+            .width = width == 0 ? got->width() : 0,
         },
         .severity = ErrorSeverity::Error,
     });
@@ -55,7 +55,7 @@ void RecursiveDescentParser::report_errors()
     _errors.clear();
 }
 
-void RecursiveDescentParser::push_error(int errid, const std::string &message, int lineno, int colno, int width)
+void RecursiveDescentParser::push_error(int errid, const std::string &message, int lineno, int colno, std::size_t width)
 {
     _errors.push_back(CompilerMessage {
         .message = message,

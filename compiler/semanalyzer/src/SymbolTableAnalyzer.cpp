@@ -620,7 +620,7 @@ void SymbolTableAnalyzer::log_redefinition_error(const StringPtr &name, SymbolTy
             .column = node->colno(),
             .file_name = *_filename,
             .line = node->lineno(),
-            .width = 0,
+            .width = name->size(),
         },
         errstr.str());
 }
@@ -647,7 +647,7 @@ void SymbolTableAnalyzer::log_undefined_error(const StringPtr &name, SymbolType 
             .column = node->colno(),
             .file_name = *_filename,
             .line = node->lineno(),
-            .width = 0,
+            .width = name->size(),
         },
         errstr.str());
 }
