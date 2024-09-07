@@ -1,19 +1,14 @@
-#include <ranges>
+#include <sstream>
 #include <string>
 
 #include "ErrorFilters.h"
 #include "ErrorManager.h"
+#include "TerminalColor.h"
 
 void ErrorManager::report(int error_id, ErrorSeverity severity, const ErrorLocation &location, const std::string &message, const std::string &suggestion)
 {
-    CompilerMessage msg = {
-        error_id,
-        severity,
-        location,
-        message,
-        suggestion,
-        _message_order_counter++,
-    };
+    CompilerMessage msg(error_id, severity, location, message, suggestion);
+    msg.order = _message_order_counter++;
 
     // Store in appropriate container based on severity
     switch (severity) {
@@ -115,7 +110,7 @@ std::string ErrorManager::msg_to_string(CompilerMessage msg) const
         }
         ss << __tc.COLOR_LIGHT_RED;
         if (msg.location.width != 0) {
-            for (int i = 0; i < msg.location.width; ++i) {
+            for (std::size_t i = 0; i < msg.location.width; ++i) {
                 ss << '^';
             }
         } else {
@@ -175,4 +170,22 @@ bool ErrorManager::apply_filters(CompilerMessage &msg) const
 void ErrorManager::add_common_filters()
 {
     add_error_filter(error_filter_transform_E2001_with_suggestion);
+}
+
+void ErrorManager::report(CompilerMessage message)
+{
+    message.order = _message_order_counter++;
+
+    // Store in appropriate container based on severity
+    switch (message.severity) {
+    case ErrorSeverity::Error:
+        _errors.push_back(std::move(message));
+        break;
+    case ErrorSeverity::Warning:
+        _errors.push_back(std::move(message));
+        break;
+    case ErrorSeverity::Note:
+        _errors.push_back(std::move(message));
+        break;
+    }
 }

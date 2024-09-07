@@ -2,7 +2,6 @@
 #define HRLLEXER_H
 
 #include "ErrorManager.h"
-#include "HRLToken.h"
 #include "lexer_global.h"
 
 #include <vector>
@@ -21,7 +20,7 @@ private:
     int lexer_finalize();
 
     TokenPtr tokenize();
-    void print_tokenization_error(const std::string &filepath, int lineno, int colno, std::size_t width, const StringPtr &text, const std::vector<std::string> &lines);
+    void print_tokenization_error(const std::string &filepath, int lineno, int colno, std::size_t width, const StringPtr &text);
 
     void get_file_lines(FILE *in, std::vector<std::string> &rows);
 

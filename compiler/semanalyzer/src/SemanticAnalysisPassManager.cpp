@@ -1,7 +1,5 @@
 #include <cassert>
 
-#include <ranges>
-
 #include <spdlog/spdlog.h>
 
 #include "SemanticAnalysisPassManager.h"
@@ -56,7 +54,8 @@ int SemanticAnalysisPassManager::run(bool fail_fast)
             }
         }
     }
-    return 0;
+
+    return result;
 }
 
 CLOSE_SEMANALYZER_NAMESPACE

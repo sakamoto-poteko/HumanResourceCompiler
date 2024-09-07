@@ -1,4 +1,3 @@
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -7,7 +6,7 @@
 #include <spdlog/spdlog.h>
 
 #include "ErrorManager.h"
-#include "ParseTreeNode.h"
+#include "HRLToken.h" // IWYU pragma: keep
 #include "RecursiveDescentParser.h"
 #include "parser_global.h"
 
@@ -32,24 +31,21 @@ void RecursiveDescentParser::leave_parse_frame()
 void RecursiveDescentParser::push_error(const std::string &expect, const lexer::TokenPtr &got, int lineno, int colno, std::size_t width)
 {
     auto err_str = boost::format("Expect %1% but got '%2%'") % expect % *got->token_text();
-    _errors.push_back(CompilerMessage {
-        .message = err_str.str(),
-        .error_id = 2001,
-        .location = ErrorLocation {
-            .file_name = _filename,
-            .column = colno != -1 ? colno : got->colno(),
-            .line = lineno != -1 ? lineno : got->lineno(),
-            .width = width == 0 ? got->width() : 0,
-        },
-        .severity = ErrorSeverity::Error,
-    });
+    _errors.emplace_back(
+        2001,
+        ErrorSeverity::Error,
+        ErrorLocation(_filename,
+            lineno != -1 ? lineno : got->lineno(),
+            colno != -1 ? colno : got->colno(),
+            width == 0 ? got->width() : 0),
+        err_str.str());
 }
 
 void RecursiveDescentParser::report_errors()
 {
     auto &errmgr = ErrorManager::instance();
     for (const auto &err : _errors) {
-        errmgr.report(err.error_id, err.severity, err.location, err.message, err.suggestion);
+        errmgr.report(err);
     }
 
     _errors.clear();
@@ -57,17 +53,7 @@ void RecursiveDescentParser::report_errors()
 
 void RecursiveDescentParser::push_error(int errid, const std::string &message, int lineno, int colno, std::size_t width)
 {
-    _errors.push_back(CompilerMessage {
-        .message = message,
-        .error_id = errid,
-        .location = ErrorLocation {
-            .file_name = _filename,
-            .column = colno,
-            .line = lineno,
-            .width = width,
-        },
-        .severity = ErrorSeverity::Error,
-    });
+    _errors.emplace_back(errid, ErrorSeverity::Error, ErrorLocation(_filename, lineno, colno, width), message);
 }
 
 void RecursiveDescentParser::pop_error()

@@ -3,15 +3,12 @@
 
 #include <cstddef>
 #include <list>
-#include <memory>
 #include <stack>
 #include <string>
 #include <vector>
 
-#include "ErrorManager.h"
-#include "HRLToken.h"
+#include "ErrorMessage.h"
 #include "ParseTreeNodeForward.h"
-#include "hrl_global.h"
 #include "lexer_global.h"
 #include "parser_global.h"
 
@@ -20,9 +17,9 @@ OPEN_PARSER_NAMESPACE
 class RecursiveDescentParser {
 public:
     explicit RecursiveDescentParser(const std::string &filename, const std::vector<lexer::TokenPtr> &token_list)
-        : _filename(filename)
-        , _tokens(token_list) {
-        };
+        : _tokens(token_list)
+        , _filename(filename) {};
+
     virtual ~RecursiveDescentParser() = default;
 
     virtual bool parse(CompilationUnitPTNodePtr &result);

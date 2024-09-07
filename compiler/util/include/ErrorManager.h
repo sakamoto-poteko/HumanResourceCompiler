@@ -2,20 +2,15 @@
 #define ERRORMANAGER_H
 
 #include <functional>
-#include <iostream>
 #include <map>
-#include <sstream>
 #include <string>
-#include <tuple>
 #include <vector>
 
 #include <boost/format.hpp>
 
 #include <spdlog/spdlog.h>
 
-#include "TerminalColor.h"
 #include "ErrorMessage.h"
-
 
 // ErrorManager class
 class ErrorManager {
@@ -49,6 +44,7 @@ public:
      * @param suggestion
      */
     void report(int error_id, ErrorSeverity severity, const ErrorLocation &location, const std::string &message, const std::string &suggestion = "");
+    void report(CompilerMessage message);
 
     // Print all messages in the order they were reported
     void print_all() const;

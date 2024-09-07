@@ -616,12 +616,7 @@ void SymbolTableAnalyzer::log_redefinition_error(const StringPtr &name, SymbolTy
     ErrorManager::instance().report(
         3001,
         ErrorSeverity::Error,
-        ErrorLocation {
-            .column = node->colno(),
-            .file_name = *_filename,
-            .line = node->lineno(),
-            .width = name->size(),
-        },
+        ErrorLocation(*_filename, node->lineno(), node->colno(), name->size()),
         errstr.str());
 }
 
@@ -643,12 +638,7 @@ void SymbolTableAnalyzer::log_undefined_error(const StringPtr &name, SymbolType 
     ErrorManager::instance().report(
         3002,
         ErrorSeverity::Error,
-        ErrorLocation {
-            .column = node->colno(),
-            .file_name = *_filename,
-            .line = node->lineno(),
-            .width = name->size(),
-        },
+        ErrorLocation(*_filename, node->lineno(), node->colno(), name->size()),
         errstr.str());
 }
 

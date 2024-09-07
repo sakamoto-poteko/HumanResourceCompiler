@@ -1,11 +1,8 @@
-#include <sstream>
-
 #include <spdlog/spdlog.h>
 
 #include "ErrorManager.h"
 #include "HRLLexer.h"
 #include "HRLToken.h"
-#include "TerminalColor.h"
 #include "lexer_global.h"
 #include "lexer_helper.h"
 
@@ -59,7 +56,7 @@ bool HRLLexer::lex(FILE *in, const std::string &filepath, std::vector<TokenPtr> 
 
     if (currentTokenId == ERROR) {
         const auto &token = ret.back();
-        print_tokenization_error(filepath, token->lineno(), token->colno(), token->width(), token->token_text(), lines);
+        print_tokenization_error(filepath, token->lineno(), token->colno(), token->width(), token->token_text());
         return false;
     }
     // this is not supposed to happen. tokenization ended but not with either END or ERROR.
@@ -165,19 +162,10 @@ TokenPtr HRLLexer::tokenize()
     return token;
 }
 
-void HRLLexer::print_tokenization_error(const std::string &filepath, int lineno, int colno, std::size_t width, const StringPtr &text, const std::vector<std::string> &lines)
+void HRLLexer::print_tokenization_error(const std::string &filepath, int lineno, int colno, std::size_t width, const StringPtr &text)
 {
     auto fmt = boost::format("Unrecognized token '%1%'") % *text;
-    _errmgr.report(
-        1001,
-        ErrorSeverity::Error,
-        ErrorLocation {
-            .file_name = filepath,
-            .line = lineno,
-            .column = colno,
-            .width = width,
-        },
-        fmt.str());
+    _errmgr.report(1001, ErrorSeverity::Error, ErrorLocation(filepath, lineno, colno, width), fmt.str());
 }
 
 void HRLLexer::get_file_lines(FILE *in, std::vector<std::string> &rows)
