@@ -9,6 +9,7 @@ add_library(${PROJECT_NAME}
     ${POST_CONFIGURE_FILE}
     src/TerminalColor.cpp
     src/ErrorManager.cpp
+    src/ErrorFilters.cpp
 )
 add_dependencies(${PROJECT_NAME} check_git)
 

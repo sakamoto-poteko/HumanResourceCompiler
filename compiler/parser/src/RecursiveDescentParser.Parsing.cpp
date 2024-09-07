@@ -70,8 +70,8 @@ bool RecursiveDescentParser::parse_compilation_unit(CompilationUnitPTNodePtr &no
     }
 
     // Then variable_declaration_statement and function_definition and subproc_definition in any order
+    bool ok = false;
     do {
-        bool ok = false;
         if (TOKEN_IS(lexer::LET)) {
             VariableDeclarationStatementPTNodePtr var;
             ok = parse_variable_declaration_statement(var);
@@ -96,6 +96,8 @@ bool RecursiveDescentParser::parse_compilation_unit(CompilationUnitPTNodePtr &no
 
         UPDATE_TOKEN_LOOKAHEAD();
     } while (TOKEN_IS(lexer::LET) || TOKEN_IS(lexer::FUNCTION) || TOKEN_IS(lexer::SUBWORD));
+
+    CHECK_TOKEN_AND_CONSUME(lexer::END, "a variable, function/subproc declaration or end of file", eof);
 
     SET_NODE(imports, floor_inits, floor_max,
         variable_declarations, subroutine_definitions);

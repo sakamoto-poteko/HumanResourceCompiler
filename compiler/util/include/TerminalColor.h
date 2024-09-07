@@ -10,6 +10,7 @@ public:
     const char *COLOR_HIGHLIGHT = "";
     const char *COLOR_RESET = "";
     const char *COLOR_LIGHT_GREEN = "";
+    const char *COLOR_LIGHT_RED = "";
 
     void reset();
 private:

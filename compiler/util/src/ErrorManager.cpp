@@ -1,3 +1,7 @@
+#include <ranges>
+#include <string>
+
+#include "ErrorFilters.h"
 #include "ErrorManager.h"
 
 void ErrorManager::report(int error_id, ErrorSeverity severity, const ErrorLocation &location, const std::string &message, const std::string &suggestion)
@@ -8,32 +12,52 @@ void ErrorManager::report(int error_id, ErrorSeverity severity, const ErrorLocat
         location,
         message,
         suggestion,
-        message_order_counter++,
+        _message_order_counter++,
     };
 
     // Store in appropriate container based on severity
     switch (severity) {
     case ErrorSeverity::Error:
-        errors.push_back(msg);
+        _errors.push_back(msg);
         break;
     case ErrorSeverity::Warning:
-        warnings.push_back(msg);
+        _warnings.push_back(msg);
         break;
     case ErrorSeverity::Note:
-        notes.push_back(msg);
+        _notes.push_back(msg);
         break;
     }
 }
+
+bool apply_filters(CompilerMessage &msg);
 
 void ErrorManager::print_all() const
 {
     // Temporary vector to hold all messages
     std::vector<CompilerMessage> all_messages;
 
+    for (auto msg : _errors) {
+        if (apply_filters(msg)) {
+            all_messages.push_back(msg);
+        }
+    }
+
+    for (auto msg : _warnings) {
+        if (apply_filters(msg)) {
+            all_messages.push_back(msg);
+        }
+    }
+
+    for (auto msg : _notes) {
+        if (apply_filters(msg)) {
+            all_messages.push_back(msg);
+        }
+    }
+
     // Combine all messages from the different vectors
-    all_messages.insert(all_messages.end(), errors.begin(), errors.end());
-    all_messages.insert(all_messages.end(), warnings.begin(), warnings.end());
-    all_messages.insert(all_messages.end(), notes.begin(), notes.end());
+    // all_messages.insert(all_messages.end(), _errors.begin(), _errors.end());
+    // all_messages.insert(all_messages.end(), _warnings.begin(), _warnings.end());
+    // all_messages.insert(all_messages.end(), _notes.begin(), _notes.end());
 
     // Sort messages based on their order
     std::sort(all_messages.begin(), all_messages.end(), [](const CompilerMessage &a, const CompilerMessage &b) {
@@ -79,24 +103,30 @@ std::string ErrorManager::msg_to_string(CompilerMessage msg) const
     }
 
     // Show error ID, location, and message
-    ss << msg.error_id << "] " << msg.location.to_string() << ": " << __tc.COLOR_HIGHLIGHT << msg.message << __tc.COLOR_RESET << "\n";
+    ss << msg.error_id << "] " << msg.location.to_string() << ": " << __tc.COLOR_HIGHLIGHT << msg.message << __tc.COLOR_RESET;
 
-    if (msg.location.width != 0 && _lines.contains(msg.location.file_name)) {
-        ss << __tc.COLOR_LIGHT_GREEN;
+    if (_lines.contains(msg.location.file_name)) {
+        ss << "\n"
+           << __tc.COLOR_LIGHT_GREEN;
         ss << _lines.at(msg.location.file_name).at(msg.location.line - 1); // line starts from 1
-        std::stringstream ss;
+        ss << "\n";
         for (int i = 1; i < msg.location.column; ++i) {
             ss << ' ';
         }
-        for (int i = 0; i < msg.location.width; ++i) {
-            ss << '^';
+        ss << __tc.COLOR_LIGHT_RED;
+        if (msg.location.width != 0) {
+            for (int i = 0; i < msg.location.width; ++i) {
+                ss << '^';
+            }
+        } else {
+            ss << '<';
         }
         ss << __tc.COLOR_RESET;
     }
 
     // Add a suggestion, if available
     if (!msg.suggestion.empty()) {
-        ss << "    suggestion: " << msg.suggestion << "\n";
+        ss << "\nSuggestion: " << msg.suggestion;
     }
 
     return ss.str();
@@ -115,13 +145,34 @@ void ErrorManager::add_file(const std::string &filename, const std::vector<std::
 
 bool ErrorManager::has_errors() const
 {
-    return !errors.empty();
+    return !_errors.empty();
 }
 
 void ErrorManager::clear()
 {
-    errors.clear();
-    warnings.clear();
-    notes.clear();
-    message_order_counter = 0;
+    _errors.clear();
+    _warnings.clear();
+    _notes.clear();
+    _message_order_counter = 0;
+}
+
+void ErrorManager::add_error_filter(ErrorFilter error_filter)
+{
+    _error_filters.push_back(error_filter);
+}
+
+bool ErrorManager::apply_filters(CompilerMessage &msg) const
+{
+    for (const auto &filter : _error_filters) {
+        bool ok = filter(msg);
+        if (!ok) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void ErrorManager::add_common_filters()
+{
+    add_error_filter(error_filter_transform_E2001_with_suggestion);
 }
