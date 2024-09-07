@@ -29,4 +29,3 @@ The following is a breakdown of pending tasks to be implemented in the semantic 
 - [ ] Verify correct usage of `break`, `continue`, and `return` statements.
 - [ ] Ensure that all code paths in a function lead to a valid return statement.
 - [ ] Check that all functions with a return statement actually return a value, and flag unreachable after return.
-
