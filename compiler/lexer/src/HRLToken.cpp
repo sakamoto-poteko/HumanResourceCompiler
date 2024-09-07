@@ -87,7 +87,7 @@ const char *Token::get_token_name() const
         return "CLOSE_BRACKET";
     case COMMA:
         return "COMMA";
-    case ERROR:
+    case TOKEN_ERROR:
         return "ERROR";
     default:
         return "UNKNOWN_TOKEN";

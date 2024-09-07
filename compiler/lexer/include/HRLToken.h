@@ -66,7 +66,7 @@ enum TokenId : int {
     COMMENT = 999,
     NEWLINE,
 
-    TOKEN_ERROR = -1,
+    TOKEN_ERROR = -1, // This is stupid. Windows has a macro that has the same name.
 };
 
 inline bool is_token_binary_operator(TokenId token)
@@ -135,7 +135,7 @@ protected:
 
     int _lineno;
     int _colno;
-    int _width;
+    std::size_t _width;
     StringPtr _text;
     std::vector<TokenMetadata> _metadata;
 };

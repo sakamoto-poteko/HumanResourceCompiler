@@ -27,7 +27,7 @@ public:
 protected:
     std::vector<lexer::TokenPtr> _tokens;
     std::size_t _token_pointer = 0;
-    std::stack<int> _parse_frame_token_pointer;
+    std::stack<std::size_t> _parse_frame_token_pointer;
 
     std::list<CompilerMessage> _errors;
 
