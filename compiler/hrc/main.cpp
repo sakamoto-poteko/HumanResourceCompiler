@@ -4,6 +4,7 @@
 #include "ASTBuilder.h"
 #include "ASTNodeGraphvizBuilder.h"
 #include "CompilerOptions.h"
+#include "ErrorManager.h"
 #include "FileManager.h"
 #include "Formatter.h"
 #include "HRLLexer.h"
@@ -39,11 +40,15 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
+    ErrorManager &errmgr = ErrorManager::instance();
+    errmgr.add_common_filters();
+
     HRLLexer lexer;
     std::vector<TokenPtr> tokens;
 
-    bool ok = lexer.lex(file, fileManager.get_input_filename(), tokens);
+    bool ok = lexer.lex(file, fileManager.get_input_file_path(), tokens);
     if (!ok) {
+        errmgr.print_all();
         spdlog::error("Error occured during lexical analysis");
         abort();
     }
@@ -59,10 +64,11 @@ int main(int argc, char **argv)
     fclose(file);
 
     // Parser stage
-    hrl::parser::RecursiveDescentParser parser(tokens);
+    hrl::parser::RecursiveDescentParser parser(options.input_file, tokens);
     hrl::parser::CompilationUnitPTNodePtr compilation_unit;
     bool parsed = parser.parse(compilation_unit);
     if (!parsed) {
+        errmgr.print_all();
         spdlog::error("Error occured during parsing");
         abort();
     }
@@ -72,6 +78,7 @@ int main(int argc, char **argv)
     hrl::parser::CompilationUnitASTNodePtr ast;
     hrl::parser::ASTBuilder builder(compilation_unit);
     if (!builder.build(ast)) {
+        errmgr.print_all();
         spdlog::error("Error occured during AST construction");
         abort();
     }
@@ -82,7 +89,7 @@ int main(int argc, char **argv)
     // Sem analysis stage
     using SemaAttrId = hrl::semanalyzer::SemAnalzyerASTNodeAttributeId;
 
-    hrl::semanalyzer::SemanticAnalysisPassManager sem_passmgr(ast);
+    hrl::semanalyzer::SemanticAnalysisPassManager sem_passmgr(ast, std::make_shared<std::string>(options.input_file));
     auto symtbl_analyzer = sem_passmgr.add_pass<hrl::semanalyzer::SymbolTableAnalyzer>(
         "SymbolTableAnalyzer",
         "build/symtbl.dot",
@@ -92,6 +99,7 @@ int main(int argc, char **argv)
         });
 
     if (sem_passmgr.run(true) != 0) {
+        errmgr.print_all();
         spdlog::error("Error occured running semantic analysis passes");
         abort();
     }

@@ -20,7 +20,6 @@ add_library(${PROJECT_NAME}
 )
 
 add_custom_command(
-    # TARGET EbnfTool
     OUTPUT "${OUTPUT_BASE}.h" "${OUTPUT_BASE}.cpp"
     COMMAND ebnf -i ${CMAKE_SOURCE_DIR}/../design/hrl.ebnf -s compilation_unit -f ${CMAKE_SOURCE_DIR}/../design/hrl.tokens -F${OUTPUT_BASE}
     DEPENDS ${CMAKE_SOURCE_DIR}/../design/hrl.ebnf ${CMAKE_SOURCE_DIR}/../design/hrl.tokens

@@ -2,10 +2,10 @@ cmake_minimum_required(VERSION 3.5)
 project(hrc)
 
 add_executable(${PROJECT_NAME}
-main.cpp
-CompilerOptions.cpp
-FileManager.cpp
-Utilities.cpp
+    main.cpp
+    CompilerOptions.cpp
+    FileManager.cpp
+    Utilities.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)

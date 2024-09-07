@@ -1,4 +1,3 @@
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -6,7 +5,8 @@
 
 #include <spdlog/spdlog.h>
 
-#include "ParseTreeNode.h"
+#include "ErrorManager.h"
+#include "HRLToken.h" // IWYU pragma: keep
 #include "RecursiveDescentParser.h"
 #include "parser_global.h"
 
@@ -28,32 +28,32 @@ void RecursiveDescentParser::leave_parse_frame()
     _parse_frame_token_pointer.pop();
 }
 
-void RecursiveDescentParser::push_error(const std::string &expect, const lexer::TokenPtr &got, int lineno, int colno, int width)
+void RecursiveDescentParser::push_error(const std::string &expect, const lexer::TokenPtr &got, int lineno, int colno, std::size_t width)
 {
-    auto c = colno != -1 ? colno : got->colno();
-    auto w = width != -1 ? width : got->width();
-    auto token_text = *got->token_text();
-    auto err_str = boost::format("Expect %1% but got '%2%'. [%3%:%4%-%5%]")
-        % expect % token_text % (lineno != -1 ? lineno : got->lineno()) % c % (c + w);
-
-    _errors.push_back(err_str.str());
+    auto err_str = boost::format("Expect %1% but got '%2%'") % expect % *got->token_text();
+    _errors.emplace_back(
+        2001,
+        ErrorSeverity::Error,
+        ErrorLocation(_filename,
+            lineno != -1 ? lineno : got->lineno(),
+            colno != -1 ? colno : got->colno(),
+            width == 0 ? got->width() : 0),
+        err_str.str());
 }
 
-void RecursiveDescentParser::print_error()
+void RecursiveDescentParser::report_errors()
 {
+    auto &errmgr = ErrorManager::instance();
     for (const auto &err : _errors) {
-        spdlog::error(err);
+        errmgr.report(err);
     }
 
     _errors.clear();
 }
 
-void RecursiveDescentParser::push_error(const std::string &message, int lineno, int colno, int width)
+void RecursiveDescentParser::push_error(int errid, const std::string &message, int lineno, int colno, std::size_t width)
 {
-    auto pos_str = boost::format(" [%1%:%2%-%3%]") % lineno % colno % (colno + width);
-    auto err_str = boost::format("%1%%2%") % message % pos_str;
-
-    _errors.push_back(err_str.str());
+    _errors.emplace_back(errid, ErrorSeverity::Error, ErrorLocation(_filename, lineno, colno, width), message);
 }
 
 void RecursiveDescentParser::pop_error()
@@ -61,7 +61,7 @@ void RecursiveDescentParser::pop_error()
     _errors.pop_back();
 }
 
-void RecursiveDescentParser::pop_error_till(std::list<std::string>::iterator till_exclusive)
+void RecursiveDescentParser::pop_error_till(std::list<CompilerMessage>::iterator till_exclusive)
 {
     while (!_errors.empty() && std::prev(_errors.end()) != till_exclusive) {
         _errors.pop_back();

@@ -1,7 +1,5 @@
 #include <cassert>
 
-#include <ranges>
-
 #include <spdlog/spdlog.h>
 
 #include "SemanticAnalysisPassManager.h"
@@ -50,13 +48,14 @@ int SemanticAnalysisPassManager::run(bool fail_fast)
         if (rc != 0) {
             spdlog::error("Semantic pass {} failed", pass_name);
             if (fail_fast) {
-                return result;
+                return rc;
             } else {
                 result = rc;
             }
         }
     }
-    return 0;
+
+    return result;
 }
 
 CLOSE_SEMANALYZER_NAMESPACE

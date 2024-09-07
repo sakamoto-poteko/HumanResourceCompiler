@@ -19,6 +19,7 @@ void TerminalColor::reset()
         COLOR_HIGHLIGHT = HIGHLIGHT;
         COLOR_RESET = RESET;
         COLOR_LIGHT_GREEN = LIGHT_GREEN;
+        COLOR_LIGHT_RED = LIGHT_RED;
     }
 }
 

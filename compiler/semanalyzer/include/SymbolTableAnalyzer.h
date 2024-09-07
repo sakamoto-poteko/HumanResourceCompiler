@@ -30,7 +30,11 @@ public:
      * @param root The root node of AST
      * @param symbol_table The existing table. This can be useful when the program has imports.
      */
-    SymbolTableAnalyzer() = default;
+    SymbolTableAnalyzer(StringPtr filename)
+        : SemanticAnalysisPass(std::move(filename))
+    {
+    }
+
     ~SymbolTableAnalyzer() override = default;
 
     int run() override;

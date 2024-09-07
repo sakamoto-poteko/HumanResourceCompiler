@@ -6,10 +6,10 @@ set(LEXER_OUT "${CMAKE_CURRENT_BINARY_DIR}/lexer.cpp")
 flex_target(LEXER "src/hrl.l" "${LEXER_OUT}")
 
 add_library(${PROJECT_NAME}
-src/HRLLexer.cpp
-src/HRLToken.cpp
-src/lexer_helper.cpp
-${LEXER_OUT}
+    src/HRLLexer.cpp
+    src/HRLToken.cpp
+    src/lexer_helper.cpp
+    ${LEXER_OUT}
 )
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")

@@ -1,10 +1,8 @@
-#include <sstream>
-
 #include <spdlog/spdlog.h>
 
+#include "ErrorManager.h"
 #include "HRLLexer.h"
 #include "HRLToken.h"
-#include "TerminalColor.h"
 #include "lexer_global.h"
 #include "lexer_helper.h"
 
@@ -18,6 +16,7 @@ int yylex();
 OPEN_LEXER_NAMESPACE
 
 HRLLexer::HRLLexer()
+    : _errmgr(ErrorManager::instance())
 {
 }
 
@@ -32,8 +31,9 @@ bool HRLLexer::lex(FILE *in, const std::string &filepath, std::vector<TokenPtr> 
 
     std::vector<std::string> lines;
     get_file_lines(in, lines);
+    ErrorManager::instance().add_file(filepath, lines);
 
-    std::vector<TokenPtr> r;
+    std::vector<TokenPtr> ret;
 
     // begin tokenization
     TokenId currentTokenId = END;
@@ -41,22 +41,22 @@ bool HRLLexer::lex(FILE *in, const std::string &filepath, std::vector<TokenPtr> 
     do {
         TokenPtr token = tokenize();
         currentTokenId = token->token_id();
-        r.push_back(token);
+        ret.push_back(token);
     } while (currentTokenId > 0);
 
     if (currentTokenId == END) {
         // this is required that the formatter correctly handles first-line comment
         // so it create a new line for the first line comment instead try to hook it to a void "previous line"
-        if (!r.empty() && !r.front()->metadata().empty()) {
-            r.front()->prepend_metadata_newline();
+        if (!ret.empty() && !ret.front()->metadata().empty()) {
+            ret.front()->prepend_metadata_newline();
         }
-        result.swap(r);
+        result.swap(ret);
         return true;
     }
 
     if (currentTokenId == ERROR) {
-        const auto &token = r.back();
-        print_tokenization_error(filepath, token->lineno(), token->colno(), token->width(), token->token_text(), lines);
+        const auto &token = ret.back();
+        print_tokenization_error(filepath, token->lineno(), token->colno(), token->width(), token->token_text());
         return false;
     }
     // this is not supposed to happen. tokenization ended but not with either END or ERROR.
@@ -162,18 +162,10 @@ TokenPtr HRLLexer::tokenize()
     return token;
 }
 
-void HRLLexer::print_tokenization_error(const std::string &filepath, int lineno, int colno, int width, const StringPtr &text, const std::vector<std::string> &lines)
+void HRLLexer::print_tokenization_error(const std::string &filepath, int lineno, int colno, std::size_t width, const StringPtr &text)
 {
-    spdlog::error("{}:{}:{}:{}Unrecognized token `{}'{}", filepath, lineno, colno, __tc.COLOR_HIGHLIGHT, *(text.get()), __tc.COLOR_RESET);
-    spdlog::error(lines.at(lineno - 1)); // line starts from 1
-    std::stringstream ss;
-    for (int i = 1; i < colno; ++i) {
-        ss << ' ';
-    }
-    for (int i = 0; i < width; ++i) {
-        ss << '^';
-    }
-    spdlog::error("{}{}{}", __tc.COLOR_LIGHT_GREEN, ss.str(), __tc.COLOR_RESET);
+    auto fmt = boost::format("Unrecognized token '%1%'") % *text;
+    _errmgr.report(1001, ErrorSeverity::Error, ErrorLocation(filepath, lineno, colno, width), fmt.str());
 }
 
 void HRLLexer::get_file_lines(FILE *in, std::vector<std::string> &rows)

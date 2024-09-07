@@ -5,13 +5,17 @@
 
 #include "ASTNode.h"
 #include "ASTNodeVisitor.h"
+#include "hrl_global.h"
 #include "semanalyzer_global.h"
 
 OPEN_SEMANALYZER_NAMESPACE
 
 class SemanticAnalysisPass : public parser::ASTNodeVisitor {
 public:
-    SemanticAnalysisPass() = default;
+    SemanticAnalysisPass(StringPtr filename)
+        : _filename(std::move(filename))
+    {
+    }
 
     virtual ~SemanticAnalysisPass() = default;
 
@@ -21,6 +25,7 @@ public:
 
 protected:
     parser::CompilationUnitASTNodePtr _root;
+    StringPtr _filename;
 
 private:
 };
