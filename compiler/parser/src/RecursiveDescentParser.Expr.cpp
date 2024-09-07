@@ -139,7 +139,7 @@ bool RecursiveDescentParser::parse_unary_expression(AbstractUnaryExpressionPTNod
         break;
 
     default:
-        CHECK_ERROR_MSG(false, "Expect a unary expression but got '" + *token->token_text(), token->lineno(), token->colno(), token->width());
+        CHECK_ERROR_MSG(false, 2007, "Expect a unary expression but got '" + *token->token_text(), token->lineno(), token->colno(), token->width());
     }
 
     LEAVE_PARSE_FRAME();
@@ -191,7 +191,7 @@ bool RecursiveDescentParser::parse_primary_expression(AbstractPrimaryExpressionP
         SET_NODE_FROM(parenthesized_expr);
         break;
     default:
-        CHECK_ERROR_MSG(false, "Expect a primary expression (literal/floor access/invocation/parenthesized) but got '" + *token->token_text() + "'", token->lineno(), token->colno(), token->width());
+        CHECK_ERROR_MSG(false, 2008, "Expect a primary expression (literal/floor access/invocation/parenthesized) but got '" + *token->token_text() + "'", token->lineno(), token->colno(), token->width());
     }
 
     LEAVE_PARSE_FRAME();

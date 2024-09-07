@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "ErrorManager.h"
 #include "HRLToken.h"
 #include "ParseTreeNodeForward.h"
 #include "hrl_global.h"
@@ -18,8 +19,10 @@ OPEN_PARSER_NAMESPACE
 
 class RecursiveDescentParser {
 public:
-    explicit RecursiveDescentParser(const std::vector<lexer::TokenPtr> &token_list)
-        : _tokens(token_list) {};
+    explicit RecursiveDescentParser(const std::string &filename, const std::vector<lexer::TokenPtr> &token_list)
+        : _filename(filename)
+        , _tokens(token_list) {
+        };
     virtual ~RecursiveDescentParser() = default;
 
     virtual bool parse(CompilationUnitPTNodePtr &result);
@@ -29,7 +32,7 @@ protected:
     std::size_t _token_pointer = 0;
     std::stack<int> _parse_frame_token_pointer;
 
-    std::list<std::string> _errors;
+    std::list<CompilerMessage> _errors;
 
     [[nodiscard]] const lexer::TokenPtr &lookahead() const;
     void consume();
@@ -66,10 +69,10 @@ protected:
     [[nodiscard]] bool parse_precedence_climbing(AbstractExpressionPTNodePtr &result, AbstractExpressionPTNodePtr lhs, int min_precedence);
 
     void push_error(const std::string &expect, const lexer::TokenPtr &got, int lineno = -1, int colno = -1, int width = -1);
-    void push_error(const std::string &message, int lineno, int colno, int width);
+    void push_error(int errid, const std::string &message, int lineno, int colno, int width);
     void pop_error();
-    void pop_error_till(std::list<std::string>::iterator till_exclusive);
-    void print_error();
+    void pop_error_till(std::list<CompilerMessage>::iterator till_exclusive);
+    void report_errors();
 
     void enter_parse_frame();
     void revert_parse_frame();
@@ -77,6 +80,8 @@ protected:
 
 private:
     const static lexer::TokenPtr NULL_TOKEN;
+
+    std::string _filename;
 };
 
 CLOSE_PARSER_NAMESPACE

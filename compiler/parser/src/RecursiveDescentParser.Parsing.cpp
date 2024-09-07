@@ -49,6 +49,7 @@ bool RecursiveDescentParser::parse_compilation_unit(CompilationUnitPTNodePtr &no
             // if !ok
             CHECK_ERROR_MSG(
                 ok,
+                2002,
                 "Expect either 'init floor' or 'init floor_max' statement.",
                 token->lineno(), token->colno(), token->width());
 
@@ -58,6 +59,7 @@ bool RecursiveDescentParser::parse_compilation_unit(CompilationUnitPTNodePtr &no
             // floor max already set? there can be only one.
             CHECK_ERROR_MSG(
                 !floor_max, // cannot be true. true means set already
+                2003,
                 "Maximum one 'init floor_max' allowed",
                 token->lineno(), token->colno(), token->width());
 
@@ -106,7 +108,7 @@ bool RecursiveDescentParser::parse(CompilationUnitPTNodePtr &result)
     bool success = parse_compilation_unit(result);
 
     if (!success) {
-        print_error();
+        report_errors();
     }
 
     return success;
@@ -306,7 +308,7 @@ bool RecursiveDescentParser::parse_statement(AbstractStatementPTNodePtr &node)
         SET_NODE_FROM(embedded_statement);
         break;
     default:
-        CHECK_ERROR_MSG(false, "Expect a statement but got '" + *token->token_text() + "'", lineno, colno, width);
+        CHECK_ERROR_MSG(false, 2004, "Expect a statement but got '" + *token->token_text() + "'", lineno, colno, width);
     }
 
     // FIXME: impl
@@ -491,9 +493,10 @@ bool RecursiveDescentParser::parse_embedded_statement(AbstractEmbeddedStatementP
         break;
     default:
         CHECK_ERROR_MSG(false,
-            "Expect an iteration/selection/return/empty statement or a statement block but got '"
+            2005,
+            "Expect an embedded statement but got '"
                 + *token->token_text()
-                + "'",
+                + "'. (Embedded statement is iteration/selection/return/empty/break/continue statement or a statement block).",
             lineno, colno, width);
     }
 
@@ -602,7 +605,9 @@ bool RecursiveDescentParser::parse_for_statement(ForStatementPTNodePtr &node)
             if (ok) {
                 CLEAR_ERROR_BEYOND();
             } else {
-                CHECK_ERROR_MSG(false, "for init statement should either be variable assignment or variable declaration",
+                CHECK_ERROR_MSG(
+                    false, 2006,
+                    "Init statement of 'for' loop should either be variable assignment or variable declaration",
                     token->lineno(), token->colno(), token->width());
             }
         }

@@ -26,10 +26,11 @@ public:
         requires std::is_base_of_v<SemanticAnalysisPass, PassT>
     std::shared_ptr<PassT> add_pass(
         const std::string &pass_name,
+        const std::string &filename,
         const std::string &after_pass_graph_path = "",
         const std::set<int> enabled_attributes = std::set<int>())
     {
-        auto pass = std::make_shared<PassT>();
+        SemanticAnalysisPassPtr pass = std::make_shared<PassT>(filename);
         add_pass(pass, pass_name, after_pass_graph_path, enabled_attributes);
         return pass;
     }

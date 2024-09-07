@@ -59,7 +59,7 @@ int main(int argc, char **argv)
     fclose(file);
 
     // Parser stage
-    hrl::parser::RecursiveDescentParser parser(tokens);
+    hrl::parser::RecursiveDescentParser parser(options.input_file, tokens);
     hrl::parser::CompilationUnitPTNodePtr compilation_unit;
     bool parsed = parser.parse(compilation_unit);
     if (!parsed) {
@@ -85,6 +85,7 @@ int main(int argc, char **argv)
     hrl::semanalyzer::SemanticAnalysisPassManager sem_passmgr(ast);
     auto symtbl_analyzer = sem_passmgr.add_pass<hrl::semanalyzer::SymbolTableAnalyzer>(
         "SymbolTableAnalyzer",
+        options.input_file,
         "build/symtbl.dot",
         std::set<int> {
             SemaAttrId::ATTR_SEMANALYZER_SYMBOL,

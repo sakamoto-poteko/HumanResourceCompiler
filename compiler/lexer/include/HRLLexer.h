@@ -1,6 +1,7 @@
 #ifndef HRLLEXER_H
 #define HRLLEXER_H
 
+#include "ErrorManager.h"
 #include "lexer_global.h"
 #include "HRLToken.h"
 
@@ -24,6 +25,8 @@ private:
     void print_tokenization_error(const std::string &filepath, int lineno, int colno, int width, const StringPtr &text, const std::vector<std::string> &lines);
 
     void get_file_lines(FILE *in, std::vector<std::string> &rows);
+
+    ErrorManager &_errmgr;
 };
 
 CLOSE_LEXER_NAMESPACE

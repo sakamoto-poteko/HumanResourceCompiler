@@ -22,20 +22,23 @@ class Symbol : public parser::ASTNodeAttribute {
 public:
     SymbolType type;
     std::string name;
+    StringPtr filename;
 
     WEAK(parser::ASTNodePtr)
     definition;
 
-    Symbol(SymbolType type, const std::string &name, WEAK(parser::ASTNodePtr) definition)
+    Symbol(SymbolType type, const std::string &name, StringPtr filename, WEAK(parser::ASTNodePtr) definition)
         : type(type)
         , name(name)
+        , filename(std::move(filename))
         , definition(std::move(definition))
     {
     }
 
-    Symbol(SymbolType type, StringPtr name, WEAK(parser::ASTNodePtr) definition)
+    Symbol(SymbolType type, StringPtr name, StringPtr filename, WEAK(parser::ASTNodePtr) definition)
         : type(type)
         , name(*name)
+        , filename(std::move(filename))
         , definition(std::move(definition))
     {
     }
@@ -67,22 +70,24 @@ public:
      *
      * @param scope_id The scope id
      * @param function_name The function name
+     * @param filename The file where the symbol was defined
      * @param definition The function definition ASTNode
      * @return true The symbol is successfully added
      * @return false The symbol failed to add. There is a conflict.
      */
-    bool add_function_symbol(const std::string &scope_id, StringPtr function_name, const parser::ASTNodePtr &definition);
+    bool add_function_symbol(const std::string &scope_id, StringPtr function_name, StringPtr filename, const parser::ASTNodePtr &definition);
 
     /**
      * @brief Add a variable to symbol table
      *
      * @param scope_id The scope id
      * @param variable_name The variable name
+     * @param filename The file where the symbol was defined
      * @param definition The variable definition ASTNode
      * @return true The symbol is successfully added
      * @return false The symbol failed to add. There is a conflict.
      */
-    bool add_variable_symbol(const std::string &scope_id, StringPtr variable_name, const parser::ASTNodePtr &definition);
+    bool add_variable_symbol(const std::string &scope_id, StringPtr variable_name, StringPtr filename, const parser::ASTNodePtr &definition);
 
     /**
      * @brief Look up the symbol \p name in the symbol table.

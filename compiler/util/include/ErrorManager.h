@@ -2,6 +2,7 @@
 #define ERRORMANAGER_H
 
 #include <iostream>
+#include <map>
 #include <sstream>
 #include <string>
 #include <tuple>
@@ -10,6 +11,8 @@
 #include <boost/format.hpp>
 
 #include <spdlog/spdlog.h>
+
+#include "TerminalColor.h"
 
 // Severity levels
 enum class ErrorSeverity {
@@ -23,6 +26,7 @@ struct ErrorLocation {
     std::string file_name;
     int line;
     int column;
+    int width;
 
     std::string to_string() const
     {
@@ -38,118 +42,55 @@ struct CompilerMessage {
     std::string message; // Main error message
     std::string suggestion; // Optional suggestion
     std::size_t order; // To track message order
-
-    // Function to display the error with formatting
-    std::string to_string() const
-    {
-        std::stringstream ss;
-
-        // Prefix based on severity
-        switch (severity) {
-        case ErrorSeverity::Error:
-            ss << "error: ";
-            break;
-        case ErrorSeverity::Warning:
-            ss << "warning: ";
-            break;
-        case ErrorSeverity::Note:
-            ss << "note: ";
-            break;
-        }
-
-        // Show error ID, location, and message
-        ss << "[E" << error_id << "] " << location.to_string() << ": " << message << "\n";
-
-        // Add a suggestion, if available
-        if (!suggestion.empty()) {
-            ss << "    suggestion: " << suggestion << "\n";
-        }
-
-        return ss.str();
-    }
 };
 
 // ErrorManager class
 class ErrorManager {
+public:
+    ErrorManager(const ErrorManager &) = delete;
+    ErrorManager &operator=(const ErrorManager &) = delete;
+
+    static ErrorManager &instance();
+
+    /**
+     * @brief Add the file content to the ErrorManager, so the error message is able to print the inline text
+     *
+     * @param filename
+     * @param lines
+     */
+    void add_file(const std::string &filename, const std::vector<std::string> &lines);
+
+    /**
+     * @brief Report (store) an error, warning, or note to the ErrorManager
+     *
+     * @param error_id The error id. Refer to errors.xlsx
+     * @param severity
+     * @param location
+     * @param message
+     * @param suggestion
+     */
+    void report(int error_id, ErrorSeverity severity, const ErrorLocation &location, const std::string &message, const std::string &suggestion = "");
+
+    // Print all messages in the order they were reported
+    void print_all() const;
+
+    // Check if there are any errors (not just warnings or notes)
+    bool has_errors() const;
+
+    // Clear all stored messages
+    void clear();
+
+    std::string msg_to_string(CompilerMessage msg) const;
+
 private:
+    ErrorManager() = default;
+    ~ErrorManager() = default;
+
     std::vector<CompilerMessage> errors; // Store error messages
     std::vector<CompilerMessage> warnings; // Store warning messages
     std::vector<CompilerMessage> notes; // Store note messages
-    size_t message_order_counter = 0; // Track message order
-
-public:
-    // Report an error, warning, or note
-    void report(int error_id, ErrorSeverity severity, const ErrorLocation &location, const std::string &message, const std::string &suggestion = "")
-    {
-        CompilerMessage msg = {
-            error_id,
-            severity,
-            location,
-            message,
-            suggestion,
-            message_order_counter++,
-        };
-
-        // Store in appropriate container based on severity
-        switch (severity) {
-        case ErrorSeverity::Error:
-            errors.push_back(msg);
-            break;
-        case ErrorSeverity::Warning:
-            warnings.push_back(msg);
-            break;
-        case ErrorSeverity::Note:
-            notes.push_back(msg);
-            break;
-        }
-    }
-
-    // Print all messages in the order they were reported
-    void print_all() const
-    {
-        // Temporary vector to hold all messages
-        std::vector<CompilerMessage> all_messages;
-
-        // Combine all messages from the different vectors
-        all_messages.insert(all_messages.end(), errors.begin(), errors.end());
-        all_messages.insert(all_messages.end(), warnings.begin(), warnings.end());
-        all_messages.insert(all_messages.end(), notes.begin(), notes.end());
-
-        // Sort messages based on their order
-        std::sort(all_messages.begin(), all_messages.end(), [](const CompilerMessage &a, const CompilerMessage &b) {
-            return a.order < b.order;
-        });
-
-        // Print messages
-        for (const auto &msg : all_messages) {
-            switch (msg.severity) {
-            case ErrorSeverity::Error:
-                spdlog::error(msg.to_string());
-                break;
-            case ErrorSeverity::Warning:
-                spdlog::warn(msg.to_string());
-                break;
-            case ErrorSeverity::Note:
-                spdlog::info(msg.to_string());
-                break;
-            }
-        }
-    }
-
-    // Check if there are any errors (not just warnings or notes)
-    bool has_errors() const
-    {
-        return !errors.empty();
-    }
-
-    // Clear all stored messages
-    void clear()
-    {
-        errors.clear();
-        warnings.clear();
-        notes.clear();
-        message_order_counter = 0;
-    }
+    std::size_t message_order_counter = 0; // Track message order
+    std::map<std::string, std::vector<std::string>> _lines; // Store filename -> lines
 };
 
 template <typename Useless = int>
@@ -167,7 +108,7 @@ void example_check_variable(const std::string &var_name, ErrorManager &error_man
 template <typename Useless = int>
 int example_main()
 {
-    ErrorManager error_manager;
+    ErrorManager &error_manager = ErrorManager::instance();
 
     // Simulate some semantic checks
     example_check_variable("", error_manager);

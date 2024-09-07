@@ -26,15 +26,15 @@ bool SymbolTable::add_symbol(const std::string &scope_id, SymbolPtr symbol)
     return true;
 }
 
-bool SymbolTable::add_function_symbol(const std::string &scope_id, StringPtr function_name, const parser::ASTNodePtr &definition)
+bool SymbolTable::add_function_symbol(const std::string &scope_id, StringPtr function_name, StringPtr filename, const parser::ASTNodePtr &definition)
 {
-    auto symbol = std::make_shared<Symbol>(SymbolType::SUBROUTINE, *function_name, SHARED_TO_WEAK(definition));
+    auto symbol = std::make_shared<Symbol>(SymbolType::SUBROUTINE, *function_name, filename, SHARED_TO_WEAK(definition));
     return add_symbol(scope_id, symbol);
 }
 
-bool SymbolTable::add_variable_symbol(const std::string &scope_id, StringPtr variable_name, const parser::ASTNodePtr &definition)
+bool SymbolTable::add_variable_symbol(const std::string &scope_id, StringPtr variable_name, StringPtr filename, const parser::ASTNodePtr &definition)
 {
-    auto symbol = std::make_shared<Symbol>(SymbolType::VARIABLE, *variable_name, SHARED_TO_WEAK(definition));
+    auto symbol = std::make_shared<Symbol>(SymbolType::VARIABLE, *variable_name, filename, SHARED_TO_WEAK(definition));
     return add_symbol(scope_id, symbol);
 }
 
@@ -75,9 +75,10 @@ void SymbolTable::create_library_symbols()
 {
     StringPtr outbox = std::make_shared<std::string>("outbox");
     StringPtr inbox = std::make_shared<std::string>("inbox");
+    StringPtr libfile = std::make_shared<std::string>("@stdlib");
     // absolutely topmost scope
-    add_function_symbol("", outbox, nullptr);
-    add_function_symbol("", inbox, nullptr);
+    add_function_symbol("", outbox, libfile, nullptr);
+    add_function_symbol("", inbox, libfile, nullptr);
 }
 
 std::string Symbol::to_string()

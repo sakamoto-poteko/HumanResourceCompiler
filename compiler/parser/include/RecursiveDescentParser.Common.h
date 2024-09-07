@@ -53,11 +53,11 @@ OPEN_PARSER_NAMESPACE
 #define UPDATE_TOKEN_LOOKAHEAD() \
     token = lookahead()
 
-#define CHECK_ERROR_MSG(ok, msg, lineno, colno, width) \
-    if (!(ok)) {                                       \
-        push_error((msg), lineno, colno, width);       \
-        revert_parse_frame();                          \
-        return false;                                  \
+#define CHECK_ERROR_MSG(ok, errid, msg, lineno, colno, width) \
+    if (!(ok)) {                                              \
+        push_error(errid, (msg), lineno, colno, width);       \
+        revert_parse_frame();                                 \
+        return false;                                         \
     }
 
 #define CHECK_ERROR(ok)       \

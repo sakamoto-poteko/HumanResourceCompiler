@@ -8,7 +8,7 @@
 #include <spdlog/spdlog.h>
 
 #include "ASTNode.h"
-#include "ASTNodeForward.h"
+#include "ErrorManager.h"
 #include "ScopeManager.h"
 #include "SymbolTable.h"
 #include "SymbolTableAnalyzer.h"
@@ -561,10 +561,10 @@ int SymbolTableAnalyzer::add_symbol_or_log_error(const StringPtr &name, SymbolTy
 
     switch (type) {
     case SymbolType::VARIABLE:
-        added = _symbol_table->add_variable_symbol(_scope_manager.get_current_scope_id(), name, node);
+        added = _symbol_table->add_variable_symbol(_scope_manager.get_current_scope_id(), name, _filename, node);
         break;
     case SymbolType::SUBROUTINE:
-        added = _symbol_table->add_function_symbol(_scope_manager.get_current_scope_id(), name, node);
+        added = _symbol_table->add_function_symbol(_scope_manager.get_current_scope_id(), name, _filename, node);
         break;
     }
 
@@ -610,11 +610,19 @@ void SymbolTableAnalyzer::log_redefinition_error(const StringPtr &name, SymbolTy
         break;
     }
 
-    auto fmt = boost::format("Redefinition of %8% '%1%', originally defined at %2%:%3%:%4%, redefined at %5%:%6%:%7%")
-        % *name % first_filename % first_lineno % first_colno % "TBD" % node->lineno() % node->colno() % type_str;
+    auto errstr = boost::format("Redefinition of %1% '%2%', originally defined at %2%:%3%:%4%")
+        % type_str % *name % first_filename % first_lineno % first_colno;
 
-    // Log an error about the redefinition
-    spdlog::error(fmt.str());
+    ErrorManager::instance().report(
+        3001,
+        ErrorSeverity::Error,
+        ErrorLocation {
+            .column = node->colno(),
+            .file_name = *_filename,
+            .line = node->lineno(),
+            .width = 0,
+        },
+        errstr.str());
 }
 
 void SymbolTableAnalyzer::log_undefined_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node)
@@ -629,11 +637,19 @@ void SymbolTableAnalyzer::log_undefined_error(const StringPtr &name, SymbolType 
         break;
     }
 
-    auto fmt = boost::format("Undefined reference to '%2%' at %3%:%4%:%5%. The %1% '%2%' is not declared before use.")
-        % type_str % *name % "TBD" % node->lineno() % node->colno();
+    auto errstr = boost::format("Undefined reference to '%2%'. The %1% '%2%' is not declared before use.")
+        % type_str % *name;
 
-    // Log an error about the redefinition
-    spdlog::error(fmt.str());
+    ErrorManager::instance().report(
+        3002,
+        ErrorSeverity::Error,
+        ErrorLocation {
+            .column = node->colno(),
+            .file_name = *_filename,
+            .line = node->lineno(),
+            .width = 0,
+        },
+        errstr.str());
 }
 
 CLOSE_SEMANALYZER_NAMESPACE
