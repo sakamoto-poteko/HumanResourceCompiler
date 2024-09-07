@@ -9,12 +9,12 @@ if(NOT FIND_FLEX_BISON_INCLUDED)
     set(WINFLEXBISON_INSTALL_DIR "${CMAKE_BINARY_DIR}/tools/winflexbison")
 
     ExternalProject_Add(
-            winflexbison
-            URL https://github.com/lexxmark/winflexbison/releases/download/v2.5.25/win_flex_bison-2.5.25.zip
-            PREFIX "${WINFLEXBISON_INSTALL_DIR}"
-            CONFIGURE_COMMAND ""
-            BUILD_COMMAND ""
-            INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory ${WINFLEXBISON_INSTALL_DIR}/src/winflexbison ${WINFLEXBISON_INSTALL_DIR}
+        winflexbison
+        URL https://github.com/lexxmark/winflexbison/releases/download/v2.5.25/win_flex_bison-2.5.25.zip
+        PREFIX "${WINFLEXBISON_INSTALL_DIR}"
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory ${WINFLEXBISON_INSTALL_DIR}/src/winflexbison ${WINFLEXBISON_INSTALL_DIR}
     )
 
     set(FLEX_EXECUTABLE "${WINFLEXBISON_INSTALL_DIR}/win_flex.exe" CACHE FILEPATH "Path to the Flex executable")
@@ -26,11 +26,11 @@ if(NOT FIND_FLEX_BISON_INCLUDED)
         get_filename_component(ABS_INPUT_FILE "${input_file}" ABSOLUTE)
 
         add_custom_command(
-                OUTPUT ${output_file}
-                COMMAND ${FLEX_EXECUTABLE} --wincompat -o${output_file} ${ABS_INPUT_FILE}
-                DEPENDS ${input_file}
-                COMMENT "Generating scanner with Flex: ${target_name}"
-                VERBATIM
+            OUTPUT ${output_file}
+            COMMAND ${FLEX_EXECUTABLE} --wincompat -o${output_file} ${ABS_INPUT_FILE}
+            DEPENDS ${input_file}
+            COMMENT "Generating scanner with Flex: ${target_name}"
+            VERBATIM
         )
     endmacro()
 
@@ -45,22 +45,20 @@ if(NOT FIND_FLEX_BISON_INCLUDED)
         if(BISON_DEFINES_FILE)
             get_filename_component(ABS_DEFINES_FILE "${BISON_DEFINES_FILE}" ABSOLUTE)
             add_custom_command(
-                    OUTPUT ${output_file} ${ABS_DEFINES_FILE}
-                    COMMAND ${BISON_EXECUTABLE} -o ${output_file} --defines=${ABS_DEFINES_FILE} ${ABS_INPUT_FILE}
-                    DEPENDS ${ABS_INPUT_FILE}
-                    COMMENT "Generating parser with Bison: ${target_name}"
-                    VERBATIM
+                OUTPUT ${output_file} ${ABS_DEFINES_FILE}
+                COMMAND ${BISON_EXECUTABLE} -o ${output_file} --defines=${ABS_DEFINES_FILE} ${ABS_INPUT_FILE}
+                DEPENDS ${ABS_INPUT_FILE}
+                COMMENT "Generating parser with Bison: ${target_name}"
+                VERBATIM
             )
         else()
             add_custom_command(
-                    OUTPUT ${output_file}
-                    COMMAND ${BISON_EXECUTABLE} -o ${output_file} ${ABS_INPUT_FILE}
-                    DEPENDS ${ABS_INPUT_FILE}
-                    COMMENT "Generating parser with Bison: ${target_name}"
-                    VERBATIM
+                OUTPUT ${output_file}
+                COMMAND ${BISON_EXECUTABLE} -o ${output_file} ${ABS_INPUT_FILE}
+                DEPENDS ${ABS_INPUT_FILE}
+                COMMENT "Generating parser with Bison: ${target_name}"
+                VERBATIM
             )
         endif()
     endmacro()
-
-
 endif()

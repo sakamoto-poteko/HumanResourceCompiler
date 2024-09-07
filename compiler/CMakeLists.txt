@@ -21,10 +21,12 @@ add_custom_target(
 # Compiler
 find_package(spdlog CONFIG REQUIRED)
 find_package(Boost CONFIG REQUIRED COMPONENTS graph)
+
 if(WIN32)
     list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-#    find_package(FlexBison REQUIRED)
-#    add_dependencies(hrlc FlexBison)
+
+# find_package(FlexBison REQUIRED)
+# add_dependencies(hrlc FlexBison)
 else()
     find_package(FLEX 2.6 REQUIRED)
 endif()
