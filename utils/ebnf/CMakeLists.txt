@@ -7,6 +7,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED YES)
 if(WIN32)
     list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
     find_package(FlexBison REQUIRED)
+
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 else()
     find_package(FLEX 2.6 REQUIRED)
     find_package(BISON 2.3 REQUIRED)
