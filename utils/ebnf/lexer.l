@@ -22,7 +22,6 @@ yylloc.first_column = yycolno - yyleng + 1;
 
 %}
 
-%option nounistd
 %option never-interactive
 %option noyywrap
 %option yylineno
