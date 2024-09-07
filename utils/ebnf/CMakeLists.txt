@@ -16,17 +16,16 @@ flex_target(LEXER "lexer.l" "${LEXER_OUT}")
 bison_target(PARSER "parser.y" "${PARSER_OUT}" DEFINES_FILE "parser.h")
 
 add_executable(${PROJECT_NAME}
-main.cpp
-Tasks.cpp
-ASTNode.cpp
-ASTNodeVisitor.cpp
-ASTPrintVisitor.cpp
-DependencyGraphBuilder.cpp
-DependencyGraphAnalyzer.cpp
-${LEXER_OUT}
-${PARSER_OUT}
+    main.cpp
+    Tasks.cpp
+    ASTNode.cpp
+    ASTNodeVisitor.cpp
+    ASTPrintVisitor.cpp
+    DependencyGraphBuilder.cpp
+    DependencyGraphAnalyzer.cpp
+    ${LEXER_OUT}
+    ${PARSER_OUT}
 )
-
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     set_source_files_properties(${LEXER_OUT} ${PARSER_OUT} PROPERTIES COMPILE_FLAGS "-w")
@@ -40,4 +39,4 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog_header_only)
 
 set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Default installation directory")
-install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)  # On Windows use RUNTIME, on Linux/macOS, use bin
+install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin) # On Windows use RUNTIME, on Linux/macOS, use bin
