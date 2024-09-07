@@ -20,6 +20,16 @@ if(NOT FIND_FLEX_BISON_INCLUDED)
             INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory ${FLEX_INSTALL_DIR}/src/flex ${FLEX_INSTALL_DIR}
     )
 
+    # Download and install Flex (GnuWin32 version)
+    ExternalProject_Add(
+            flexlib
+            URL https://sourceforge.net/projects/gnuwin32/files/flex/2.5.4a-1/flex-2.5.4a-1-lib.zip/download
+            PREFIX "${FLEX_INSTALL_DIR}"
+            CONFIGURE_COMMAND ""
+            BUILD_COMMAND ""
+            INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory ${FLEX_INSTALL_DIR}/src/flexlib ${FLEX_INSTALL_DIR}
+    )
+
     # Download and install Bison Deps (GnuWin32 version)
     ExternalProject_Add(
             bisondeps
@@ -29,6 +39,7 @@ if(NOT FIND_FLEX_BISON_INCLUDED)
             BUILD_COMMAND ""
             INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory ${BISON_INSTALL_DIR}/src/bisondeps ${BISON_INSTALL_DIR}
     )
+
     # Download and install Bison (GnuWin32 version)
     ExternalProject_Add(
             bison
@@ -65,7 +76,7 @@ if(NOT FIND_FLEX_BISON_INCLUDED)
     set(BISON_EXECUTABLE "${BISON_INSTALL_DIR}/bin/bison.exe" CACHE FILEPATH "Path to the Bison executable")
 
     # Mark the download as dependencies for the main project
-    add_custom_target(FlexBison ALL DEPENDS flex bisondeps bison bisonlib)
+    add_custom_target(FlexBison ALL DEPENDS flex flexlib bisondeps bison bisonlib)
     add_dependencies(bisonfix bison)
     add_dependencies(FlexBison bisonfix)
 
@@ -76,7 +87,7 @@ if(NOT FIND_FLEX_BISON_INCLUDED)
     macro(FLEX_TARGET target_name input_file output_file)
         get_filename_component(ABS_INPUT_FILE "${input_file}" ABSOLUTE)
 
-        include_directories(${BISON_INSTALL_DIR}/include)
+        include_directories(${FLEX_INSTALL_DIR}/include)
 
         add_custom_command(
                 OUTPUT ${output_file}
@@ -90,6 +101,8 @@ if(NOT FIND_FLEX_BISON_INCLUDED)
     # Define the BISON_TARGET macro with DEFINES_FILE support
     macro(BISON_TARGET target_name input_file output_file)
         cmake_parse_arguments(BISON "" "DEFINES_FILE" "" ${ARGN})
+
+        include_directories(${BISON_INSTALL_DIR}/include)
 
         # Make the input file path absolute
         get_filename_component(ABS_INPUT_FILE "${input_file}" ABSOLUTE)

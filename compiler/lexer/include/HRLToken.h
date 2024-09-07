@@ -66,7 +66,7 @@ enum TokenId : int {
     COMMENT = 999,
     NEWLINE,
 
-    ERROR = -1,
+    TOKEN_ERROR = -1,
 };
 
 inline bool is_token_binary_operator(TokenId token)

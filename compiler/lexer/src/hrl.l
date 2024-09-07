@@ -20,9 +20,10 @@ if (last_token_newline) { yycolno = 0; last_token_newline = false; } \
 yycolno += yyleng;  \
 for (int i = 0; i < yyleng; ++i) { if (yytext[i] == '\n') { last_token_newline = true; break; } }
 
+#define YY_NO_UNISTD_H 1
+
 %}
 
-%option nounistd
 %option never-interactive
 %option noyywrap
 %option yylineno
@@ -83,7 +84,7 @@ for (int i = 0; i < yyleng; ++i) { if (yytext[i] == '\n') { last_token_newline =
 [ \t]+                          { }
 [\n\r]                          { __currentToken.preceding_metadata.emplace_back(TokenMetadata {.type=TokenMetadata::Newline}); return NEWLINE; }
 
-.                               { return ERROR; }
+.                               { return TOKEN_ERROR; }
 
 %%
 

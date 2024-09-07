@@ -7,10 +7,10 @@ public:
     TerminalColor();
     ~TerminalColor();
 
-    const char *COLOR_HIGHLIGHT = "";
-    const char *COLOR_RESET = "";
-    const char *COLOR_LIGHT_GREEN = "";
-    const char *COLOR_LIGHT_RED = "";
+    const char *C_HIGHLIGHT = "";
+    const char *C_RESET = "";
+    const char *C_LIGHT_GREEN = "";
+    const char *C_LIGHT_RED = "";
 
     void reset();
 private:

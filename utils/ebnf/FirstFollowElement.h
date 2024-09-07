@@ -80,7 +80,7 @@ struct FollowSetElement {
 
     Type get_type_from_first_set(FirstSetElement::Type first_type)
     {
-        Type type;
+        Type ret_type;
         switch (first_type) {
         case FirstSetElement::Literal:
         case FirstSetElement::Epsilon:
@@ -88,7 +88,7 @@ struct FollowSetElement {
         case FirstSetElement::Reference:
             break;
         }
-        return type;
+        return ret_type;
     }
 };
 

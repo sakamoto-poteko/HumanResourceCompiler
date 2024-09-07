@@ -1,3 +1,7 @@
+#ifdef _WINDOWS
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>

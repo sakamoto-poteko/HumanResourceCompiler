@@ -98,17 +98,17 @@ std::string ErrorManager::msg_to_string(CompilerMessage msg) const
     }
 
     // Show error ID, location, and message
-    ss << msg.error_id << "] " << msg.location.to_string() << ": " << __tc.COLOR_HIGHLIGHT << msg.message << __tc.COLOR_RESET;
+    ss << msg.error_id << "] " << msg.location.to_string() << ": " << __tc.C_HIGHLIGHT << msg.message << __tc.C_RESET;
 
     if (_lines.contains(msg.location.file_name)) {
         ss << "\n"
-           << __tc.COLOR_LIGHT_GREEN;
+           << __tc.C_LIGHT_GREEN;
         ss << _lines.at(msg.location.file_name).at(msg.location.line - 1); // line starts from 1
         ss << "\n";
         for (int i = 1; i < msg.location.column; ++i) {
             ss << ' ';
         }
-        ss << __tc.COLOR_LIGHT_RED;
+        ss << __tc.C_LIGHT_RED;
         if (msg.location.width != 0) {
             for (std::size_t i = 0; i < msg.location.width; ++i) {
                 ss << '^';
@@ -116,7 +116,7 @@ std::string ErrorManager::msg_to_string(CompilerMessage msg) const
         } else {
             ss << '^';
         }
-        ss << __tc.COLOR_RESET;
+        ss << __tc.C_RESET;
     }
 
     // Add a suggestion, if available

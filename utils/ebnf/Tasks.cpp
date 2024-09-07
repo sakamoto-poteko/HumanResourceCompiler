@@ -15,8 +15,6 @@
 #include <boost/algorithm/string/join.hpp>
 #include <boost/format.hpp>
 
-#include <getopt.h>
-
 #include <spdlog/spdlog.h>
 
 #include "ASTNode.h"
