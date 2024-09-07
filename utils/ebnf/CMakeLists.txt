@@ -13,7 +13,7 @@ else()
 endif()
 
 find_package(spdlog REQUIRED)
-find_package(Boost CONFIG REQUIRED COMPONENTS graph)
+find_package(Boost CONFIG REQUIRED COMPONENTS graph program_options)
 
 set(LEXER_OUT "${CMAKE_CURRENT_BINARY_DIR}/lexer.cpp")
 set(PARSER_OUT "${CMAKE_CURRENT_BINARY_DIR}/parser.cpp")
@@ -42,7 +42,7 @@ endif()
 target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${Boost_INCLUDE_DIRS})
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog_header_only)
+target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog_header_only Boost::program_options)
 
 if(WIN32)
     add_dependencies(ebnf FlexBison)
