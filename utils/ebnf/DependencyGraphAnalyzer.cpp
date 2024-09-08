@@ -391,8 +391,8 @@ void DependencyGraphAnalyzer::compute_follow_set()
     1. Initialize the FOLLOW set for each non-terminal as an empty set.
     2. Add the end-of-input marker ('$') to the FOLLOW set of the start symbol.
     3. Apply the following rules iteratively until no changes occur:
-        - Rule 1: For a production A → αBβ, add FIRST(β) - {ε} to FOLLOW(B).
-        - Rule 2: For a production A → αB or if β can derive ε, add FOLLOW(A) to FOLLOW(B).
+        - Rule 1: For a production A -> aBb, add FIRST(b) - {e} to FOLLOW(B).
+        - Rule 2: For a production A -> aB or if b can derive e, add FOLLOW(A) to FOLLOW(B).
     4. Return the FOLLOW sets after convergence.
 
     Ref: Dragon book Section 4.4.2

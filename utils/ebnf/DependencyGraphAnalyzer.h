@@ -155,7 +155,7 @@ protected:
 
     struct VisitState {
         std::map<std::string, ProductionNodePtr> productions;
-        Vertex root;
+        Vertex root = Graph::null_vertex();
 
         std::set<Vertex> visited;
         std::set<Vertex> mark;
