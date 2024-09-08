@@ -1,51 +1,57 @@
-#ifndef SYMBOLTABLEBUILDER_H
-#define SYMBOLTABLEBUILDER_H
+#ifndef CONSTANTFOLDINGPASS_H
+#define CONSTANTFOLDINGPASS_H
+
+#include <cstdint>
 
 #include <stack>
 #include <string>
 
 #include "ASTNode.h"
-#include "ASTNodeVisitor.h"
-#include "ScopeManager.h"
 #include "SemanticAnalysisPass.h"
-#include "SymbolTable.h"
-#include "hrl_global.h"
 #include "semanalyzer_global.h"
 
 OPEN_SEMANALYZER_NAMESPACE
 
 using namespace parser;
 
-/**
- * @brief This builder traverses the AST to construct the symbol table, annotating the scope id of each node.
- * It also verifies function calls and variable usage against the symbol table
- * to ensure correct usage of predefined symbols.
- */
-class SymbolTableAnalyzer : public SemanticAnalysisPass {
+template <typename Func>
+concept BinaryIntOperation = requires(Func func, int a, int b, int &out) {
+    { func(a, b, out) } -> std::same_as<int>;
+};
+
+template <typename Func>
+concept UnaryIntOperation = requires(Func func, int a, int &out) {
+    { func(a, out) } -> std::same_as<int>;
+};
+
+class ConstantFoldingAttribute : public ASTNodeAttribute {
 public:
-    /**
-     * @brief Construct a new Symbol Table Builder object
-     *
-     * @param filename The filename of this compilation unit
-     * @param root The root node of AST
-     */
-    SymbolTableAnalyzer(StringPtr filename, CompilationUnitASTNodePtr root)
-        : SemanticAnalysisPass(std::move(filename), std::move(root))
+    ConstantFoldingAttribute(int value)
+        : _value(value)
     {
     }
 
-    ~SymbolTableAnalyzer() override = default;
+    int get_value() const { return _value; }
 
-    int run() override;
+    int get_type() override;
 
-    /**
-     * @brief Set the symbol table object
-     *
-     * @param symbol_table  The existing table. This can be useful when the program has imports.
-     */
-    void set_symbol_table(SymbolTablePtr &symbol_table) { _symbol_table = symbol_table; }
+    std::string to_string() override;
 
-    const SymbolTablePtr &get_symbol_table() const { return _symbol_table; }
+private:
+    int _value;
+};
+
+/**
+ * @brief
+ * Constant Folding: detect and evaluate expressions involve only constant values, replace the ASTNode.
+ * - Algo: Preorder in expression nodes. If the child is const, attach ATTR_SEMANALYZER_CONST_FOLDING_VALUE.
+ *         If all children has such value, evaluate then replace the node.
+ * It also performs integer overflow check, div/mod 0 check, div/mul/mod 1 or 0 opt, add/sub 0 opt.
+ */
+class ConstantFoldingPass : public SemanticAnalysisPass {
+public:
+    ConstantFoldingPass(StringPtr filename, parser::CompilationUnitASTNodePtr root);
+    ~ConstantFoldingPass();
 
     // For all visit, the return value of 0 indicate success.
     int visit(IntegerASTNodePtr node) override;
@@ -86,24 +92,16 @@ public:
     int visit(FunctionDefinitionASTNodePtr node) override;
     int visit(CompilationUnitASTNodePtr node) override;
 
+    int run() override;
+
 protected:
-    SymbolTablePtr _symbol_table;
-    ScopeManager _scope_manager;
-
-    int visit_binary_expression(AbstractBinaryExpressionASTNodePtr node);
-    int visit_subroutine(AbstractSubroutineASTNodePtr node);
-    int attach_symbol_or_log_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node);
-    int add_symbol_or_log_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node);
-    void attach_scope_id(const ASTNodePtr &node);
-
-    void log_redefinition_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node);
-    void log_undefined_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node);
-
-    bool lookup_symbol(const StringPtr &name, SymbolPtr &out_symbol);
-
-    // std::string current_scope() const { return _scope_manager.get_current_scope_id(); }
-
 private:
+    void attach_constant(const ASTNodePtr &node, int value);
+
+    int fold_binary_expression(const AbstractBinaryExpressionASTNodePtr &node, BinaryIntOperation auto op_func);
+    int fold_unary_expression(const AbstractUnaryExpressionASTNodePtr &node, UnaryIntOperation auto op_func);
+
+    int check_integer_range(int value, const ASTNodePtr &node);
 };
 
 CLOSE_SEMANALYZER_NAMESPACE

@@ -18,13 +18,13 @@
 OPEN_SEMANALYZER_NAMESPACE
 
 #define BEGIN_VISIT()       \
-    _ancestors.push(node);  \
+    enter_node(node);       \
     attach_scope_id(node);  \
     int result = 0, rc = 0; \
     UNUSED(rc)
 
-#define END_VISIT()   \
-    _ancestors.pop(); \
+#define END_VISIT() \
+    leave_node();   \
     return result
 
 #define SET_RESULT_RC() \
@@ -41,6 +41,9 @@ int SymbolTableAnalyzer::run()
     int result = visit(_root);
     return result;
 }
+
+// WARNING: Do not use `return SemanticAnalysisPass::visit(node)`
+// Because we need to attach scope id to each node!
 
 int SymbolTableAnalyzer::visit(IntegerASTNodePtr node)
 {
@@ -435,11 +438,11 @@ int SymbolTableAnalyzer::visit(ContinueStatementASTNodePtr node)
 int SymbolTableAnalyzer::visit(StatementBlockASTNodePtr node)
 {
     // Implement visit logic for StatementBlockASTNode
-    const ASTNode &parent = *_ancestors.top().get();
+    const ASTNodePtr &parent = _ancestors.top();
     bool come_from_while_if_for
-        = typeid(parent) == typeid(WhileStatementASTNode)
-        || typeid(parent) == typeid(IfStatementASTNode)
-        || typeid(parent) == typeid(ForStatementASTNode);
+        = is_ptr_type<WhileStatementASTNode>(parent)
+        || is_ptr_type<IfStatementASTNode>(parent)
+        || is_ptr_type<ForStatementASTNode>(parent);
 
     BEGIN_VISIT();
 
@@ -521,7 +524,7 @@ int SymbolTableAnalyzer::visit_subroutine(AbstractSubroutineASTNodePtr node)
     rc = add_symbol_or_log_error(function_name, SymbolType::SUBROUTINE, node);
     SET_RESULT_RC();
 
-    _scope_manager.enter_scope(*function_name);
+    _scope_manager.enter_scope(*function_name, ScopeType::Subroutine);
 
     auto param = node->get_parameter();
     if (param) {
@@ -579,7 +582,7 @@ int SymbolTableAnalyzer::add_symbol_or_log_error(const StringPtr &name, SymbolTy
 void SymbolTableAnalyzer::attach_scope_id(const ASTNodePtr &node)
 {
     auto scope_id = _scope_manager.get_current_scope_id();
-    auto scope_info = std::make_shared<ScopeInfoAttribute>(scope_id);
+    auto scope_info = std::make_shared<ScopeInfoAttribute>(scope_id, _scope_manager.get_current_scope_type());
     node->set_attribute(SemAnalzyerASTNodeAttributeId::ATTR_SEMANALYZER_SCOPE_INFO, scope_info);
 }
 

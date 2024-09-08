@@ -90,14 +90,25 @@ bool ASTNode::get_attribute(int attribute_id, ASTNodeAttributePtr &out) const
     if (it == _attributes.end()) {
         return false;
     } else {
-        out = it->second;
-        return true;
+        if (it->second) {
+            out = it->second;
+            return true;
+        } else {
+            return false;
+        }
     }
 }
 
 void ASTNode::set_attribute(int attribute_id, ASTNodeAttributePtr attr)
 {
-    _attributes[attribute_id] = attr;
+    if (attr) {
+        _attributes[attribute_id] = attr;
+    }
+}
+
+void ASTNode::copy_attributes_from(const ASTNodePtr &node)
+{
+    _attributes = node->_attributes;
 }
 
 CLOSE_PARSER_NAMESPACE

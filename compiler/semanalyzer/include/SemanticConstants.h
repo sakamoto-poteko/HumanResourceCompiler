@@ -1,0 +1,13 @@
+#ifndef SEMANTICCONSTANTS_H
+#define SEMANTICCONSTANTS_H
+
+#include "semanalyzer_global.h"
+
+OPEN_SEMANALYZER_NAMESPACE
+
+constexpr int MAX_INTEGER_VALUE = 999;
+constexpr int MIN_INTEGER_VALUE = -999;
+
+CLOSE_SEMANALYZER_NAMESPACE
+
+#endif

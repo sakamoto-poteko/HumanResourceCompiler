@@ -1,7 +1,7 @@
 #ifndef ASTNODEVISITOR_H
 #define ASTNODEVISITOR_H
 
-#include "ASTNodeForward.h"
+#include "ASTNode.h"
 #include "parser_global.h"
 
 OPEN_PARSER_NAMESPACE

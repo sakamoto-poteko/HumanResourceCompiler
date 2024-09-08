@@ -15,9 +15,9 @@ The following is a breakdown of pending tasks to be implemented in the semantic 
 - [ ] Enforce distinction between global and local scopes.
 
 ### Early Constant Folding and Propagation
-- [ ] Optimize constant expressions during the analysis phase (constant folding).
+- [x] Optimize constant expressions during the analysis phase (constant folding).
 - [ ] Propagate constants where applicable in simple expressions (constant propagation).
-- [ ] Check div by constant zero error
+- [x] Check div by constant zero error
 
 ### Symbol Use Analysis
 - [ ] Enforce the variable assignment before use

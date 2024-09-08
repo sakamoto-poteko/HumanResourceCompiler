@@ -1,6 +1,7 @@
 #ifndef ERRORMESSAGE_H
 #define ERRORMESSAGE_H
 
+#include "hrl_global.h"
 #include <string>
 
 #include <boost/format.hpp>
@@ -23,6 +24,14 @@ struct ErrorLocation {
 
     ErrorLocation(const std::string filename, int line, int column, std::size_t width)
         : file_name(filename)
+        , line(line)
+        , column(column)
+        , width(width)
+    {
+    }
+
+    ErrorLocation(StringPtr filename, int line, int column, std::size_t width)
+        : file_name(*filename)
         , line(line)
         , column(column)
         , width(width)

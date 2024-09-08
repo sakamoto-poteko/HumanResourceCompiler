@@ -13,10 +13,17 @@
 
 OPEN_SEMANALYZER_NAMESPACE
 
+enum class ScopeType : int {
+    Global,
+    Subroutine,
+    Block,
+};
+
 class ScopeInfoAttribute : public parser::ASTNodeAttribute {
 public:
-    ScopeInfoAttribute(const std::string scope_id)
+    ScopeInfoAttribute(const std::string &scope_id, ScopeType scope_type)
         : _scope_id(scope_id)
+        , _type(scope_type)
     {
     }
 
@@ -27,6 +34,7 @@ public:
 
 private:
     std::string _scope_id;
+    ScopeType _type;
 };
 
 using ScopeInfoAttributePtr = std::shared_ptr<ScopeInfoAttribute>;
@@ -37,6 +45,8 @@ public:
     ~ScopeManager();
 
     std::string get_current_scope_id() const;
+
+    ScopeType get_current_scope_type() const { return _current_scopes.back().second; }
 
     /**
      * @brief Get the ancestor scopes of \p scope_id
@@ -53,9 +63,9 @@ public:
      * @return true Successfully entered the scope
      * @return false There is a conflict in the scope name
      */
-    bool enter_scope(const std::string &name);
+    bool enter_scope(const std::string &name, ScopeType scope_type);
 
-    bool enter_scope(StringPtr name);
+    bool enter_scope(StringPtr name, ScopeType scope_type);
 
     /**
      * @brief Enter a scope without a name
@@ -69,7 +79,7 @@ public:
     static const char DELIMITER = '.';
 
 private:
-    std::vector<std::string> _scope_names;
+    std::vector<std::pair<std::string, ScopeType>> _current_scopes;
     std::stack<int> _scope_id;
     std::set<std::string> _all_scopes;
 };

@@ -4,6 +4,7 @@
 #include "ASTBuilder.h"
 #include "ASTNodeGraphvizBuilder.h"
 #include "CompilerOptions.h"
+#include "ConstantFoldingPass.h"
 #include "ErrorManager.h"
 #include "FileManager.h"
 #include "Formatter.h"
@@ -90,12 +91,20 @@ int main(int argc, char **argv)
     using SemaAttrId = hrl::semanalyzer::SemAnalzyerASTNodeAttributeId;
 
     hrl::semanalyzer::SemanticAnalysisPassManager sem_passmgr(ast, std::make_shared<std::string>(options.input_file));
+
     auto symtbl_analyzer = sem_passmgr.add_pass<hrl::semanalyzer::SymbolTableAnalyzer>(
         "SymbolTableAnalyzer",
         "build/symtbl.dot",
         std::set<int> {
             SemaAttrId::ATTR_SEMANALYZER_SYMBOL,
             SemaAttrId::ATTR_SEMANALYZER_SCOPE_INFO,
+        });
+
+    auto constfolder = sem_passmgr.add_pass<hrl::semanalyzer::ConstantFoldingPass>(
+        "ConstantFoldingPass",
+        "build/constfld.dot",
+        std::set<int> {
+            SemaAttrId::ATTR_SEMANALYZER_CONST_FOLDING_VALUE,
         });
 
     if (sem_passmgr.run(true) != 0) {

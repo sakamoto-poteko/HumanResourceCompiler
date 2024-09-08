@@ -1,3 +1,5 @@
+#include <iterator>
+#include <ranges>
 #include <string>
 
 #include <boost/algorithm/string/join.hpp>
@@ -11,7 +13,7 @@ OPEN_SEMANALYZER_NAMESPACE
 
 ScopeManager::ScopeManager()
 {
-    enter_scope("glb");
+    enter_scope("glb", ScopeType::Global);
 }
 
 ScopeManager::~ScopeManager()
@@ -21,16 +23,29 @@ ScopeManager::~ScopeManager()
 std::string ScopeManager::get_current_scope_id() const
 {
     static const char delimiter[] = { DELIMITER, 0 };
-    return boost::join(_scope_names, delimiter);
+    std::string result;
+
+    for (auto it = _current_scopes.begin(); it != _current_scopes.end(); ++it) {
+        if (std::next(it) == _current_scopes.end()) {
+            break;
+        }
+
+        result += it->first;
+        result += delimiter;
+    }
+
+    result += _current_scopes.back().first;
+
+    return result;
 }
 
-bool ScopeManager::enter_scope(const std::string &name)
+bool ScopeManager::enter_scope(const std::string &name, ScopeType scope_type)
 {
-    _scope_names.push_back(name);
+    _current_scopes.push_back(std::make_pair(name, scope_type));
     auto scope_id = get_current_scope_id();
 
     if (_all_scopes.contains(scope_id)) {
-        _scope_names.pop_back();
+        _current_scopes.pop_back();
         return false;
     }
 
@@ -39,9 +54,9 @@ bool ScopeManager::enter_scope(const std::string &name)
     return true;
 }
 
-bool ScopeManager::enter_scope(StringPtr name)
+bool ScopeManager::enter_scope(StringPtr name, ScopeType scope_type)
 {
-    return enter_scope(*name);
+    return enter_scope(*name, scope_type);
 }
 
 void ScopeManager::enter_anonymous_scope()
@@ -49,14 +64,14 @@ void ScopeManager::enter_anonymous_scope()
     int id = _scope_id.top();
     _scope_id.top() += 1;
 
-    bool ok = enter_scope(std::to_string(id));
+    bool ok = enter_scope(std::to_string(id), ScopeType::Block);
     UNUSED(ok);
     assert(ok); // not supposed to happen
 }
 
 void ScopeManager::exit_scope()
 {
-    _scope_names.pop_back();
+    _current_scopes.pop_back();
     _scope_id.pop();
 }
 
@@ -83,7 +98,14 @@ int ScopeInfoAttribute::get_type()
 
 std::string ScopeInfoAttribute::to_string()
 {
-    return "scope: " + _scope_id;
+    switch (_type) {
+    case ScopeType::Global:
+        return "scope: [global]";
+    case ScopeType::Subroutine:
+        return "scope: [sub]" + _scope_id;
+    case ScopeType::Block:
+        return "scope: [blk]" + _scope_id;
+    }
 }
 
 CLOSE_SEMANALYZER_NAMESPACE

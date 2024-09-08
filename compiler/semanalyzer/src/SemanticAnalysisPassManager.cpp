@@ -17,8 +17,6 @@ void SemanticAnalysisPassManager::add_pass(
     const std::string &after_pass_graph_path,
     const std::set<int> enabled_attributes)
 {
-    pass->set_root(_root);
-
     _passes.push_back(pass);
     _pass_names.push_back(pass_name);
     _pass_graph_filepaths.push_back(after_pass_graph_path);
