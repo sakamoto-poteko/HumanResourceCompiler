@@ -2,21 +2,50 @@
 #define CONSTANTFOLDINGPASS_H
 
 #include "ASTNode.h"
+#include "ASTNodeForward.h"
 #include "SemanticAnalysisPass.h"
 #include "semanalyzer_global.h"
+#include <cstdint>
+#include <stack>
+#include <string>
 
 OPEN_SEMANALYZER_NAMESPACE
 
 using namespace parser;
 
+template <typename Func>
+concept BinaryIntOperation = requires(Func func, int a, int b, int &out) {
+    { func(a, b, out) } -> std::same_as<int>;
+};
+
+template <typename Func>
+concept UnaryIntOperation = requires(Func func, int a, int &out) {
+    { func(a, out) } -> std::same_as<int>;
+};
+
+class ConstantFoldingAttribute : public ASTNodeAttribute {
+public:
+    ConstantFoldingAttribute(int value)
+        : _value(value)
+    {
+    }
+
+    int get_value() const { return _value; }
+
+    int get_type() override;
+
+    std::string to_string() override;
+
+private:
+    int _value;
+};
+
 /**
- * @brief 
+ * @brief
  * Constant Folding: detect and evaluate expressions involve only constant values, replace the ASTNode.
  * - Algo: Preorder in expression nodes. If the child is const, attach ATTR_SEMANALYZER_CONST_FOLDING_VALUE.
  *         If all children has such value, evaluate then replace the node.
- *
- * Constant Propagation: substitutes the values of known constants in variable into expressions where they are used.
- * - Algo:
+ * It also performs integer overflow check, div/mod 0 check, div/mul/mod 1 or 0 opt, add/sub 0 opt.
  */
 class ConstantFoldingPass : public SemanticAnalysisPass {
 public:
@@ -64,7 +93,15 @@ public:
 
     int run() override;
 
+protected:
+    
 private:
+    void attach_constant(const ASTNodePtr &node, int value);
+
+    int fold_binary_expression(const AbstractBinaryExpressionASTNodePtr &node, BinaryIntOperation auto op_func);
+    int fold_unary_expression(const AbstractUnaryExpressionASTNodePtr &node, UnaryIntOperation auto op_func);
+
+    int check_integer_range(int value, const ASTNodePtr &node);
 };
 
 CLOSE_SEMANALYZER_NAMESPACE

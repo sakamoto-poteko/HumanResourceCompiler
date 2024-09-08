@@ -6,11 +6,13 @@ OPEN_SEMANALYZER_NAMESPACE
 void SemanticAnalysisPass::enter_node(parser::ASTNodePtr node)
 {
     _ancestors.push(node);
+    _replace_node_asked_by_child_guard.push(0);
 }
 
 void SemanticAnalysisPass::leave_node()
 {
     _ancestors.pop();
+    _replace_node_asked_by_child_guard.pop();
 }
 
 int SemanticAnalysisPass::visit(parser::IntegerASTNodePtr node)
@@ -283,6 +285,14 @@ int SemanticAnalysisPass::visit(parser::CompilationUnitASTNodePtr node)
     int rc = traverse_multiple(node->get_floor_inits(), node->get_var_decls(), node->get_subroutines());
     leave_node();
     return rc;
+}
+
+void SemanticAnalysisPass::request_to_replace_self(parser::ASTNodePtr to_be_replaced_with)
+{
+    if (_replace_node_asked_by_child_guard.top() == 1) {
+        _replace_node_asked_by_child.pop();
+    }
+    _replace_node_asked_by_child.push(to_be_replaced_with);
 }
 
 CLOSE_SEMANALYZER_NAMESPACE

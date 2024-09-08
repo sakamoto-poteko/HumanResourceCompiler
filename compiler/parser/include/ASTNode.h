@@ -49,17 +49,33 @@ public:
 
     virtual int accept(ASTNodeVisitor *visitor) = 0;
 
-    int lineno() const { return _lineno; }
+    int &lineno() { return _lineno; }
 
-    int colno() const { return _colno; }
+    int &colno() { return _colno; }
 
-    int last_lineno() const { return _last_lineno; }
+    int &last_lineno() { return _last_lineno; }
 
-    int last_colno() const { return _last_colno; }
+    int &last_colno() { return _last_colno; }
 
+    /**
+     * @brief Get the attribute attached to this node
+     *
+     * @param attribute_id
+     * @param out
+     * @return true The node has the attribute with \p attribute_id and it's not null
+     * @return false The node has no attribute with \p attribute_id
+     */
     bool get_attribute(int attribute_id, ASTNodeAttributePtr &out) const;
 
+    /**
+     * @brief Attach the attribute to this node. If the \p attr is null, it won't be attached.
+     *
+     * @param attribute_id
+     * @param attr
+     */
     void set_attribute(int attribute_id, ASTNodeAttributePtr attr);
+
+    void copy_attributes_from(const ASTNodePtr &node);
 
 protected:
     template <typename T>
@@ -104,13 +120,17 @@ public:
 // AbstractUnaryExpressionASTNode
 class AbstractUnaryExpressionASTNode : public AbstractExpressionASTNode {
 public:
-    AbstractUnaryExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno)
+    AbstractUnaryExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno, AbstractExpressionASTNodePtr operand)
         : AbstractExpressionASTNode(lineno, colno, last_lineno, last_colno)
+        , _operand(operand)
     {
     }
 
+    AbstractExpressionASTNodePtr &get_operand() { return _operand; }
+
 protected:
 private:
+    AbstractExpressionASTNodePtr _operand;
 };
 
 // AbstractPrimaryExpressionASTNode
@@ -151,11 +171,11 @@ public:
     {
     }
 
-    AbstractExpressionASTNodePtr get_left() { return _left; }
+    AbstractExpressionASTNodePtr &get_left() { return _left; }
 
-    AbstractExpressionASTNodePtr get_right() { return _right; }
+    AbstractExpressionASTNodePtr &get_right() { return _right; }
 
-    ASTBinaryOperator get_op() const { return _op; }
+    ASTBinaryOperator &get_op() { return _op; }
 
 protected:
 private:
@@ -174,11 +194,11 @@ public:
     {
     }
 
-    StringPtr get_name() { return _name; }
+    StringPtr &get_name() { return _name; }
 
-    StringPtr get_parameter() { return _parameter; }
+    StringPtr &get_parameter() { return _parameter; }
 
-    StatementBlockASTNodePtr get_body() { return _body; }
+    StatementBlockASTNodePtr &get_body() { return _body; }
 
 protected:
 private:
@@ -207,7 +227,7 @@ public:
 
     int accept(ASTNodeVisitor *visitor) override;
 
-    int get_value() const { return _value; }
+    int &get_value() { return _value; }
 
 protected:
 private:
@@ -225,7 +245,7 @@ public:
 
     int accept(ASTNodeVisitor *visitor) override;
 
-    bool get_value() const { return _value; }
+    bool &get_value() { return _value; }
 
 protected:
 private:
@@ -244,9 +264,9 @@ public:
 
     int accept(ASTNodeVisitor *visitor) override;
 
-    StringPtr get_name() { return _name; }
+    StringPtr &get_name() { return _name; }
 
-    VariableAssignmentASTNodePtr get_assignment() { return _assignment; }
+    VariableAssignmentASTNodePtr &get_assignment() { return _assignment; }
 
 protected:
 private:
@@ -266,9 +286,9 @@ public:
 
     int accept(ASTNodeVisitor *visitor) override;
 
-    StringPtr get_name() { return _name; }
+    StringPtr &get_name() { return _name; }
 
-    AbstractExpressionASTNodePtr get_value() { return _value; }
+    AbstractExpressionASTNodePtr &get_value() { return _value; }
 
 protected:
 private:
@@ -287,7 +307,7 @@ public:
 
     int accept(ASTNodeVisitor *visitor) override;
 
-    StringPtr get_name() { return _name; }
+    StringPtr &get_name() { return _name; }
 
 protected:
 private:
@@ -304,7 +324,7 @@ public:
 
     int accept(ASTNodeVisitor *visitor) override;
 
-    FloorAssignmentASTNodePtr get_assignment() { return _assignment; }
+    FloorAssignmentASTNodePtr &get_assignment() { return _assignment; }
 
 private:
     FloorAssignmentASTNodePtr _assignment;
@@ -322,9 +342,9 @@ public:
 
     int accept(ASTNodeVisitor *visitor) override;
 
-    AbstractExpressionASTNodePtr get_floor_number() { return _floor_number; }
+    AbstractExpressionASTNodePtr &get_floor_number() { return _floor_number; }
 
-    AbstractExpressionASTNodePtr get_value() { return _value; }
+    AbstractExpressionASTNodePtr &get_value() { return _value; }
 
 protected:
 private:
@@ -343,7 +363,7 @@ public:
 
     int accept(ASTNodeVisitor *visitor) override;
 
-    AbstractExpressionASTNodePtr get_index_expr() { return _index_expr; }
+    AbstractExpressionASTNodePtr &get_index_expr() { return _index_expr; }
 
 protected:
 private:
@@ -354,48 +374,40 @@ private:
 class NegativeExpressionASTNode : public AbstractUnaryExpressionASTNode {
 public:
     NegativeExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno, AbstractExpressionASTNodePtr operand)
-        : AbstractUnaryExpressionASTNode(lineno, colno, last_lineno, last_colno)
-        , _operand(std::move(operand))
+        : AbstractUnaryExpressionASTNode(lineno, colno, last_lineno, last_colno, std::move(operand))
     {
     }
 
     int accept(ASTNodeVisitor *visitor) override;
 
-    AbstractExpressionASTNodePtr get_operand() { return _operand; }
-
 private:
-    AbstractExpressionASTNodePtr _operand;
 };
 
 // NotExpressionASTNode
 class NotExpressionASTNode : public AbstractUnaryExpressionASTNode {
 public:
     NotExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno, AbstractExpressionASTNodePtr operand)
-        : AbstractUnaryExpressionASTNode(lineno, colno, last_lineno, last_colno)
-        , _operand(std::move(operand))
+        : AbstractUnaryExpressionASTNode(lineno, colno, last_lineno, last_colno, std::move(operand))
     {
     }
 
     int accept(ASTNodeVisitor *visitor) override;
 
-    AbstractExpressionASTNodePtr get_operand() { return _operand; }
-
 private:
-    AbstractExpressionASTNodePtr _operand;
 };
 
 // IncrementExpressionASTNode
 class IncrementExpressionASTNode : public AbstractUnaryExpressionASTNode {
 public:
     IncrementExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno, StringPtr var_name)
-        : AbstractUnaryExpressionASTNode(lineno, colno, last_lineno, last_colno)
+        : AbstractUnaryExpressionASTNode(lineno, colno, last_lineno, last_colno, nullptr)
         , _var_name(std::move(var_name))
     {
     }
 
     int accept(ASTNodeVisitor *visitor) override;
 
-    StringPtr get_var_name() const { return _var_name; }
+    StringPtr &get_var_name() { return _var_name; }
 
 private:
     StringPtr _var_name;
@@ -405,14 +417,14 @@ private:
 class DecrementExpressionASTNode : public AbstractUnaryExpressionASTNode {
 public:
     DecrementExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno, StringPtr var_name)
-        : AbstractUnaryExpressionASTNode(lineno, colno, last_lineno, last_colno)
+        : AbstractUnaryExpressionASTNode(lineno, colno, last_lineno, last_colno, nullptr)
         , _var_name(std::move(var_name))
     {
     }
 
     int accept(ASTNodeVisitor *visitor) override;
 
-    StringPtr get_var_name() const { return _var_name; }
+    StringPtr &get_var_name() { return _var_name; }
 
 private:
     StringPtr _var_name;
@@ -573,9 +585,9 @@ public:
 
     int accept(ASTNodeVisitor *visitor) override;
 
-    StringPtr get_func_name() { return _func_name; }
+    StringPtr &get_func_name() { return _func_name; }
 
-    AbstractExpressionASTNodePtr get_argument() { return _args; }
+    AbstractExpressionASTNodePtr &get_argument() { return _args; }
 
 protected:
 private:
@@ -596,11 +608,11 @@ public:
 
     int accept(ASTNodeVisitor *visitor) override;
 
-    AbstractExpressionASTNodePtr get_condition() const { return _condition; }
+    AbstractExpressionASTNodePtr &get_condition() { return _condition; }
 
-    AbstractEmbeddedStatementASTNodePtr get_then_branch() const { return _then_branch; }
+    AbstractEmbeddedStatementASTNodePtr &get_then_branch() { return _then_branch; }
 
-    AbstractEmbeddedStatementASTNodePtr get_else_branch() const { return _else_branch; }
+    AbstractEmbeddedStatementASTNodePtr &get_else_branch() { return _else_branch; }
 
 protected:
 private:
@@ -621,9 +633,9 @@ public:
 
     int accept(ASTNodeVisitor *visitor) override;
 
-    AbstractExpressionASTNodePtr get_condition() { return _condition; }
+    AbstractExpressionASTNodePtr &get_condition() { return _condition; }
 
-    AbstractEmbeddedStatementASTNodePtr get_body() { return _body; }
+    AbstractEmbeddedStatementASTNodePtr &get_body() { return _body; }
 
 protected:
 private:
@@ -645,13 +657,13 @@ public:
 
     int accept(ASTNodeVisitor *visitor) override;
 
-    AbstractStatementASTNodePtr get_init() { return _init; }
+    AbstractStatementASTNodePtr &get_init() { return _init; }
 
-    AbstractExpressionASTNodePtr get_condition() { return _condition; }
+    AbstractExpressionASTNodePtr &get_condition() { return _condition; }
 
-    AbstractStatementASTNodePtr get_update() { return _update; }
+    AbstractStatementASTNodePtr &get_update() { return _update; }
 
-    AbstractEmbeddedStatementASTNodePtr get_body() { return _body; }
+    AbstractEmbeddedStatementASTNodePtr &get_body() { return _body; }
 
 protected:
 private:
@@ -674,7 +686,7 @@ public:
 
     int accept(ASTNodeVisitor *visitor) override;
 
-    AbstractExpressionASTNodePtr get_expression() { return _expression; }
+    AbstractExpressionASTNodePtr &get_expression() { return _expression; }
 
 protected:
 private:
@@ -718,7 +730,7 @@ public:
 
     int accept(ASTNodeVisitor *visitor) override;
 
-    StatementsVector get_statements() { return _statements; }
+    StatementsVector &get_statements() { return _statements; }
 
 protected:
 private:
@@ -771,15 +783,15 @@ public:
 
     int accept(ASTNodeVisitor *visitor) override;
 
-    const std::vector<StringPtr> &get_imports() const { return _imports; }
+    std::vector<StringPtr> &get_imports() { return _imports; }
 
-    const std::vector<FloorBoxInitStatementASTNodePtr> &get_floor_inits() const { return _floor_inits; }
+    std::vector<FloorBoxInitStatementASTNodePtr> &get_floor_inits() { return _floor_inits; }
 
-    std::optional<int> get_floor_max() { return _floor_max; }
+    std::optional<int> &get_floor_max() { return _floor_max; }
 
-    const std::vector<VariableDeclarationASTNodePtr> &get_var_decls() const { return _var_decls; }
+    std::vector<VariableDeclarationASTNodePtr> &get_var_decls() { return _var_decls; }
 
-    const std::vector<AbstractSubroutineASTNodePtr> &get_subroutines() const { return _subroutines; }
+    std::vector<AbstractSubroutineASTNodePtr> &get_subroutines() { return _subroutines; }
 
 protected:
 private:

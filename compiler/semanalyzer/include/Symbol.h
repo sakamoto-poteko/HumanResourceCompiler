@@ -17,6 +17,7 @@ public:
     std::string name;
     StringPtr filename;
 
+    // It's weak to prevent circular reference.
     WEAK(parser::ASTNodePtr)
     definition;
 

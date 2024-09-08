@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <stack>
+#include <type_traits>
 
 #include "ASTNode.h"
 #include "ASTNodeForward.h"
@@ -84,13 +85,17 @@ protected:
 
     virtual void leave_node();
 
-    template <typename Container>
-        requires std::ranges::range<Container> && parser::convertible_to_ASTNodePtr<std::ranges::range_value_t<Container>>
-    int traverse(const Container &nodes)
+    void request_to_replace_self(parser::ASTNodePtr to_be_replaced_with);
+
+    bool replace_self_requested() { return _replace_node_asked_by_child_guard.top() == 1; }
+
+    template <typename ContainerT>
+        requires(std::ranges::range<ContainerT> && parser::convertible_to_ASTNodePtr<std::ranges::range_value_t<ContainerT>>)
+    int traverse(ContainerT &nodes)
     {
         int result = 0;
-        for (const auto &node : nodes) {
-            int rc = node->accept(this);
+        for (auto &node : nodes) {
+            int rc = traverse(node);
             if (rc != 0) {
                 result = rc;
             }
@@ -100,21 +105,32 @@ protected:
 
     template <typename T>
         requires parser::convertible_to_ASTNodePtr<T>
-    int traverse(const T &node)
+    int traverse(T &node)
     {
         if (node) {
-            return node->accept(this);
+            int rc = node->accept(this);
+            if (!_replace_node_asked_by_child.empty()) {
+                using NodeType = typename T::element_type;
+                auto top = std::dynamic_pointer_cast<NodeType>(_replace_node_asked_by_child.top());
+                if (!top) {
+                    // this is a bug.
+                    throw;
+                }
+                node = top;
+                _replace_node_asked_by_child.pop();
+            }
+            return rc;
         } else {
             return 0;
         }
     }
 
     template <typename... T>
-    int traverse_multiple(const T &...node_ptr)
+    int traverse_multiple(T &...node_ptr)
     {
         int result = 0;
-        auto process_result = [this, &result](auto node) {
-            if constexpr (parser::convertible_to_ASTNodePtr<decltype(node)>) {
+        auto process_result = [this, &result](auto &node) {
+            if constexpr (parser::convertible_to_ASTNodePtr<std::remove_reference_t<decltype(node)>>) {
                 int rc = traverse(node);
                 if (rc != 0) {
                     result = rc;
@@ -134,6 +150,8 @@ protected:
     }
 
 private:
+    std::stack<parser::ASTNodePtr> _replace_node_asked_by_child;
+    std::stack<int> _replace_node_asked_by_child_guard; // the count guard for single replace node
 };
 
 using SemanticAnalysisPassPtr = std::shared_ptr<SemanticAnalysisPass>;

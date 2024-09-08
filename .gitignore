@@ -695,5 +695,12 @@ vcpkg-manifest-install.log
 ## Manifest Mode
 vcpkg_installed/
 
+### Doxygen ###
+html
+latex
+
+
+###### User defined
+
 build/
 cmake-build*/

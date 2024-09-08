@@ -103,7 +103,9 @@ int main(int argc, char **argv)
     auto constfolder = sem_passmgr.add_pass<hrl::semanalyzer::ConstantFoldingPass>(
         "ConstantFoldingPass",
         "build/constfld.dot",
-        std::set<int> {});
+        std::set<int> {
+            SemaAttrId::ATTR_SEMANALYZER_CONST_FOLDING_VALUE,
+        });
 
     if (sem_passmgr.run(true) != 0) {
         errmgr.print_all();
