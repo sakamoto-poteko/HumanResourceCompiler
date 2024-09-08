@@ -5,6 +5,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -794,6 +795,14 @@ concept convertible_to_ASTNodePtr = requires {
     typename T::element_type;
     requires std::convertible_to<T, ASTNodePtr> && std::is_same_v<T, std::shared_ptr<typename T::element_type>>;
 };
+
+template <typename T>
+    requires std::is_base_of_v<ASTNode, T>
+bool is_ptr_type(const ASTNodePtr &ptr)
+{
+    const auto &ref = *ptr.get();
+    return typeid(ref) == typeid(T);
+}
 
 CLOSE_PARSER_NAMESPACE
 

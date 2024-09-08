@@ -31,7 +31,7 @@ public:
         const std::string &after_pass_graph_path = "",
         const std::set<int> enabled_attributes = std::set<int>())
     {
-        std::shared_ptr<PassT> pass = std::make_shared<PassT>(_filename);
+        std::shared_ptr<PassT> pass = std::make_shared<PassT>(_filename, _root);
         add_pass(pass, pass_name, after_pass_graph_path, enabled_attributes);
         return pass;
     }

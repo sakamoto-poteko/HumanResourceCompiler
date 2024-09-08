@@ -8,47 +8,11 @@
 #include <vector>
 
 #include "ASTNode.h"
+#include "Symbol.h"
 #include "hrl_global.h"
 #include "semanalyzer_global.h"
 
 OPEN_SEMANALYZER_NAMESPACE
-
-enum class SymbolType {
-    VARIABLE,
-    SUBROUTINE,
-};
-
-class Symbol : public parser::ASTNodeAttribute {
-public:
-    SymbolType type;
-    std::string name;
-    StringPtr filename;
-
-    WEAK(parser::ASTNodePtr)
-    definition;
-
-    Symbol(SymbolType type, const std::string &name, StringPtr filename, WEAK(parser::ASTNodePtr) definition)
-        : type(type)
-        , name(name)
-        , filename(std::move(filename))
-        , definition(std::move(definition))
-    {
-    }
-
-    Symbol(SymbolType type, StringPtr name, StringPtr filename, WEAK(parser::ASTNodePtr) definition)
-        : type(type)
-        , name(*name)
-        , filename(std::move(filename))
-        , definition(std::move(definition))
-    {
-    }
-
-    int get_type() override { return SemAnalzyerASTNodeAttributeId::ATTR_SEMANALYZER_SYMBOL; }
-
-    std::string to_string() override;
-};
-
-using SymbolPtr = std::shared_ptr<Symbol>;
 
 class SymbolTable {
 public:

@@ -81,21 +81,5 @@ void SymbolTable::create_library_symbols()
     add_function_symbol("", inbox, libfile, nullptr);
 }
 
-std::string Symbol::to_string()
-{
-    std::string type_str;
-    switch (type) {
-
-    case SymbolType::VARIABLE:
-        type_str = "Variable";
-        break;
-    case SymbolType::SUBROUTINE:
-        type_str = "Subroutine";
-        break;
-    }
-    auto str = boost::format("symbol: <%1%> %2%") % type_str % name;
-    return str.str();
-}
-
 CLOSE_SEMANALYZER_NAMESPACE
 // end

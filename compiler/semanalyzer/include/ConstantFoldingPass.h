@@ -1,15 +1,8 @@
-#ifndef SYMBOLTABLEBUILDER_H
-#define SYMBOLTABLEBUILDER_H
-
-#include <stack>
-#include <string>
+#ifndef CONSTANTFOLDINGPASS_H
+#define CONSTANTFOLDINGPASS_H
 
 #include "ASTNode.h"
-#include "ASTNodeVisitor.h"
-#include "ScopeManager.h"
 #include "SemanticAnalysisPass.h"
-#include "SymbolTable.h"
-#include "hrl_global.h"
 #include "semanalyzer_global.h"
 
 OPEN_SEMANALYZER_NAMESPACE
@@ -17,35 +10,18 @@ OPEN_SEMANALYZER_NAMESPACE
 using namespace parser;
 
 /**
- * @brief This builder traverses the AST to construct the symbol table, annotating the scope id of each node.
- * It also verifies function calls and variable usage against the symbol table
- * to ensure correct usage of predefined symbols.
+ * @brief 
+ * Constant Folding: detect and evaluate expressions involve only constant values, replace the ASTNode.
+ * - Algo: Preorder in expression nodes. If the child is const, attach ATTR_SEMANALYZER_CONST_FOLDING_VALUE.
+ *         If all children has such value, evaluate then replace the node.
+ *
+ * Constant Propagation: substitutes the values of known constants in variable into expressions where they are used.
+ * - Algo:
  */
-class SymbolTableAnalyzer : public SemanticAnalysisPass {
+class ConstantFoldingPass : public SemanticAnalysisPass {
 public:
-    /**
-     * @brief Construct a new Symbol Table Builder object
-     *
-     * @param filename The filename of this compilation unit
-     * @param root The root node of AST
-     */
-    SymbolTableAnalyzer(StringPtr filename, CompilationUnitASTNodePtr root)
-        : SemanticAnalysisPass(std::move(filename), std::move(root))
-    {
-    }
-
-    ~SymbolTableAnalyzer() override = default;
-
-    int run() override;
-
-    /**
-     * @brief Set the symbol table object
-     *
-     * @param symbol_table  The existing table. This can be useful when the program has imports.
-     */
-    void set_symbol_table(SymbolTablePtr &symbol_table) { _symbol_table = symbol_table; }
-
-    const SymbolTablePtr &get_symbol_table() const { return _symbol_table; }
+    ConstantFoldingPass(StringPtr filename, parser::CompilationUnitASTNodePtr root);
+    ~ConstantFoldingPass();
 
     // For all visit, the return value of 0 indicate success.
     int visit(IntegerASTNodePtr node) override;
@@ -86,22 +62,7 @@ public:
     int visit(FunctionDefinitionASTNodePtr node) override;
     int visit(CompilationUnitASTNodePtr node) override;
 
-protected:
-    SymbolTablePtr _symbol_table;
-    ScopeManager _scope_manager;
-
-    int visit_binary_expression(AbstractBinaryExpressionASTNodePtr node);
-    int visit_subroutine(AbstractSubroutineASTNodePtr node);
-    int attach_symbol_or_log_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node);
-    int add_symbol_or_log_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node);
-    void attach_scope_id(const ASTNodePtr &node);
-
-    void log_redefinition_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node);
-    void log_undefined_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node);
-
-    bool lookup_symbol(const StringPtr &name, SymbolPtr &out_symbol);
-
-    // std::string current_scope() const { return _scope_manager.get_current_scope_id(); }
+    int run() override;
 
 private:
 };

@@ -2,10 +2,13 @@ cmake_minimum_required(VERSION 3.25)
 project(hrc_semanalyzer)
 
 add_library(${PROJECT_NAME}
-    src/SymbolTableAnalyzer.cpp
     src/ScopeManager.cpp
+    src/Symbol.cpp
     src/SymbolTable.cpp
     src/SemanticAnalysisPassManager.cpp
+    src/SemanticAnalysisPass.cpp
+    src/SymbolTableAnalyzer.cpp
+    src/ConstantFoldingPass.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
