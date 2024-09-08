@@ -1,13 +1,14 @@
 #ifndef CONSTANTFOLDINGPASS_H
 #define CONSTANTFOLDINGPASS_H
 
-#include "ASTNode.h"
-#include "ASTNodeForward.h"
-#include "SemanticAnalysisPass.h"
-#include "semanalyzer_global.h"
 #include <cstdint>
+
 #include <stack>
 #include <string>
+
+#include "ASTNode.h"
+#include "SemanticAnalysisPass.h"
+#include "semanalyzer_global.h"
 
 OPEN_SEMANALYZER_NAMESPACE
 
@@ -94,7 +95,6 @@ public:
     int run() override;
 
 protected:
-    
 private:
     void attach_constant(const ASTNodePtr &node, int value);
 
