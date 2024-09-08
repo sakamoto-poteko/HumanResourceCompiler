@@ -1,6 +1,6 @@
-# Project Name: Human Resource Machine Compiler
+# Human Resource Machine Compiler
 
-This project aims to create a compiler for the game Human Resource Machine using a custom language called "Human Resource Machine LazyCoder Language" (HRML). The language simplifies the game's coding challenges by abstracting some of its assembly-like constructs, allowing you to write code more efficiently. The project includes components such as lexical analysis, parsing, intermediate representation (IR), code generation, and optimization.
+This project aims to create a compiler for the game Human Resource Machine using a custom language called "Human Resource Machine LazyCoder Language" (HRML). The language simplifies the game's coding challenges by abstracting some of its assembly-like constructs, allowing you to write code more efficiently. 
 
 In addition, the project provides a VSCode extension for HRML language support, allowing syntax highlighting and language-specific configuration.
 
@@ -16,7 +16,7 @@ Ensure you have the following dependencies installed before building the project
 - **spdlog** (for logging)
 - **Boost** (for various utilities)
 
-To install these on Debian/Ubuntu:
+To install these on Debian/Ubuntu (minimum Bullseye required):
 
 ```bash
 sudo apt-get update
@@ -29,8 +29,8 @@ The project is located in the `compiler/` directory. To build it using CMake, fo
 
 1. **Clone the Repository:**
    ```bash
-   git clone https://github.com/yourusername/HRMCompiler.git
-   cd HRMCompiler/compiler
+   git clone https://github.com/sakamoto-poteko/HumanResourceCompiler.git
+   cd HumanResourceCompiler/compiler
    ```
 
 2. **Create a Build Directory:**
@@ -112,7 +112,6 @@ If you're not developing but just want to install the extension:
 
 Once installed, the extension will provide:
 - **Syntax highlighting** for `.hrml` files.
-- **Language-specific configuration** for HRML.
 
 ### Language Overview
 
