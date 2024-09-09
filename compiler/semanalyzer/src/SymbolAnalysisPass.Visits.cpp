@@ -6,11 +6,13 @@
 #include <boost/format.hpp>
 
 #include <spdlog/spdlog.h>
+#include <vector>
 
 #include "ASTNode.h"
 #include "ErrorManager.h"
 #include "ErrorMessage.h"
 #include "ScopeManager.h"
+#include "SemanticAnalysisErrors.h"
 #include "Symbol.h"
 #include "SymbolAnalysisPass.h"
 #include "SymbolTable.h"
@@ -40,6 +42,8 @@ int SymbolAnalysisPass::run()
         _symbol_table = std::make_shared<SymbolTable>();
     }
 
+    _varinit_record_stack_result.emplace();
+
     int result = 0, rc = 0;
     rc = visit(_root);
     SET_RESULT_RC();
@@ -48,6 +52,7 @@ int SymbolAnalysisPass::run()
     return result;
 }
 
+// reside in this file because it requires macros. pretty much like the visits
 int SymbolAnalysisPass::check_pending_invocations()
 {
     int result = 0, rc = 0;
@@ -66,7 +71,7 @@ int SymbolAnalysisPass::check_pending_invocations()
 
         // signature check
         SymbolPtr symbol;
-        lookup_symbol(func_name, symbol);
+        lookup_symbol_with_ancestors(func_name, symbol);
 
         bool def_has_param = symbol->has_param();
         bool def_has_return = symbol->has_return();
@@ -84,7 +89,7 @@ int SymbolAnalysisPass::check_pending_invocations()
             // % symbol->filename % def_astnode->lineno() % def_astnode->colno();
 
             ErrorManager::instance().report(
-                3005,
+                E_SEMA_SUBROUTINE_SIGNATURE_MISMATCH,
                 ErrorSeverity::Error,
                 ErrorLocation(*_filename, node->lineno(), node->colno(), func_name->size()),
                 errstr.str());
@@ -92,7 +97,7 @@ int SymbolAnalysisPass::check_pending_invocations()
                 ErrorSeverity::Error,
                 ErrorLocation(symbol->filename, def_astnode->lineno(), def_astnode->colno(), 0),
                 "originally defined as");
-            rc = 3005;
+            rc = E_SEMA_SUBROUTINE_SIGNATURE_MISMATCH;
             SET_RESULT_RC();
         }
     }
@@ -123,6 +128,7 @@ int SymbolAnalysisPass::visit(VariableDeclarationASTNodePtr node)
 
     rc = add_variable_symbol_or_log_error(node->get_name(), node);
     SET_RESULT_RC();
+    create_varinit_record(node->get_name(), 0);
 
     rc = traverse(node->get_assignment());
     SET_RESULT_RC();
@@ -139,6 +145,7 @@ int SymbolAnalysisPass::visit(VariableAssignmentASTNodePtr node)
     SET_RESULT_RC();
     rc = traverse(node->get_value());
     SET_RESULT_RC();
+    set_varinit_record(node->get_name(), 1);
 
     END_VISIT();
 }
@@ -150,6 +157,13 @@ int SymbolAnalysisPass::visit(VariableAccessASTNodePtr node)
 
     rc = attach_symbol_or_log_error(node->get_name(), SymbolType::VARIABLE, node);
     SET_RESULT_RC();
+
+    int assigned = get_varinit_record(node->get_name());
+    if (!assigned) {
+        log_use_before_initialization_error(node->get_name(), node);
+        rc = E_SEMA_VAR_USE_BEFORE_INIT;
+        SET_RESULT_RC();
+    }
 
     END_VISIT();
 }
@@ -409,15 +423,45 @@ int SymbolAnalysisPass::visit(IfStatementASTNodePtr node)
     rc = traverse(node->get_condition());
     SET_RESULT_RC();
 
-    _scope_manager.enter_anonymous_scope();
+    SymbolScopedKeyValueHash varinit_result_then;
+    SymbolScopedKeyValueHash varinit_result_else;
+
+    enter_anonymous_scope();
     rc = traverse(node->get_then_branch());
     SET_RESULT_RC();
-    _scope_manager.exit_scope();
+    leave_scope();
+    get_child_varinit_records(varinit_result_then);
 
-    _scope_manager.enter_anonymous_scope();
+    enter_anonymous_scope();
     rc = traverse(node->get_else_branch());
     SET_RESULT_RC();
-    _scope_manager.exit_scope();
+    leave_scope();
+    get_child_varinit_records(varinit_result_else);
+
+    // process the var init results. if both are 1, the final is 1. if neither is 0, the final is 0.
+    assert(varinit_result_then.size() == varinit_result_else.size());
+    assert(std::ranges::all_of(varinit_result_then, [&varinit_result_else](const auto &kv) {
+        return varinit_result_else.contains(kv.first);
+    }) && "Maps do not contain the same keys!");
+    assert(std::ranges::all_of(varinit_result_else, [&varinit_result_then](const auto &kv) {
+        return varinit_result_then.contains(kv.first);
+    }) && "Maps do not contain the same keys!");
+
+    SymbolScopedKeyValueHash after_if_var_init_result;
+
+    for (const auto &[sym_key, result_then] : varinit_result_then) {
+        int result_else = varinit_result_else.at(sym_key);
+
+        // Apply the merging rule: if either is 0, result is 0, otherwise result is 1
+        int both_initialized = (result_then == 0 || result_else == 0) ? 0 : 1;
+
+        // Insert the merged value into the result map
+        after_if_var_init_result[sym_key] = both_initialized;
+    }
+
+    for (const auto &[sym_key, sym_initialized] : after_if_var_init_result) {
+        set_varinit_record(sym_key, sym_initialized);
+    }
 
     END_VISIT();
 }
@@ -432,12 +476,12 @@ int SymbolAnalysisPass::visit(WhileStatementASTNodePtr node)
     rc = traverse(node->get_condition());
     SET_RESULT_RC();
 
-    _scope_manager.enter_anonymous_scope();
+    enter_anonymous_scope();
 
     rc = traverse(node->get_body());
     SET_RESULT_RC();
 
-    _scope_manager.exit_scope();
+    leave_scope();
     END_VISIT();
 }
 
@@ -446,7 +490,7 @@ int SymbolAnalysisPass::visit(ForStatementASTNodePtr node)
     // Implement visit logic for ForStatementASTNode
     BEGIN_VISIT();
 
-    _scope_manager.enter_anonymous_scope();
+    enter_anonymous_scope();
 
     rc = traverse(node->get_init());
     SET_RESULT_RC();
@@ -460,7 +504,7 @@ int SymbolAnalysisPass::visit(ForStatementASTNodePtr node)
     rc = traverse(node->get_body());
     SET_RESULT_RC();
 
-    _scope_manager.exit_scope();
+    leave_scope();
     END_VISIT();
 }
 
@@ -505,14 +549,14 @@ int SymbolAnalysisPass::visit(StatementBlockASTNodePtr node)
     // if entered from while/if/for, skip the new scope since these stmts entered already
 
     if (!come_from_while_if_for) {
-        _scope_manager.enter_anonymous_scope();
+        enter_anonymous_scope();
     }
 
     rc = traverse(node->get_statements());
     SET_RESULT_RC();
 
     if (!come_from_while_if_for) {
-        _scope_manager.exit_scope();
+        leave_scope();
     }
 
     END_VISIT();
@@ -521,23 +565,13 @@ int SymbolAnalysisPass::visit(StatementBlockASTNodePtr node)
 int SymbolAnalysisPass::visit(SubprocDefinitionASTNodePtr node)
 {
     // Implement visit logic for SubprocDefinitionASTNode
-    BEGIN_VISIT();
-
-    rc = visit_subroutine(node, false);
-    SET_RESULT_RC();
-
-    END_VISIT();
+    return visit_subroutine(node, false);
 }
 
 int SymbolAnalysisPass::visit(FunctionDefinitionASTNodePtr node)
 {
     // Implement visit logic for FunctionDefinitionASTNode
-    BEGIN_VISIT();
-
-    rc = visit_subroutine(node, true);
-    SET_RESULT_RC();
-
-    END_VISIT();
+    return visit_subroutine(node, true);
 }
 
 int SymbolAnalysisPass::visit(CompilationUnitASTNodePtr node)
@@ -582,10 +616,11 @@ int SymbolAnalysisPass::visit_subroutine(AbstractSubroutineASTNodePtr node, bool
     rc = add_subroutine_symbol_or_log_error(function_name, has_param, has_return, node);
     SET_RESULT_RC();
 
-    _scope_manager.enter_scope(*function_name, ScopeType::Subroutine);
+    enter_scope(function_name, ScopeType::Subroutine);
 
     if (param) {
         rc = add_variable_symbol_or_log_error(param, node);
+        create_varinit_record(param, 1);
         SET_RESULT_RC();
     }
 
@@ -593,129 +628,10 @@ int SymbolAnalysisPass::visit_subroutine(AbstractSubroutineASTNodePtr node, bool
     rc = traverse(node->get_body()->get_statements());
     SET_RESULT_RC();
 
-    _scope_manager.exit_scope();
+    // pop them up, and set the return value!
+    leave_scope();
 
     END_VISIT();
-}
-
-bool SymbolAnalysisPass::lookup_symbol(const StringPtr &name, SymbolPtr &out_symbol)
-{
-    return _symbol_table->lookup_symbol(_scope_manager.get_current_scope_id(), name, true, out_symbol);
-}
-
-int SymbolAnalysisPass::attach_symbol_or_log_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node)
-{
-    SymbolPtr symbol;
-    if (!lookup_symbol(name, symbol)) {
-        log_undefined_error(name, type, node);
-        return 3002;
-    } else {
-        node->set_attribute(SemAnalzyerASTNodeAttributeId::ATTR_SEMANALYZER_SYMBOL, symbol);
-        return 0;
-    }
-}
-
-int SymbolAnalysisPass::add_subroutine_symbol_or_log_error(const StringPtr &name, bool has_param, bool has_return, const ASTNodePtr &node)
-{
-    if (!_symbol_table->add_function_symbol(_scope_manager.get_current_scope_id(), name, has_param, has_return, _filename, node)) {
-        log_redefinition_error(name, SymbolType::SUBROUTINE, node);
-        return 3001;
-    } else {
-        return 0;
-    }
-}
-
-int SymbolAnalysisPass::add_variable_symbol_or_log_error(const StringPtr &name, const ASTNodePtr &node)
-{
-    SymbolPtr symbol;
-    bool found_in_ancestor_or_current = _symbol_table->lookup_symbol(_scope_manager.get_current_scope_id(), name, true, symbol);
-    if (!_symbol_table->add_variable_symbol(_scope_manager.get_current_scope_id(), name, _filename, node)) {
-        // false indicate found in current
-        log_redefinition_error(name, SymbolType::VARIABLE, node);
-        return 3001;
-    } else if (found_in_ancestor_or_current) {
-        // added to current scope and ancestor has it
-        auto original_node = WEAK_TO_SHARED(symbol->definition);
-
-        auto errstr = boost::format("variable '%1%' shadows a variable from the outer scope") % *name;
-        // auto errstr = ;
-        ErrorManager::instance().report(
-            3006,
-            ErrorSeverity::Warning,
-            ErrorLocation(_filename, node->lineno(), node->colno(), 0),
-            errstr.str());
-        ErrorManager::instance().report_continued(
-            ErrorSeverity::Warning,
-            ErrorLocation(symbol->filename, original_node->lineno(), original_node->colno(), 0),
-            "originally defined in");
-        return 0;
-    } else {
-        return 0;
-    }
-}
-
-void SymbolAnalysisPass::attach_scope_id(const ASTNodePtr &node)
-{
-    auto scope_id = _scope_manager.get_current_scope_id();
-    auto scope_info = std::make_shared<ScopeInfoAttribute>(scope_id, _scope_manager.get_current_scope_type());
-    node->set_attribute(SemAnalzyerASTNodeAttributeId::ATTR_SEMANALYZER_SCOPE_INFO, scope_info);
-}
-
-void SymbolAnalysisPass::log_redefinition_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node)
-{
-    SymbolPtr defined_symbol;
-    bool symbol_found = _symbol_table->lookup_symbol(_scope_manager.get_current_scope_id(), name, false, defined_symbol);
-    UNUSED(symbol_found);
-    assert(symbol_found); // won't happen
-
-    ASTNodePtr defined_node = WEAK_TO_SHARED(defined_symbol->definition);
-    assert(defined_node);
-
-    std::string type_str;
-    switch (type) {
-    case SymbolType::VARIABLE:
-        type_str = "variable";
-        break;
-    case SymbolType::SUBROUTINE:
-        type_str = "function/subprocedure";
-        break;
-    }
-
-    auto errstr = boost::format("Redefinition of %1% '%2%'.")
-        % type_str % *name;
-
-    ErrorManager::instance().report(
-        3001,
-        ErrorSeverity::Error,
-        ErrorLocation(*_filename, node->lineno(), node->colno(), name->size()),
-        errstr.str());
-
-    ErrorManager::instance().report_continued(
-        ErrorSeverity::Error,
-        ErrorLocation(defined_symbol->filename, defined_node->lineno(), defined_node->colno(), name->size()),
-        "Original defined in");
-}
-
-void SymbolAnalysisPass::log_undefined_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node)
-{
-    std::string type_str;
-    switch (type) {
-    case SymbolType::VARIABLE:
-        type_str = "variable";
-        break;
-    case SymbolType::SUBROUTINE:
-        type_str = "function/subprocedure";
-        break;
-    }
-
-    auto errstr = boost::format("Undefined reference to '%2%'. The %1% '%2%' is not declared before use.")
-        % type_str % *name;
-
-    ErrorManager::instance().report(
-        3002,
-        ErrorSeverity::Error,
-        ErrorLocation(*_filename, node->lineno(), node->colno(), name->size()),
-        errstr.str());
 }
 
 CLOSE_SEMANALYZER_NAMESPACE

@@ -18,12 +18,15 @@ function countdown(a) {
     }
 
     let b;
+    let ee;
     
     if (globalint) {
-        b = 10;
+        ee = 5;
     } else {
-        b = 5;
+        ee = 10;
     }
+    b = ee;
+
 
     a = a + 9;
 

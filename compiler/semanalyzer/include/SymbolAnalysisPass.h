@@ -1,11 +1,17 @@
 #ifndef SYMBOLTABLEBUILDER_H
 #define SYMBOLTABLEBUILDER_H
 
+#include <cassert>
+
+#include <map>
 #include <queue>
 #include <stack>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 #include "ASTNode.h"
+#include "ASTNodeForward.h"
 #include "ASTNodeVisitor.h"
 #include "ScopeManager.h"
 #include "SemanticAnalysisPass.h"
@@ -91,19 +97,75 @@ private:
     ScopeManager _scope_manager;
     std::queue<InvocationExpressionASTNodePtr> _pending_invocation_check;
 
+    // [Group] scopes
+    void enter_anonymous_scope();
+    void enter_scope(const StringPtr &name, ScopeType scope_type);
+    void leave_scope();
+
+    // [End]
+
+    // [Group] var use before init check
+    struct SymbolScopeKey {
+        std::string name;
+        std::string scope;
+
+        SymbolScopeKey(std::string name, std::string scope)
+            : name(std::move(name))
+            , scope(std::move(scope))
+        {
+        }
+
+        bool operator==(const SymbolScopeKey &other) const
+        {
+            return scope == other.scope && name == other.name;
+        }
+    };
+
+    struct SymbolScopeKeyHashProvider {
+        std::size_t operator()(const SymbolScopeKey &obj) const
+        {
+            std::size_t h1 = std::hash<std::string> {}(obj.name);
+            std::size_t h2 = std::hash<std::string> {}(obj.scope);
+            return h1 ^ (h2 << 1);
+        }
+    };
+
+    using SymbolScopedKeyValueHash = std::unordered_map<SymbolScopeKey, int, SymbolScopeKeyHashProvider>;
+    std::unordered_map<SymbolScopeKey, std::stack<int>, SymbolScopeKeyHashProvider> _varinit_record_stacks;
+    std::stack<SymbolScopedKeyValueHash> _varinit_record_stack_result;
+    int get_varinit_record(const StringPtr &var_name);
+    void create_varinit_record(const StringPtr &var_name, int is_initialized);
+    void set_varinit_record(const StringPtr &var_name, int is_initialized);
+    void set_varinit_record(const SymbolScopeKey &key, int is_initialized);
+    void enter_scope_varinit_record();
+    void leave_scope_varinit_record();
+    void get_child_varinit_records(SymbolScopedKeyValueHash &result);
+    // [End]
+
+    // [Group] Visit helpers
     int visit_binary_expression(AbstractBinaryExpressionASTNodePtr node);
     int visit_subroutine(AbstractSubroutineASTNodePtr node, bool has_return);
+    // [End]
+
+    // [Group] Invocation symbol and signature check
     int check_pending_invocations();
+    // [End]
+
+    // [Group] Attaching node metadata
     int attach_symbol_or_log_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node);
     int add_subroutine_symbol_or_log_error(const StringPtr &name, bool has_param, bool has_return, const ASTNodePtr &node);
     int add_variable_symbol_or_log_error(const StringPtr &name, const ASTNodePtr &node);
-
     void attach_scope_id(const ASTNodePtr &node);
+    // [End]
 
+    // [Group] Log errors
     void log_redefinition_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node);
     void log_undefined_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node);
+    void log_use_before_initialization_error(const StringPtr &name, const ASTNodePtr &node);
+    // [End]
 
-    bool lookup_symbol(const StringPtr &name, SymbolPtr &out_symbol);
+    bool lookup_symbol_with_ancestors(const StringPtr &name, SymbolPtr &out_symbol, std::string &out_def_scope);
+    bool lookup_symbol_with_ancestors(const StringPtr &name, SymbolPtr &out_symbol);
 
 private:
 };

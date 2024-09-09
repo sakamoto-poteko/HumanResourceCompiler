@@ -1,9 +1,12 @@
 #include <memory>
+#include <ranges>
 #include <string>
 
 #include <boost/format.hpp>
+#include <vector>
 
 #include "ScopeManager.h"
+#include "Symbol.h"
 #include "SymbolTable.h"
 #include "hrl_global.h"
 #include "semanalyzer_global.h"
@@ -40,7 +43,7 @@ bool SymbolTable::add_variable_symbol(const std::string &scope_id, StringPtr var
     return add_symbol(scope_id, symbol);
 }
 
-bool SymbolTable::lookup_symbol(const std::string &scope_id, const std::string &name, bool lookup_ancestors, SymbolPtr &symbol_out)
+bool SymbolTable::lookup_symbol(const std::string &scope_id, const std::string &name, bool lookup_ancestors, SymbolPtr &symbol_out, std::string &defined_scope_out)
 {
     if (!lookup_ancestors) {
         auto &scope = _scopes[scope_id];
@@ -49,6 +52,7 @@ bool SymbolTable::lookup_symbol(const std::string &scope_id, const std::string &
             return false;
         } else {
             symbol_out = it->second;
+            defined_scope_out = scope_id;
             return true;
         }
     } else {
@@ -59,6 +63,7 @@ bool SymbolTable::lookup_symbol(const std::string &scope_id, const std::string &
 
             if (it != scope.end()) {
                 symbol_out = it->second;
+                defined_scope_out = current_scope_id;
                 return true;
             }
         }
@@ -68,9 +73,9 @@ bool SymbolTable::lookup_symbol(const std::string &scope_id, const std::string &
     }
 }
 
-bool SymbolTable::lookup_symbol(const std::string &scope_id, const StringPtr &name, bool lookup_ancestors, SymbolPtr &symbol_out)
+bool SymbolTable::lookup_symbol(const std::string &scope_id, const StringPtr &name, bool lookup_ancestors, SymbolPtr &symbol_out, std::string &defined_scope_out)
 {
-    return lookup_symbol(scope_id, *name, lookup_ancestors, symbol_out);
+    return lookup_symbol(scope_id, *name, lookup_ancestors, symbol_out, defined_scope_out);
 }
 
 void SymbolTable::create_library_symbols()
@@ -81,6 +86,40 @@ void SymbolTable::create_library_symbols()
     // absolutely topmost scope
     add_function_symbol("", outbox, true, false, libfile, nullptr);
     add_function_symbol("", inbox, false, true, libfile, nullptr);
+}
+
+void hrl::semanalyzer::SymbolTable::get_symbols_include_ancestors(const std::string &scope_id, std::vector<std::pair<SymbolPtr, std::string>> &out)
+{
+    std::vector<std::pair<SymbolPtr, std::string>> result;
+
+    for (const auto &[scope_id_of_symbol, symbols] : _scopes) {
+        if (scope_id.starts_with(scope_id_of_symbol)) {
+            std::ranges::transform(symbols | std::ranges::views::values,
+                std::back_inserter(result),
+                [&scope_id_of_symbol](const SymbolPtr &sym) {
+                    return std::make_pair(sym, scope_id_of_symbol);
+                });
+        }
+    }
+
+    out.swap(result);
+}
+
+void hrl::semanalyzer::SymbolTable::get_symbols_exclude_ancestors(const std::string &scope_id, std::vector<SymbolPtr> &out)
+{
+    std::vector<SymbolPtr> result;
+
+    for (const auto &pair : _scopes) {
+        const auto &id = pair.first;
+        if (id == scope_id) {
+            result.insert(
+                result.end(),
+                std::ranges::begin(pair.second | std::ranges::views::values),
+                std::ranges::end(pair.second | std::ranges::views::values));
+        }
+    }
+
+    out.swap(result);
 }
 
 CLOSE_SEMANALYZER_NAMESPACE
