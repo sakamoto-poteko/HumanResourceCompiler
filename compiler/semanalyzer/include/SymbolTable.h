@@ -34,12 +34,14 @@ public:
      *
      * @param scope_id The scope id
      * @param function_name The function name
+     * @param has_param If the function has the pramater
+     * @param has_return If the function has return value
      * @param filename The file where the symbol was defined
      * @param definition The function definition ASTNode
      * @return true The symbol is successfully added
      * @return false The symbol failed to add. There is a conflict.
      */
-    bool add_function_symbol(const std::string &scope_id, StringPtr function_name, StringPtr filename, const parser::ASTNodePtr &definition);
+    bool add_function_symbol(const std::string &scope_id, StringPtr function_name, bool has_param, bool has_return, StringPtr filename, const parser::ASTNodePtr &definition);
 
     /**
      * @brief Add a variable to symbol table
@@ -60,12 +62,17 @@ public:
      * @param name The symbol name
      * @param lookup_ancestors True if look up the ancestor scopes of scope_id. False to look up only the \p scope_id
      * @param symbol_out [out] The result symbol
+     * @param defined_scope_out [out] The symbol defined scope
      * @return true The symbol was found, and \p symbol_out is set
      * @return false The symbol was not found
      */
-    bool lookup_symbol(const std::string &scope_id, const std::string &name, bool lookup_ancestors, SymbolPtr &symbol_out);
+    bool lookup_symbol(const std::string &scope_id, const std::string &name, bool lookup_ancestors, SymbolPtr &symbol_out, std::string &defined_scope_out);
 
-    bool lookup_symbol(const std::string &scope_id, const StringPtr &name, bool lookup_ancestors, SymbolPtr &symbol_out);
+    bool lookup_symbol(const std::string &scope_id, const StringPtr &name, bool lookup_ancestors, SymbolPtr &symbol_out, std::string &defined_scope_out);
+
+    // vector<pair<Symbol, sym_defined_scope>>
+    void get_symbols_include_ancestors(const std::string &scope_id, std::vector<std::pair<SymbolPtr, std::string>> &out);
+    void get_symbols_exclude_ancestors(const std::string &scope_id, std::vector<SymbolPtr> &out);
 
 private:
     // map<scope id, hash<symbol name, symbol>>

@@ -8,11 +8,9 @@ The following is a breakdown of pending tasks to be implemented in the semantic 
 - [x] Build the symbol table.
 - [x] Ensure all variables and functions are declared before use.
 - [x] Detect and handle illegal redefinitions of variables and functions.
-- [x] Add support for block-scoped variables.
-- [ ] Ensure proper handling of shadowing rules (for both variables and functions).
-- [ ] Implement function signature matching verification.
+- [x] Support block-scoped variable and check for shadowing.
+- [x] Implement function signature matching verification.
 - [ ] Add support for resolving imported module symbols.
-- [ ] Enforce distinction between global and local scopes.
 
 ### Early Constant Folding and Propagation
 - [x] Optimize constant expressions during the analysis phase (constant folding).

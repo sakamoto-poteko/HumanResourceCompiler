@@ -52,6 +52,7 @@ struct CompilerMessage {
     std::string message; // Main error message
     std::string suggestion; // Optional suggestion
     std::size_t order; // To track message order
+    bool is_cont; // Extra message following previous one?
 
     CompilerMessage(int error_id, ErrorSeverity severity, ErrorLocation location, std::string message, std::string suggestion = "")
         : error_id(error_id)
@@ -59,6 +60,17 @@ struct CompilerMessage {
         , location(std::move(location))
         , message(std::move(message))
         , suggestion(std::move(suggestion))
+        , is_cont(false)
+    {
+    }
+
+    CompilerMessage(ErrorSeverity severity, ErrorLocation location, std::string message)
+        : error_id(0)
+        , severity(severity)
+        , location(std::move(location))
+        , message(std::move(message))
+        , suggestion()
+        , is_cont(true)
     {
     }
 };

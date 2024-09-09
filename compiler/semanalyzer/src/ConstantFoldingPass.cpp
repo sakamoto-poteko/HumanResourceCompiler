@@ -9,6 +9,7 @@
 #include "ConstantFoldingPass.h"
 #include "ErrorManager.h"
 #include "ErrorMessage.h"
+#include "SemanticAnalysisErrors.h"
 #include "SemanticAnalysisPass.h"
 #include "SemanticConstants.h"
 #include "hrl_global.h"
@@ -241,17 +242,17 @@ int ConstantFoldingPass::visit(DivExpressionASTNodePtr node)
     BEGIN_VISIT();
 
     // visit 1: fold
-    rc = fold_binary_expression(node, [&](int a, int b, int &out) {
+    rc = fold_binary_expression(node, [&](int a, int b, int &out) -> int {
         if (b == 0) {
             auto fmt = boost::format(
                            "Error: Division by zero detected. The expression '%1% / %2%' results in undefined behavior.")
                 % a % b;
             ErrorManager::instance().report(
-                3004,
+                E_SEMA_DIV_MOD_0,
                 ErrorSeverity::Error,
                 ErrorLocation(_filename, node->lineno(), node->colno(), 0),
                 fmt.str());
-            return 3004;
+            return E_SEMA_DIV_MOD_0;
         } else {
             out = a / b;
             return 0;
@@ -272,11 +273,11 @@ int ConstantFoldingPass::visit(DivExpressionASTNodePtr node)
             // div 0
             if (value == 0) {
                 ErrorManager::instance().report(
-                    3004,
+                    E_SEMA_DIV_MOD_0,
                     ErrorSeverity::Error,
                     ErrorLocation(_filename, node->lineno(), node->colno(), 0),
                     "Error: Division by zero detected. The expression results in undefined behavior.");
-                result = 3004;
+                result = E_SEMA_DIV_MOD_0;
                 break;
             } else if (value == 1) { // div 1
                 request_to_replace_self(left);
@@ -305,17 +306,17 @@ int ConstantFoldingPass::visit(ModExpressionASTNodePtr node)
     BEGIN_VISIT();
 
     // visit 1: fold
-    rc = fold_binary_expression(node, [&](int a, int b, int &out) {
+    rc = fold_binary_expression(node, [&](int a, int b, int &out) -> int {
         if (b == 0) {
             auto fmt = boost::format(
                            "Error: Mod by zero detected. The expression '%1% / %2%' results in undefined behavior.")
                 % a % b;
             ErrorManager::instance().report(
-                3004,
+                E_SEMA_DIV_MOD_0,
                 ErrorSeverity::Error,
                 ErrorLocation(_filename, node->lineno(), node->colno(), 0),
                 fmt.str());
-            return 3004;
+            return E_SEMA_DIV_MOD_0;
         } else {
             out = a % b;
             return 0;
@@ -336,11 +337,11 @@ int ConstantFoldingPass::visit(ModExpressionASTNodePtr node)
             // mod 0
             if (value == 0) {
                 ErrorManager::instance().report(
-                    3004,
+                    E_SEMA_DIV_MOD_0,
                     ErrorSeverity::Error,
                     ErrorLocation(_filename, node->lineno(), node->colno(), 0),
                     "Error: Mod by zero detected. The expression results in undefined behavior.");
-                result = 3004;
+                result = E_SEMA_DIV_MOD_0;
                 break;
             } else if (value == 1) { // mod 1
                 request_to_replace_self(left);
@@ -569,11 +570,11 @@ int ConstantFoldingPass::check_integer_range(int value, const ASTNodePtr &node)
                        "Ensure that the value assigned or computed stays within the valid limits.")
             % value;
         ErrorManager::instance().report(
-            3003,
+            E_SEMA_INT_OVERFLOW,
             ErrorSeverity::Error,
             ErrorLocation(_filename, node->lineno(), node->colno(), 0),
             fmt.str());
-        return 3003;
+        return E_SEMA_INT_OVERFLOW;
     }
     return 0;
 }

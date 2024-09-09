@@ -8,6 +8,7 @@ init floor[0] = 0;
 init floor_max = 10;
 
 let globalint = 800 + 1 * -100;
+let ninit;
 
 // A function is defined, which takes an argument. 
 // Only one or zero argument is allowed.
@@ -17,7 +18,18 @@ function countdown(a) {
         continue;
     }
 
-    globalint = globalint * 1;
+    let b;
+    let ee;
+    
+    if (globalint) {
+        {{{ee = 5;}}}
+    } else {
+        ee = 10;
+    }
+    {{b = ee;}}
+
+
+    a = a + 9;
 
     let xxx = (a + 0) - (a - 0) - (a * 0) - (0 + a) - (0 - a) - (0 * a) - (0 / a) - (0 % a);
     // a - a - 0 - a - -a - 0 - 0 - 0
@@ -25,6 +37,8 @@ function countdown(a) {
     // a - a - a - a
     let zzz = true && false || true;
  
+    no_return_func();
+
     return a;
 }
 
@@ -52,6 +66,7 @@ sub start() {
             outbox(0);
         
         let c = a * ((((b * 1)))) + true * 10 - false / 5 % 1;
+        countdown(1);
         let num = countdown(a * b == 0) + floor[3] % (10 + -1) * 5 - 2;
         floor[2] = num;
         floor[3] = floor[b] + c;

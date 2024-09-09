@@ -27,6 +27,9 @@ void TerminalColor::reset()
         C_RESET = RESET;
         C_LIGHT_GREEN = LIGHT_GREEN;
         C_LIGHT_RED = LIGHT_RED;
+        C_DARK_BLUE = DARK_BLUE;
+        C_DARK_RED = DARK_RED;
+        C_DARK_YELLOW = DARK_YELLOW;
     }
 }
 

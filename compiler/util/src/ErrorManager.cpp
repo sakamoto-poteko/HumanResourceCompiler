@@ -79,26 +79,33 @@ std::string ErrorManager::msg_to_string(CompilerMessage msg) const
 {
     std::stringstream ss;
 
-    // Prefix based on severity
-    // spdlog handles that.
+    // a continued message?
+    if (msg.is_cont) {
+        ss << "In ";
+    } else {
+        // Prefix based on severity
+        // spdlog handles that.
 
-    switch (msg.severity) {
-    case ErrorSeverity::Error:
-        // ss << "error: ";
-        ss << "[E";
-        break;
-    case ErrorSeverity::Warning:
-        // ss << "warning: ";
-        ss << "[W";
-        break;
-    case ErrorSeverity::Note:
-        // ss << "note: ";
-        ss << "[N";
-        break;
+        switch (msg.severity) {
+        case ErrorSeverity::Error:
+            // ss << "error: ";
+            ss << __tc.C_DARK_RED << "[E";
+            break;
+        case ErrorSeverity::Warning:
+            // ss << "warning: ";
+            ss << __tc.C_DARK_YELLOW << "[W";
+            break;
+        case ErrorSeverity::Note:
+            // ss << "note: ";
+            ss << __tc.C_DARK_BLUE << "[N";
+            break;
+        }
+
+        // Show error ID, location, and message
+        ss << msg.error_id << "] ";
+        ss << __tc.C_RESET;
     }
-
-    // Show error ID, location, and message
-    ss << msg.error_id << "] " << msg.location.to_string() << ": " << __tc.C_HIGHLIGHT << msg.message << __tc.C_RESET;
+    ss << msg.location.to_string() << ": " << __tc.C_HIGHLIGHT << msg.message << __tc.C_RESET;
 
     if (_lines.contains(msg.location.file_name)) {
         ss << "\n"
@@ -151,7 +158,7 @@ void ErrorManager::clear()
     _message_order_counter = 0;
 }
 
-void ErrorManager::add_error_filter(ErrorFilter error_filter)
+void ErrorManager::add_message_filter(CompilerMessageFilter error_filter)
 {
     _error_filters.push_back(error_filter);
 }
@@ -169,7 +176,7 @@ bool ErrorManager::apply_filters(CompilerMessage &msg) const
 
 void ErrorManager::add_common_filters()
 {
-    add_error_filter(error_filter_transform_E2001_with_suggestion);
+    add_message_filter(error_filter_transform_E2001_with_suggestion);
 }
 
 void ErrorManager::report(CompilerMessage message)
@@ -186,6 +193,25 @@ void ErrorManager::report(CompilerMessage message)
         break;
     case ErrorSeverity::Note:
         _errors.push_back(std::move(message));
+        break;
+    }
+}
+
+void ErrorManager::report_continued(ErrorSeverity severity, const ErrorLocation &location, const std::string &message)
+{
+    CompilerMessage msg(severity, location, message);
+    msg.order = _message_order_counter++;
+
+    // Store in appropriate container based on severity
+    switch (severity) {
+    case ErrorSeverity::Error:
+        _errors.push_back(msg);
+        break;
+    case ErrorSeverity::Warning:
+        _warnings.push_back(msg);
+        break;
+    case ErrorSeverity::Note:
+        _notes.push_back(msg);
         break;
     }
 }
