@@ -158,7 +158,7 @@ void ErrorManager::clear()
     _message_order_counter = 0;
 }
 
-void ErrorManager::add_error_filter(ErrorFilter error_filter)
+void ErrorManager::add_message_filter(CompilerMessageFilter error_filter)
 {
     _error_filters.push_back(error_filter);
 }
@@ -176,7 +176,7 @@ bool ErrorManager::apply_filters(CompilerMessage &msg) const
 
 void ErrorManager::add_common_filters()
 {
-    add_error_filter(error_filter_transform_E2001_with_suggestion);
+    add_message_filter(error_filter_transform_E2001_with_suggestion);
 }
 
 void ErrorManager::report(CompilerMessage message)

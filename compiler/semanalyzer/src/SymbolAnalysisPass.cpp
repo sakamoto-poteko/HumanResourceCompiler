@@ -681,7 +681,7 @@ void SymbolAnalysisPass::log_redefinition_error(const StringPtr &name, SymbolTyp
         break;
     }
 
-    auto errstr = boost::format("Redefinition of %1% '%2%', originally defined at %2%:%3%:%4%")
+    auto errstr = boost::format("Redefinition of %1% '%2%'.")
         % type_str % *name;
 
     ErrorManager::instance().report(

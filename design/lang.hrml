@@ -17,7 +17,15 @@ function countdown(a) {
         continue;
     }
 
-    let globalint = globalint * 1;
+    let b;
+    
+    if (globalint) {
+        b = 10;
+    } else {
+        b = 5;
+    }
+
+    a = a + 9;
 
     let xxx = (a + 0) - (a - 0) - (a * 0) - (0 + a) - (0 - a) - (0 * a) - (0 / a) - (0 % a);
     // a - a - 0 - a - -a - 0 - 0 - 0

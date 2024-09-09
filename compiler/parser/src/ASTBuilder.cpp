@@ -52,13 +52,17 @@ void ASTBuilder::visit(BinaryOperatorPTNodePtr node)
 void ASTBuilder::visit(VariableDeclarationPTNodePtr node)
 {
     StringPtr var_name = node->get_var_name()->get_value();
-    auto value_expr = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_expr());
 
-    VariableAssignmentASTNodePtr assignment = std::make_shared<VariableAssignmentASTNode>(
-        node->get_equals()->lineno(), node->get_equals()->colno(), -1, -1,
-        var_name, value_expr);
+    if (node->get_expr()) {
+        auto value_expr = visit_and_cast<AbstractExpressionASTNodePtr>(node->get_expr());
 
-    SET_RESULT(VariableDeclarationASTNode, var_name, assignment);
+        VariableAssignmentASTNodePtr assignment = std::make_shared<VariableAssignmentASTNode>(
+            node->get_equals()->lineno(), node->get_equals()->colno(), -1, -1,
+            var_name, value_expr);
+        SET_RESULT(VariableDeclarationASTNode, var_name, assignment);
+    } else {
+        SET_RESULT(VariableDeclarationASTNode, var_name, nullptr);
+    }
 }
 
 void ASTBuilder::visit(VariableAssignmentPTNodePtr node)

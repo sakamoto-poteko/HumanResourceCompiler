@@ -12,7 +12,15 @@
 
 #include "ErrorMessage.h"
 
-// ErrorManager class
+/**
+ * @brief Manages error reporting and message filtering during the compilation process.
+ *
+ * The ErrorManager class is responsible for storing and managing error, warning, and note messages
+ * generated during compilation. It supports adding filters to control which messages are reported,
+ * adding file content for detailed inline error reporting, and handling message severity (errors, warnings, and notes).
+ *
+ * ErrorManager is a singleton class, ensuring that there is only one instance of error management throughout the compilation process.
+ */
 class ErrorManager {
 public:
     ErrorManager(const ErrorManager &) = delete;
@@ -20,7 +28,7 @@ public:
 
     static ErrorManager &instance();
 
-    using ErrorFilter = std::function<bool(CompilerMessage &)>;
+    using CompilerMessageFilter = std::function<bool(CompilerMessage &)>;
 
     /**
      * @brief Add the file content to the ErrorManager, so the error message is able to print the inline text
@@ -30,8 +38,21 @@ public:
      */
     void add_file(const std::string &filename, const std::vector<std::string> &lines);
 
-    void add_error_filter(ErrorFilter error_filter);
+    /**
+     * @brief Add a message filter to the ErrorManager. The filter will be executed when \c print_all() is called.
+     * The raw data won't be transformed by the filter, but a copy in printing will.
+     *
+     * @param message_filter A bool func(CompilerMessage &). The filter should return true if the message is to be kept, false if deleted.
+     */
+    void add_message_filter(CompilerMessageFilter message_filter);
 
+    /**
+     * @brief Add common filters to the ErrorManager.
+     *
+     * Common filters include:
+     *   - Filter that adds suggestion on Error 2001 when expect ; but got add others
+     *
+     */
     void add_common_filters();
 
     /**
@@ -44,6 +65,12 @@ public:
      * @param suggestion
      */
     void report(int error_id, ErrorSeverity severity, const ErrorLocation &location, const std::string &message, const std::string &suggestion = "");
+
+    /**
+     * @copybrief void report(int error_id, ErrorSeverity severity, const ErrorLocation &location, const std::string &message, const std::string &suggestion = "")
+     *
+     * @param message
+     */
     void report(CompilerMessage message);
 
     /**
@@ -55,16 +82,26 @@ public:
      */
     void report_continued(ErrorSeverity severity, const ErrorLocation &location, const std::string &message);
 
-    // Print all messages in the order they were reported
+    /**
+     * @brief Print all errors, warnings and notes
+     *
+     */
     void print_all() const;
 
-    // Check if there are any errors (not just warnings or notes)
+    /**
+     * @brief Check if there are any errors (not just warnings or notes)
+     *
+     * @return true
+     * @return false
+     */
     bool has_errors() const;
 
     // Clear all stored messages
+    /**
+     * @brief Clear all stored messages
+     *
+     */
     void clear();
-
-    std::string msg_to_string(CompilerMessage msg) const;
 
 private:
     ErrorManager() = default;
@@ -75,9 +112,10 @@ private:
     std::vector<CompilerMessage> _notes; // Store note messages
     std::size_t _message_order_counter = 0; // Track message order
     std::map<std::string, std::vector<std::string>> _lines; // Store filename -> lines
-    std::vector<ErrorFilter> _error_filters;
+    std::vector<CompilerMessageFilter> _error_filters;
 
     bool apply_filters(CompilerMessage &msg) const;
+    std::string msg_to_string(CompilerMessage msg) const;
 };
 
 #endif
