@@ -41,6 +41,14 @@ public:
 
     std::string to_string() override;
 
+    void set_param(bool has) { _has_param = has; }
+
+    void set_return(bool has) { _has_return = has; }
+
+    bool has_param() const { return _has_param; }
+
+    bool has_return() const { return _has_return; }
+
     bool get_var_initialized() { return type == SymbolType::VARIABLE ? false : false; }
 
     // [Group] Constant propagation functions
@@ -81,6 +89,9 @@ public:
     void invalidate_var_value() { _value_valid = false; }
 
 private:
+    bool _has_param = false;
+    bool _has_return = false;
+
     int _value = 0;
     bool _value_valid = false;
 };

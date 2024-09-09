@@ -10,7 +10,7 @@ The following is a breakdown of pending tasks to be implemented in the semantic 
 - [x] Detect and handle illegal redefinitions of variables and functions.
 - [x] Add support for block-scoped variables.
 - [ ] Ensure proper handling of shadowing rules (for both variables and functions).
-- [ ] Implement function signature matching verification.
+- [x] Implement function signature matching verification.
 - [ ] Add support for resolving imported module symbols.
 - [ ] Enforce distinction between global and local scopes.
 

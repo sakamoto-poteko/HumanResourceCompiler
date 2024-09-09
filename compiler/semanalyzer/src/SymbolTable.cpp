@@ -26,9 +26,11 @@ bool SymbolTable::add_symbol(const std::string &scope_id, SymbolPtr symbol)
     return true;
 }
 
-bool SymbolTable::add_function_symbol(const std::string &scope_id, StringPtr function_name, StringPtr filename, const parser::ASTNodePtr &definition)
+bool SymbolTable::add_function_symbol(const std::string &scope_id, StringPtr function_name, bool has_param, bool has_return, StringPtr filename, const parser::ASTNodePtr &definition)
 {
     auto symbol = std::make_shared<Symbol>(SymbolType::SUBROUTINE, *function_name, filename, SHARED_TO_WEAK(definition));
+    symbol->set_param(has_param);
+    symbol->set_return(has_return);
     return add_symbol(scope_id, symbol);
 }
 
@@ -77,8 +79,8 @@ void SymbolTable::create_library_symbols()
     StringPtr inbox = std::make_shared<std::string>("inbox");
     StringPtr libfile = std::make_shared<std::string>("@stdlib");
     // absolutely topmost scope
-    add_function_symbol("", outbox, libfile, nullptr);
-    add_function_symbol("", inbox, libfile, nullptr);
+    add_function_symbol("", outbox, true, false, libfile, nullptr);
+    add_function_symbol("", inbox, false, true, libfile, nullptr);
 }
 
 CLOSE_SEMANALYZER_NAMESPACE

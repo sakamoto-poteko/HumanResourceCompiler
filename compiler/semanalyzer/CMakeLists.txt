@@ -7,7 +7,7 @@ add_library(${PROJECT_NAME}
     src/SymbolTable.cpp
     src/SemanticAnalysisPassManager.cpp
     src/SemanticAnalysisPass.cpp
-    src/SymbolTableAnalyzer.cpp
+    src/SymbolAnalysisPass.cpp
     src/ConstantFoldingPass.cpp
 )
 

@@ -1,6 +1,7 @@
 #ifndef SYMBOLTABLEBUILDER_H
 #define SYMBOLTABLEBUILDER_H
 
+#include <queue>
 #include <stack>
 #include <string>
 
@@ -21,7 +22,7 @@ using namespace parser;
  * It also verifies function calls and variable usage against the symbol table
  * to ensure correct usage of predefined symbols.
  */
-class SymbolTableAnalyzer : public SemanticAnalysisPass {
+class SymbolAnalysisPass : public SemanticAnalysisPass {
 public:
     /**
      * @brief Construct a new Symbol Table Builder object
@@ -29,12 +30,12 @@ public:
      * @param filename The filename of this compilation unit
      * @param root The root node of AST
      */
-    SymbolTableAnalyzer(StringPtr filename, CompilationUnitASTNodePtr root)
+    SymbolAnalysisPass(StringPtr filename, CompilationUnitASTNodePtr root)
         : SemanticAnalysisPass(std::move(filename), std::move(root))
     {
     }
 
-    ~SymbolTableAnalyzer() override = default;
+    ~SymbolAnalysisPass() override = default;
 
     int run() override;
 
@@ -86,14 +87,18 @@ public:
     int visit(FunctionDefinitionASTNodePtr node) override;
     int visit(CompilationUnitASTNodePtr node) override;
 
-protected:
+private:
     SymbolTablePtr _symbol_table;
     ScopeManager _scope_manager;
+    std::queue<InvocationExpressionASTNodePtr> _pending_invocation_check;
 
     int visit_binary_expression(AbstractBinaryExpressionASTNodePtr node);
-    int visit_subroutine(AbstractSubroutineASTNodePtr node);
+    int visit_subroutine(AbstractSubroutineASTNodePtr node, bool has_return);
+    int check_pending_invocations();
     int attach_symbol_or_log_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node);
-    int add_symbol_or_log_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node);
+    int add_subroutine_symbol_or_log_error(const StringPtr &name, bool has_param, bool has_return, const ASTNodePtr &node);
+    int add_variable_symbol_or_log_error(const StringPtr &name, const ASTNodePtr &node);
+
     void attach_scope_id(const ASTNodePtr &node);
 
     void log_redefinition_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node);

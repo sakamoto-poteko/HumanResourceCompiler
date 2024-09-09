@@ -10,6 +10,9 @@ public:
     const char *C_RESET = "";
     const char *C_LIGHT_GREEN = "";
     const char *C_LIGHT_RED = "";
+    const char *C_DARK_RED = "";
+    const char *C_DARK_YELLOW = "";
+    const char *C_DARK_BLUE = "";
 
     void reset();
 

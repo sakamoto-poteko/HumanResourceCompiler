@@ -9,9 +9,11 @@
 
 #include "ASTNode.h"
 #include "ErrorManager.h"
+#include "ErrorMessage.h"
 #include "ScopeManager.h"
+#include "Symbol.h"
+#include "SymbolAnalysisPass.h"
 #include "SymbolTable.h"
-#include "SymbolTableAnalyzer.h"
 #include "hrl_global.h"
 #include "semanalyzer_global.h"
 
@@ -32,39 +34,94 @@ OPEN_SEMANALYZER_NAMESPACE
         result = rc;    \
     }
 
-int SymbolTableAnalyzer::run()
+int SymbolAnalysisPass::run()
 {
     if (!_symbol_table) {
         _symbol_table = std::make_shared<SymbolTable>();
     }
 
-    int result = visit(_root);
+    int result = 0, rc = 0;
+    rc = visit(_root);
+    SET_RESULT_RC();
+    rc = check_pending_invocations();
+    SET_RESULT_RC();
+    return result;
+}
+
+int SymbolAnalysisPass::check_pending_invocations()
+{
+    int result = 0, rc = 0;
+    while (!_pending_invocation_check.empty()) {
+        auto node = _pending_invocation_check.front();
+        _pending_invocation_check.pop();
+
+        StringPtr func_name = node->get_func_name();
+        rc = attach_symbol_or_log_error(func_name, SymbolType::SUBROUTINE, node);
+        SET_RESULT_RC();
+
+        // symbol not found. let's proceed to next item.
+        if (rc) {
+            continue;
+        }
+
+        // signature check
+        SymbolPtr symbol;
+        lookup_symbol(func_name, symbol);
+
+        bool def_has_param = symbol->has_param();
+        bool def_has_return = symbol->has_return();
+        bool node_has_param = node->get_argument().operator bool();
+
+        auto def_astnode = WEAK_TO_SHARED(symbol->definition);
+
+        if (def_has_param != node_has_param) {
+            auto errstr = boost::format("signature mismatch: invoked as '%4%(%5%)' but defined as '%1% %2%(%3%)'")
+                % (def_has_return ? "function" : "sub")
+                % *func_name
+                % (def_has_param ? "arg" : "")
+                % *func_name
+                % (node_has_param ? "arg" : "");
+            // % symbol->filename % def_astnode->lineno() % def_astnode->colno();
+
+            ErrorManager::instance().report(
+                3005,
+                ErrorSeverity::Error,
+                ErrorLocation(*_filename, node->lineno(), node->colno(), func_name->size()),
+                errstr.str());
+            ErrorManager::instance().report_continued(
+                ErrorSeverity::Error,
+                ErrorLocation(symbol->filename, def_astnode->lineno(), def_astnode->colno(), 0),
+                "Originally defined as");
+            rc = 3005;
+            SET_RESULT_RC();
+        }
+    }
     return result;
 }
 
 // WARNING: Do not use `return SemanticAnalysisPass::visit(node)`
 // Because we need to attach scope id to each node!
 
-int SymbolTableAnalyzer::visit(IntegerASTNodePtr node)
+int SymbolAnalysisPass::visit(IntegerASTNodePtr node)
 {
     // Implement visit logic for IntegerASTNode
     BEGIN_VISIT();
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(BooleanASTNodePtr node)
+int SymbolAnalysisPass::visit(BooleanASTNodePtr node)
 {
     // Implement visit logic for BooleanASTNode
     BEGIN_VISIT();
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(VariableDeclarationASTNodePtr node)
+int SymbolAnalysisPass::visit(VariableDeclarationASTNodePtr node)
 {
     // Implement visit logic for VariableDeclarationASTNode
     BEGIN_VISIT();
 
-    rc = add_symbol_or_log_error(node->get_name(), SymbolType::VARIABLE, node);
+    rc = add_variable_symbol_or_log_error(node->get_name(), node);
     SET_RESULT_RC();
 
     rc = traverse(node->get_assignment());
@@ -73,7 +130,7 @@ int SymbolTableAnalyzer::visit(VariableDeclarationASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(VariableAssignmentASTNodePtr node)
+int SymbolAnalysisPass::visit(VariableAssignmentASTNodePtr node)
 {
     // Implement visit logic for VariableAssignmentASTNode
     BEGIN_VISIT();
@@ -86,7 +143,7 @@ int SymbolTableAnalyzer::visit(VariableAssignmentASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(VariableAccessASTNodePtr node)
+int SymbolAnalysisPass::visit(VariableAccessASTNodePtr node)
 {
     // Implement visit logic for VariableAccessASTNode
     BEGIN_VISIT();
@@ -97,7 +154,7 @@ int SymbolTableAnalyzer::visit(VariableAccessASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(FloorBoxInitStatementASTNodePtr node)
+int SymbolAnalysisPass::visit(FloorBoxInitStatementASTNodePtr node)
 {
     // Implement visit logic for FloorBoxInitStatementASTNode
     BEGIN_VISIT();
@@ -108,7 +165,7 @@ int SymbolTableAnalyzer::visit(FloorBoxInitStatementASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(FloorAssignmentASTNodePtr node)
+int SymbolAnalysisPass::visit(FloorAssignmentASTNodePtr node)
 {
     // Implement visit logic for FloorAssignmentASTNode
     BEGIN_VISIT();
@@ -122,7 +179,7 @@ int SymbolTableAnalyzer::visit(FloorAssignmentASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(FloorAccessASTNodePtr node)
+int SymbolAnalysisPass::visit(FloorAccessASTNodePtr node)
 {
     // Implement visit logic for FloorAccessASTNode
     BEGIN_VISIT();
@@ -133,7 +190,7 @@ int SymbolTableAnalyzer::visit(FloorAccessASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(NegativeExpressionASTNodePtr node)
+int SymbolAnalysisPass::visit(NegativeExpressionASTNodePtr node)
 {
     // Implement visit logic for NegativeExpressionASTNode
     BEGIN_VISIT();
@@ -144,7 +201,7 @@ int SymbolTableAnalyzer::visit(NegativeExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(NotExpressionASTNodePtr node)
+int SymbolAnalysisPass::visit(NotExpressionASTNodePtr node)
 {
     // Implement visit logic for NotExpressionASTNode
     BEGIN_VISIT();
@@ -155,7 +212,7 @@ int SymbolTableAnalyzer::visit(NotExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(IncrementExpressionASTNodePtr node)
+int SymbolAnalysisPass::visit(IncrementExpressionASTNodePtr node)
 {
     // Implement visit logic for IncrementExpressionASTNode
     BEGIN_VISIT();
@@ -166,7 +223,7 @@ int SymbolTableAnalyzer::visit(IncrementExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(DecrementExpressionASTNodePtr node)
+int SymbolAnalysisPass::visit(DecrementExpressionASTNodePtr node)
 {
     // Implement visit logic for DecrementExpressionASTNode
     BEGIN_VISIT();
@@ -177,7 +234,7 @@ int SymbolTableAnalyzer::visit(DecrementExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(AddExpressionASTNodePtr node)
+int SymbolAnalysisPass::visit(AddExpressionASTNodePtr node)
 {
     // Implement visit logic for AddExpressionASTNode
     BEGIN_VISIT();
@@ -188,7 +245,7 @@ int SymbolTableAnalyzer::visit(AddExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(SubExpressionASTNodePtr node)
+int SymbolAnalysisPass::visit(SubExpressionASTNodePtr node)
 {
     // Implement visit logic for SubExpressionASTNode
     BEGIN_VISIT();
@@ -199,7 +256,7 @@ int SymbolTableAnalyzer::visit(SubExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(MulExpressionASTNodePtr node)
+int SymbolAnalysisPass::visit(MulExpressionASTNodePtr node)
 {
     // Implement visit logic for MulExpressionASTNode
     BEGIN_VISIT();
@@ -210,7 +267,7 @@ int SymbolTableAnalyzer::visit(MulExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(DivExpressionASTNodePtr node)
+int SymbolAnalysisPass::visit(DivExpressionASTNodePtr node)
 {
     // Implement visit logic for DivExpressionASTNode
     BEGIN_VISIT();
@@ -221,7 +278,7 @@ int SymbolTableAnalyzer::visit(DivExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(ModExpressionASTNodePtr node)
+int SymbolAnalysisPass::visit(ModExpressionASTNodePtr node)
 {
     // Implement visit logic for ModExpressionASTNode
     BEGIN_VISIT();
@@ -232,7 +289,7 @@ int SymbolTableAnalyzer::visit(ModExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(EqualExpressionASTNodePtr node)
+int SymbolAnalysisPass::visit(EqualExpressionASTNodePtr node)
 {
     // Implement visit logic for EqualExpressionASTNode
     BEGIN_VISIT();
@@ -243,7 +300,7 @@ int SymbolTableAnalyzer::visit(EqualExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(NotEqualExpressionASTNodePtr node)
+int SymbolAnalysisPass::visit(NotEqualExpressionASTNodePtr node)
 {
     // Implement visit logic for NotEqualExpressionASTNode
     BEGIN_VISIT();
@@ -254,7 +311,7 @@ int SymbolTableAnalyzer::visit(NotEqualExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(GreaterThanExpressionASTNodePtr node)
+int SymbolAnalysisPass::visit(GreaterThanExpressionASTNodePtr node)
 {
     // Implement visit logic for GreaterThanExpressionASTNode
     BEGIN_VISIT();
@@ -265,7 +322,7 @@ int SymbolTableAnalyzer::visit(GreaterThanExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(GreaterEqualExpressionASTNodePtr node)
+int SymbolAnalysisPass::visit(GreaterEqualExpressionASTNodePtr node)
 {
     // Implement visit logic for GreaterEqualExpressionASTNode
     BEGIN_VISIT();
@@ -276,7 +333,7 @@ int SymbolTableAnalyzer::visit(GreaterEqualExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(LessThanExpressionASTNodePtr node)
+int SymbolAnalysisPass::visit(LessThanExpressionASTNodePtr node)
 {
     // Implement visit logic for LessThanExpressionASTNode
     BEGIN_VISIT();
@@ -287,7 +344,7 @@ int SymbolTableAnalyzer::visit(LessThanExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(LessEqualExpressionASTNodePtr node)
+int SymbolAnalysisPass::visit(LessEqualExpressionASTNodePtr node)
 {
     // Implement visit logic for LessEqualExpressionASTNode
     BEGIN_VISIT();
@@ -298,7 +355,7 @@ int SymbolTableAnalyzer::visit(LessEqualExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(AndExpressionASTNodePtr node)
+int SymbolAnalysisPass::visit(AndExpressionASTNodePtr node)
 {
     // Implement visit logic for AndExpressionASTNode
     BEGIN_VISIT();
@@ -309,7 +366,7 @@ int SymbolTableAnalyzer::visit(AndExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(OrExpressionASTNodePtr node)
+int SymbolAnalysisPass::visit(OrExpressionASTNodePtr node)
 {
     // Implement visit logic for OrExpressionASTNode
     BEGIN_VISIT();
@@ -320,13 +377,12 @@ int SymbolTableAnalyzer::visit(OrExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(InvocationExpressionASTNodePtr node)
+int SymbolAnalysisPass::visit(InvocationExpressionASTNodePtr node)
 {
     // Implement visit logic for InvocationExpressionASTNode
     BEGIN_VISIT();
 
-    rc = attach_symbol_or_log_error(node->get_func_name(), SymbolType::SUBROUTINE, node);
-    SET_RESULT_RC();
+    _pending_invocation_check.push(node);
 
     rc = traverse(node->get_argument());
     SET_RESULT_RC();
@@ -334,7 +390,7 @@ int SymbolTableAnalyzer::visit(InvocationExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(EmptyStatementASTNodePtr node)
+int SymbolAnalysisPass::visit(EmptyStatementASTNodePtr node)
 {
     // Implement visit logic for EmptyStatementASTNode
     // nothing
@@ -343,7 +399,7 @@ int SymbolTableAnalyzer::visit(EmptyStatementASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(IfStatementASTNodePtr node)
+int SymbolAnalysisPass::visit(IfStatementASTNodePtr node)
 {
     // Implement visit logic for IfStatementASTNode
     // For an if stmt, the condition is not in its body scope
@@ -366,7 +422,7 @@ int SymbolTableAnalyzer::visit(IfStatementASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(WhileStatementASTNodePtr node)
+int SymbolAnalysisPass::visit(WhileStatementASTNodePtr node)
 {
     // Implement visit logic for WhileStatementASTNode
 
@@ -385,7 +441,7 @@ int SymbolTableAnalyzer::visit(WhileStatementASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(ForStatementASTNodePtr node)
+int SymbolAnalysisPass::visit(ForStatementASTNodePtr node)
 {
     // Implement visit logic for ForStatementASTNode
     BEGIN_VISIT();
@@ -408,7 +464,7 @@ int SymbolTableAnalyzer::visit(ForStatementASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(ReturnStatementASTNodePtr node)
+int SymbolAnalysisPass::visit(ReturnStatementASTNodePtr node)
 {
     // Implement visit logic for ReturnStatementASTNode
     BEGIN_VISIT();
@@ -419,7 +475,7 @@ int SymbolTableAnalyzer::visit(ReturnStatementASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(BreakStatementASTNodePtr node)
+int SymbolAnalysisPass::visit(BreakStatementASTNodePtr node)
 {
     // Implement visit logic for BreakStatementASTNode
     BEGIN_VISIT();
@@ -427,7 +483,7 @@ int SymbolTableAnalyzer::visit(BreakStatementASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(ContinueStatementASTNodePtr node)
+int SymbolAnalysisPass::visit(ContinueStatementASTNodePtr node)
 {
     // Implement visit logic for ContinueStatementASTNode
     BEGIN_VISIT();
@@ -435,7 +491,7 @@ int SymbolTableAnalyzer::visit(ContinueStatementASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(StatementBlockASTNodePtr node)
+int SymbolAnalysisPass::visit(StatementBlockASTNodePtr node)
 {
     // Implement visit logic for StatementBlockASTNode
     const ASTNodePtr &parent = _ancestors.top();
@@ -462,29 +518,29 @@ int SymbolTableAnalyzer::visit(StatementBlockASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(SubprocDefinitionASTNodePtr node)
+int SymbolAnalysisPass::visit(SubprocDefinitionASTNodePtr node)
 {
     // Implement visit logic for SubprocDefinitionASTNode
     BEGIN_VISIT();
 
-    rc = visit_subroutine(node);
+    rc = visit_subroutine(node, false);
     SET_RESULT_RC();
 
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(FunctionDefinitionASTNodePtr node)
+int SymbolAnalysisPass::visit(FunctionDefinitionASTNodePtr node)
 {
     // Implement visit logic for FunctionDefinitionASTNode
     BEGIN_VISIT();
 
-    rc = visit_subroutine(node);
+    rc = visit_subroutine(node, true);
     SET_RESULT_RC();
 
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit(CompilationUnitASTNodePtr node)
+int SymbolAnalysisPass::visit(CompilationUnitASTNodePtr node)
 {
     // Implement visit logic for CompilationUnitASTNode
     BEGIN_VISIT();
@@ -498,7 +554,7 @@ int SymbolTableAnalyzer::visit(CompilationUnitASTNodePtr node)
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit_binary_expression(AbstractBinaryExpressionASTNodePtr node)
+int SymbolAnalysisPass::visit_binary_expression(AbstractBinaryExpressionASTNodePtr node)
 {
     BEGIN_VISIT();
 
@@ -511,7 +567,7 @@ int SymbolTableAnalyzer::visit_binary_expression(AbstractBinaryExpressionASTNode
     END_VISIT();
 }
 
-int SymbolTableAnalyzer::visit_subroutine(AbstractSubroutineASTNodePtr node)
+int SymbolAnalysisPass::visit_subroutine(AbstractSubroutineASTNodePtr node, bool has_return)
 {
     // 1. is function already defined? if not, add it to the symbol table
     // 2. enter the function scope
@@ -520,15 +576,16 @@ int SymbolTableAnalyzer::visit_subroutine(AbstractSubroutineASTNodePtr node)
     BEGIN_VISIT();
 
     const StringPtr &function_name = node->get_name();
+    auto param = node->get_parameter();
+    bool has_param = param.operator bool();
 
-    rc = add_symbol_or_log_error(function_name, SymbolType::SUBROUTINE, node);
+    rc = add_subroutine_symbol_or_log_error(function_name, has_param, has_return, node);
     SET_RESULT_RC();
 
     _scope_manager.enter_scope(*function_name, ScopeType::Subroutine);
 
-    auto param = node->get_parameter();
     if (param) {
-        rc = add_symbol_or_log_error(param, SymbolType::VARIABLE, node);
+        rc = add_variable_symbol_or_log_error(param, node);
         SET_RESULT_RC();
     }
 
@@ -541,52 +598,66 @@ int SymbolTableAnalyzer::visit_subroutine(AbstractSubroutineASTNodePtr node)
     END_VISIT();
 }
 
-bool SymbolTableAnalyzer::lookup_symbol(const StringPtr &name, SymbolPtr &out_symbol)
+bool SymbolAnalysisPass::lookup_symbol(const StringPtr &name, SymbolPtr &out_symbol)
 {
     return _symbol_table->lookup_symbol(_scope_manager.get_current_scope_id(), name, true, out_symbol);
 }
 
-int SymbolTableAnalyzer::attach_symbol_or_log_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node)
+int SymbolAnalysisPass::attach_symbol_or_log_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node)
 {
     SymbolPtr symbol;
     if (!lookup_symbol(name, symbol)) {
         log_undefined_error(name, type, node);
-        return 1;
+        return 3002;
     } else {
         node->set_attribute(SemAnalzyerASTNodeAttributeId::ATTR_SEMANALYZER_SYMBOL, symbol);
         return 0;
     }
 }
 
-int SymbolTableAnalyzer::add_symbol_or_log_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node)
+int SymbolAnalysisPass::add_subroutine_symbol_or_log_error(const StringPtr &name, bool has_param, bool has_return, const ASTNodePtr &node)
 {
-    bool added = false;
-
-    switch (type) {
-    case SymbolType::VARIABLE:
-        added = _symbol_table->add_variable_symbol(_scope_manager.get_current_scope_id(), name, _filename, node);
-        break;
-    case SymbolType::SUBROUTINE:
-        added = _symbol_table->add_function_symbol(_scope_manager.get_current_scope_id(), name, _filename, node);
-        break;
-    }
-
-    if (!added) {
-        log_redefinition_error(name, type, node);
-        return 1;
+    if (!_symbol_table->add_function_symbol(_scope_manager.get_current_scope_id(), name, has_param, has_return, _filename, node)) {
+        log_redefinition_error(name, SymbolType::SUBROUTINE, node);
+        return 3001;
     } else {
         return 0;
     }
 }
 
-void SymbolTableAnalyzer::attach_scope_id(const ASTNodePtr &node)
+int SymbolAnalysisPass::add_variable_symbol_or_log_error(const StringPtr &name, const ASTNodePtr &node)
+{
+    SymbolPtr symbol;
+    bool found_in_ancestor_or_current = _symbol_table->lookup_symbol(_scope_manager.get_current_scope_id(), name, true, symbol);
+    if (!_symbol_table->add_variable_symbol(_scope_manager.get_current_scope_id(), name, _filename, node)) {
+        // false indicate found in current
+        log_redefinition_error(name, SymbolType::VARIABLE, node);
+        return 3001;
+    } else if (found_in_ancestor_or_current) {
+        // added to current scope and ancestor has it
+        auto original_definition = WEAK_TO_SHARED(symbol->definition);
+
+        auto errstr = boost::format(
+            "Warning: Variable '%1%' shadows a variable from the outer scope, originally defined at %2%:%3%:%4%",
+            *name, );
+        ErrorManager::instance().report(
+            3006,
+            ErrorSeverity::Warning,
+            ErrorLocation(_filename, node->lineno(), node->colno(), name->size()),
+            errstr.str());
+    } else {
+        return 0;
+    }
+}
+
+void SymbolAnalysisPass::attach_scope_id(const ASTNodePtr &node)
 {
     auto scope_id = _scope_manager.get_current_scope_id();
     auto scope_info = std::make_shared<ScopeInfoAttribute>(scope_id, _scope_manager.get_current_scope_type());
     node->set_attribute(SemAnalzyerASTNodeAttributeId::ATTR_SEMANALYZER_SCOPE_INFO, scope_info);
 }
 
-void SymbolTableAnalyzer::log_redefinition_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node)
+void SymbolAnalysisPass::log_redefinition_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node)
 {
     SymbolPtr defined_symbol;
     bool symbol_found = _symbol_table->lookup_symbol(_scope_manager.get_current_scope_id(), name, false, defined_symbol);
@@ -624,7 +695,7 @@ void SymbolTableAnalyzer::log_redefinition_error(const StringPtr &name, SymbolTy
         errstr.str());
 }
 
-void SymbolTableAnalyzer::log_undefined_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node)
+void SymbolAnalysisPass::log_undefined_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node)
 {
     std::string type_str;
     switch (type) {

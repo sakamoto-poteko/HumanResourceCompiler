@@ -46,6 +46,15 @@ public:
     void report(int error_id, ErrorSeverity severity, const ErrorLocation &location, const std::string &message, const std::string &suggestion = "");
     void report(CompilerMessage message);
 
+    /**
+     * @brief Report extra information following the last error with severity \p severity
+     *
+     * @param severity
+     * @param location
+     * @param message
+     */
+    void report_continued(ErrorSeverity severity, const ErrorLocation &location, const std::string &message);
+
     // Print all messages in the order they were reported
     void print_all() const;
 

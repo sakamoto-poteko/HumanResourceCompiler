@@ -13,7 +13,7 @@
 #include "ParseTreeNodeGraphvizBuilder.h"
 #include "RecursiveDescentParser.h"
 #include "SemanticAnalysisPassManager.h"
-#include "SymbolTableAnalyzer.h"
+#include "SymbolAnalysisPass.h"
 #include "TerminalColor.h"
 #include "Utilities.h"
 #include "semanalyzer_global.h"
@@ -92,7 +92,7 @@ int main(int argc, char **argv)
 
     hrl::semanalyzer::SemanticAnalysisPassManager sem_passmgr(ast, std::make_shared<std::string>(options.input_file));
 
-    auto symtbl_analyzer = sem_passmgr.add_pass<hrl::semanalyzer::SymbolTableAnalyzer>(
+    auto symtbl_analyzer = sem_passmgr.add_pass<hrl::semanalyzer::SymbolAnalysisPass>(
         "SymbolTableAnalyzer",
         "build/symtbl.dot",
         std::set<int> {
