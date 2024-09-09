@@ -1,6 +1,7 @@
 #include <spdlog/spdlog.h>
 
 #include "SemanticAnalysisPass.h"
+#include "hrl_global.h"
 #include "semanalyzer_global.h"
 
 OPEN_SEMANALYZER_NAMESPACE
@@ -19,11 +20,13 @@ void SemanticAnalysisPass::leave_node()
 
 int SemanticAnalysisPass::visit(parser::IntegerASTNodePtr node)
 {
+    UNUSED(node);
     return 0;
 }
 
 int SemanticAnalysisPass::visit(parser::BooleanASTNodePtr node)
 {
+    UNUSED(node);
     return 0;
 }
 
@@ -45,6 +48,7 @@ int SemanticAnalysisPass::visit(parser::VariableAssignmentASTNodePtr node)
 
 int SemanticAnalysisPass::visit(parser::VariableAccessASTNodePtr node)
 {
+    UNUSED(node);
     return 0;
 }
 
@@ -90,11 +94,13 @@ int SemanticAnalysisPass::visit(parser::NotExpressionASTNodePtr node)
 
 int SemanticAnalysisPass::visit(parser::IncrementExpressionASTNodePtr node)
 {
+    UNUSED(node);
     return 0;
 }
 
 int SemanticAnalysisPass::visit(parser::DecrementExpressionASTNodePtr node)
 {
+    UNUSED(node);
     return 0;
 }
 
@@ -249,11 +255,13 @@ int SemanticAnalysisPass::visit(parser::ReturnStatementASTNodePtr node)
 
 int SemanticAnalysisPass::visit(parser::BreakStatementASTNodePtr node)
 {
+    UNUSED(node);
     return 0;
 }
 
 int SemanticAnalysisPass::visit(parser::ContinueStatementASTNodePtr node)
 {
+    UNUSED(node);
     return 0;
 }
 

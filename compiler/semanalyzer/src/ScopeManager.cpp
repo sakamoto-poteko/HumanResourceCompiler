@@ -106,6 +106,8 @@ std::string ScopeInfoAttribute::to_string()
     case ScopeType::Block:
         return "scope: [blk]" + _scope_id;
     }
+    // not supposed to happen
+    throw;
 }
 
 CLOSE_SEMANALYZER_NAMESPACE

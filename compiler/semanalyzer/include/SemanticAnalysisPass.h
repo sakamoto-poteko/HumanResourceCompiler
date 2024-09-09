@@ -65,8 +65,8 @@ public:
     int visit(parser::CompilationUnitASTNodePtr node) override;
 
 protected:
-    parser::CompilationUnitASTNodePtr _root;
     StringPtr _filename;
+    parser::CompilationUnitASTNodePtr _root;
 
     std::stack<parser::ASTNodePtr> _ancestors;
 
