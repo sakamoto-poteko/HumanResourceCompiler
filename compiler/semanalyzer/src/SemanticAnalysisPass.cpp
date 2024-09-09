@@ -218,6 +218,7 @@ int SemanticAnalysisPass::visit(parser::InvocationExpressionASTNodePtr node)
 
 int SemanticAnalysisPass::visit(parser::EmptyStatementASTNodePtr node)
 {
+    UNUSED(node);
     return 0;
 }
 
