@@ -19,8 +19,7 @@ using namespace parser;
 
 /**
  * @brief This builder traverses the AST to construct the symbol table, annotating the scope id of each node.
- * It also verifies function calls and variable usage against the symbol table
- * to ensure correct usage of predefined symbols.
+ * It also verifies performs signature check, variable shadowing check (warning)
  */
 class SymbolAnalysisPass : public SemanticAnalysisPass {
 public:
@@ -105,8 +104,6 @@ private:
     void log_undefined_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node);
 
     bool lookup_symbol(const StringPtr &name, SymbolPtr &out_symbol);
-
-    // std::string current_scope() const { return _scope_manager.get_current_scope_id(); }
 
 private:
 };
