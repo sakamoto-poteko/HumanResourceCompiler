@@ -91,7 +91,7 @@ int SymbolAnalysisPass::check_pending_invocations()
             ErrorManager::instance().report_continued(
                 ErrorSeverity::Error,
                 ErrorLocation(symbol->filename, def_astnode->lineno(), def_astnode->colno(), 0),
-                "Originally defined as");
+                "originally defined as");
             rc = 3005;
             SET_RESULT_RC();
         }
@@ -635,16 +635,20 @@ int SymbolAnalysisPass::add_variable_symbol_or_log_error(const StringPtr &name, 
         return 3001;
     } else if (found_in_ancestor_or_current) {
         // added to current scope and ancestor has it
-        auto original_definition = WEAK_TO_SHARED(symbol->definition);
+        auto original_node = WEAK_TO_SHARED(symbol->definition);
 
-        auto errstr = boost::format(
-            "Warning: Variable '%1%' shadows a variable from the outer scope, originally defined at %2%:%3%:%4%",
-            *name, );
+        auto errstr = boost::format("variable '%1%' shadows a variable from the outer scope") % *name;
+        // auto errstr = ;
         ErrorManager::instance().report(
             3006,
             ErrorSeverity::Warning,
-            ErrorLocation(_filename, node->lineno(), node->colno(), name->size()),
+            ErrorLocation(_filename, node->lineno(), node->colno(), 0),
             errstr.str());
+        ErrorManager::instance().report_continued(
+            ErrorSeverity::Warning,
+            ErrorLocation(symbol->filename, original_node->lineno(), original_node->colno(), 0),
+            "originally defined in");
+        return 0;
     } else {
         return 0;
     }
@@ -664,16 +668,8 @@ void SymbolAnalysisPass::log_redefinition_error(const StringPtr &name, SymbolTyp
     UNUSED(symbol_found);
     assert(symbol_found); // won't happen
 
-    ASTNodePtr first_appearance = WEAK_TO_SHARED(defined_symbol->definition);
-
-    std::string first_filename = "TBD";
-    std::string first_lineno = "?";
-    std::string first_colno = "?";
-
-    if (first_appearance) {
-        first_lineno = std::to_string(first_appearance->lineno());
-        first_colno = std::to_string(first_appearance->colno());
-    }
+    ASTNodePtr defined_node = WEAK_TO_SHARED(defined_symbol->definition);
+    assert(defined_node);
 
     std::string type_str;
     switch (type) {
@@ -686,13 +682,18 @@ void SymbolAnalysisPass::log_redefinition_error(const StringPtr &name, SymbolTyp
     }
 
     auto errstr = boost::format("Redefinition of %1% '%2%', originally defined at %2%:%3%:%4%")
-        % type_str % *name % first_filename % first_lineno % first_colno;
+        % type_str % *name;
 
     ErrorManager::instance().report(
         3001,
         ErrorSeverity::Error,
         ErrorLocation(*_filename, node->lineno(), node->colno(), name->size()),
         errstr.str());
+
+    ErrorManager::instance().report_continued(
+        ErrorSeverity::Error,
+        ErrorLocation(defined_symbol->filename, defined_node->lineno(), defined_node->colno(), name->size()),
+        "Original defined in");
 }
 
 void SymbolAnalysisPass::log_undefined_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node)
