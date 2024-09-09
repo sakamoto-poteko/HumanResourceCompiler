@@ -140,6 +140,7 @@ private:
     void enter_scope_varinit_record();
     void leave_scope_varinit_record();
     void get_child_varinit_records(SymbolScopedKeyValueHash &result);
+    void set_child_varinit_records(const SymbolScopedKeyValueHash &records);
     // [End]
 
     // [Group] Visit helpers

@@ -478,8 +478,13 @@ int SymbolAnalysisPass::visit(WhileStatementASTNodePtr node)
 
     enter_anonymous_scope();
 
+    SymbolScopedKeyValueHash varinit_before_loop; // we assume the loop won't be executed
+    get_child_varinit_records(varinit_before_loop);
+
     rc = traverse(node->get_body());
     SET_RESULT_RC();
+
+    set_child_varinit_records(varinit_before_loop); // it's kept
 
     leave_scope();
     END_VISIT();
@@ -492,6 +497,9 @@ int SymbolAnalysisPass::visit(ForStatementASTNodePtr node)
 
     enter_anonymous_scope();
 
+    SymbolScopedKeyValueHash varinit_before_loop; // we assume the loop won't be executed
+    get_child_varinit_records(varinit_before_loop);
+
     rc = traverse(node->get_init());
     SET_RESULT_RC();
 
@@ -503,6 +511,8 @@ int SymbolAnalysisPass::visit(ForStatementASTNodePtr node)
 
     rc = traverse(node->get_body());
     SET_RESULT_RC();
+
+    set_child_varinit_records(varinit_before_loop); // it's kept
 
     leave_scope();
     END_VISIT();
@@ -618,6 +628,9 @@ int SymbolAnalysisPass::visit_subroutine(AbstractSubroutineASTNodePtr node, bool
 
     enter_scope(function_name, ScopeType::Subroutine);
 
+    SymbolScopedKeyValueHash varinit_before_func_body; // we assume the function won't be executed
+    get_child_varinit_records(varinit_before_func_body);
+
     if (param) {
         rc = add_variable_symbol_or_log_error(param, node);
         create_varinit_record(param, 1);
@@ -627,6 +640,8 @@ int SymbolAnalysisPass::visit_subroutine(AbstractSubroutineASTNodePtr node, bool
     // passthrough the block level
     rc = traverse(node->get_body()->get_statements());
     SET_RESULT_RC();
+
+    set_child_varinit_records(varinit_before_func_body);
 
     // pop them up, and set the return value!
     leave_scope();

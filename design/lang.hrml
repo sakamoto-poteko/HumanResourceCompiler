@@ -8,6 +8,7 @@ init floor[0] = 0;
 init floor_max = 10;
 
 let globalint = 800 + 1 * -100;
+let ninit;
 
 // A function is defined, which takes an argument. 
 // Only one or zero argument is allowed.
@@ -21,11 +22,11 @@ function countdown(a) {
     let ee;
     
     if (globalint) {
-        ee = 5;
+        {{{ee = 5;}}}
     } else {
         ee = 10;
     }
-    b = ee;
+    {{b = ee;}}
 
 
     a = a + 9;

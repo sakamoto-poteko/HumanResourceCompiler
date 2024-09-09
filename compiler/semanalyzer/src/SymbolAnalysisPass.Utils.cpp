@@ -239,7 +239,9 @@ void SymbolAnalysisPass::leave_scope_varinit_record()
     SymbolScopedKeyValueHash result;
 
     // note the order. we're actually writing the result to parent's result stack slot
-    _varinit_record_stack_result.pop();
+    // BUG: this is not right. When there are multiple scopes, it fails.
+    // we should figure out a way to passthrough children's result to parent
+    auto &children_results = _varinit_record_stack_result.top();
 
     std::vector<std::pair<SymbolPtr, std::string>> all_symbols;
     auto scope_id = _scope_manager.get_current_scope_id();
@@ -260,12 +262,23 @@ void SymbolAnalysisPass::leave_scope_varinit_record()
             }
         }
     }
+
+    for (const auto &[children_symkey, children_init_result] : children_results) {
+        result[children_symkey] = children_init_result;
+    }
+
+    _varinit_record_stack_result.pop();
     _varinit_record_stack_result.top().swap(result);
 }
 
 void SymbolAnalysisPass::get_child_varinit_records(SymbolScopedKeyValueHash &result)
 {
     result = _varinit_record_stack_result.top();
+}
+
+void SymbolAnalysisPass::set_child_varinit_records(const SymbolScopedKeyValueHash &records)
+{
+    _varinit_record_stack_result.top() = records;
 }
 
 void SymbolAnalysisPass::enter_anonymous_scope()
