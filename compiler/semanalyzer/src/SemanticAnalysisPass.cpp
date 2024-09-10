@@ -8,14 +8,14 @@ OPEN_SEMANALYZER_NAMESPACE
 
 void SemanticAnalysisPass::enter_node(parser::ASTNodePtr node)
 {
-    _ancestors.push(node);
-    _replace_node_asked_by_child_guard.push(0);
+    _ancestors.push_back(node);
+    // _replace_node_asked_by_child_guard.push(0);
 }
 
 void SemanticAnalysisPass::leave_node()
 {
-    _ancestors.pop();
-    _replace_node_asked_by_child_guard.pop();
+    _ancestors.pop_back();
+    // _replace_node_asked_by_child_guard.pop();
 }
 
 int SemanticAnalysisPass::visit(parser::IntegerASTNodePtr node)
@@ -300,11 +300,11 @@ int SemanticAnalysisPass::visit(parser::CompilationUnitASTNodePtr node)
 
 void SemanticAnalysisPass::request_to_replace_self(parser::ASTNodePtr to_be_replaced_with)
 {
-    if (_replace_node_asked_by_child_guard.top() == 1) {
-        spdlog::warn("[{}:{}] requested node replacement more than once", _ancestors.top()->lineno(), _ancestors.top()->colno());
-        _replace_node_asked_by_child.pop();
-    }
-    _replace_node_asked_by_child.push(to_be_replaced_with);
+    // if (_replace_node_asked_by_child_guard.top() == 1) {
+    //     spdlog::warn("[{}:{}] requested node replacement more than once", _ancestors.back()->lineno(), _ancestors.back()->colno());
+    //     _replace_node_asked_by_child.pop();
+    // }
+    // _replace_node_asked_by_child.push(to_be_replaced_with);
 }
 
 CLOSE_SEMANALYZER_NAMESPACE

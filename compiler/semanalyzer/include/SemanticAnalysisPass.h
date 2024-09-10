@@ -4,6 +4,7 @@
 #include <memory>
 #include <stack>
 #include <type_traits>
+#include <vector>
 
 #include "ASTNode.h"
 #include "ASTNodeForward.h"
@@ -19,6 +20,7 @@ public:
         : _filename(std::move(filename))
         , _root(std::move(root))
     {
+        _ancestors.reserve(500);
     }
 
     virtual ~SemanticAnalysisPass() = default;
@@ -68,7 +70,7 @@ protected:
     StringPtr _filename;
     parser::CompilationUnitASTNodePtr _root;
 
-    std::stack<parser::ASTNodePtr> _ancestors;
+    std::vector<parser::ASTNodePtr> _ancestors;
 
     template <typename NodeT>
         requires std::is_base_of_v<parser::ASTNode, NodeT>
@@ -77,7 +79,7 @@ protected:
         if (_ancestors.empty()) {
             return false;
         } else {
-            return parser::is_ptr_type<NodeT>(_ancestors.top());
+            return parser::is_ptr_type<NodeT>(_ancestors.back());
         }
     }
 
@@ -109,6 +111,7 @@ protected:
     {
         if (node) {
             int rc = node->accept(this);
+            // if (false) {
             if (!_replace_node_asked_by_child.empty()) {
                 using NodeType = typename T::element_type;
                 auto top = std::dynamic_pointer_cast<NodeType>(_replace_node_asked_by_child.top());

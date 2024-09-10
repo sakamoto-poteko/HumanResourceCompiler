@@ -53,7 +53,7 @@ public:
         : type(type)
         , name(name)
         , filename(std::move(filename))
-        , definition(std::move(definition))
+        , definition(definition)
     {
     }
 
@@ -61,7 +61,7 @@ public:
         : type(type)
         , name(*name)
         , filename(std::move(filename))
-        , definition(std::move(definition))
+        , definition(definition)
     {
     }
 

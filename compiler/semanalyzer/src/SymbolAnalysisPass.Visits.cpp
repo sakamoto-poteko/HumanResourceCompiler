@@ -49,8 +49,8 @@ int SymbolAnalysisPass::run()
     int result = 0, rc = 0;
     rc = visit(_root);
     SET_RESULT_RC();
-    rc = check_pending_invocations();
-    SET_RESULT_RC();
+    // rc = check_pending_invocations();
+    // SET_RESULT_RC();
     return result;
 }
 
@@ -550,7 +550,7 @@ int SymbolAnalysisPass::visit(ContinueStatementASTNodePtr node)
 int SymbolAnalysisPass::visit(StatementBlockASTNodePtr node)
 {
     // Implement visit logic for StatementBlockASTNode
-    const ASTNodePtr &parent = _ancestors.top();
+    const ASTNodePtr &parent = _ancestors.back();
     bool come_from_while_if_for
         = is_ptr_type<WhileStatementASTNode>(parent)
         || is_ptr_type<IfStatementASTNode>(parent)
