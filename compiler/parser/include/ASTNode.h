@@ -45,7 +45,7 @@ public:
     {
     }
 
-    ~ASTNode() = default;
+    virtual ~ASTNode() = default;
 
     virtual int accept(ASTNodeVisitor *visitor) = 0;
 

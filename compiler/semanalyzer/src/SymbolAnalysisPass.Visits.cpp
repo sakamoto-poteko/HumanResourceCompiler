@@ -31,9 +31,11 @@ OPEN_SEMANALYZER_NAMESPACE
     leave_node();   \
     return result
 
+// We're making it fail fast now. This is required to avoid a lot of bugs.
 #define SET_RESULT_RC() \
     if (rc != 0) {      \
         result = rc;    \
+        END_VISIT();    \
     }
 
 int SymbolAnalysisPass::run()

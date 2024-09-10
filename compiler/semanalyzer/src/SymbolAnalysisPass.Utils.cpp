@@ -241,7 +241,7 @@ void SymbolAnalysisPass::leave_scope_varinit_record()
     // note the order. we're actually writing the result to parent's result stack slot
     // BUG: this is not right. When there are multiple scopes, it fails.
     // we should figure out a way to passthrough children's result to parent
-    auto &children_results = _varinit_record_stack_result.top();
+    const auto &children_results = _varinit_record_stack_result.top();
 
     std::vector<std::pair<SymbolPtr, std::string>> all_symbols;
     auto scope_id = _scope_manager.get_current_scope_id();

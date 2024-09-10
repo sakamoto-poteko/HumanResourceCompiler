@@ -29,6 +29,7 @@ OPEN_SEMANALYZER_NAMESPACE
 #define SET_RESULT_RC() \
     if (rc != 0) {      \
         result = rc;    \
+        END_VISIT();    \
     }
 
 ConstantFoldingPass::ConstantFoldingPass(StringPtr filename, parser::CompilationUnitASTNodePtr root)
