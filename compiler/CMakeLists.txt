@@ -10,6 +10,8 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     add_compile_options(/W4 /Zc:preprocessor)
 endif()
 
+enable_testing()
+
 # EBNF Tool
 add_subdirectory(${CMAKE_SOURCE_DIR}/../utils/ebnf ebnf-tool)
 
@@ -38,3 +40,5 @@ add_subdirectory(lexer)
 add_subdirectory(parser)
 add_subdirectory(semanalyzer)
 add_subdirectory(hrc)
+
+add_subdirectory(tests)
