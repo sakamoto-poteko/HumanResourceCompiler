@@ -1,9 +1,9 @@
-#include <gtest/gtest.h>
 #include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
 
+#include <gtest/gtest.h>
 #include <spdlog/sinks/ostream_sink.h>
 
 #include "ASTBuilder.h"
@@ -26,7 +26,7 @@ std::vector<TestCaseData> read_semanalyzer_test_cases()
     return __test_cases["semanalyzer"];
 }
 
-class SemanticAnalyzerTestFixture : public ::testing::TestWithParam<TestCaseData> {
+class SemanticAnalyzerTests : public ::testing::TestWithParam<TestCaseData> {
 protected:
     std::ostringstream captured_outstream;
     hrl::parser::CompilationUnitASTNodePtr ast;
@@ -74,7 +74,7 @@ protected:
     }
 };
 
-TEST_P(SemanticAnalyzerTestFixture, SemanticAnalysisTests)
+TEST_P(SemanticAnalyzerTests, SemanticAnalysisTests)
 {
     const auto &data = GetParam();
     bool ok;
@@ -100,5 +100,4 @@ TEST_P(SemanticAnalyzerTestFixture, SemanticAnalysisTests)
     }
 }
 
-// Instantiate the parameterized test suite
-INSTANTIATE_TEST_SUITE_P(SemanticAnalysisTestsInst, SemanticAnalyzerTestFixture, ::testing::ValuesIn(read_semanalyzer_test_cases()));
+INSTANTIATE_TEST_SUITE_P(CompilerMessageTests, SemanticAnalyzerTests, ::testing::ValuesIn(read_semanalyzer_test_cases()));

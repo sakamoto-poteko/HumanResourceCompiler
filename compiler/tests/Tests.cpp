@@ -2,6 +2,7 @@
 #include <iostream>
 #include <regex>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <spdlog/sinks/ostream_sink.h>
@@ -78,14 +79,26 @@ void TestCaseData::print_setup() const
 
 int main(int argc, char **argv)
 {
-    if (argc < 2) {
+    const char *directory = nullptr;
+
+    for (int i = 1; i < argc; ++i) {
+        if (std::string_view(argv[i]).starts_with("--gtest")) {
+            continue;
+        } else {
+            directory = argv[i];
+            break;
+        }
+    }
+
+    if (directory == nullptr) {
         throw std::runtime_error("Missing test HRML files path");
     }
 
-    load_test_cases(argv[1]);
+    load_test_cases(directory);
 
     ::testing::InitGoogleTest(&argc, argv);
     ::testing::AddGlobalTestEnvironment(new GlobalTestEnvironment()); // Register the global fixture
+
     // ::testing::TestEventListeners &listeners = ::testing::UnitTest::GetInstance()->listeners();
     // listeners.Append(new VerboseTestListener());
 
