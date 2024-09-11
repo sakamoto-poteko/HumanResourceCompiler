@@ -21,21 +21,33 @@
 
 OPEN_SEMANALYZER_NAMESPACE
 
-#define BEGIN_VISIT()       \
-    enter_node(node);       \
-    attach_scope_id(node);  \
-    int result = 0, rc = 0; \
+static int enter_count = 0;
+static int leave_count = 0;
+
+#define BEGIN_VISIT()                \
+    enter_node(node);                \
+    int pre_enter_cnt = enter_count; \
+    ++enter_count;                   \
+    attach_scope_id(node);           \
+    int result = 0, rc = 0;          \
     UNUSED(rc)
 
-#define END_VISIT() \
-    leave_node();   \
+#define END_VISIT()                      \
+    leave_node();                        \
+    ++leave_count;                       \
+    assert(pre_enter_cnt = leave_count); \
     return result
 
 // We're making it fail fast now. This is required to avoid a lot of bugs.
-#define SET_RESULT_RC() \
-    if (rc != 0) {      \
-        result = rc;    \
-        END_VISIT();    \
+#define SET_RESULT_RC_AND_RETURN_IN_VISIT() \
+    if (rc != 0) {                          \
+        result = rc;                        \
+        END_VISIT();                        \
+    }
+
+#define RETURN_IF_FAIL() \
+    if (rc != 0) {       \
+        return rc;       \
     }
 
 int SymbolAnalysisPass::run()
@@ -48,9 +60,9 @@ int SymbolAnalysisPass::run()
 
     int result = 0, rc = 0;
     rc = visit(_root);
-    SET_RESULT_RC();
-    // rc = check_pending_invocations();
-    // SET_RESULT_RC();
+    RETURN_IF_FAIL();
+    rc = check_pending_invocations();
+    RETURN_IF_FAIL();
     return result;
 }
 
@@ -64,7 +76,7 @@ int SymbolAnalysisPass::check_pending_invocations()
 
         StringPtr func_name = node->get_func_name();
         rc = attach_symbol_or_log_error(func_name, SymbolType::SUBROUTINE, node);
-        SET_RESULT_RC();
+        RETURN_IF_FAIL();
 
         // symbol not found. let's proceed to next item.
         if (rc) {
@@ -100,7 +112,7 @@ int SymbolAnalysisPass::check_pending_invocations()
                 ErrorLocation(symbol->filename, def_astnode->lineno(), def_astnode->colno(), 0),
                 "originally defined as");
             rc = E_SEMA_SUBROUTINE_SIGNATURE_MISMATCH;
-            SET_RESULT_RC();
+            RETURN_IF_FAIL();
         }
     }
     return result;
@@ -129,11 +141,11 @@ int SymbolAnalysisPass::visit(VariableDeclarationASTNodePtr node)
     BEGIN_VISIT();
 
     rc = add_variable_symbol_or_log_error(node->get_name(), node);
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
     create_varinit_record(node->get_name(), 0);
 
     rc = traverse(node->get_assignment());
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     END_VISIT();
 }
@@ -144,9 +156,9 @@ int SymbolAnalysisPass::visit(VariableAssignmentASTNodePtr node)
     BEGIN_VISIT();
 
     rc = attach_symbol_or_log_error(node->get_name(), SymbolType::VARIABLE, node);
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
     rc = traverse(node->get_value());
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
     set_varinit_record(node->get_name(), 1);
 
     END_VISIT();
@@ -158,13 +170,13 @@ int SymbolAnalysisPass::visit(VariableAccessASTNodePtr node)
     BEGIN_VISIT();
 
     rc = attach_symbol_or_log_error(node->get_name(), SymbolType::VARIABLE, node);
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     int assigned = get_varinit_record(node->get_name());
     if (!assigned) {
         log_use_before_initialization_error(node->get_name(), node);
         rc = E_SEMA_VAR_USE_BEFORE_INIT;
-        SET_RESULT_RC();
+        SET_RESULT_RC_AND_RETURN_IN_VISIT();
     }
 
     END_VISIT();
@@ -176,7 +188,7 @@ int SymbolAnalysisPass::visit(FloorBoxInitStatementASTNodePtr node)
     BEGIN_VISIT();
 
     rc = traverse(node->get_assignment());
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     END_VISIT();
 }
@@ -187,10 +199,10 @@ int SymbolAnalysisPass::visit(FloorAssignmentASTNodePtr node)
     BEGIN_VISIT();
 
     rc = traverse(node->get_floor_number());
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     rc = traverse(node->get_value());
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     END_VISIT();
 }
@@ -201,7 +213,7 @@ int SymbolAnalysisPass::visit(FloorAccessASTNodePtr node)
     BEGIN_VISIT();
 
     rc = traverse(node->get_index_expr());
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     END_VISIT();
 }
@@ -212,7 +224,7 @@ int SymbolAnalysisPass::visit(NegativeExpressionASTNodePtr node)
     BEGIN_VISIT();
 
     rc = traverse(node->get_operand());
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     END_VISIT();
 }
@@ -223,7 +235,7 @@ int SymbolAnalysisPass::visit(NotExpressionASTNodePtr node)
     BEGIN_VISIT();
 
     rc = traverse(node->get_operand());
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     END_VISIT();
 }
@@ -234,7 +246,7 @@ int SymbolAnalysisPass::visit(IncrementExpressionASTNodePtr node)
     BEGIN_VISIT();
 
     rc = attach_symbol_or_log_error(node->get_var_name(), SymbolType::VARIABLE, node);
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     END_VISIT();
 }
@@ -245,7 +257,7 @@ int SymbolAnalysisPass::visit(DecrementExpressionASTNodePtr node)
     BEGIN_VISIT();
 
     rc = attach_symbol_or_log_error(node->get_var_name(), SymbolType::VARIABLE, node);
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     END_VISIT();
 }
@@ -256,7 +268,7 @@ int SymbolAnalysisPass::visit(AddExpressionASTNodePtr node)
     BEGIN_VISIT();
 
     rc = visit_binary_expression(node);
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     END_VISIT();
 }
@@ -267,7 +279,7 @@ int SymbolAnalysisPass::visit(SubExpressionASTNodePtr node)
     BEGIN_VISIT();
 
     rc = visit_binary_expression(node);
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     END_VISIT();
 }
@@ -278,7 +290,7 @@ int SymbolAnalysisPass::visit(MulExpressionASTNodePtr node)
     BEGIN_VISIT();
 
     rc = visit_binary_expression(node);
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     END_VISIT();
 }
@@ -289,7 +301,7 @@ int SymbolAnalysisPass::visit(DivExpressionASTNodePtr node)
     BEGIN_VISIT();
 
     rc = visit_binary_expression(node);
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     END_VISIT();
 }
@@ -300,7 +312,7 @@ int SymbolAnalysisPass::visit(ModExpressionASTNodePtr node)
     BEGIN_VISIT();
 
     rc = visit_binary_expression(node);
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     END_VISIT();
 }
@@ -311,7 +323,7 @@ int SymbolAnalysisPass::visit(EqualExpressionASTNodePtr node)
     BEGIN_VISIT();
 
     rc = visit_binary_expression(node);
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     END_VISIT();
 }
@@ -322,7 +334,7 @@ int SymbolAnalysisPass::visit(NotEqualExpressionASTNodePtr node)
     BEGIN_VISIT();
 
     rc = visit_binary_expression(node);
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     END_VISIT();
 }
@@ -333,7 +345,7 @@ int SymbolAnalysisPass::visit(GreaterThanExpressionASTNodePtr node)
     BEGIN_VISIT();
 
     rc = visit_binary_expression(node);
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     END_VISIT();
 }
@@ -344,7 +356,7 @@ int SymbolAnalysisPass::visit(GreaterEqualExpressionASTNodePtr node)
     BEGIN_VISIT();
 
     rc = visit_binary_expression(node);
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     END_VISIT();
 }
@@ -355,7 +367,7 @@ int SymbolAnalysisPass::visit(LessThanExpressionASTNodePtr node)
     BEGIN_VISIT();
 
     rc = visit_binary_expression(node);
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     END_VISIT();
 }
@@ -366,7 +378,7 @@ int SymbolAnalysisPass::visit(LessEqualExpressionASTNodePtr node)
     BEGIN_VISIT();
 
     rc = visit_binary_expression(node);
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     END_VISIT();
 }
@@ -377,7 +389,7 @@ int SymbolAnalysisPass::visit(AndExpressionASTNodePtr node)
     BEGIN_VISIT();
 
     rc = visit_binary_expression(node);
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     END_VISIT();
 }
@@ -388,7 +400,7 @@ int SymbolAnalysisPass::visit(OrExpressionASTNodePtr node)
     BEGIN_VISIT();
 
     rc = visit_binary_expression(node);
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     END_VISIT();
 }
@@ -401,7 +413,7 @@ int SymbolAnalysisPass::visit(InvocationExpressionASTNodePtr node)
     _pending_invocation_check.push(node);
 
     rc = traverse(node->get_argument());
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     END_VISIT();
 }
@@ -423,20 +435,20 @@ int SymbolAnalysisPass::visit(IfStatementASTNodePtr node)
     BEGIN_VISIT();
 
     rc = traverse(node->get_condition());
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     SymbolScopedKeyValueHash varinit_result_then;
     SymbolScopedKeyValueHash varinit_result_else;
 
     enter_anonymous_scope();
     rc = traverse(node->get_then_branch());
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
     leave_scope();
     get_child_varinit_records(varinit_result_then);
 
     enter_anonymous_scope();
     rc = traverse(node->get_else_branch());
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
     leave_scope();
     get_child_varinit_records(varinit_result_else);
 
@@ -476,7 +488,7 @@ int SymbolAnalysisPass::visit(WhileStatementASTNodePtr node)
     BEGIN_VISIT();
 
     rc = traverse(node->get_condition());
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     enter_anonymous_scope();
 
@@ -484,7 +496,7 @@ int SymbolAnalysisPass::visit(WhileStatementASTNodePtr node)
     get_child_varinit_records(varinit_before_loop);
 
     rc = traverse(node->get_body());
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     set_child_varinit_records(varinit_before_loop); // it's kept
 
@@ -503,16 +515,16 @@ int SymbolAnalysisPass::visit(ForStatementASTNodePtr node)
     get_child_varinit_records(varinit_before_loop);
 
     rc = traverse(node->get_init());
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     rc = traverse(node->get_condition());
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     rc = traverse(node->get_update());
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     rc = traverse(node->get_body());
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     set_child_varinit_records(varinit_before_loop); // it's kept
 
@@ -526,7 +538,7 @@ int SymbolAnalysisPass::visit(ReturnStatementASTNodePtr node)
     BEGIN_VISIT();
 
     rc = traverse(node->get_expression());
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     END_VISIT();
 }
@@ -550,7 +562,7 @@ int SymbolAnalysisPass::visit(ContinueStatementASTNodePtr node)
 int SymbolAnalysisPass::visit(StatementBlockASTNodePtr node)
 {
     // Implement visit logic for StatementBlockASTNode
-    const ASTNodePtr &parent = _ancestors.back();
+    const ASTNodePtr &parent = parent_node();
     bool come_from_while_if_for
         = is_ptr_type<WhileStatementASTNode>(parent)
         || is_ptr_type<IfStatementASTNode>(parent)
@@ -565,7 +577,7 @@ int SymbolAnalysisPass::visit(StatementBlockASTNodePtr node)
     }
 
     rc = traverse(node->get_statements());
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     if (!come_from_while_if_for) {
         leave_scope();
@@ -592,10 +604,10 @@ int SymbolAnalysisPass::visit(CompilationUnitASTNodePtr node)
     BEGIN_VISIT();
 
     rc = traverse(node->get_var_decls());
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     rc = traverse(node->get_subroutines());
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     END_VISIT();
 }
@@ -605,10 +617,10 @@ int SymbolAnalysisPass::visit_binary_expression(AbstractBinaryExpressionASTNodeP
     BEGIN_VISIT();
 
     rc = traverse(node->get_left());
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     rc = traverse(node->get_right());
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     END_VISIT();
 }
@@ -626,7 +638,7 @@ int SymbolAnalysisPass::visit_subroutine(AbstractSubroutineASTNodePtr node, bool
     bool has_param = param.operator bool();
 
     rc = add_subroutine_symbol_or_log_error(function_name, has_param, has_return, node);
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     enter_scope(function_name, ScopeType::Subroutine);
 
@@ -636,12 +648,12 @@ int SymbolAnalysisPass::visit_subroutine(AbstractSubroutineASTNodePtr node, bool
     if (param) {
         rc = add_variable_symbol_or_log_error(param, node);
         create_varinit_record(param, 1);
-        SET_RESULT_RC();
+        SET_RESULT_RC_AND_RETURN_IN_VISIT();
     }
 
     // passthrough the block level
     rc = traverse(node->get_body()->get_statements());
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     set_child_varinit_records(varinit_before_func_body);
 

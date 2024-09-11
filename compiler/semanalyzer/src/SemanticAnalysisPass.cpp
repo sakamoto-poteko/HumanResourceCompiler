@@ -14,6 +14,7 @@ void SemanticAnalysisPass::enter_node(parser::ASTNodePtr node)
 
 void SemanticAnalysisPass::leave_node()
 {
+    assert(!_ancestors.empty());
     _ancestors.pop_back();
     // _replace_node_asked_by_child_guard.pop();
 }

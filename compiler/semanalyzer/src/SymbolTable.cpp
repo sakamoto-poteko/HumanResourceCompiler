@@ -94,11 +94,9 @@ void hrl::semanalyzer::SymbolTable::get_symbols_include_ancestors(const std::str
 
     for (const auto &[scope_id_of_symbol, symbols] : _scopes) {
         if (scope_id.starts_with(scope_id_of_symbol)) {
-            std::ranges::transform(symbols | std::ranges::views::values,
-                std::back_inserter(result),
-                [&scope_id_of_symbol](const SymbolPtr &sym) {
-                    return std::make_pair(sym, scope_id_of_symbol);
-                });
+            for (const auto &[_, symbol] : symbols) {
+                result.push_back(std::make_pair(symbol, scope_id_of_symbol));
+            }
         }
     }
 
@@ -112,10 +110,9 @@ void hrl::semanalyzer::SymbolTable::get_symbols_exclude_ancestors(const std::str
     for (const auto &pair : _scopes) {
         const auto &id = pair.first;
         if (id == scope_id) {
-            result.insert(
-                result.end(),
-                std::ranges::begin(pair.second | std::ranges::views::values),
-                std::ranges::end(pair.second | std::ranges::views::values));
+            for (const auto &[_, symbol] : pair.second) {
+                result.push_back(symbol);
+            }
         }
     }
 

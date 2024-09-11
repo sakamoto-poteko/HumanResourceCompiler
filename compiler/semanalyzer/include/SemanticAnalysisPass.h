@@ -20,7 +20,7 @@ public:
         : _filename(std::move(filename))
         , _root(std::move(root))
     {
-        _ancestors.reserve(500);
+        _ancestors.reserve(1000);
     }
 
     virtual ~SemanticAnalysisPass() = default;
@@ -70,10 +70,9 @@ protected:
     StringPtr _filename;
     parser::CompilationUnitASTNodePtr _root;
 
-    std::vector<parser::ASTNodePtr> _ancestors;
-
     template <typename NodeT>
-        requires std::is_base_of_v<parser::ASTNode, NodeT>
+    requires std::is_base_of_v<parser::ASTNode, NodeT>
+
     bool is_parent_a()
     {
         if (_ancestors.empty()) {
@@ -82,6 +81,8 @@ protected:
             return parser::is_ptr_type<NodeT>(_ancestors.back());
         }
     }
+
+    const parser::ASTNodePtr &parent_node() const { return _ancestors.back(); }
 
     virtual void enter_node(parser::ASTNodePtr node);
 
@@ -92,8 +93,8 @@ protected:
     bool replace_self_requested() { return _replace_node_asked_by_child_guard.top() == 1; }
 
     template <typename ContainerT>
-        requires(std::ranges::range<ContainerT> && parser::convertible_to_ASTNodePtr<std::ranges::range_value_t<ContainerT>>)
-    int traverse(ContainerT &nodes)
+
+    requires(std::ranges::range<ContainerT> &&parser::convertible_to_ASTNodePtr<std::ranges::range_value_t<ContainerT>>) int traverse(ContainerT &nodes)
     {
         int result = 0;
         for (auto &node : nodes) {
@@ -106,7 +107,8 @@ protected:
     }
 
     template <typename T>
-        requires parser::convertible_to_ASTNodePtr<T>
+    requires parser::convertible_to_ASTNodePtr<T>
+
     int traverse(T &node)
     {
         if (node) {
@@ -132,7 +134,7 @@ protected:
     int traverse_multiple(T &...node_ptr)
     {
         int result = 0;
-        auto process_result = [this, &result](auto &node) {
+        auto process_result = [&](auto &node) {
             if constexpr (parser::convertible_to_ASTNodePtr<std::remove_reference_t<decltype(node)>>) {
                 int rc = traverse(node);
                 if (rc != 0) {
@@ -153,6 +155,8 @@ protected:
     }
 
 private:
+    std::vector<parser::ASTNodePtr> _ancestors;
+
     std::stack<parser::ASTNodePtr> _replace_node_asked_by_child;
     std::stack<int> _replace_node_asked_by_child_guard; // the count guard for single replace node
 };
@@ -160,7 +164,8 @@ private:
 using SemanticAnalysisPassPtr = std::shared_ptr<SemanticAnalysisPass>;
 
 template <typename T>
-concept convertible_to_SemanticAnalysisPassPtr = requires {
+concept convertible_to_SemanticAnalysisPassPtr = requires
+{
     typename T::element_type;
     requires std::convertible_to<T, SemanticAnalysisPassPtr> && std::is_same_v<T, std::shared_ptr<typename T::element_type>>;
 };

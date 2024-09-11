@@ -188,6 +188,7 @@ int SymbolAnalysisPass::get_varinit_record(const StringPtr &var_name)
     // auto &stack = _varinit_record_stacks[SymbolScopeKey(sym_defined_scope, *var_name)];
     // assert(!stack.empty());
     // return stack.top();
+    return 0;
 }
 
 void SymbolAnalysisPass::create_varinit_record(const StringPtr &var_name, int is_initialized)
