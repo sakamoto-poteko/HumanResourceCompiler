@@ -18,7 +18,6 @@ function countdown(a) {
         continue;
     }
     let b;
-    let b;
     let ee;
     
     if (globalint) {

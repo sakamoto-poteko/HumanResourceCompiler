@@ -301,11 +301,11 @@ int SemanticAnalysisPass::visit(parser::CompilationUnitASTNodePtr node)
 
 void SemanticAnalysisPass::request_to_replace_self(parser::ASTNodePtr to_be_replaced_with)
 {
-    // if (_replace_node_asked_by_child_guard.top() == 1) {
-    //     spdlog::warn("[{}:{}] requested node replacement more than once", _ancestors.back()->lineno(), _ancestors.back()->colno());
-    //     _replace_node_asked_by_child.pop();
-    // }
-    // _replace_node_asked_by_child.push(to_be_replaced_with);
+    if (_replace_node_asked_by_child_guard.top() == 1) {
+        spdlog::warn("[{}:{}] requested node replacement more than once", _ancestors.back()->lineno(), _ancestors.back()->colno());
+        _replace_node_asked_by_child.pop();
+    }
+    _replace_node_asked_by_child.push(to_be_replaced_with);
 }
 
 CLOSE_SEMANALYZER_NAMESPACE

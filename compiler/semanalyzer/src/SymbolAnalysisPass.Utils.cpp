@@ -53,7 +53,6 @@ int SymbolAnalysisPass::add_subroutine_symbol_or_log_error(const StringPtr &name
     } else {
         return 0;
     }
-    return 0;
 }
 
 int SymbolAnalysisPass::add_variable_symbol_or_log_error(const StringPtr &name, const ASTNodePtr &node)
@@ -62,7 +61,7 @@ int SymbolAnalysisPass::add_variable_symbol_or_log_error(const StringPtr &name, 
     bool found_in_ancestor_or_current = lookup_symbol_with_ancestors(name, symbol);
     if (!_symbol_table->add_variable_symbol(_scope_manager.get_current_scope_id(), name, _filename, node)) {
         // false indicate found in current
-        // log_redefinition_error(name, SymbolType::VARIABLE, node);
+        log_redefinition_error(name, SymbolType::VARIABLE, node);
         return E_SEMA_SYM_REDEF;
     } else if (found_in_ancestor_or_current) {
         // added to current scope and ancestor has it
@@ -186,7 +185,6 @@ int SymbolAnalysisPass::get_varinit_record(const StringPtr &var_name)
     auto &stack = _varinit_record_stacks[SymbolScopeKey(sym_defined_scope, *var_name)];
     assert(!stack.empty());
     return stack.top();
-    return 0;
 }
 
 void SymbolAnalysisPass::create_varinit_record(const StringPtr &var_name, int is_initialized)

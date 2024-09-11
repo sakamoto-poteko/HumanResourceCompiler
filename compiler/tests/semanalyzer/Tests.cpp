@@ -1,4 +1,5 @@
-#define BOOST_TEST_MODULE SemAnalyzeTest
+// #define BOOST_TEST_ALTERNATIVE_INIT_API
+// #define BOOST_TEST_MODULE SemAnalyzeTest
 
 #include <filesystem>
 #include <iostream>
@@ -7,6 +8,8 @@
 #include <string>
 #include <vector>
 
+#include <boost/test/data/test_case.hpp>
+#include <boost/test/included/unit_test.hpp>
 #include <boost/test/unit_test.hpp>
 
 #include <spdlog/sinks/ostream_sink.h>
@@ -27,17 +30,24 @@
 #include "semanalyzer_global.h"
 
 namespace fs = std::filesystem;
+namespace bdata = boost::unit_test::data;
 
-// Struct to hold parsed data
 struct TestCaseData {
     std::string path;
     std::string filename;
     std::string code;
     bool should_pass;
     std::string testname;
+
+    // Overload the << operator for CustomData
+    friend std::ostream &operator<<(std::ostream &os, const TestCaseData &data)
+    {
+        os << data.filename;
+        return os;
+    }
 };
 
-// Function to parse filenames like E3001_fail_1.hrml
+// E3001_fail_1.hrml
 TestCaseData parse_path(const fs::path &path)
 {
     std::regex pattern(R"(([EWNX]\d*)_(fail|pass)_(\w+)\.hrml)");
@@ -60,71 +70,6 @@ TestCaseData parse_path(const fs::path &path)
     throw std::invalid_argument("Filename does not match expected pattern: " + filename);
 }
 
-// Function to simulate file content reading and result checking
-void run_test(const TestCaseData &test_case)
-{
-    // Redirect spdlog output
-    std::ostringstream captured_cout;
-    std::ostringstream captured_cerr;
-    auto cout_sink = std::make_shared<spdlog::sinks::ostream_sink_mt>(captured_cout);
-    auto cerr_sink = std::make_shared<spdlog::sinks::ostream_sink_mt>(captured_cerr);
-
-    ErrorManager &errmgr = ErrorManager::instance();
-    errmgr.add_common_filters();
-
-    // Open HRML
-    FILE *file = std::fopen(test_case.path.c_str(), "r");
-    BOOST_REQUIRE_MESSAGE(file != nullptr, boost::format("Failed to open HRML %1%") % test_case.path);
-
-    // Lexing
-    hrl::lexer::HRLLexer lexer;
-    std::vector<hrl::lexer::TokenPtr> tokens;
-
-    bool ok = lexer.lex(file, test_case.path, tokens);
-    BOOST_REQUIRE_MESSAGE(ok, "Lexical analysis failed");
-    fclose(file);
-
-    // Parsing
-    hrl::parser::RecursiveDescentParser parser(test_case.path, tokens);
-    hrl::parser::CompilationUnitPTNodePtr compilation_unit;
-    bool parsed = parser.parse(compilation_unit);
-    BOOST_REQUIRE_MESSAGE(parsed, "Parsing failed");
-    BOOST_REQUIRE_MESSAGE(!errmgr.has_errors(), "Parsing has errors");
-    // hrl::parser::ParseTreeNodeGraphvizBuilder graphviz(compilation_unit);
-    // graphviz.generate_graphviz("build/pt.dot");
-
-    // Building AST
-    hrl::parser::CompilationUnitASTNodePtr ast;
-    hrl::parser::ASTBuilder builder(compilation_unit);
-    bool built = builder.build(ast);
-    BOOST_REQUIRE_MESSAGE(built, "Failed to build AST");
-    BOOST_REQUIRE_MESSAGE(!errmgr.has_errors(), "Building AST has errors");
-
-    // hrl::parser::ASTNodeGraphvizBuilder graphviz_ast(ast);
-    // graphviz_ast.generate_graphviz("build/ast.dot");
-
-    // Semantic Analysis
-    hrl::semanalyzer::SemanticAnalysisPassManager sem_passmgr(ast, std::make_shared<std::string>(test_case.filename));
-    auto symtbl_analyzer = sem_passmgr.add_pass<hrl::semanalyzer::SymbolAnalysisPass>("SymbolTableAnalyzer");
-    auto constfolder = sem_passmgr.add_pass<hrl::semanalyzer::ConstantFoldingPass>("ConstantFoldingPass");
-    int sema_result = sem_passmgr.run(true);
-
-    bool cout_has = captured_cout.str().find(test_case.code) != std::string::npos;
-    bool cerr_has = captured_cerr.str().find(test_case.code) != std::string::npos;
-    if (test_case.should_pass) {
-        BOOST_REQUIRE_MESSAGE(sema_result == 0, "Expect semantic analysis to pass but failed");
-        if (!test_case.code.starts_with("X")) {
-            BOOST_REQUIRE_MESSAGE(cout_has || cerr_has, boost::format("Expect '%1%' but not found in neither stdout nor stderr") % test_case.code);
-        }
-    } else {
-        BOOST_REQUIRE_MESSAGE(sema_result == 0, "Expect semantic analysis to fail but passed");
-        BOOST_REQUIRE_MESSAGE(cout_has || cerr_has, boost::format("Expect '%1%' but not found in neither stdout nor stderr") % test_case.code);
-    }
-
-    BOOST_CHECK_MESSAGE(true, "Test passed: " + test_case.code);
-}
-
-// Function to collect all .hrml files in the directory
 std::vector<TestCaseData> collect_test_cases(const std::string &directory_path)
 {
     std::vector<TestCaseData> test_cases;
@@ -133,8 +78,7 @@ std::vector<TestCaseData> collect_test_cases(const std::string &directory_path)
         if (entry.path().extension() == ".hrml") {
             try {
                 auto parsed = parse_path(entry.path());
-                BOOST_TEST_MESSAGE(boost::format("Adding file %1%: test '%4%', expect '%2%' and %3%")
-                    % parsed.filename % parsed.code % (parsed.should_pass ? "PASS" : "FAILURE") % parsed.testname);
+
                 test_cases.push_back(std::move(parsed));
             } catch (const std::invalid_argument &e) {
                 std::cerr << e.what() << std::endl; // Ignore files that don't match the pattern
@@ -145,19 +89,108 @@ std::vector<TestCaseData> collect_test_cases(const std::string &directory_path)
     return test_cases;
 }
 
-BOOST_AUTO_TEST_CASE(dynamic_test_cases)
-{
-    // The directory path will be passed as an argument
-    const char *directory_path = boost::unit_test::framework::master_test_suite().argv[1];
+struct TestFixture {
+    TestFixture() { }
 
-    // Collect test cases from the directory
-    std::vector<TestCaseData> test_cases = collect_test_cases(directory_path);
+    ~TestFixture() { }
 
-    // Run the tests dynamically for each test case
-    for (const auto &test_case : test_cases) {
-        BOOST_TEST_CONTEXT("Running test for file: " << test_case.filename)
-        {
-            run_test(test_case);
-        }
+    void setup_with_data(const TestCaseData &test_case)
+    {
+        data = test_case;
+        BOOST_TEST_MESSAGE(boost::format("Setting up %1%: test '%4%', expect '%2%' and %3%")
+            % data.filename
+            % data.code
+            % (data.should_pass ? "PASS" : "FAILURE")
+            % data.testname);
+
+        ErrorManager &errmgr = ErrorManager::instance();
+
+        // Redirect spdlog output
+        auto captured_sink = std::make_shared<spdlog::sinks::ostream_sink_mt>(captured_outstream);
+        captured_sink->set_level(spdlog::level::trace);
+        spdlog::logger logger(data.filename, { captured_sink });
+        spdlog::set_default_logger(std::make_shared<spdlog::logger>(logger));
+        spdlog::flush_on(spdlog::level::trace);
+
+        // Open HRML
+        FILE *file = std::fopen(data.path.c_str(), "r");
+        BOOST_REQUIRE_MESSAGE(file != nullptr, boost::format("Failed to open HRML %1%") % data.path);
+
+        // Lexing
+        hrl::lexer::HRLLexer lexer;
+        std::vector<hrl::lexer::TokenPtr> tokens;
+
+        bool ok = lexer.lex(file, data.path, tokens);
+        BOOST_REQUIRE_MESSAGE(ok, "Lexical analysis failed");
+        fclose(file);
+
+        // Parsing
+        hrl::parser::RecursiveDescentParser parser(data.path, tokens);
+        hrl::parser::CompilationUnitPTNodePtr compilation_unit;
+        bool parsed = parser.parse(compilation_unit);
+        BOOST_REQUIRE_MESSAGE(parsed, "Parsing failed");
+        BOOST_REQUIRE_MESSAGE(!errmgr.has_errors(), "Parsing has errors");
+
+        // Building AST
+        hrl::parser::CompilationUnitASTNodePtr ast;
+        hrl::parser::ASTBuilder builder(compilation_unit);
+        bool built = builder.build(ast);
+        BOOST_REQUIRE_MESSAGE(built, "Failed to build AST");
+        BOOST_REQUIRE_MESSAGE(!errmgr.has_errors(), "Building AST has errors");
     }
+
+    TestCaseData data;
+    std::ostringstream captured_outstream;
+    hrl::parser::CompilationUnitASTNodePtr ast;
+};
+
+std::vector<TestCaseData> test_case_data;
+
+BOOST_DATA_TEST_CASE_F(TestFixture, SemanticAnalysisTest, bdata::make(test_case_data))
+{
+    setup_with_data(sample);
+
+    hrl::semanalyzer::SemanticAnalysisPassManager sem_passmgr(ast, std::make_shared<std::string>(data.filename));
+    auto symtbl_analyzer = sem_passmgr.add_pass<hrl::semanalyzer::SymbolAnalysisPass>("SymbolTableAnalyzer");
+    auto constfolder = sem_passmgr.add_pass<hrl::semanalyzer::ConstantFoldingPass>("ConstantFoldingPass");
+    int sema_result = sem_passmgr.run(true);
+    ErrorManager::instance().print_all();
+
+    bool out_has_code = captured_outstream.str().find("[" + data.code + "]") != std::string::npos;
+    if (data.should_pass) {
+        BOOST_REQUIRE_MESSAGE(sema_result == 0, "Expect semantic analysis to pass but failed");
+        if (!data.code.starts_with("X")) {
+            BOOST_REQUIRE_MESSAGE(out_has_code, boost::format("Expect '%1%' but not found in neither stdout nor stderr") % data.code);
+        }
+    } else {
+        BOOST_REQUIRE_MESSAGE(sema_result != 0, "Expect semantic analysis to fail but passed");
+        BOOST_REQUIRE_MESSAGE(out_has_code, boost::format("Expect '%1%' but not found in neither stdout nor stderr") % data.code);
+    }
+
+    BOOST_CHECK_MESSAGE(true, "Test passed: " + data.code);
+}
+
+bool init_unit_test()
+{
+    // Get command-line arguments from Boost.Test
+    auto &master_test_suite = boost::unit_test::framework::master_test_suite();
+
+    if (master_test_suite.argc < 2) {
+        std::cerr << "Missing test HRML files path" << std::endl;
+        return false;
+    }
+
+    const char *directory_path = master_test_suite.argv[1];
+    BOOST_TEST_MESSAGE(boost::format("Loading test data from: %1%") % directory_path);
+    test_case_data = collect_test_cases(directory_path);
+
+    ErrorManager::instance().add_common_filters();
+
+    return true;
+}
+
+boost::unit_test::test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/[])
+{
+  std::cout << "using obsolete init" << std::endl;
+  return 0;
 }

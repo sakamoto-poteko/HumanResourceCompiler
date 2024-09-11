@@ -21,21 +21,14 @@
 
 OPEN_SEMANALYZER_NAMESPACE
 
-static int enter_count = 0;
-static int leave_count = 0;
-
-#define BEGIN_VISIT()                \
-    enter_node(node);                \
-    int pre_enter_cnt = enter_count; \
-    ++enter_count;                   \
-    attach_scope_id(node);           \
-    int result = 0, rc = 0;          \
+#define BEGIN_VISIT()       \
+    enter_node(node);       \
+    attach_scope_id(node);  \
+    int result = 0, rc = 0; \
     UNUSED(rc)
 
-#define END_VISIT()                      \
-    leave_node();                        \
-    ++leave_count;                       \
-    assert(pre_enter_cnt = leave_count); \
+#define END_VISIT() \
+    leave_node();   \
     return result
 
 // We're making it fail fast now. This is required to avoid a lot of bugs.
