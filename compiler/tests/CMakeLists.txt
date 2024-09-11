@@ -7,7 +7,15 @@ add_executable(${PROJECT_NAME}
    Tests.cpp
    SemAnalyzer.cpp)
 
+target_compile_definitions(${PROJECT_NAME} PRIVATE FALLBACK_HRML_DIR="${CMAKE_CURRENT_SOURCE_DIR}/hrml")
+
 target_link_libraries(${PROJECT_NAME} PRIVATE hrc_semanalyzer hrc_parser hrc_lexer hrc_util)
 target_link_libraries(${PROJECT_NAME} PRIVATE GTest::GTest GTest::Main)
 
-add_test(NAME CompilerTests COMMAND ${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/hrml)
+add_test(
+   NAME
+   CompilerTests
+   COMMAND
+   ${PROJECT_NAME}
+   # ${CMAKE_CURRENT_SOURCE_DIR}/hrml
+)
