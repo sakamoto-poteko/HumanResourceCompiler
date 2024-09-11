@@ -9,14 +9,14 @@ OPEN_SEMANALYZER_NAMESPACE
 void SemanticAnalysisPass::enter_node(parser::ASTNodePtr node)
 {
     _ancestors.push_back(node);
-    // _replace_node_asked_by_child_guard.push(0);
+    _replace_node_asked_by_child_guard.push(0);
 }
 
 void SemanticAnalysisPass::leave_node()
 {
     assert(!_ancestors.empty());
     _ancestors.pop_back();
-    // _replace_node_asked_by_child_guard.pop();
+    _replace_node_asked_by_child_guard.pop();
 }
 
 int SemanticAnalysisPass::visit(parser::IntegerASTNodePtr node)
