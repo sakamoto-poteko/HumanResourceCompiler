@@ -1,0 +1,13 @@
+let uninit;
+
+sub start()
+{
+    uninit = 0;
+    outbox(uninit);
+}
+
+sub fail()
+{
+    uninit = 1;
+    outbox(uninit);
+}

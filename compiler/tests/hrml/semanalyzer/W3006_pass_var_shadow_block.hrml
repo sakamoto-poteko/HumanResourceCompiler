@@ -1,0 +1,9 @@
+sub start()
+{
+    if (true) {
+        let blockvar = 2;
+        if (true) {
+            let blockvar = 5;
+        }
+    }
+}

@@ -1,0 +1,10 @@
+let uninit;
+
+sub start()
+{
+    for (let x = 0, x < 1, ++x) {
+        uninit = 1;
+    }
+    uninit = 1;
+    outbox(uninit);
+}

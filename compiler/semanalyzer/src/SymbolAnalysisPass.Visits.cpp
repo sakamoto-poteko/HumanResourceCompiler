@@ -1,12 +1,9 @@
 #include <cassert>
 #include <memory>
 #include <string>
-#include <typeinfo>
 
 #include <boost/format.hpp>
-
 #include <spdlog/spdlog.h>
-#include <vector>
 
 #include "ASTNode.h"
 #include "ErrorManager.h"
@@ -446,13 +443,26 @@ int SymbolAnalysisPass::visit(IfStatementASTNodePtr node)
     get_child_varinit_records(varinit_result_else);
 
     // process the var init results. if both are 1, the final is 1. if neither is 0, the final is 0.
-    assert(varinit_result_then.size() == varinit_result_else.size());
-    assert(std::ranges::all_of(varinit_result_then, [&varinit_result_else](const auto &kv) {
-        return varinit_result_else.contains(kv.first);
-    }) && "Maps do not contain the same keys!");
-    assert(std::ranges::all_of(varinit_result_else, [&varinit_result_then](const auto &kv) {
-        return varinit_result_then.contains(kv.first);
-    }) && "Maps do not contain the same keys!");
+    assert(node->get_then_branch());
+
+    if (node->get_else_branch()) {
+        assert(varinit_result_then.size() == varinit_result_else.size());
+        assert(std::ranges::all_of(varinit_result_then, [&varinit_result_else](const auto &kv) {
+            return varinit_result_else.contains(kv.first);
+        }) && "Maps do not contain the same keys!");
+        assert(std::ranges::all_of(varinit_result_else, [&varinit_result_then](const auto &kv) {
+            return varinit_result_then.contains(kv.first);
+        }) && "Maps do not contain the same keys!");
+    } else {
+        // single arm if statement
+        // make them have the same element and assign 0
+        // don't assert varinit_result_else.empty(), because when entering else scope (even if it's null), variables in parents are copied
+        for (const auto &[sym_key, result_then] : varinit_result_then) {
+            // if the variable (coming from parent scope) is initialized, we do nothing.
+            // otherwise, we assign a 0.
+            varinit_result_else[sym_key] |= 0;
+        }
+    }
 
     SymbolScopedKeyValueHash after_if_var_init_result;
 

@@ -1,0 +1,5 @@
+let global = 0;
+sub start()
+{
+    let global = 1;
+}

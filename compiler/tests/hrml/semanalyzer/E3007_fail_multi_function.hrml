@@ -1,0 +1,12 @@
+let uninit;
+
+sub start()
+{
+    uinint = 0;
+    outbox(uninit);
+}
+
+sub fail()
+{
+    outbox(uninit);
+}

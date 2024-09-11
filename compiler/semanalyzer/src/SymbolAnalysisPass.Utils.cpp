@@ -2,12 +2,11 @@
 #include <memory>
 #include <string>
 #include <typeinfo>
-
-#include <boost/format.hpp>
-
-#include <spdlog/spdlog.h>
 #include <utility>
 #include <vector>
+
+#include <boost/format.hpp>
+#include <spdlog/spdlog.h>
 
 #include "ASTNode.h"
 #include "ErrorManager.h"
@@ -182,7 +181,7 @@ int SymbolAnalysisPass::get_varinit_record(const StringPtr &var_name)
     std::string sym_defined_scope;
     assert(lookup_symbol_with_ancestors(var_name, symbol, sym_defined_scope));
 
-    auto &stack = _varinit_record_stacks[SymbolScopeKey(sym_defined_scope, *var_name)];
+    auto &stack = _varinit_record_stacks[SymbolScopeKey(var_name, sym_defined_scope)];
     assert(!stack.empty());
     return stack.top();
 }
@@ -193,17 +192,22 @@ void SymbolAnalysisPass::create_varinit_record(const StringPtr &var_name, int is
     std::string sym_defined_scope;
     assert(lookup_symbol_with_ancestors(var_name, symbol, sym_defined_scope));
 
-    auto &stack = _varinit_record_stacks[SymbolScopeKey(sym_defined_scope, *var_name)];
+    auto &stack = _varinit_record_stacks[SymbolScopeKey(var_name, sym_defined_scope)];
     assert(stack.empty());
     stack.push(is_initialized);
 }
 
 void SymbolAnalysisPass::set_varinit_record(const SymbolScopeKey &key, int is_initialized)
 {
-    // NOTE: symstack is not empty, because variable is declared first. the symstack is pushed at that time.
+    // NOTE:
+    // 1) when variable is declared in same or outer scope, the symstack is pushed at that time. we can modify the top
+    // 2) when variable is declared in inner scope, the symstack doesn't have it, and we need to push
     auto &stack = _varinit_record_stacks[key];
-    assert(!stack.empty());
-    stack.top() = is_initialized;
+    if (stack.empty()) {
+        stack.push(is_initialized);
+    } else {
+        stack.top() = is_initialized;
+    }
 }
 
 void SymbolAnalysisPass::set_varinit_record(const StringPtr &var_name, int is_initialized)
@@ -211,7 +215,7 @@ void SymbolAnalysisPass::set_varinit_record(const StringPtr &var_name, int is_in
     SymbolPtr symbol;
     std::string sym_defined_scope;
     assert(lookup_symbol_with_ancestors(var_name, symbol, sym_defined_scope));
-    set_varinit_record(SymbolScopeKey(sym_defined_scope, *var_name), is_initialized);
+    set_varinit_record(SymbolScopeKey(var_name, sym_defined_scope), is_initialized);
 }
 
 void SymbolAnalysisPass::enter_scope_varinit_record()
@@ -225,7 +229,7 @@ void SymbolAnalysisPass::enter_scope_varinit_record()
     for (const auto &[symbol, sym_defined_scope] : all_symbols) {
         if (symbol->type == SymbolType::VARIABLE) {
             // NOTE: symstack is not empty, because variable is declared first. the symstack is pushed at that time.
-            auto &stack = _varinit_record_stacks[SymbolScopeKey(sym_defined_scope, symbol->name)];
+            auto &stack = _varinit_record_stacks[SymbolScopeKey(std::make_shared<std::string>(symbol->name), sym_defined_scope)];
             assert(!stack.empty());
             int top = stack.top();
             stack.push(top);
@@ -249,7 +253,7 @@ void SymbolAnalysisPass::leave_scope_varinit_record()
 
     for (const auto &[symbol, sym_defined_scope] : all_symbols) {
         if (symbol->type == SymbolType::VARIABLE) {
-            auto symkey = SymbolScopeKey(sym_defined_scope, symbol->name);
+            auto symkey = SymbolScopeKey(std::make_shared<std::string>(symbol->name), sym_defined_scope);
             auto &stack = _varinit_record_stacks[symkey];
             // FIXME: we need to return this result
             // we also need to filter out those who has the scope_id of self,

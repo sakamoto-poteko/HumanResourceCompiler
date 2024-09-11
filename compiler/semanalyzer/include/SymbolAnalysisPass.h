@@ -106,10 +106,10 @@ private:
 
     // [Group] var use before init check
     struct SymbolScopeKey {
-        std::string name;
+        StringPtr name;
         std::string scope;
 
-        SymbolScopeKey(std::string name, std::string scope)
+        SymbolScopeKey(StringPtr name, std::string scope)
             : name(std::move(name))
             , scope(std::move(scope))
         {
@@ -117,14 +117,14 @@ private:
 
         bool operator==(const SymbolScopeKey &other) const
         {
-            return scope == other.scope && name == other.name;
+            return scope == other.scope && *name == *other.name;
         }
     };
 
     struct SymbolScopeKeyHashProvider {
         std::size_t operator()(const SymbolScopeKey &obj) const
         {
-            std::size_t h1 = std::hash<std::string> {}(obj.name);
+            std::size_t h1 = std::hash<std::string> {}(*obj.name);
             std::size_t h2 = std::hash<std::string> {}(obj.scope);
             return h1 ^ (h2 << 1);
         }

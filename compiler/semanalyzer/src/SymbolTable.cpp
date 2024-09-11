@@ -1,9 +1,8 @@
 #include <memory>
-#include <ranges>
 #include <string>
+#include <vector>
 
 #include <boost/format.hpp>
-#include <vector>
 
 #include "ScopeManager.h"
 #include "Symbol.h"

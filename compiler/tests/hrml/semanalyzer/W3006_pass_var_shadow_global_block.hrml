@@ -1,0 +1,14 @@
+let global = 0;
+sub start()
+{
+    if (true) {
+        if (false) {
+        } else {
+            while (true) {
+                for (let x = 0, x > 0, --x) {
+                    let global = 1;
+                }
+            }
+        }
+    }
+}

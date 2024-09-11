@@ -1,0 +1,9 @@
+let uninit;
+
+sub start()
+{
+    while (inbox()) {
+        uninit = 1;
+    }
+    outbox(uninit);
+}

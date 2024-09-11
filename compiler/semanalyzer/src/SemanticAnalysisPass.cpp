@@ -16,6 +16,7 @@ void SemanticAnalysisPass::leave_node()
 {
     assert(!_ancestors.empty());
     _ancestors.pop_back();
+    assert(!_replace_node_asked_by_child_guard.empty());
     _replace_node_asked_by_child_guard.pop();
 }
 
