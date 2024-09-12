@@ -1,3 +1,4 @@
+#include <iostream>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -53,6 +54,8 @@ protected:
         ASSERT_NE(file, nullptr) << "Failed to open HRML " << data.path;
 
         // Lexing
+        extern int yylineno;
+        yylineno = 1;
         hrl::lexer::HRLLexer lexer;
         std::vector<hrl::lexer::TokenPtr> tokens;
         bool ok = lexer.lex(file, data.path, tokens);
@@ -97,16 +100,22 @@ TEST_P(SemanticAnalyzerTests, SemanticAnalysisTests)
     int sema_result = sem_passmgr.run(true);
     ErrorManager::instance().print_all();
 
-    bool out_has_code = captured_outstream.str().find("[" + data.code + "]") != std::string::npos;
+    std::string captured = captured_outstream.str();
+    bool out_has_code = captured.find("[" + data.code + "]") != std::string::npos;
 
     if (data.should_pass) {
         ASSERT_EQ(sema_result, 0) << "Expected semantic analysis to pass but it failed";
     } else {
-        ASSERT_NE(sema_result, 0) << "Expected semantic analysis to fail but it passed";
+        bool correct = data.code.find(std::to_string(sema_result)) != std::string::npos;
+        if (!correct) {
+            std::cerr << captured << std::endl;
+        }
+        ASSERT_TRUE(correct)
+            << "Expected semantic analysis to fail with " << data.code << " but got " << sema_result;
     }
 
     if (data.expect_code) {
-        ASSERT_TRUE(out_has_code) << "Expected '" << data.code << "' but not found in output";
+        ASSERT_TRUE(out_has_code) << "Expected '" << data.code << "' but not found in output, result code " << sema_result;
     }
 }
 
