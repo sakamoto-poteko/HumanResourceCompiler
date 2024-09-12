@@ -2,7 +2,6 @@
 #include <fstream>
 #include <iterator>
 #include <optional>
-#include <ranges>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -12,6 +11,7 @@
 #include <boost/format.hpp>
 #include <boost/graph/graphviz.hpp>
 
+#include "ASTNodeAttribute.h"
 #include "ASTNodeForward.h"
 #include "ASTNodeGraphvizBuilder.h"
 #include "hrl_global.h"

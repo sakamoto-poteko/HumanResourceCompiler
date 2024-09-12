@@ -501,7 +501,7 @@ int SymbolAnalysisPass::visit(ContinueStatementASTNodePtr node)
 int SymbolAnalysisPass::visit(StatementBlockASTNodePtr node)
 {
     // Implement visit logic for StatementBlockASTNode
-    const ASTNodePtr &parent = parent_node();
+    const ASTNodePtr &parent = topmost_node();
     bool come_from_while_if_for
         = is_ptr_type<WhileStatementASTNode>(parent)
         || is_ptr_type<IfStatementASTNode>(parent)

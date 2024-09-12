@@ -2,6 +2,7 @@
 #define SYMBOL_H
 
 #include "ASTNode.h"
+#include "ASTNodeAttribute.h"
 #include "semanalyzer_global.h"
 
 OPEN_SEMANALYZER_NAMESPACE
@@ -21,7 +22,7 @@ enum class SymbolType {
  * It provides methods for retrieving the symbol's attributes, such as whether it has parameters
  * or a return value, and converts the symbol's details to a string format.
  */
-class Symbol : public parser::ASTNodeAttribute {
+class Symbol : public parser::ASTNodeAttribute, public parser::GetSetAttribute<Symbol> {
 public:
     /**
      * @brief The type of a symbol
@@ -65,7 +66,8 @@ public:
     {
     }
 
-    int get_type() override { return SemAnalzyerASTNodeAttributeId::ATTR_SEMANALYZER_SYMBOL; }
+    // int get_type() override { return SemAnalzyerASTNodeAttributeId::ATTR_SEMANALYZER_SYMBOL; }
+    static int get_attribute_id() { return SemAnalzyerASTNodeAttributeId::ATTR_SEMANALYZER_SYMBOL; }
 
     std::string to_string() override;
 

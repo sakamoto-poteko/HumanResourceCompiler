@@ -1,12 +1,10 @@
 #ifndef CONSTANTFOLDINGPASS_H
 #define CONSTANTFOLDINGPASS_H
 
-#include <cstdint>
-
-#include <stack>
 #include <string>
 
 #include "ASTNode.h"
+#include "ASTNodeAttribute.h"
 #include "SemanticAnalysisPass.h"
 #include "semanalyzer_global.h"
 
@@ -16,15 +14,19 @@ using namespace parser;
 
 template <typename Func>
 concept BinaryIntOperation = requires(Func func, int a, int b, int &out) {
-    { func(a, b, out) } -> std::same_as<int>;
+    {
+        func(a, b, out)
+    } -> std::same_as<int>;
 };
 
 template <typename Func>
 concept UnaryIntOperation = requires(Func func, int a, int &out) {
-    { func(a, out) } -> std::same_as<int>;
+    {
+        func(a, out)
+    } -> std::same_as<int>;
 };
 
-class ConstantFoldingAttribute : public ASTNodeAttribute {
+class ConstantFoldingAttribute : public ASTNodeAttribute, public GetSetAttribute<ConstantFoldingAttribute> {
 public:
     ConstantFoldingAttribute(int value)
         : _value(value)
@@ -33,7 +35,8 @@ public:
 
     int get_value() const { return _value; }
 
-    int get_type() override;
+    // int get_type() { return ATTR_SEMANALYZER_CONST_FOLDING_VALUE; }
+    int get_attribute_id() { return ATTR_SEMANALYZER_CONST_FOLDING_VALUE; }
 
     std::string to_string() override;
 

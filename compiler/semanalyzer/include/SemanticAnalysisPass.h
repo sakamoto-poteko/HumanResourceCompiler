@@ -80,7 +80,7 @@ protected:
         }
     }
 
-    const parser::ASTNodePtr &parent_node() const { return _ancestors.back(); }
+    const parser::ASTNodePtr &topmost_node() const { return _ancestors.back(); }
 
     virtual void enter_node(parser::ASTNodePtr node);
 

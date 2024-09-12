@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "ASTNode.h"
+#include "ASTNodeAttribute.h"
 #include "ASTNodeForward.h"
 #include "hrl_global.h"
 #include "semanalyzer_global.h"
@@ -43,7 +44,7 @@ using ScopeInfoAttributePtr = std::shared_ptr<ScopeInfoAttribute>;
  * This information is used during semantic analysis to track the scope of variables
  * and ensure that scoping rules are followed correctly.
  */
-class ScopeInfoAttribute : public parser::ASTNodeAttribute {
+class ScopeInfoAttribute : public parser::ASTNodeAttribute, public parser::GetSetAttribute<ScopeInfoAttribute> {
 public:
     ScopeInfoAttribute(const std::string &scope_id, ScopeType scope_type)
         : _scope_id(scope_id)
@@ -53,7 +54,8 @@ public:
 
     ~ScopeInfoAttribute() override = default;
 
-    int get_type() override;
+    static int get_attribute_id() { return SemAnalzyerASTNodeAttributeId::ATTR_SEMANALYZER_SYMBOL; }
+
     std::string to_string() override;
 
     const std::string &get_scope_id() const { return _scope_id; }

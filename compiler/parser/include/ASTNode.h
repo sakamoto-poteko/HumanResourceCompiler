@@ -1,6 +1,7 @@
 #ifndef ASTNODE_H
 #define ASTNODE_H
 
+#include <concepts>
 #include <map>
 #include <memory>
 #include <optional>
@@ -16,23 +17,7 @@
 OPEN_PARSER_NAMESPACE
 
 class ASTNodeVisitor;
-
-class ASTNodeAttribute : public std::enable_shared_from_this<ASTNodeAttribute> {
-public:
-    ASTNodeAttribute() = default;
-    virtual ~ASTNodeAttribute() = default;
-
-    virtual int get_type() = 0;
-    virtual std::string to_string() = 0;
-};
-
-enum ParserASTNodeAttributeId : int {
-    ATTR_PARSER_BEGIN = 0,
-    ATTR_PARSER_END = 999,
-    // range 0000-0999
-    // No attributes
-};
-
+class ASTNodeAttribute;
 using ASTNodeAttributePtr = std::shared_ptr<ASTNodeAttribute>;
 
 class ASTNode : public std::enable_shared_from_this<ASTNode> {
