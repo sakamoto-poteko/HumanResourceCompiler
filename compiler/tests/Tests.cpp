@@ -91,7 +91,7 @@ int main(int argc, char **argv)
     }
 
     if (directory == nullptr) {
-        throw std::runtime_error("Missing test HRML files path");
+        directory = FALLBACK_HRML_DIR;
     }
 
     load_test_cases(directory);
