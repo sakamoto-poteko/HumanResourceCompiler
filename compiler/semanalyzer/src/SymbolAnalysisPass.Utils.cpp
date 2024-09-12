@@ -149,157 +149,18 @@ void SymbolAnalysisPass::log_undefined_error(const StringPtr &name, SymbolType t
         errstr.str());
 }
 
-void SymbolAnalysisPass::log_use_before_initialization_error(const StringPtr &name, const ASTNodePtr &node)
-{
-    SymbolPtr defined_symbol;
-
-    bool symbol_found = lookup_symbol_with_ancestors(name, defined_symbol);
-    UNUSED(symbol_found);
-    assert(symbol_found); // won't happen
-
-    ASTNodePtr defined_node = WEAK_TO_SHARED(defined_symbol->definition);
-    assert(defined_node);
-    assert(defined_symbol->type == SymbolType::VARIABLE);
-
-    auto errstr = boost::format("Variable '%1%' may be used before assignment.") % *name;
-
-    ErrorManager::instance().report(
-        E_SEMA_VAR_USE_BEFORE_INIT,
-        ErrorSeverity::Error,
-        ErrorLocation(*_filename, node->lineno(), node->colno(), name->size()),
-        errstr.str());
-
-    ErrorManager::instance().report_continued(
-        ErrorSeverity::Error,
-        ErrorLocation(defined_symbol->filename, defined_node->lineno(), defined_node->colno(), 0),
-        "Original defined in");
-}
-
-int SymbolAnalysisPass::get_varinit_record(const StringPtr &var_name)
-{
-    SymbolPtr symbol;
-    std::string sym_defined_scope;
-    assert(lookup_symbol_with_ancestors(var_name, symbol, sym_defined_scope));
-
-    auto &stack = _varinit_record_stacks[SymbolScopeKey(var_name, sym_defined_scope)];
-    assert(!stack.empty());
-    return stack.top();
-}
-
-void SymbolAnalysisPass::create_varinit_record(const StringPtr &var_name, int is_initialized)
-{
-    SymbolPtr symbol;
-    std::string sym_defined_scope;
-    assert(lookup_symbol_with_ancestors(var_name, symbol, sym_defined_scope));
-
-    auto &stack = _varinit_record_stacks[SymbolScopeKey(var_name, sym_defined_scope)];
-    assert(stack.empty());
-    stack.push(is_initialized);
-}
-
-void SymbolAnalysisPass::set_varinit_record(const SymbolScopeKey &key, int is_initialized)
-{
-    // NOTE:
-    // 1) when variable is declared in same or outer scope, the symstack is pushed at that time. we can modify the top
-    // 2) when variable is declared in inner scope, the symstack doesn't have it, and we need to push
-    auto &stack = _varinit_record_stacks[key];
-    if (stack.empty()) {
-        stack.push(is_initialized);
-    } else {
-        stack.top() = is_initialized;
-    }
-}
-
-void SymbolAnalysisPass::set_varinit_record(const StringPtr &var_name, int is_initialized)
-{
-    SymbolPtr symbol;
-    std::string sym_defined_scope;
-    assert(lookup_symbol_with_ancestors(var_name, symbol, sym_defined_scope));
-    set_varinit_record(SymbolScopeKey(var_name, sym_defined_scope), is_initialized);
-}
-
-void SymbolAnalysisPass::enter_scope_varinit_record()
-{
-    // 1. get all current scope variables (include ancestor defined)
-    // 2. for each variable, look at the top of stack result
-    // 3. push a new value=stack.top. The stack should not be empty - the variable must be declared before use
-    std::vector<std::pair<SymbolPtr, std::string>> all_symbols;
-    auto scope_id = _scope_manager.get_current_scope_id();
-    _symbol_table->get_symbols_include_ancestors(scope_id, all_symbols);
-    for (const auto &[symbol, sym_defined_scope] : all_symbols) {
-        if (symbol->type == SymbolType::VARIABLE) {
-            // NOTE: symstack is not empty, because variable is declared first. the symstack is pushed at that time.
-            auto &stack = _varinit_record_stacks[SymbolScopeKey(std::make_shared<std::string>(symbol->name), sym_defined_scope)];
-            assert(!stack.empty());
-            int top = stack.top();
-            stack.push(top);
-        }
-    }
-    _varinit_record_stack_result.emplace();
-}
-
-void SymbolAnalysisPass::leave_scope_varinit_record()
-{
-    SymbolScopedKeyValueHash result;
-
-    // note the order. we're actually writing the result to parent's result stack slot
-    // BUG: this is not right. When there are multiple scopes, it fails.
-    // we should figure out a way to passthrough children's result to parent
-    const auto &children_results = _varinit_record_stack_result.top();
-
-    std::vector<std::pair<SymbolPtr, std::string>> all_symbols;
-    auto scope_id = _scope_manager.get_current_scope_id();
-    _symbol_table->get_symbols_include_ancestors(scope_id, all_symbols);
-
-    for (const auto &[symbol, sym_defined_scope] : all_symbols) {
-        if (symbol->type == SymbolType::VARIABLE) {
-            auto symkey = SymbolScopeKey(std::make_shared<std::string>(symbol->name), sym_defined_scope);
-            auto &stack = _varinit_record_stacks[symkey];
-            // FIXME: we need to return this result
-            // we also need to filter out those who has the scope_id of self,
-            // because our ancestors don't care inner scoped vars! they can't access anyway.
-            assert(!stack.empty());
-            int sym_init_result = stack.top();
-            stack.pop();
-            if (sym_defined_scope != scope_id) {
-                result[symkey] = sym_init_result;
-            }
-        }
-    }
-
-    for (const auto &[children_symkey, children_init_result] : children_results) {
-        result[children_symkey] = children_init_result;
-    }
-
-    _varinit_record_stack_result.pop();
-    _varinit_record_stack_result.top().swap(result);
-}
-
-void SymbolAnalysisPass::get_child_varinit_records(SymbolScopedKeyValueHash &result)
-{
-    result = _varinit_record_stack_result.top();
-}
-
-void SymbolAnalysisPass::set_child_varinit_records(const SymbolScopedKeyValueHash &records)
-{
-    _varinit_record_stack_result.top() = records;
-}
-
 void SymbolAnalysisPass::enter_anonymous_scope()
 {
     _scope_manager.enter_anonymous_scope();
-    enter_scope_varinit_record();
 }
 
 void SymbolAnalysisPass::enter_scope(const StringPtr &name, ScopeType scope_type)
 {
     _scope_manager.enter_scope(*name, scope_type);
-    enter_scope_varinit_record();
 }
 
 void SymbolAnalysisPass::leave_scope()
 {
-    leave_scope_varinit_record();
     _scope_manager.exit_scope();
 }
 

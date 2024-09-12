@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "ASTNode.h"
+#include "ASTNodeForward.h"
 #include "hrl_global.h"
 #include "semanalyzer_global.h"
 
@@ -30,6 +31,9 @@ enum class ScopeType : int {
      */
     Block,
 };
+
+class ScopeInfoAttribute;
+using ScopeInfoAttributePtr = std::shared_ptr<ScopeInfoAttribute>;
 
 /**
  * @brief Stores information about the scope of an AST node.
@@ -56,12 +60,30 @@ public:
 
     ScopeType get_scope_type() const { return _type; }
 
+    static ScopeInfoAttributePtr get_scope(const parser::ASTNodePtr &node)
+    {
+        parser::ASTNodeAttributePtr out;
+        if (node->get_attribute(ATTR_SEMANALYZER_SCOPE_INFO, out)) {
+            return std::static_pointer_cast<ScopeInfoAttribute>(out);
+        } else {
+            return nullptr;
+        }
+    }
+
+    static void set_scope(const parser::ASTNodePtr &node, const ScopeInfoAttributePtr &scope_info)
+    {
+        node->set_attribute(ATTR_SEMANALYZER_SCOPE_INFO, scope_info);
+    }
+
+    void attach(const parser::ASTNodePtr &node)
+    {
+        node->set_attribute(ATTR_SEMANALYZER_SCOPE_INFO, shared_from_this());
+    }
+
 private:
     std::string _scope_id;
     ScopeType _type;
 };
-
-using ScopeInfoAttributePtr = std::shared_ptr<ScopeInfoAttribute>;
 
 /**
  * @brief Manages scoping during compilation.

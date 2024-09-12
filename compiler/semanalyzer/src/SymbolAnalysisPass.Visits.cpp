@@ -46,8 +46,6 @@ int SymbolAnalysisPass::run()
         _symbol_table = std::make_shared<SymbolTable>();
     }
 
-    _varinit_record_stack_result.emplace();
-
     int result = 0, rc = 0;
     rc = visit(_root);
     RETURN_IF_FAIL();
@@ -132,7 +130,6 @@ int SymbolAnalysisPass::visit(VariableDeclarationASTNodePtr node)
 
     rc = add_variable_symbol_or_log_error(node->get_name(), node);
     SET_RESULT_RC_AND_RETURN_IN_VISIT();
-    create_varinit_record(node->get_name(), 0);
 
     rc = traverse(node->get_assignment());
     SET_RESULT_RC_AND_RETURN_IN_VISIT();
@@ -149,7 +146,6 @@ int SymbolAnalysisPass::visit(VariableAssignmentASTNodePtr node)
     SET_RESULT_RC_AND_RETURN_IN_VISIT();
     rc = traverse(node->get_value());
     SET_RESULT_RC_AND_RETURN_IN_VISIT();
-    set_varinit_record(node->get_name(), 1);
 
     END_VISIT();
 }
@@ -161,13 +157,6 @@ int SymbolAnalysisPass::visit(VariableAccessASTNodePtr node)
 
     rc = attach_symbol_or_log_error(node->get_name(), SymbolType::VARIABLE, node);
     SET_RESULT_RC_AND_RETURN_IN_VISIT();
-
-    int assigned = get_varinit_record(node->get_name());
-    if (!assigned) {
-        log_use_before_initialization_error(node->get_name(), node);
-        rc = E_SEMA_VAR_USE_BEFORE_INIT;
-        SET_RESULT_RC_AND_RETURN_IN_VISIT();
-    }
 
     END_VISIT();
 }
@@ -427,58 +416,15 @@ int SymbolAnalysisPass::visit(IfStatementASTNodePtr node)
     rc = traverse(node->get_condition());
     SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
-    SymbolScopedKeyValueHash varinit_result_then;
-    SymbolScopedKeyValueHash varinit_result_else;
-
     enter_anonymous_scope();
     rc = traverse(node->get_then_branch());
     SET_RESULT_RC_AND_RETURN_IN_VISIT();
     leave_scope();
-    get_child_varinit_records(varinit_result_then);
 
     enter_anonymous_scope();
     rc = traverse(node->get_else_branch());
     SET_RESULT_RC_AND_RETURN_IN_VISIT();
     leave_scope();
-    get_child_varinit_records(varinit_result_else);
-
-    // process the var init results. if both are 1, the final is 1. if neither is 0, the final is 0.
-    assert(node->get_then_branch());
-
-    if (node->get_else_branch()) {
-        assert(varinit_result_then.size() == varinit_result_else.size());
-        assert(std::ranges::all_of(varinit_result_then, [&varinit_result_else](const auto &kv) {
-            return varinit_result_else.contains(kv.first);
-        }) && "Maps do not contain the same keys!");
-        assert(std::ranges::all_of(varinit_result_else, [&varinit_result_then](const auto &kv) {
-            return varinit_result_then.contains(kv.first);
-        }) && "Maps do not contain the same keys!");
-    } else {
-        // single arm if statement
-        // make them have the same element and assign 0
-        // don't assert varinit_result_else.empty(), because when entering else scope (even if it's null), variables in parents are copied
-        for (const auto &[sym_key, result_then] : varinit_result_then) {
-            // if the variable (coming from parent scope) is initialized, we do nothing.
-            // otherwise, we assign a 0.
-            varinit_result_else[sym_key] |= 0;
-        }
-    }
-
-    SymbolScopedKeyValueHash after_if_var_init_result;
-
-    for (const auto &[sym_key, result_then] : varinit_result_then) {
-        int result_else = varinit_result_else.at(sym_key);
-
-        // Apply the merging rule: if either is 0, result is 0, otherwise result is 1
-        int both_initialized = (result_then == 0 || result_else == 0) ? 0 : 1;
-
-        // Insert the merged value into the result map
-        after_if_var_init_result[sym_key] = both_initialized;
-    }
-
-    for (const auto &[sym_key, sym_initialized] : after_if_var_init_result) {
-        set_varinit_record(sym_key, sym_initialized);
-    }
 
     END_VISIT();
 }
@@ -495,13 +441,8 @@ int SymbolAnalysisPass::visit(WhileStatementASTNodePtr node)
 
     enter_anonymous_scope();
 
-    SymbolScopedKeyValueHash varinit_before_loop; // we assume the loop won't be executed
-    get_child_varinit_records(varinit_before_loop);
-
     rc = traverse(node->get_body());
     SET_RESULT_RC_AND_RETURN_IN_VISIT();
-
-    set_child_varinit_records(varinit_before_loop); // it's kept
 
     leave_scope();
     END_VISIT();
@@ -514,9 +455,6 @@ int SymbolAnalysisPass::visit(ForStatementASTNodePtr node)
 
     enter_anonymous_scope();
 
-    SymbolScopedKeyValueHash varinit_before_loop; // we assume the loop won't be executed
-    get_child_varinit_records(varinit_before_loop);
-
     rc = traverse(node->get_init());
     SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
@@ -528,8 +466,6 @@ int SymbolAnalysisPass::visit(ForStatementASTNodePtr node)
 
     rc = traverse(node->get_body());
     SET_RESULT_RC_AND_RETURN_IN_VISIT();
-
-    set_child_varinit_records(varinit_before_loop); // it's kept
 
     leave_scope();
     END_VISIT();
@@ -645,20 +581,14 @@ int SymbolAnalysisPass::visit_subroutine(AbstractSubroutineASTNodePtr node, bool
 
     enter_scope(function_name, ScopeType::Subroutine);
 
-    SymbolScopedKeyValueHash varinit_before_func_body; // we assume the function won't be executed
-    get_child_varinit_records(varinit_before_func_body);
-
     if (param) {
         rc = add_variable_symbol_or_log_error(param, node);
-        create_varinit_record(param, 1);
         SET_RESULT_RC_AND_RETURN_IN_VISIT();
     }
 
     // passthrough the block level
     rc = traverse(node->get_body()->get_statements());
     SET_RESULT_RC_AND_RETURN_IN_VISIT();
-
-    set_child_varinit_records(varinit_before_func_body);
 
     // pop them up, and set the return value!
     leave_scope();

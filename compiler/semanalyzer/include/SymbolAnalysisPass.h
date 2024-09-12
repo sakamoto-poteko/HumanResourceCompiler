@@ -104,45 +104,6 @@ private:
 
     // [End]
 
-    // [Group] var use before init check
-    struct SymbolScopeKey {
-        StringPtr name;
-        std::string scope;
-
-        SymbolScopeKey(StringPtr name, std::string scope)
-            : name(std::move(name))
-            , scope(std::move(scope))
-        {
-        }
-
-        bool operator==(const SymbolScopeKey &other) const
-        {
-            return scope == other.scope && *name == *other.name;
-        }
-    };
-
-    struct SymbolScopeKeyHashProvider {
-        std::size_t operator()(const SymbolScopeKey &obj) const
-        {
-            std::size_t h1 = std::hash<std::string> {}(*obj.name);
-            std::size_t h2 = std::hash<std::string> {}(obj.scope);
-            return h1 ^ (h2 << 1);
-        }
-    };
-
-    using SymbolScopedKeyValueHash = std::unordered_map<SymbolScopeKey, int, SymbolScopeKeyHashProvider>;
-    std::unordered_map<SymbolScopeKey, std::stack<int>, SymbolScopeKeyHashProvider> _varinit_record_stacks;
-    std::stack<SymbolScopedKeyValueHash> _varinit_record_stack_result;
-    int get_varinit_record(const StringPtr &var_name);
-    void create_varinit_record(const StringPtr &var_name, int is_initialized);
-    void set_varinit_record(const StringPtr &var_name, int is_initialized);
-    void set_varinit_record(const SymbolScopeKey &key, int is_initialized);
-    void enter_scope_varinit_record();
-    void leave_scope_varinit_record();
-    void get_child_varinit_records(SymbolScopedKeyValueHash &result);
-    void set_child_varinit_records(const SymbolScopedKeyValueHash &records);
-    // [End]
-
     // [Group] Visit helpers
     int visit_binary_expression(AbstractBinaryExpressionASTNodePtr node);
     int visit_subroutine(AbstractSubroutineASTNodePtr node, bool has_return);
@@ -162,7 +123,6 @@ private:
     // [Group] Log errors
     void log_redefinition_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node);
     void log_undefined_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node);
-    void log_use_before_initialization_error(const StringPtr &name, const ASTNodePtr &node);
     // [End]
 
     bool lookup_symbol_with_ancestors(const StringPtr &name, SymbolPtr &out_symbol, std::string &out_def_scope);
