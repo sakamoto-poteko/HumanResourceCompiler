@@ -66,7 +66,6 @@ public:
     {
     }
 
-    // int get_type() override { return SemAnalzyerASTNodeAttributeId::ATTR_SEMANALYZER_SYMBOL; }
     static int get_attribute_id() { return SemAnalzyerASTNodeAttributeId::ATTR_SEMANALYZER_SYMBOL; }
 
     std::string to_string() override;

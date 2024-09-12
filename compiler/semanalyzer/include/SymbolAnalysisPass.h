@@ -3,19 +3,13 @@
 
 #include <cassert>
 
-#include <map>
 #include <queue>
-#include <stack>
 #include <string>
-#include <unordered_map>
-#include <vector>
 
-#include "ASTNode.h"
-#include "ASTNodeForward.h"
-#include "ASTNodeVisitor.h"
 #include "ScopeManager.h"
 #include "SemanticAnalysisPass.h"
 #include "SymbolTable.h"
+#include "WithSymbolTable.h"
 #include "hrl_global.h"
 #include "semanalyzer_global.h"
 
@@ -27,7 +21,7 @@ using namespace parser;
  * @brief This builder traverses the AST to construct the symbol table, annotating the scope id of each node.
  * It also verifies performs signature check, variable shadowing check (warning)
  */
-class SymbolAnalysisPass : public SemanticAnalysisPass {
+class SymbolAnalysisPass : public SemanticAnalysisPass, public WithSymbolTable {
 public:
     /**
      * @brief Construct a new Symbol Table Builder object
@@ -43,15 +37,6 @@ public:
     ~SymbolAnalysisPass() override = default;
 
     int run() override;
-
-    /**
-     * @brief Set the symbol table object
-     *
-     * @param symbol_table  The existing table. This can be useful when the program has imports.
-     */
-    void set_symbol_table(SymbolTablePtr &symbol_table) { _symbol_table = symbol_table; }
-
-    const SymbolTablePtr &get_symbol_table() const { return _symbol_table; }
 
     // For all visit, the return value of 0 indicate success.
     int visit(IntegerASTNodePtr node) override;
@@ -92,8 +77,11 @@ public:
     int visit(FunctionDefinitionASTNodePtr node) override;
     int visit(CompilationUnitASTNodePtr node) override;
 
+protected:
+    void enter_node(parser::ASTNodePtr node) override;
+
 private:
-    SymbolTablePtr _symbol_table;
+    // SymbolTablePtr _symbol_table;
     ScopeManager _scope_manager;
     std::queue<InvocationExpressionASTNodePtr> _pending_invocation_check;
 
@@ -105,7 +93,6 @@ private:
     // [End]
 
     // [Group] Visit helpers
-    int visit_binary_expression(AbstractBinaryExpressionASTNodePtr node);
     int visit_subroutine(AbstractSubroutineASTNodePtr node, bool has_return);
     // [End]
 

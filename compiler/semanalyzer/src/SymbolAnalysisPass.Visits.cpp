@@ -6,10 +6,12 @@
 #include <spdlog/spdlog.h>
 
 #include "ASTNode.h"
+#include "ASTNodeForward.h"
 #include "ErrorManager.h"
 #include "ErrorMessage.h"
 #include "ScopeManager.h"
 #include "SemanticAnalysisErrors.h"
+#include "SemanticAnalysisPass.h"
 #include "Symbol.h"
 #include "SymbolAnalysisPass.h"
 #include "SymbolTable.h"
@@ -20,7 +22,6 @@ OPEN_SEMANALYZER_NAMESPACE
 
 #define BEGIN_VISIT()       \
     enter_node(node);       \
-    attach_scope_id(node);  \
     int result = 0, rc = 0; \
     UNUSED(rc)
 
@@ -42,9 +43,7 @@ OPEN_SEMANALYZER_NAMESPACE
 
 int SymbolAnalysisPass::run()
 {
-    if (!_symbol_table) {
-        _symbol_table = std::make_shared<SymbolTable>();
-    }
+    init_symbol_table();
 
     int result = 0, rc = 0;
     rc = visit(_root);
@@ -106,21 +105,14 @@ int SymbolAnalysisPass::check_pending_invocations()
     return result;
 }
 
-// WARNING: Do not use `return SemanticAnalysisPass::visit(node)`
-// Because we need to attach scope id to each node!
-
 int SymbolAnalysisPass::visit(IntegerASTNodePtr node)
 {
-    // Implement visit logic for IntegerASTNode
-    BEGIN_VISIT();
-    END_VISIT();
+    return SemanticAnalysisPass::visit(node);
 }
 
 int SymbolAnalysisPass::visit(BooleanASTNodePtr node)
 {
-    // Implement visit logic for BooleanASTNode
-    BEGIN_VISIT();
-    END_VISIT();
+    return SemanticAnalysisPass::visit(node);
 }
 
 int SymbolAnalysisPass::visit(VariableDeclarationASTNodePtr node)
@@ -163,60 +155,27 @@ int SymbolAnalysisPass::visit(VariableAccessASTNodePtr node)
 
 int SymbolAnalysisPass::visit(FloorBoxInitStatementASTNodePtr node)
 {
-    // Implement visit logic for FloorBoxInitStatementASTNode
-    BEGIN_VISIT();
-
-    rc = traverse(node->get_assignment());
-    SET_RESULT_RC_AND_RETURN_IN_VISIT();
-
-    END_VISIT();
+    return SemanticAnalysisPass::visit(node);
 }
 
 int SymbolAnalysisPass::visit(FloorAssignmentASTNodePtr node)
 {
-    // Implement visit logic for FloorAssignmentASTNode
-    BEGIN_VISIT();
-
-    rc = traverse(node->get_floor_number());
-    SET_RESULT_RC_AND_RETURN_IN_VISIT();
-
-    rc = traverse(node->get_value());
-    SET_RESULT_RC_AND_RETURN_IN_VISIT();
-
-    END_VISIT();
+    return SemanticAnalysisPass::visit(node);
 }
 
 int SymbolAnalysisPass::visit(FloorAccessASTNodePtr node)
 {
-    // Implement visit logic for FloorAccessASTNode
-    BEGIN_VISIT();
-
-    rc = traverse(node->get_index_expr());
-    SET_RESULT_RC_AND_RETURN_IN_VISIT();
-
-    END_VISIT();
+    return SemanticAnalysisPass::visit(node);
 }
 
 int SymbolAnalysisPass::visit(NegativeExpressionASTNodePtr node)
 {
-    // Implement visit logic for NegativeExpressionASTNode
-    BEGIN_VISIT();
-
-    rc = traverse(node->get_operand());
-    SET_RESULT_RC_AND_RETURN_IN_VISIT();
-
-    END_VISIT();
+    return SemanticAnalysisPass::visit(node);
 }
 
 int SymbolAnalysisPass::visit(NotExpressionASTNodePtr node)
 {
-    // Implement visit logic for NotExpressionASTNode
-    BEGIN_VISIT();
-
-    rc = traverse(node->get_operand());
-    SET_RESULT_RC_AND_RETURN_IN_VISIT();
-
-    END_VISIT();
+    return SemanticAnalysisPass::visit(node);
 }
 
 int SymbolAnalysisPass::visit(IncrementExpressionASTNodePtr node)
@@ -243,145 +202,67 @@ int SymbolAnalysisPass::visit(DecrementExpressionASTNodePtr node)
 
 int SymbolAnalysisPass::visit(AddExpressionASTNodePtr node)
 {
-    // Implement visit logic for AddExpressionASTNode
-    BEGIN_VISIT();
-
-    rc = visit_binary_expression(node);
-    SET_RESULT_RC_AND_RETURN_IN_VISIT();
-
-    END_VISIT();
+    return SemanticAnalysisPass::visit(node);
 }
 
 int SymbolAnalysisPass::visit(SubExpressionASTNodePtr node)
 {
-    // Implement visit logic for SubExpressionASTNode
-    BEGIN_VISIT();
-
-    rc = visit_binary_expression(node);
-    SET_RESULT_RC_AND_RETURN_IN_VISIT();
-
-    END_VISIT();
+    return SemanticAnalysisPass::visit(node);
 }
 
 int SymbolAnalysisPass::visit(MulExpressionASTNodePtr node)
 {
-    // Implement visit logic for MulExpressionASTNode
-    BEGIN_VISIT();
-
-    rc = visit_binary_expression(node);
-    SET_RESULT_RC_AND_RETURN_IN_VISIT();
-
-    END_VISIT();
+    return SemanticAnalysisPass::visit(node);
 }
 
 int SymbolAnalysisPass::visit(DivExpressionASTNodePtr node)
 {
-    // Implement visit logic for DivExpressionASTNode
-    BEGIN_VISIT();
-
-    rc = visit_binary_expression(node);
-    SET_RESULT_RC_AND_RETURN_IN_VISIT();
-
-    END_VISIT();
+    return SemanticAnalysisPass::visit(node);
 }
 
 int SymbolAnalysisPass::visit(ModExpressionASTNodePtr node)
 {
-    // Implement visit logic for ModExpressionASTNode
-    BEGIN_VISIT();
-
-    rc = visit_binary_expression(node);
-    SET_RESULT_RC_AND_RETURN_IN_VISIT();
-
-    END_VISIT();
+    return SemanticAnalysisPass::visit(node);
 }
 
 int SymbolAnalysisPass::visit(EqualExpressionASTNodePtr node)
 {
-    // Implement visit logic for EqualExpressionASTNode
-    BEGIN_VISIT();
-
-    rc = visit_binary_expression(node);
-    SET_RESULT_RC_AND_RETURN_IN_VISIT();
-
-    END_VISIT();
+    return SemanticAnalysisPass::visit(node);
 }
 
 int SymbolAnalysisPass::visit(NotEqualExpressionASTNodePtr node)
 {
-    // Implement visit logic for NotEqualExpressionASTNode
-    BEGIN_VISIT();
-
-    rc = visit_binary_expression(node);
-    SET_RESULT_RC_AND_RETURN_IN_VISIT();
-
-    END_VISIT();
+    return SemanticAnalysisPass::visit(node);
 }
 
 int SymbolAnalysisPass::visit(GreaterThanExpressionASTNodePtr node)
 {
-    // Implement visit logic for GreaterThanExpressionASTNode
-    BEGIN_VISIT();
-
-    rc = visit_binary_expression(node);
-    SET_RESULT_RC_AND_RETURN_IN_VISIT();
-
-    END_VISIT();
+    return SemanticAnalysisPass::visit(node);
 }
 
 int SymbolAnalysisPass::visit(GreaterEqualExpressionASTNodePtr node)
 {
-    // Implement visit logic for GreaterEqualExpressionASTNode
-    BEGIN_VISIT();
-
-    rc = visit_binary_expression(node);
-    SET_RESULT_RC_AND_RETURN_IN_VISIT();
-
-    END_VISIT();
+    return SemanticAnalysisPass::visit(node);
 }
 
 int SymbolAnalysisPass::visit(LessThanExpressionASTNodePtr node)
 {
-    // Implement visit logic for LessThanExpressionASTNode
-    BEGIN_VISIT();
-
-    rc = visit_binary_expression(node);
-    SET_RESULT_RC_AND_RETURN_IN_VISIT();
-
-    END_VISIT();
+    return SemanticAnalysisPass::visit(node);
 }
 
 int SymbolAnalysisPass::visit(LessEqualExpressionASTNodePtr node)
 {
-    // Implement visit logic for LessEqualExpressionASTNode
-    BEGIN_VISIT();
-
-    rc = visit_binary_expression(node);
-    SET_RESULT_RC_AND_RETURN_IN_VISIT();
-
-    END_VISIT();
+    return SemanticAnalysisPass::visit(node);
 }
 
 int SymbolAnalysisPass::visit(AndExpressionASTNodePtr node)
 {
-    // Implement visit logic for AndExpressionASTNode
-    BEGIN_VISIT();
-
-    rc = visit_binary_expression(node);
-    SET_RESULT_RC_AND_RETURN_IN_VISIT();
-
-    END_VISIT();
+    return SemanticAnalysisPass::visit(node);
 }
 
 int SymbolAnalysisPass::visit(OrExpressionASTNodePtr node)
 {
-    // Implement visit logic for OrExpressionASTNode
-    BEGIN_VISIT();
-
-    rc = visit_binary_expression(node);
-    SET_RESULT_RC_AND_RETURN_IN_VISIT();
-
-    END_VISIT();
+    return SemanticAnalysisPass::visit(node);
 }
 
 int SymbolAnalysisPass::visit(InvocationExpressionASTNodePtr node)
@@ -399,11 +280,7 @@ int SymbolAnalysisPass::visit(InvocationExpressionASTNodePtr node)
 
 int SymbolAnalysisPass::visit(EmptyStatementASTNodePtr node)
 {
-    // Implement visit logic for EmptyStatementASTNode
-    // nothing
-    BEGIN_VISIT();
-
-    END_VISIT();
+    return SemanticAnalysisPass::visit(node);
 }
 
 int SymbolAnalysisPass::visit(IfStatementASTNodePtr node)
@@ -473,52 +350,45 @@ int SymbolAnalysisPass::visit(ForStatementASTNodePtr node)
 
 int SymbolAnalysisPass::visit(ReturnStatementASTNodePtr node)
 {
-    // Implement visit logic for ReturnStatementASTNode
-    BEGIN_VISIT();
-
-    rc = traverse(node->get_expression());
-    SET_RESULT_RC_AND_RETURN_IN_VISIT();
-
-    END_VISIT();
+    return SemanticAnalysisPass::visit(node);
 }
 
 int SymbolAnalysisPass::visit(BreakStatementASTNodePtr node)
 {
-    // Implement visit logic for BreakStatementASTNode
-    BEGIN_VISIT();
-
-    END_VISIT();
+    return SemanticAnalysisPass::visit(node);
 }
 
 int SymbolAnalysisPass::visit(ContinueStatementASTNodePtr node)
 {
-    // Implement visit logic for ContinueStatementASTNode
-    BEGIN_VISIT();
-
-    END_VISIT();
+    return SemanticAnalysisPass::visit(node);
 }
 
 int SymbolAnalysisPass::visit(StatementBlockASTNodePtr node)
 {
     // Implement visit logic for StatementBlockASTNode
     const ASTNodePtr &parent = topmost_node();
-    bool come_from_while_if_for
+    // is it from while/if/for/function/subroutine which is scope structured?
+    bool come_from_scoped_structure
         = is_ptr_type<WhileStatementASTNode>(parent)
         || is_ptr_type<IfStatementASTNode>(parent)
-        || is_ptr_type<ForStatementASTNode>(parent);
+        || is_ptr_type<ForStatementASTNode>(parent)
+        || is_ptr_type<FunctionDefinitionASTNode>(parent)
+        || is_ptr_type<SubprocDefinitionASTNode>(parent);
 
     BEGIN_VISIT();
 
     // if entered from while/if/for, skip the new scope since these stmts entered already
 
-    if (!come_from_while_if_for) {
+    if (!come_from_scoped_structure) {
         enter_anonymous_scope();
+        // re-attach required because we entered a scope
+        attach_scope_id(node);
     }
 
     rc = traverse(node->get_statements());
     SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
-    if (!come_from_while_if_for) {
+    if (!come_from_scoped_structure) {
         leave_scope();
     }
 
@@ -539,29 +409,7 @@ int SymbolAnalysisPass::visit(FunctionDefinitionASTNodePtr node)
 
 int SymbolAnalysisPass::visit(CompilationUnitASTNodePtr node)
 {
-    // Implement visit logic for CompilationUnitASTNode
-    BEGIN_VISIT();
-
-    rc = traverse(node->get_var_decls());
-    SET_RESULT_RC_AND_RETURN_IN_VISIT();
-
-    rc = traverse(node->get_subroutines());
-    SET_RESULT_RC_AND_RETURN_IN_VISIT();
-
-    END_VISIT();
-}
-
-int SymbolAnalysisPass::visit_binary_expression(AbstractBinaryExpressionASTNodePtr node)
-{
-    BEGIN_VISIT();
-
-    rc = traverse(node->get_left());
-    SET_RESULT_RC_AND_RETURN_IN_VISIT();
-
-    rc = traverse(node->get_right());
-    SET_RESULT_RC_AND_RETURN_IN_VISIT();
-
-    END_VISIT();
+    return SemanticAnalysisPass::visit(node);
 }
 
 int SymbolAnalysisPass::visit_subroutine(AbstractSubroutineASTNodePtr node, bool has_return)
@@ -581,19 +429,22 @@ int SymbolAnalysisPass::visit_subroutine(AbstractSubroutineASTNodePtr node, bool
 
     enter_scope(function_name, ScopeType::Subroutine);
 
-    if (param) {
-        rc = add_variable_symbol_or_log_error(param, node);
-        SET_RESULT_RC_AND_RETURN_IN_VISIT();
-    }
+    rc = traverse(param);
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
-    // passthrough the block level
-    rc = traverse(node->get_body()->get_statements());
+    rc = traverse(node->get_body());
     SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     // pop them up, and set the return value!
     leave_scope();
 
     END_VISIT();
+}
+
+void SymbolAnalysisPass::enter_node(parser::ASTNodePtr node)
+{
+    SemanticAnalysisPass::enter_node(node);
+    attach_scope_id(node);
 }
 
 CLOSE_SEMANALYZER_NAMESPACE

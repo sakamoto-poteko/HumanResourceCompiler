@@ -39,35 +39,39 @@ int SymbolAnalysisPass::attach_symbol_or_log_error(const StringPtr &name, Symbol
         log_undefined_error(name, type, node);
         return E_SEMA_SYM_UNDEFINED;
     } else {
-        node->set_attribute(SemAnalzyerASTNodeAttributeId::ATTR_SEMANALYZER_SYMBOL, symbol);
+        Symbol::set_to(node, symbol);
         return 0;
     }
 }
 
 int SymbolAnalysisPass::add_subroutine_symbol_or_log_error(const StringPtr &name, bool has_param, bool has_return, const ASTNodePtr &node)
 {
-    if (!_symbol_table->add_function_symbol(_scope_manager.get_current_scope_id(), name, has_param, has_return, _filename, node)) {
+    SymbolPtr added;
+    if (!_symbol_table->add_function_symbol(_scope_manager.get_current_scope_id(), name, has_param, has_return, _filename, node, added)) {
         log_redefinition_error(name, SymbolType::SUBROUTINE, node);
         return E_SEMA_SYM_REDEF;
     } else {
+        Symbol::set_to(node, added);
         return 0;
     }
 }
 
 int SymbolAnalysisPass::add_variable_symbol_or_log_error(const StringPtr &name, const ASTNodePtr &node)
 {
-    SymbolPtr symbol;
+    SymbolPtr symbol, added;
     bool found_in_ancestor_or_current = lookup_symbol_with_ancestors(name, symbol);
-    if (!_symbol_table->add_variable_symbol(_scope_manager.get_current_scope_id(), name, _filename, node)) {
+    if (!_symbol_table->add_variable_symbol(_scope_manager.get_current_scope_id(), name, _filename, node, added)) {
         // false indicate found in current
         log_redefinition_error(name, SymbolType::VARIABLE, node);
         return E_SEMA_SYM_REDEF;
-    } else if (found_in_ancestor_or_current) {
+    }
+
+    if (found_in_ancestor_or_current) {
         // added to current scope and ancestor has it
         auto original_node = WEAK_TO_SHARED(symbol->definition);
 
         auto errstr = boost::format("variable '%1%' shadows a variable from the outer scope") % *name;
-        // auto errstr = ;
+
         ErrorManager::instance().report(
             W_SEMA_VAR_SHADOW_OUTER,
             ErrorSeverity::Warning,
@@ -77,11 +81,11 @@ int SymbolAnalysisPass::add_variable_symbol_or_log_error(const StringPtr &name, 
             ErrorSeverity::Warning,
             ErrorLocation(symbol->filename, original_node->lineno(), original_node->colno(), 0),
             "originally defined in");
-        // it's a warning so return 0
-        return 0;
-    } else {
-        return 0;
     }
+
+    // it's a warning so return 0
+    Symbol::set_to(node, added);
+    return 0;
 }
 
 void SymbolAnalysisPass::attach_scope_id(const ASTNodePtr &node)

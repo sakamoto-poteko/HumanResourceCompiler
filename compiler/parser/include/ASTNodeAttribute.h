@@ -46,6 +46,13 @@ public:
         node->get_attribute(static_cast<T *>(nullptr)->get_attribute_id(), result);
         return std::static_pointer_cast<T>(result);
     }
+
+    template <typename ASTNodePtrT = ASTNodePtr>
+        requires HasASTNodeGetAttributeId<T>
+    static void set_to(const ASTNodePtrT &node, const std::shared_ptr<T> &attr)
+    {
+        node->set_attribute(static_cast<T *>(nullptr)->get_attribute_id(), attr);
+    }
 };
 
 CLOSE_PARSER_NAMESPACE

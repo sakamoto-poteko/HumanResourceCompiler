@@ -599,8 +599,7 @@ int ASTNodeGraphvizBuilder::visit(SubprocDefinitionASTNodePtr node)
 
     if (node->get_parameter()) {
         enter_and_create_vertex("Arg", Statement, nullptr);
-        enter_and_create_vertex(node->get_parameter(), Literal, nullptr);
-        leave();
+        traverse(node->get_parameter());
         leave();
     }
 
@@ -620,8 +619,7 @@ int ASTNodeGraphvizBuilder::visit(FunctionDefinitionASTNodePtr node)
 
     if (node->get_parameter()) {
         enter_and_create_vertex("Arg", Statement, nullptr);
-        enter_and_create_vertex(node->get_parameter(), Literal, nullptr);
-        leave();
+        traverse(node->get_parameter());
         leave();
     }
 

@@ -171,7 +171,7 @@ private:
 
 class AbstractSubroutineASTNode : public ASTNode {
 public:
-    AbstractSubroutineASTNode(int lineno, int colno, int last_lineno, int last_colno, StringPtr name, StringPtr parameter, StatementBlockASTNodePtr body)
+    AbstractSubroutineASTNode(int lineno, int colno, int last_lineno, int last_colno, StringPtr name, VariableDeclarationASTNodePtr parameter, StatementBlockASTNodePtr body)
         : ASTNode(lineno, colno, last_lineno, last_colno)
         , _name(std::move(name))
         , _parameter(std::move(parameter))
@@ -181,14 +181,14 @@ public:
 
     StringPtr &get_name() { return _name; }
 
-    StringPtr &get_parameter() { return _parameter; }
+    VariableDeclarationASTNodePtr &get_parameter() { return _parameter; }
 
     StatementBlockASTNodePtr &get_body() { return _body; }
 
 protected:
 private:
     StringPtr _name;
-    StringPtr _parameter;
+    VariableDeclarationASTNodePtr _parameter;
     StatementBlockASTNodePtr _body;
 };
 
@@ -724,7 +724,7 @@ private:
 
 class SubprocDefinitionASTNode : public AbstractSubroutineASTNode {
 public:
-    SubprocDefinitionASTNode(int lineno, int colno, int last_lineno, int last_colno, StringPtr name, StringPtr parameter, StatementBlockASTNodePtr body)
+    SubprocDefinitionASTNode(int lineno, int colno, int last_lineno, int last_colno, StringPtr name, VariableDeclarationASTNodePtr parameter, StatementBlockASTNodePtr body)
         : AbstractSubroutineASTNode(lineno, colno, last_lineno, last_colno, name, parameter, body)
     {
     }
@@ -737,7 +737,7 @@ private:
 
 class FunctionDefinitionASTNode : public AbstractSubroutineASTNode {
 public:
-    FunctionDefinitionASTNode(int lineno, int colno, int last_lineno, int last_colno, StringPtr name, StringPtr parameter, StatementBlockASTNodePtr body)
+    FunctionDefinitionASTNode(int lineno, int colno, int last_lineno, int last_colno, StringPtr name, VariableDeclarationASTNodePtr parameter, StatementBlockASTNodePtr body)
         : AbstractSubroutineASTNode(lineno, colno, last_lineno, last_colno, name, parameter, body)
     {
     }
