@@ -3,19 +3,13 @@
 
 #include <cassert>
 
-#include <map>
 #include <queue>
-#include <stack>
 #include <string>
-#include <unordered_map>
-#include <vector>
 
-#include "ASTNode.h"
-#include "ASTNodeForward.h"
-#include "ASTNodeVisitor.h"
 #include "ScopeManager.h"
 #include "SemanticAnalysisPass.h"
 #include "SymbolTable.h"
+#include "WithSymbolTable.h"
 #include "hrl_global.h"
 #include "semanalyzer_global.h"
 
@@ -27,7 +21,7 @@ using namespace parser;
  * @brief This builder traverses the AST to construct the symbol table, annotating the scope id of each node.
  * It also verifies performs signature check, variable shadowing check (warning)
  */
-class SymbolAnalysisPass : public SemanticAnalysisPass {
+class SymbolAnalysisPass : public SemanticAnalysisPass, public WithSymbolTable {
 public:
     /**
      * @brief Construct a new Symbol Table Builder object
@@ -43,15 +37,6 @@ public:
     ~SymbolAnalysisPass() override = default;
 
     int run() override;
-
-    /**
-     * @brief Set the symbol table object
-     *
-     * @param symbol_table  The existing table. This can be useful when the program has imports.
-     */
-    void set_symbol_table(SymbolTablePtr &symbol_table) { _symbol_table = symbol_table; }
-
-    const SymbolTablePtr &get_symbol_table() const { return _symbol_table; }
 
     // For all visit, the return value of 0 indicate success.
     int visit(IntegerASTNodePtr node) override;
@@ -92,8 +77,11 @@ public:
     int visit(FunctionDefinitionASTNodePtr node) override;
     int visit(CompilationUnitASTNodePtr node) override;
 
+protected:
+    void enter_node(parser::ASTNodePtr node) override;
+
 private:
-    SymbolTablePtr _symbol_table;
+    // SymbolTablePtr _symbol_table;
     ScopeManager _scope_manager;
     std::queue<InvocationExpressionASTNodePtr> _pending_invocation_check;
 
@@ -104,47 +92,7 @@ private:
 
     // [End]
 
-    // [Group] var use before init check
-    struct SymbolScopeKey {
-        StringPtr name;
-        std::string scope;
-
-        SymbolScopeKey(StringPtr name, std::string scope)
-            : name(std::move(name))
-            , scope(std::move(scope))
-        {
-        }
-
-        bool operator==(const SymbolScopeKey &other) const
-        {
-            return scope == other.scope && *name == *other.name;
-        }
-    };
-
-    struct SymbolScopeKeyHashProvider {
-        std::size_t operator()(const SymbolScopeKey &obj) const
-        {
-            std::size_t h1 = std::hash<std::string> {}(*obj.name);
-            std::size_t h2 = std::hash<std::string> {}(obj.scope);
-            return h1 ^ (h2 << 1);
-        }
-    };
-
-    using SymbolScopedKeyValueHash = std::unordered_map<SymbolScopeKey, int, SymbolScopeKeyHashProvider>;
-    std::unordered_map<SymbolScopeKey, std::stack<int>, SymbolScopeKeyHashProvider> _varinit_record_stacks;
-    std::stack<SymbolScopedKeyValueHash> _varinit_record_stack_result;
-    int get_varinit_record(const StringPtr &var_name);
-    void create_varinit_record(const StringPtr &var_name, int is_initialized);
-    void set_varinit_record(const StringPtr &var_name, int is_initialized);
-    void set_varinit_record(const SymbolScopeKey &key, int is_initialized);
-    void enter_scope_varinit_record();
-    void leave_scope_varinit_record();
-    void get_child_varinit_records(SymbolScopedKeyValueHash &result);
-    void set_child_varinit_records(const SymbolScopedKeyValueHash &records);
-    // [End]
-
     // [Group] Visit helpers
-    int visit_binary_expression(AbstractBinaryExpressionASTNodePtr node);
     int visit_subroutine(AbstractSubroutineASTNodePtr node, bool has_return);
     // [End]
 
@@ -162,7 +110,6 @@ private:
     // [Group] Log errors
     void log_redefinition_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node);
     void log_undefined_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node);
-    void log_use_before_initialization_error(const StringPtr &name, const ASTNodePtr &node);
     // [End]
 
     bool lookup_symbol_with_ancestors(const StringPtr &name, SymbolPtr &out_symbol, std::string &out_def_scope);

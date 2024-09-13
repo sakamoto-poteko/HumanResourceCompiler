@@ -1,0 +1,16 @@
+sub start()
+{
+    {
+        let uninit;
+        {
+            {
+                {
+                    {
+                        uninit = 0;
+                    }
+                }
+            }
+        }
+    }
+    outbox(uninit);
+}

@@ -7,7 +7,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "ASTNode.h"
 #include "Symbol.h"
 #include "hrl_global.h"
 #include "semanalyzer_global.h"
@@ -41,6 +40,7 @@ public:
      * @return true The symbol is successfully added
      * @return false The symbol failed to add. There is a conflict.
      */
+    bool add_function_symbol(const std::string &scope_id, StringPtr function_name, bool has_param, bool has_return, StringPtr filename, const parser::ASTNodePtr &definition, SymbolPtr &out);
     bool add_function_symbol(const std::string &scope_id, StringPtr function_name, bool has_param, bool has_return, StringPtr filename, const parser::ASTNodePtr &definition);
 
     /**
@@ -53,6 +53,7 @@ public:
      * @return true The symbol is successfully added
      * @return false The symbol failed to add. There is a conflict.
      */
+    bool add_variable_symbol(const std::string &scope_id, StringPtr variable_name, StringPtr filename, const parser::ASTNodePtr &definition, SymbolPtr &out);
     bool add_variable_symbol(const std::string &scope_id, StringPtr variable_name, StringPtr filename, const parser::ASTNodePtr &definition);
 
     /**
@@ -67,12 +68,14 @@ public:
      * @return false The symbol was not found
      */
     bool lookup_symbol(const std::string &scope_id, const std::string &name, bool lookup_ancestors, SymbolPtr &symbol_out, std::string &defined_scope_out);
-
     bool lookup_symbol(const std::string &scope_id, const StringPtr &name, bool lookup_ancestors, SymbolPtr &symbol_out, std::string &defined_scope_out);
 
     // vector<pair<Symbol, sym_defined_scope>>
     void get_symbols_include_ancestors(const std::string &scope_id, std::vector<std::pair<SymbolPtr, std::string>> &out);
     void get_symbols_exclude_ancestors(const std::string &scope_id, std::vector<SymbolPtr> &out);
+
+    // include parent scopes
+    bool is_symbol_in_scope(const SymbolPtr &symbol, const std::string &scope_id);
 
 private:
     // map<scope id, hash<symbol name, symbol>>

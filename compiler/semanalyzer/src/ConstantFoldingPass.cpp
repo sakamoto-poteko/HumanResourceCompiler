@@ -588,11 +588,6 @@ std::string ConstantFoldingAttribute::to_string()
     return "const: " + std::to_string(_value);
 }
 
-int ConstantFoldingAttribute::get_type()
-{
-    return ATTR_SEMANALYZER_CONST_FOLDING_VALUE;
-}
-
 CLOSE_SEMANALYZER_NAMESPACE
 
 // end

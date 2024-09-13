@@ -1,7 +1,6 @@
 #include <spdlog/spdlog.h>
 
 #include "SemanticAnalysisPass.h"
-#include "hrl_global.h"
 #include "semanalyzer_global.h"
 
 OPEN_SEMANALYZER_NAMESPACE
@@ -22,13 +21,17 @@ void SemanticAnalysisPass::leave_node()
 
 int SemanticAnalysisPass::visit(parser::IntegerASTNodePtr node)
 {
-    UNUSED(node);
+
+    enter_node(node);
+    leave_node();
     return 0;
 }
 
 int SemanticAnalysisPass::visit(parser::BooleanASTNodePtr node)
 {
-    UNUSED(node);
+
+    enter_node(node);
+    leave_node();
     return 0;
 }
 
@@ -50,7 +53,9 @@ int SemanticAnalysisPass::visit(parser::VariableAssignmentASTNodePtr node)
 
 int SemanticAnalysisPass::visit(parser::VariableAccessASTNodePtr node)
 {
-    UNUSED(node);
+
+    enter_node(node);
+    leave_node();
     return 0;
 }
 
@@ -96,13 +101,15 @@ int SemanticAnalysisPass::visit(parser::NotExpressionASTNodePtr node)
 
 int SemanticAnalysisPass::visit(parser::IncrementExpressionASTNodePtr node)
 {
-    UNUSED(node);
+    enter_node(node);
+    leave_node();
     return 0;
 }
 
 int SemanticAnalysisPass::visit(parser::DecrementExpressionASTNodePtr node)
 {
-    UNUSED(node);
+    enter_node(node);
+    leave_node();
     return 0;
 }
 
@@ -220,7 +227,8 @@ int SemanticAnalysisPass::visit(parser::InvocationExpressionASTNodePtr node)
 
 int SemanticAnalysisPass::visit(parser::EmptyStatementASTNodePtr node)
 {
-    UNUSED(node);
+    enter_node(node);
+    leave_node();
     return 0;
 }
 
@@ -258,13 +266,15 @@ int SemanticAnalysisPass::visit(parser::ReturnStatementASTNodePtr node)
 
 int SemanticAnalysisPass::visit(parser::BreakStatementASTNodePtr node)
 {
-    UNUSED(node);
+    enter_node(node);
+    leave_node();
     return 0;
 }
 
 int SemanticAnalysisPass::visit(parser::ContinueStatementASTNodePtr node)
 {
-    UNUSED(node);
+    enter_node(node);
+    leave_node();
     return 0;
 }
 
@@ -279,7 +289,7 @@ int SemanticAnalysisPass::visit(parser::StatementBlockASTNodePtr node)
 int SemanticAnalysisPass::visit(parser::SubprocDefinitionASTNodePtr node)
 {
     enter_node(node);
-    int rc = traverse(node->get_body());
+    int rc = traverse_multiple(node->get_parameter(), node->get_body());
     leave_node();
     return rc;
 }
@@ -287,7 +297,7 @@ int SemanticAnalysisPass::visit(parser::SubprocDefinitionASTNodePtr node)
 int SemanticAnalysisPass::visit(parser::FunctionDefinitionASTNodePtr node)
 {
     enter_node(node);
-    int rc = traverse(node->get_body());
+    int rc = traverse_multiple(node->get_parameter(), node->get_body());
     leave_node();
     return rc;
 }

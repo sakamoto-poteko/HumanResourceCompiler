@@ -1,10 +1,10 @@
 #ifndef ASTNODE_H
 #define ASTNODE_H
 
+#include <concepts>
 #include <map>
 #include <memory>
 #include <optional>
-#include <string>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -16,23 +16,7 @@
 OPEN_PARSER_NAMESPACE
 
 class ASTNodeVisitor;
-
-class ASTNodeAttribute : public std::enable_shared_from_this<ASTNodeAttribute> {
-public:
-    ASTNodeAttribute() = default;
-    virtual ~ASTNodeAttribute() = default;
-
-    virtual int get_type() = 0;
-    virtual std::string to_string() = 0;
-};
-
-enum ParserASTNodeAttributeId : int {
-    ATTR_PARSER_BEGIN = 0,
-    ATTR_PARSER_END = 999,
-    // range 0000-0999
-    // No attributes
-};
-
+class ASTNodeAttribute;
 using ASTNodeAttributePtr = std::shared_ptr<ASTNodeAttribute>;
 
 class ASTNode : public std::enable_shared_from_this<ASTNode> {
@@ -186,7 +170,7 @@ private:
 
 class AbstractSubroutineASTNode : public ASTNode {
 public:
-    AbstractSubroutineASTNode(int lineno, int colno, int last_lineno, int last_colno, StringPtr name, StringPtr parameter, StatementBlockASTNodePtr body)
+    AbstractSubroutineASTNode(int lineno, int colno, int last_lineno, int last_colno, StringPtr name, VariableDeclarationASTNodePtr parameter, StatementBlockASTNodePtr body)
         : ASTNode(lineno, colno, last_lineno, last_colno)
         , _name(std::move(name))
         , _parameter(std::move(parameter))
@@ -196,14 +180,14 @@ public:
 
     StringPtr &get_name() { return _name; }
 
-    StringPtr &get_parameter() { return _parameter; }
+    VariableDeclarationASTNodePtr &get_parameter() { return _parameter; }
 
     StatementBlockASTNodePtr &get_body() { return _body; }
 
 protected:
 private:
     StringPtr _name;
-    StringPtr _parameter;
+    VariableDeclarationASTNodePtr _parameter;
     StatementBlockASTNodePtr _body;
 };
 
@@ -739,7 +723,7 @@ private:
 
 class SubprocDefinitionASTNode : public AbstractSubroutineASTNode {
 public:
-    SubprocDefinitionASTNode(int lineno, int colno, int last_lineno, int last_colno, StringPtr name, StringPtr parameter, StatementBlockASTNodePtr body)
+    SubprocDefinitionASTNode(int lineno, int colno, int last_lineno, int last_colno, StringPtr name, VariableDeclarationASTNodePtr parameter, StatementBlockASTNodePtr body)
         : AbstractSubroutineASTNode(lineno, colno, last_lineno, last_colno, name, parameter, body)
     {
     }
@@ -752,7 +736,7 @@ private:
 
 class FunctionDefinitionASTNode : public AbstractSubroutineASTNode {
 public:
-    FunctionDefinitionASTNode(int lineno, int colno, int last_lineno, int last_colno, StringPtr name, StringPtr parameter, StatementBlockASTNodePtr body)
+    FunctionDefinitionASTNode(int lineno, int colno, int last_lineno, int last_colno, StringPtr name, VariableDeclarationASTNodePtr parameter, StatementBlockASTNodePtr body)
         : AbstractSubroutineASTNode(lineno, colno, last_lineno, last_colno, name, parameter, body)
     {
     }

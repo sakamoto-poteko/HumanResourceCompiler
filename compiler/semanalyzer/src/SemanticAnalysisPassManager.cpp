@@ -2,6 +2,7 @@
 
 #include <spdlog/spdlog.h>
 
+#include "ASTNodeGraphvizBuilder.h"
 #include "SemanticAnalysisPassManager.h"
 #include "semanalyzer_global.h"
 

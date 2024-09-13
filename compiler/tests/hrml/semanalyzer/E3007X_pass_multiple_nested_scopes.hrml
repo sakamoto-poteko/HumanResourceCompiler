@@ -1,0 +1,34 @@
+sub start()
+{
+    let a;
+    {
+        let uninit;
+        {
+            {
+                {
+                    uninit = 0;
+                }
+            }
+        }
+        {
+            {
+                {
+                    outbox(uninit);
+                }
+            }
+            a = 5;
+        }
+    }
+    outbox(a);
+
+    // if (inbox()) {
+    {
+        let b;
+        {
+        }
+        {
+            b = 1;
+        }
+        outbox(b);
+    }
+}
