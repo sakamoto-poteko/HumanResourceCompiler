@@ -35,7 +35,7 @@ int UseBeforeInitializationCheckPass::run()
     return _root->accept(this);
 }
 
-int UseBeforeInitializationCheckPass::visit(parser::DecrementExpressionASTNodePtr node)
+int UseBeforeInitializationCheckPass::visit(const parser::DecrementExpressionASTNodePtr &node)
 {
     BEGIN_VISIT();
 
@@ -45,7 +45,7 @@ int UseBeforeInitializationCheckPass::visit(parser::DecrementExpressionASTNodePt
     END_VISIT();
 }
 
-int UseBeforeInitializationCheckPass::visit(parser::IncrementExpressionASTNodePtr node)
+int UseBeforeInitializationCheckPass::visit(const parser::IncrementExpressionASTNodePtr &node)
 {
     BEGIN_VISIT();
 
@@ -55,7 +55,7 @@ int UseBeforeInitializationCheckPass::visit(parser::IncrementExpressionASTNodePt
     END_VISIT();
 }
 
-int UseBeforeInitializationCheckPass::visit(parser::VariableDeclarationASTNodePtr node)
+int UseBeforeInitializationCheckPass::visit(const parser::VariableDeclarationASTNodePtr &node)
 {
     BEGIN_VISIT();
     const auto &symbol = Symbol::get_from(node);
@@ -67,7 +67,7 @@ int UseBeforeInitializationCheckPass::visit(parser::VariableDeclarationASTNodePt
     END_VISIT();
 }
 
-int UseBeforeInitializationCheckPass::visit(parser::IfStatementASTNodePtr node)
+int UseBeforeInitializationCheckPass::visit(const parser::IfStatementASTNodePtr &node)
 {
     enter_node(node);
 
@@ -110,7 +110,7 @@ int UseBeforeInitializationCheckPass::visit(parser::IfStatementASTNodePtr node)
     return 0;
 }
 
-int UseBeforeInitializationCheckPass::visit(parser::WhileStatementASTNodePtr node)
+int UseBeforeInitializationCheckPass::visit(const parser::WhileStatementASTNodePtr &node)
 {
     BEGIN_VISIT();
 
@@ -129,7 +129,7 @@ int UseBeforeInitializationCheckPass::visit(parser::WhileStatementASTNodePtr nod
     END_VISIT();
 }
 
-int UseBeforeInitializationCheckPass::visit(parser::ForStatementASTNodePtr node)
+int UseBeforeInitializationCheckPass::visit(const parser::ForStatementASTNodePtr &node)
 {
     BEGIN_VISIT();
 
@@ -189,7 +189,7 @@ int UseBeforeInitializationCheckPass::visit(parser::ForStatementASTNodePtr node)
     END_VISIT();
 }
 
-int UseBeforeInitializationCheckPass::visit(parser::VariableAssignmentASTNodePtr node)
+int UseBeforeInitializationCheckPass::visit(const parser::VariableAssignmentASTNodePtr &node)
 {
     BEGIN_VISIT();
 
@@ -202,7 +202,7 @@ int UseBeforeInitializationCheckPass::visit(parser::VariableAssignmentASTNodePtr
     END_VISIT();
 }
 
-int UseBeforeInitializationCheckPass::visit(parser::VariableAccessASTNodePtr node)
+int UseBeforeInitializationCheckPass::visit(const parser::VariableAccessASTNodePtr &node)
 {
     BEGIN_VISIT();
 
@@ -212,7 +212,7 @@ int UseBeforeInitializationCheckPass::visit(parser::VariableAccessASTNodePtr nod
     END_VISIT();
 }
 
-int UseBeforeInitializationCheckPass::visit(parser::StatementBlockASTNodePtr node)
+int UseBeforeInitializationCheckPass::visit(const parser::StatementBlockASTNodePtr &node)
 {
     BEGIN_VISIT();
 
@@ -240,12 +240,12 @@ int UseBeforeInitializationCheckPass::visit(parser::StatementBlockASTNodePtr nod
     END_VISIT();
 }
 
-int UseBeforeInitializationCheckPass::visit(parser::SubprocDefinitionASTNodePtr node)
+int UseBeforeInitializationCheckPass::visit(const parser::SubprocDefinitionASTNodePtr &node)
 {
     return visit_subroutine(node);
 }
 
-int UseBeforeInitializationCheckPass::visit(parser::FunctionDefinitionASTNodePtr node)
+int UseBeforeInitializationCheckPass::visit(const parser::FunctionDefinitionASTNodePtr &node)
 {
     return visit_subroutine(node);
 }

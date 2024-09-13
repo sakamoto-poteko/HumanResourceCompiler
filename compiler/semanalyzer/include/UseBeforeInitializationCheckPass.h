@@ -26,17 +26,17 @@ public:
     int run() override;
 
     // For all visit, the return value of 0 indicate success.
-    int visit(parser::VariableDeclarationASTNodePtr node) override;
-    int visit(parser::VariableAssignmentASTNodePtr node) override;
-    int visit(parser::VariableAccessASTNodePtr node) override;
-    int visit(parser::IncrementExpressionASTNodePtr node) override;
-    int visit(parser::DecrementExpressionASTNodePtr node) override;
-    int visit(parser::IfStatementASTNodePtr node) override;
-    int visit(parser::WhileStatementASTNodePtr node) override;
-    int visit(parser::ForStatementASTNodePtr node) override;
-    int visit(parser::StatementBlockASTNodePtr node) override;
-    int visit(parser::SubprocDefinitionASTNodePtr node) override;
-    int visit(parser::FunctionDefinitionASTNodePtr node) override;
+    int visit(const parser::VariableDeclarationASTNodePtr &node) override;
+    int visit(const parser::VariableAssignmentASTNodePtr &node) override;
+    int visit(const parser::VariableAccessASTNodePtr &node) override;
+    int visit(const parser::IncrementExpressionASTNodePtr &node) override;
+    int visit(const parser::DecrementExpressionASTNodePtr &node) override;
+    int visit(const parser::IfStatementASTNodePtr &node) override;
+    int visit(const parser::WhileStatementASTNodePtr &node) override;
+    int visit(const parser::ForStatementASTNodePtr &node) override;
+    int visit(const parser::StatementBlockASTNodePtr &node) override;
+    int visit(const parser::SubprocDefinitionASTNodePtr &node) override;
+    int visit(const parser::FunctionDefinitionASTNodePtr &node) override;
 
 protected:
     void enter_node(parser::ASTNodePtr node) override;
