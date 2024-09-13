@@ -21,7 +21,7 @@ execute_process(
 )
 
 # If git describe returns nothing, default to commit hash
-if (GIT_TAG STREQUAL "")
+if(GIT_TAG STREQUAL "")
     execute_process(
         COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
@@ -45,7 +45,7 @@ execute_process(
     RESULT_VARIABLE GIT_DIFF_RESULT
 )
 
-if (NOT GIT_DIFF_RESULT EQUAL 0)
+if(NOT GIT_DIFF_RESULT EQUAL 0)
     set(GIT_DIRTY "-dirty")
 else()
     set(GIT_DIRTY "")
