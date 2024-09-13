@@ -42,7 +42,10 @@ jobs:
           # - os: windows-latest
           #   compiler: msvc
           #   cpp_compiler: cl
-
+        exclude:
+          # Exclude macOS with GCC
+          - os: macos-latest
+            compiler: gcc
     steps:
       - uses: actions/checkout@v4
 
