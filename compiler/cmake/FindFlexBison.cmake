@@ -46,7 +46,6 @@ if(NOT TARGET FlexBison)
         endif()
     endmacro()
 
-
     # Define the BISON_TARGET macro with DEFINES_FILE support
     macro(BISON_TARGET target_name input_file output_file)
         cmake_parse_arguments(BISON "" "DEFINES_FILE" "" ${ARGN})
