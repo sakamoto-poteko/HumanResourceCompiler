@@ -1,0 +1,15 @@
+#ifndef VERSIONING_CMAKE_H
+#define VERSIONING_CMAKE_H
+
+// Git information
+#define GIT_BRANCH "@GIT_BRANCH@"
+#define GIT_TAG "@GIT_TAG@"  // Closest tag or commit description
+#define GIT_COMMIT_HASH "@GIT_COMMIT_HASH@"  // Short commit hash
+#define GIT_DIRTY "@GIT_DIRTY@"  // Dirty flag if uncommitted changes
+
+// Build information
+#define BUILD_TIMESTAMP "@BUILD_TIMESTAMP@"  // Time of the build
+#define COMPILER_VERSION "@COMPILER_VERSION@"  // Compiler and version used
+#define BUILD_TYPE "@CMAKE_BUILD_TYPE@"
+
+#endif // !VERSIONING_CMAKE_H

@@ -5,7 +5,7 @@
 #include <boost/program_options.hpp>
 
 #include "CompilerOptions.h"
-#include "git.h"
+#include "Versioning.h"
 
 OPEN_HRC_NAMESPACE
 
@@ -43,7 +43,8 @@ CompilerOptions parse_arguments(int argc, char **argv)
     }
 
     if (vm.count("version")) {
-        std::cout << "hrc compiler " << git_Describe() << std::endl;
+        std::cout << "hrc compiler " << git_tag() << std::endl;
+        std::cout << "built with " << compiler_version() << " (" << build_type() << ") on " << build_timestamp() << std::endl;
         std::cout << "    Report bugs in https://github.com/sakamoto-poteko/HumanResourceCompiler" << std::endl;
         exit(EXIT_SUCCESS);
     }
