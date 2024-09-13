@@ -130,10 +130,9 @@ void hrl::semanalyzer::SymbolTable::get_symbols_exclude_ancestors(const std::str
 {
     std::vector<SymbolPtr> result;
 
-    for (const auto &pair : _scopes) {
-        const auto &id = pair.first;
+    for (const auto &[id, sym_name_map] : _scopes) {
         if (id == scope_id) {
-            for (const auto &[_, symbol] : pair.second) {
+            for (const auto &[_, symbol] : sym_name_map) {
                 result.push_back(symbol);
             }
         }
