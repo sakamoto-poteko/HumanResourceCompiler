@@ -46,6 +46,8 @@ jobs:
           # Exclude macOS with GCC
           - os: macos-latest
             compiler: gcc
+          - os: ubuntu-latest
+            compiler: clang
     steps:
       - uses: actions/checkout@v4
 
