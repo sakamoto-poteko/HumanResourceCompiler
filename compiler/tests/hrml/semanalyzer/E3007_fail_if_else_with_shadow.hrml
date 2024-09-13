@@ -1,0 +1,14 @@
+let uninit = 0;
+
+sub start()
+{
+    let uninit;
+
+    if (inbox()) {
+
+    } else {
+        uninit = 0;
+    }
+
+    outbox(uninit);
+}
