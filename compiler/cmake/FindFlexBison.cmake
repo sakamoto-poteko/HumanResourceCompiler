@@ -19,16 +19,33 @@ if(NOT TARGET FlexBison)
     add_custom_target(FlexBison ALL DEPENDS winflexbison)
 
     macro(FLEX_TARGET target_name input_file output_file)
+        # Parse optional arguments, specifically DEFINES_FILE
+        cmake_parse_arguments(FLEX "" "DEFINES_FILE" "" ${ARGN})
+
+        # Make the input file path absolute
         get_filename_component(ABS_INPUT_FILE "${input_file}" ABSOLUTE)
 
-        add_custom_command(
-            OUTPUT ${output_file}
-            COMMAND ${FLEX_EXECUTABLE} --wincompat -o${output_file} ${ABS_INPUT_FILE}
-            DEPENDS ${input_file}
-            COMMENT "Generating scanner with Flex: ${target_name}"
-            VERBATIM
-        )
+        # Create the command for Flex with optional DEFINES_FILE
+        if(FLEX_DEFINES_FILE)
+            get_filename_component(ABS_DEFINES_FILE "${FLEX_DEFINES_FILE}" ABSOLUTE)
+            add_custom_command(
+                OUTPUT ${output_file} ${ABS_DEFINES_FILE}
+                COMMAND ${FLEX_EXECUTABLE} --wincompat -o${output_file} --header-file=${ABS_DEFINES_FILE} ${ABS_INPUT_FILE}
+                DEPENDS ${ABS_INPUT_FILE}
+                COMMENT "Generating scanner with Flex: ${target_name}"
+                VERBATIM
+            )
+        else()
+            add_custom_command(
+                OUTPUT ${output_file}
+                COMMAND ${FLEX_EXECUTABLE} --wincompat -o${output_file} ${ABS_INPUT_FILE}
+                DEPENDS ${ABS_INPUT_FILE}
+                COMMENT "Generating scanner with Flex: ${target_name}"
+                VERBATIM
+            )
+        endif()
     endmacro()
+
 
     # Define the BISON_TARGET macro with DEFINES_FILE support
     macro(BISON_TARGET target_name input_file output_file)
