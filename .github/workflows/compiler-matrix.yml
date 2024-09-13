@@ -54,14 +54,14 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build flex bison libspdlog-dev libboost-all-dev libgtest-dev lcov
+          sudo apt-get install -y cmake ninja-build flex bison libspdlog-dev libboost-all-dev libgtest-dev
 
       # Dependency installation on macOS
       - name: Install dependencies (macOS)
         if: matrix.os == 'macos-latest'
         run: |
           brew update
-          brew install cmake ninja boost spdlog flex bison googletest lcov
+          brew install cmake ninja boost spdlog flex bison googletest
 
       # Dependency installation on Windows (using vcpkg)
       - name: Install dependencies (Windows)
@@ -91,23 +91,4 @@ jobs:
       - name: Test
         working-directory: ${{github.workspace}}/compiler/build
         run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
-        shell: bash
-
-      # Collect coverage data on Linux/macOS using lcov
-      - name: Collect coverage (Linux/macOS)
-        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
-        run: |
-          lcov --capture --directory . --output-file coverage.info
-          lcov --remove coverage.info '/usr/*' --output-file coverage.info
-          lcov --list coverage.info
-          # Store as an artifact if needed
-        shell: bash
-
-      # Upload coverage report to Codecov
-      - name: Upload coverage to Codecov
-        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
-        uses: codecov/codecov-action@v3
-        with:
-          file: ./coverage.info
-          flags: unittests
         shell: bash
