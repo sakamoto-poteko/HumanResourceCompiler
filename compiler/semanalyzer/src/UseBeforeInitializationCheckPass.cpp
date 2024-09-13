@@ -214,32 +214,27 @@ int UseBeforeInitializationCheckPass::visit(parser::VariableAccessASTNodePtr nod
 
 int UseBeforeInitializationCheckPass::visit(parser::StatementBlockASTNodePtr node)
 {
-    const parser::ASTNodePtr &parent = topmost_node();
-    // is it from while/if/for/function/subroutine which is scope structured?
-    bool come_from_scoped_structure
-        = is_ptr_type<parser::WhileStatementASTNode>(parent)
-        || is_ptr_type<parser::IfStatementASTNode>(parent)
-        || is_ptr_type<parser::ForStatementASTNode>(parent);
-        // || is_ptr_type<parser::FunctionDefinitionASTNode>(parent)
-        // || is_ptr_type<parser::SubprocDefinitionASTNode>(parent);
-
     BEGIN_VISIT();
 
-    // FIXME: impl
     // get the result of traversed node, and put to our own scope
-    // the result will only contain ????
     auto passthrough_result = [this](const parser::ASTNodePtr &nodeparam) {
-        NodeResult result;
-        get_var_init_result(nodeparam, result);
-        set_var_init_at_current_scope(result);
+        // these are the nodes with statement blocks
+        // can't be FunctionDefinitionASTNode nor SubprocDefinitionASTNode because we're in a statement block
+        bool visit_defined_with_statement_block
+            = is_ptr_type<parser::WhileStatementASTNode>(nodeparam)
+            || is_ptr_type<parser::IfStatementASTNode>(nodeparam)
+            || is_ptr_type<parser::ForStatementASTNode>(nodeparam);
+
+        // we skip this for those defined their own visits
+        if (!visit_defined_with_statement_block) {
+            NodeResult result;
+            get_var_init_result(nodeparam, result);
+            strip_symbols_beyond_scope(result, get_current_scope_id());
+            set_var_init_at_current_scope(result);
+        }
     };
 
-    // if (come_from_scoped_structure) {
-    if (false) {
-        rc = traverse(node->get_statements());
-    } else {
-        rc = traverse(node->get_statements(), passthrough_result);
-    }
+    rc = traverse(node->get_statements(), passthrough_result);
     RETURN_IF_FAIL_IN_VISIT(rc);
 
     END_VISIT();
@@ -289,12 +284,17 @@ void UseBeforeInitializationCheckPass::on_scope_enter(const parser::ASTNodePtr &
     UNUSED(node);
     UNUSED(scope_id);
     // copy all elements from parent's scope
-    _var_occured.emplace();
+    std::set<SymbolPtr> occured_vars;
     for (auto &[symbol, stack] : _varinit_record_stacks) {
+        // Did we see this symbol in our parent scope? If not, we skip this one (defined in other scopes)
+        if (!_var_occured.top().contains(symbol)) {
+            continue;
+        }
         assert(!stack.empty());
         stack.push(stack.top());
-        _var_occured.top().insert(symbol);
+        occured_vars.insert(symbol);
     }
+    _var_occured.push(occured_vars);
 }
 
 void UseBeforeInitializationCheckPass::on_scope_exit(const parser::ASTNodePtr &node, const std::string &current_scope_id)

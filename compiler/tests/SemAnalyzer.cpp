@@ -103,7 +103,7 @@ TEST_P(SemanticAnalyzerTests, SemanticAnalysisTests)
 
     using SemaAttrId = hrl::semanalyzer::SemAnalzyerASTNodeAttributeId;
 
-    auto dbg = data.filename == "E3007_pass_nested_scopes.hrml";
+    // auto dbg = data.filename == "E3007X_pass_multiple_nested_scopes.hrml";
 
     hrl::semanalyzer::SemanticAnalysisPassManager sem_passmgr(ast, std::make_shared<std::string>(data.filename));
     auto symtbl = std::make_shared<hrl::semanalyzer::SymbolTable>();

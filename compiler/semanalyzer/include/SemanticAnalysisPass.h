@@ -92,6 +92,8 @@ protected:
 
     bool replace_self_requested() { return _replace_node_asked_by_child_guard.top() == 1; }
 
+    std::function<void(const parser::ASTNodePtr &)> _global_post_process;
+
     template <typename ContainerT, typename PostProcessFunc = std::function<void(const parser::ASTNodePtr &)>>
         requires(std::ranges::range<ContainerT> && parser::convertible_to_ASTNodePtr<std::ranges::range_value_t<ContainerT>>)
     int traverse(
@@ -115,7 +117,11 @@ protected:
     {
         if (node) {
             int rc = node->accept(this);
-            post_process(node);
+            if (!_global_post_process) {
+                post_process(node);
+            } else {
+                _global_post_process(node);
+            }
             if (!_replace_node_asked_by_child.empty()) {
                 using NodeType = typename T::element_type;
                 auto top = std::dynamic_pointer_cast<NodeType>(_replace_node_asked_by_child.top());

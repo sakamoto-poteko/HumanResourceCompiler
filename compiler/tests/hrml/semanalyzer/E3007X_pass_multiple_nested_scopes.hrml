@@ -21,7 +21,8 @@ sub start()
     }
     outbox(a);
 
-    if (inbox()) {
+    // if (inbox()) {
+    {
         let b;
         {
         }
