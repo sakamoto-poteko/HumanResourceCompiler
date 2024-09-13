@@ -29,43 +29,43 @@ public:
     virtual int run() = 0;
 
     // For all visit, the return value of 0 indicate success.
-    int visit(parser::IntegerASTNodePtr node) override;
-    int visit(parser::BooleanASTNodePtr node) override;
-    int visit(parser::VariableDeclarationASTNodePtr node) override;
-    int visit(parser::VariableAssignmentASTNodePtr node) override;
-    int visit(parser::VariableAccessASTNodePtr node) override;
-    int visit(parser::FloorBoxInitStatementASTNodePtr node) override;
-    int visit(parser::FloorAssignmentASTNodePtr node) override;
-    int visit(parser::FloorAccessASTNodePtr node) override;
-    int visit(parser::NegativeExpressionASTNodePtr node) override;
-    int visit(parser::NotExpressionASTNodePtr node) override;
-    int visit(parser::IncrementExpressionASTNodePtr node) override;
-    int visit(parser::DecrementExpressionASTNodePtr node) override;
-    int visit(parser::AddExpressionASTNodePtr node) override;
-    int visit(parser::SubExpressionASTNodePtr node) override;
-    int visit(parser::MulExpressionASTNodePtr node) override;
-    int visit(parser::DivExpressionASTNodePtr node) override;
-    int visit(parser::ModExpressionASTNodePtr node) override;
-    int visit(parser::EqualExpressionASTNodePtr node) override;
-    int visit(parser::NotEqualExpressionASTNodePtr node) override;
-    int visit(parser::GreaterThanExpressionASTNodePtr node) override;
-    int visit(parser::GreaterEqualExpressionASTNodePtr node) override;
-    int visit(parser::LessThanExpressionASTNodePtr node) override;
-    int visit(parser::LessEqualExpressionASTNodePtr node) override;
-    int visit(parser::AndExpressionASTNodePtr node) override;
-    int visit(parser::OrExpressionASTNodePtr node) override;
-    int visit(parser::InvocationExpressionASTNodePtr node) override;
-    int visit(parser::EmptyStatementASTNodePtr node) override;
-    int visit(parser::IfStatementASTNodePtr node) override;
-    int visit(parser::WhileStatementASTNodePtr node) override;
-    int visit(parser::ForStatementASTNodePtr node) override;
-    int visit(parser::ReturnStatementASTNodePtr node) override;
-    int visit(parser::BreakStatementASTNodePtr node) override;
-    int visit(parser::ContinueStatementASTNodePtr node) override;
-    int visit(parser::StatementBlockASTNodePtr node) override;
-    int visit(parser::SubprocDefinitionASTNodePtr node) override;
-    int visit(parser::FunctionDefinitionASTNodePtr node) override;
-    int visit(parser::CompilationUnitASTNodePtr node) override;
+    int visit(const parser::IntegerASTNodePtr &node) override;
+    int visit(const parser::BooleanASTNodePtr &node) override;
+    int visit(const parser::VariableDeclarationASTNodePtr &node) override;
+    int visit(const parser::VariableAssignmentASTNodePtr &node) override;
+    int visit(const parser::VariableAccessASTNodePtr &node) override;
+    int visit(const parser::FloorBoxInitStatementASTNodePtr &node) override;
+    int visit(const parser::FloorAssignmentASTNodePtr &node) override;
+    int visit(const parser::FloorAccessASTNodePtr &node) override;
+    int visit(const parser::NegativeExpressionASTNodePtr &node) override;
+    int visit(const parser::NotExpressionASTNodePtr &node) override;
+    int visit(const parser::IncrementExpressionASTNodePtr &node) override;
+    int visit(const parser::DecrementExpressionASTNodePtr &node) override;
+    int visit(const parser::AddExpressionASTNodePtr &node) override;
+    int visit(const parser::SubExpressionASTNodePtr &node) override;
+    int visit(const parser::MulExpressionASTNodePtr &node) override;
+    int visit(const parser::DivExpressionASTNodePtr &node) override;
+    int visit(const parser::ModExpressionASTNodePtr &node) override;
+    int visit(const parser::EqualExpressionASTNodePtr &node) override;
+    int visit(const parser::NotEqualExpressionASTNodePtr &node) override;
+    int visit(const parser::GreaterThanExpressionASTNodePtr &node) override;
+    int visit(const parser::GreaterEqualExpressionASTNodePtr &node) override;
+    int visit(const parser::LessThanExpressionASTNodePtr &node) override;
+    int visit(const parser::LessEqualExpressionASTNodePtr &node) override;
+    int visit(const parser::AndExpressionASTNodePtr &node) override;
+    int visit(const parser::OrExpressionASTNodePtr &node) override;
+    int visit(const parser::InvocationExpressionASTNodePtr &node) override;
+    int visit(const parser::EmptyStatementASTNodePtr &node) override;
+    int visit(const parser::IfStatementASTNodePtr &node) override;
+    int visit(const parser::WhileStatementASTNodePtr &node) override;
+    int visit(const parser::ForStatementASTNodePtr &node) override;
+    int visit(const parser::ReturnStatementASTNodePtr &node) override;
+    int visit(const parser::BreakStatementASTNodePtr &node) override;
+    int visit(const parser::ContinueStatementASTNodePtr &node) override;
+    int visit(const parser::StatementBlockASTNodePtr &node) override;
+    int visit(const parser::SubprocDefinitionASTNodePtr &node) override;
+    int visit(const parser::FunctionDefinitionASTNodePtr &node) override;
+    int visit(const parser::CompilationUnitASTNodePtr &node) override;
 
 protected:
     StringPtr _filename;
@@ -92,7 +92,16 @@ protected:
 
     bool replace_self_requested() { return _replace_node_asked_by_child_guard.top() == 1; }
 
-    std::function<void(const parser::ASTNodePtr &)> _global_post_process;
+    template <typename PostProcessFunc = std::function<void(const parser::ASTNodePtr &)>>
+    void set_global_postprocess_function(PostProcessFunc postproc)
+    {
+        _global_post_process = postproc;
+    }
+
+    void clear_global_postprocess_function()
+    {
+        _global_post_process = nullptr;
+    }
 
     template <typename ContainerT, typename PostProcessFunc = std::function<void(const parser::ASTNodePtr &)>>
         requires(std::ranges::range<ContainerT> && parser::convertible_to_ASTNodePtr<std::ranges::range_value_t<ContainerT>>)
@@ -117,6 +126,7 @@ protected:
     {
         if (node) {
             int rc = node->accept(this);
+            // default post_process is empty, so as long as global is invalid, we execute this
             if (!_global_post_process) {
                 post_process(node);
             } else {
@@ -168,6 +178,8 @@ protected:
 
 private:
     std::vector<parser::ASTNodePtr> _ancestors;
+
+    std::function<void(const parser::ASTNodePtr &)> _global_post_process;
 
     std::stack<parser::ASTNodePtr> _replace_node_asked_by_child;
     std::stack<int> _replace_node_asked_by_child_guard; // the count guard for single replace node

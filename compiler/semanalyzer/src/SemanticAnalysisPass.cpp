@@ -19,7 +19,7 @@ void SemanticAnalysisPass::leave_node()
     _replace_node_asked_by_child_guard.pop();
 }
 
-int SemanticAnalysisPass::visit(parser::IntegerASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::IntegerASTNodePtr &node)
 {
 
     enter_node(node);
@@ -27,7 +27,7 @@ int SemanticAnalysisPass::visit(parser::IntegerASTNodePtr node)
     return 0;
 }
 
-int SemanticAnalysisPass::visit(parser::BooleanASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::BooleanASTNodePtr &node)
 {
 
     enter_node(node);
@@ -35,7 +35,7 @@ int SemanticAnalysisPass::visit(parser::BooleanASTNodePtr node)
     return 0;
 }
 
-int SemanticAnalysisPass::visit(parser::VariableDeclarationASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::VariableDeclarationASTNodePtr &node)
 {
     enter_node(node);
     int rc = traverse(node->get_assignment());
@@ -43,7 +43,7 @@ int SemanticAnalysisPass::visit(parser::VariableDeclarationASTNodePtr node)
     return rc;
 }
 
-int SemanticAnalysisPass::visit(parser::VariableAssignmentASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::VariableAssignmentASTNodePtr &node)
 {
     enter_node(node);
     int rc = traverse(node->get_value());
@@ -51,7 +51,7 @@ int SemanticAnalysisPass::visit(parser::VariableAssignmentASTNodePtr node)
     return rc;
 }
 
-int SemanticAnalysisPass::visit(parser::VariableAccessASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::VariableAccessASTNodePtr &node)
 {
 
     enter_node(node);
@@ -59,7 +59,7 @@ int SemanticAnalysisPass::visit(parser::VariableAccessASTNodePtr node)
     return 0;
 }
 
-int SemanticAnalysisPass::visit(parser::FloorBoxInitStatementASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::FloorBoxInitStatementASTNodePtr &node)
 {
     enter_node(node);
     int rc = traverse(node->get_assignment());
@@ -67,7 +67,7 @@ int SemanticAnalysisPass::visit(parser::FloorBoxInitStatementASTNodePtr node)
     return rc;
 }
 
-int SemanticAnalysisPass::visit(parser::FloorAssignmentASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::FloorAssignmentASTNodePtr &node)
 {
     enter_node(node);
     int rc = traverse_multiple(node->get_floor_number(), node->get_value());
@@ -75,7 +75,7 @@ int SemanticAnalysisPass::visit(parser::FloorAssignmentASTNodePtr node)
     return rc;
 }
 
-int SemanticAnalysisPass::visit(parser::FloorAccessASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::FloorAccessASTNodePtr &node)
 {
     enter_node(node);
     int rc = traverse(node->get_index_expr());
@@ -83,7 +83,7 @@ int SemanticAnalysisPass::visit(parser::FloorAccessASTNodePtr node)
     return rc;
 }
 
-int SemanticAnalysisPass::visit(parser::NegativeExpressionASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::NegativeExpressionASTNodePtr &node)
 {
     enter_node(node);
     int rc = traverse(node->get_operand());
@@ -91,7 +91,7 @@ int SemanticAnalysisPass::visit(parser::NegativeExpressionASTNodePtr node)
     return rc;
 }
 
-int SemanticAnalysisPass::visit(parser::NotExpressionASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::NotExpressionASTNodePtr &node)
 {
     enter_node(node);
     int rc = traverse(node->get_operand());
@@ -99,21 +99,21 @@ int SemanticAnalysisPass::visit(parser::NotExpressionASTNodePtr node)
     return rc;
 }
 
-int SemanticAnalysisPass::visit(parser::IncrementExpressionASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::IncrementExpressionASTNodePtr &node)
 {
     enter_node(node);
     leave_node();
     return 0;
 }
 
-int SemanticAnalysisPass::visit(parser::DecrementExpressionASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::DecrementExpressionASTNodePtr &node)
 {
     enter_node(node);
     leave_node();
     return 0;
 }
 
-int SemanticAnalysisPass::visit(parser::AddExpressionASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::AddExpressionASTNodePtr &node)
 {
     enter_node(node);
     int rc = traverse_multiple(node->get_left(), node->get_right());
@@ -121,7 +121,7 @@ int SemanticAnalysisPass::visit(parser::AddExpressionASTNodePtr node)
     return rc;
 }
 
-int SemanticAnalysisPass::visit(parser::SubExpressionASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::SubExpressionASTNodePtr &node)
 {
     enter_node(node);
     int rc = traverse_multiple(node->get_left(), node->get_right());
@@ -129,7 +129,7 @@ int SemanticAnalysisPass::visit(parser::SubExpressionASTNodePtr node)
     return rc;
 }
 
-int SemanticAnalysisPass::visit(parser::MulExpressionASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::MulExpressionASTNodePtr &node)
 {
     enter_node(node);
     int rc = traverse_multiple(node->get_left(), node->get_right());
@@ -137,7 +137,7 @@ int SemanticAnalysisPass::visit(parser::MulExpressionASTNodePtr node)
     return rc;
 }
 
-int SemanticAnalysisPass::visit(parser::DivExpressionASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::DivExpressionASTNodePtr &node)
 {
     enter_node(node);
     int rc = traverse_multiple(node->get_left(), node->get_right());
@@ -145,7 +145,7 @@ int SemanticAnalysisPass::visit(parser::DivExpressionASTNodePtr node)
     return rc;
 }
 
-int SemanticAnalysisPass::visit(parser::ModExpressionASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::ModExpressionASTNodePtr &node)
 {
     enter_node(node);
     int rc = traverse_multiple(node->get_left(), node->get_right());
@@ -153,7 +153,7 @@ int SemanticAnalysisPass::visit(parser::ModExpressionASTNodePtr node)
     return rc;
 }
 
-int SemanticAnalysisPass::visit(parser::EqualExpressionASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::EqualExpressionASTNodePtr &node)
 {
     enter_node(node);
     int rc = traverse_multiple(node->get_left(), node->get_right());
@@ -161,7 +161,7 @@ int SemanticAnalysisPass::visit(parser::EqualExpressionASTNodePtr node)
     return rc;
 }
 
-int SemanticAnalysisPass::visit(parser::NotEqualExpressionASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::NotEqualExpressionASTNodePtr &node)
 {
     enter_node(node);
     int rc = traverse_multiple(node->get_left(), node->get_right());
@@ -169,7 +169,7 @@ int SemanticAnalysisPass::visit(parser::NotEqualExpressionASTNodePtr node)
     return rc;
 }
 
-int SemanticAnalysisPass::visit(parser::GreaterThanExpressionASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::GreaterThanExpressionASTNodePtr &node)
 {
     enter_node(node);
     int rc = traverse_multiple(node->get_left(), node->get_right());
@@ -177,7 +177,7 @@ int SemanticAnalysisPass::visit(parser::GreaterThanExpressionASTNodePtr node)
     return rc;
 }
 
-int SemanticAnalysisPass::visit(parser::GreaterEqualExpressionASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::GreaterEqualExpressionASTNodePtr &node)
 {
     enter_node(node);
     int rc = traverse_multiple(node->get_left(), node->get_right());
@@ -185,7 +185,7 @@ int SemanticAnalysisPass::visit(parser::GreaterEqualExpressionASTNodePtr node)
     return rc;
 }
 
-int SemanticAnalysisPass::visit(parser::LessThanExpressionASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::LessThanExpressionASTNodePtr &node)
 {
     enter_node(node);
     int rc = traverse_multiple(node->get_left(), node->get_right());
@@ -193,7 +193,7 @@ int SemanticAnalysisPass::visit(parser::LessThanExpressionASTNodePtr node)
     return rc;
 }
 
-int SemanticAnalysisPass::visit(parser::LessEqualExpressionASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::LessEqualExpressionASTNodePtr &node)
 {
     enter_node(node);
     int rc = traverse_multiple(node->get_left(), node->get_right());
@@ -201,7 +201,7 @@ int SemanticAnalysisPass::visit(parser::LessEqualExpressionASTNodePtr node)
     return rc;
 }
 
-int SemanticAnalysisPass::visit(parser::AndExpressionASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::AndExpressionASTNodePtr &node)
 {
     enter_node(node);
     int rc = traverse_multiple(node->get_left(), node->get_right());
@@ -209,7 +209,7 @@ int SemanticAnalysisPass::visit(parser::AndExpressionASTNodePtr node)
     return rc;
 }
 
-int SemanticAnalysisPass::visit(parser::OrExpressionASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::OrExpressionASTNodePtr &node)
 {
     enter_node(node);
     int rc = traverse_multiple(node->get_left(), node->get_right());
@@ -217,7 +217,7 @@ int SemanticAnalysisPass::visit(parser::OrExpressionASTNodePtr node)
     return rc;
 }
 
-int SemanticAnalysisPass::visit(parser::InvocationExpressionASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::InvocationExpressionASTNodePtr &node)
 {
     enter_node(node);
     int rc = traverse(node->get_argument());
@@ -225,14 +225,14 @@ int SemanticAnalysisPass::visit(parser::InvocationExpressionASTNodePtr node)
     return rc;
 }
 
-int SemanticAnalysisPass::visit(parser::EmptyStatementASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::EmptyStatementASTNodePtr &node)
 {
     enter_node(node);
     leave_node();
     return 0;
 }
 
-int SemanticAnalysisPass::visit(parser::IfStatementASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::IfStatementASTNodePtr &node)
 {
     enter_node(node);
     int rc = traverse_multiple(node->get_condition(), node->get_then_branch(), node->get_else_branch());
@@ -240,7 +240,7 @@ int SemanticAnalysisPass::visit(parser::IfStatementASTNodePtr node)
     return rc;
 }
 
-int SemanticAnalysisPass::visit(parser::WhileStatementASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::WhileStatementASTNodePtr &node)
 {
     enter_node(node);
     int rc = traverse_multiple(node->get_condition(), node->get_body());
@@ -248,7 +248,7 @@ int SemanticAnalysisPass::visit(parser::WhileStatementASTNodePtr node)
     return rc;
 }
 
-int SemanticAnalysisPass::visit(parser::ForStatementASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::ForStatementASTNodePtr &node)
 {
     enter_node(node);
     int rc = traverse_multiple(node->get_init(), node->get_condition(), node->get_update(), node->get_body());
@@ -256,7 +256,7 @@ int SemanticAnalysisPass::visit(parser::ForStatementASTNodePtr node)
     return rc;
 }
 
-int SemanticAnalysisPass::visit(parser::ReturnStatementASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::ReturnStatementASTNodePtr &node)
 {
     enter_node(node);
     int rc = traverse(node->get_expression());
@@ -264,21 +264,21 @@ int SemanticAnalysisPass::visit(parser::ReturnStatementASTNodePtr node)
     return rc;
 }
 
-int SemanticAnalysisPass::visit(parser::BreakStatementASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::BreakStatementASTNodePtr &node)
 {
     enter_node(node);
     leave_node();
     return 0;
 }
 
-int SemanticAnalysisPass::visit(parser::ContinueStatementASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::ContinueStatementASTNodePtr &node)
 {
     enter_node(node);
     leave_node();
     return 0;
 }
 
-int SemanticAnalysisPass::visit(parser::StatementBlockASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::StatementBlockASTNodePtr &node)
 {
     enter_node(node);
     int rc = traverse(node->get_statements());
@@ -286,7 +286,7 @@ int SemanticAnalysisPass::visit(parser::StatementBlockASTNodePtr node)
     return rc;
 }
 
-int SemanticAnalysisPass::visit(parser::SubprocDefinitionASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::SubprocDefinitionASTNodePtr &node)
 {
     enter_node(node);
     int rc = traverse_multiple(node->get_parameter(), node->get_body());
@@ -294,7 +294,7 @@ int SemanticAnalysisPass::visit(parser::SubprocDefinitionASTNodePtr node)
     return rc;
 }
 
-int SemanticAnalysisPass::visit(parser::FunctionDefinitionASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::FunctionDefinitionASTNodePtr &node)
 {
     enter_node(node);
     int rc = traverse_multiple(node->get_parameter(), node->get_body());
@@ -302,7 +302,7 @@ int SemanticAnalysisPass::visit(parser::FunctionDefinitionASTNodePtr node)
     return rc;
 }
 
-int SemanticAnalysisPass::visit(parser::CompilationUnitASTNodePtr node)
+int SemanticAnalysisPass::visit(const parser::CompilationUnitASTNodePtr &node)
 {
     enter_node(node);
     int rc = traverse_multiple(node->get_floor_inits(), node->get_var_decls(), node->get_subroutines());

@@ -209,7 +209,7 @@ std::string ASTNodeGraphvizBuilder::generate_graphviz(const std::string &filepat
     return dotfile.str();
 }
 
-int ASTNodeGraphvizBuilder::visit(IntegerASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const IntegerASTNodePtr &node)
 {
     // Graphviz logic for IntegerASTNode
     enter_and_create_vertex(std::to_string(node->get_value()), Literal, node);
@@ -217,7 +217,7 @@ int ASTNodeGraphvizBuilder::visit(IntegerASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(BooleanASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const BooleanASTNodePtr &node)
 {
     // Graphviz logic for BooleanASTNode
     enter_and_create_vertex(node->get_value() ? "TRUE" : "FALSE", Literal, node);
@@ -225,7 +225,7 @@ int ASTNodeGraphvizBuilder::visit(BooleanASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(VariableDeclarationASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const VariableDeclarationASTNodePtr &node)
 {
     // Graphviz logic for VariableDeclarationASTNode
     enter_and_create_vertex("Variable Declaration", Statement, node);
@@ -239,7 +239,7 @@ int ASTNodeGraphvizBuilder::visit(VariableDeclarationASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(VariableAssignmentASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const VariableAssignmentASTNodePtr &node)
 {
     // Graphviz logic for VariableAssignmentASTNode
     enter_and_create_vertex("=", Statement, node);
@@ -253,7 +253,7 @@ int ASTNodeGraphvizBuilder::visit(VariableAssignmentASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(VariableAccessASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const VariableAccessASTNodePtr &node)
 {
     // Graphviz logic for VariableAccessASTNode
     enter_and_create_vertex(node->get_name(), Literal, node);
@@ -262,7 +262,7 @@ int ASTNodeGraphvizBuilder::visit(VariableAccessASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(FloorBoxInitStatementASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const FloorBoxInitStatementASTNodePtr &node)
 {
     // Graphviz logic for FloorBoxInitStatementASTNode
     enter_and_create_vertex("Floor Init", Statement, node);
@@ -273,7 +273,7 @@ int ASTNodeGraphvizBuilder::visit(FloorBoxInitStatementASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(FloorAssignmentASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const FloorAssignmentASTNodePtr &node)
 {
     // Graphviz logic for FloorAssignmentASTNode
     enter_and_create_vertex("Floor=", Statement, node);
@@ -285,7 +285,7 @@ int ASTNodeGraphvizBuilder::visit(FloorAssignmentASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(FloorAccessASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const FloorAccessASTNodePtr &node)
 {
     // Graphviz logic for FloorAccessASTNode
     enter_and_create_vertex("floor[]", Expression, node);
@@ -296,7 +296,7 @@ int ASTNodeGraphvizBuilder::visit(FloorAccessASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(NegativeExpressionASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const NegativeExpressionASTNodePtr &node)
 {
     // Graphviz logic for NegativeExpressionASTNode
     enter_and_create_vertex("-", Operator, node);
@@ -305,7 +305,7 @@ int ASTNodeGraphvizBuilder::visit(NegativeExpressionASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(NotExpressionASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const NotExpressionASTNodePtr &node)
 {
     // Graphviz logic for NotExpressionASTNode
     enter_and_create_vertex("!", Operator, node);
@@ -314,7 +314,7 @@ int ASTNodeGraphvizBuilder::visit(NotExpressionASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(IncrementExpressionASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const IncrementExpressionASTNodePtr &node)
 {
     // Graphviz logic for IncrementExpressionASTNode
     enter_and_create_vertex("++", Operator, node);
@@ -324,7 +324,7 @@ int ASTNodeGraphvizBuilder::visit(IncrementExpressionASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(DecrementExpressionASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const DecrementExpressionASTNodePtr &node)
 {
     // Graphviz logic for DecrementExpressionASTNode
     enter_and_create_vertex("--", Operator, node);
@@ -334,7 +334,7 @@ int ASTNodeGraphvizBuilder::visit(DecrementExpressionASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(AddExpressionASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const AddExpressionASTNodePtr &node)
 {
     // Graphviz logic for AddExpressionASTNode
     enter_and_create_vertex("+", Operator, node);
@@ -344,7 +344,7 @@ int ASTNodeGraphvizBuilder::visit(AddExpressionASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(SubExpressionASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const SubExpressionASTNodePtr &node)
 {
     // Graphviz logic for SubExpressionASTNode
     enter_and_create_vertex("-", Operator, node);
@@ -354,7 +354,7 @@ int ASTNodeGraphvizBuilder::visit(SubExpressionASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(MulExpressionASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const MulExpressionASTNodePtr &node)
 {
     // Graphviz logic for MulExpressionASTNode
     enter_and_create_vertex("*", Operator, node);
@@ -364,7 +364,7 @@ int ASTNodeGraphvizBuilder::visit(MulExpressionASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(DivExpressionASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const DivExpressionASTNodePtr &node)
 {
     // Graphviz logic for DivExpressionASTNode
     enter_and_create_vertex("/", Operator, node);
@@ -374,7 +374,7 @@ int ASTNodeGraphvizBuilder::visit(DivExpressionASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(ModExpressionASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const ModExpressionASTNodePtr &node)
 {
     // Graphviz logic for ModExpressionASTNode
     enter_and_create_vertex("%", Operator, node);
@@ -384,7 +384,7 @@ int ASTNodeGraphvizBuilder::visit(ModExpressionASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(EqualExpressionASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const EqualExpressionASTNodePtr &node)
 {
     // Graphviz logic for EqualExpressionASTNode
     enter_and_create_vertex("==", Operator, node);
@@ -394,7 +394,7 @@ int ASTNodeGraphvizBuilder::visit(EqualExpressionASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(NotEqualExpressionASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const NotEqualExpressionASTNodePtr &node)
 {
     // Graphviz logic for NotEqualExpressionASTNode
     enter_and_create_vertex("!=", Operator, node);
@@ -404,7 +404,7 @@ int ASTNodeGraphvizBuilder::visit(NotEqualExpressionASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(GreaterThanExpressionASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const GreaterThanExpressionASTNodePtr &node)
 {
     // Graphviz logic for GreaterThanExpressionASTNode
     enter_and_create_vertex(">", Operator, node);
@@ -414,7 +414,7 @@ int ASTNodeGraphvizBuilder::visit(GreaterThanExpressionASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(GreaterEqualExpressionASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const GreaterEqualExpressionASTNodePtr &node)
 {
     // Graphviz logic for GreaterEqualExpressionASTNode
     enter_and_create_vertex(">=", Operator, node);
@@ -424,7 +424,7 @@ int ASTNodeGraphvizBuilder::visit(GreaterEqualExpressionASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(LessThanExpressionASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const LessThanExpressionASTNodePtr &node)
 {
     // Graphviz logic for LessThanExpressionASTNode
     enter_and_create_vertex("<", Operator, node);
@@ -434,7 +434,7 @@ int ASTNodeGraphvizBuilder::visit(LessThanExpressionASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(LessEqualExpressionASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const LessEqualExpressionASTNodePtr &node)
 {
     // Graphviz logic for LessEqualExpressionASTNode
     enter_and_create_vertex("<=", Operator, node);
@@ -444,7 +444,7 @@ int ASTNodeGraphvizBuilder::visit(LessEqualExpressionASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(AndExpressionASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const AndExpressionASTNodePtr &node)
 {
     // Graphviz logic for AndExpressionASTNode
     enter_and_create_vertex("&&", Operator, node);
@@ -454,7 +454,7 @@ int ASTNodeGraphvizBuilder::visit(AndExpressionASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(OrExpressionASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const OrExpressionASTNodePtr &node)
 {
     // Graphviz logic for OrExpressionASTNode
     enter_and_create_vertex("||", Operator, node);
@@ -464,7 +464,7 @@ int ASTNodeGraphvizBuilder::visit(OrExpressionASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(InvocationExpressionASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const InvocationExpressionASTNodePtr &node)
 {
     // Graphviz logic for InvocationExpressionASTNode
     enter_and_create_vertex("Invocation", Expression, node);
@@ -478,7 +478,7 @@ int ASTNodeGraphvizBuilder::visit(InvocationExpressionASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(EmptyStatementASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const EmptyStatementASTNodePtr &node)
 {
     // Graphviz logic for EmptyStatementASTNode
 
@@ -488,7 +488,7 @@ int ASTNodeGraphvizBuilder::visit(EmptyStatementASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(IfStatementASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const IfStatementASTNodePtr &node)
 {
     // Graphviz logic for IfStatementASTNode
 
@@ -510,7 +510,7 @@ int ASTNodeGraphvizBuilder::visit(IfStatementASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(WhileStatementASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const WhileStatementASTNodePtr &node)
 {
     // Graphviz logic for WhileStatementASTNode
     enter_and_create_vertex("While Stmt", Structure, node);
@@ -527,7 +527,7 @@ int ASTNodeGraphvizBuilder::visit(WhileStatementASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(ForStatementASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const ForStatementASTNodePtr &node)
 {
     // Graphviz logic for ForStatementASTNode
     enter_and_create_vertex("For Stmt", Structure, node);
@@ -553,7 +553,7 @@ int ASTNodeGraphvizBuilder::visit(ForStatementASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(ReturnStatementASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const ReturnStatementASTNodePtr &node)
 {
     // Graphviz logic for ReturnStatementASTNode
     enter_and_create_vertex("Return", Flow, node);
@@ -564,21 +564,21 @@ int ASTNodeGraphvizBuilder::visit(ReturnStatementASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(BreakStatementASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const BreakStatementASTNodePtr &node)
 {
     enter_and_create_vertex("Break", Flow, node);
     leave();
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(ContinueStatementASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const ContinueStatementASTNodePtr &node)
 {
     enter_and_create_vertex("Continue", Flow, node);
     leave();
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(StatementBlockASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const StatementBlockASTNodePtr &node)
 {
     // Graphviz logic for StatementBlockASTNode
     enter_and_create_vertex("Block", Structure, node);
@@ -589,7 +589,7 @@ int ASTNodeGraphvizBuilder::visit(StatementBlockASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(SubprocDefinitionASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const SubprocDefinitionASTNodePtr &node)
 {
     // Graphviz logic for SubprocDefinitionASTNode
     enter_and_create_vertex("Subproc", Structure, node);
@@ -609,7 +609,7 @@ int ASTNodeGraphvizBuilder::visit(SubprocDefinitionASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(FunctionDefinitionASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const FunctionDefinitionASTNodePtr &node)
 {
     // Graphviz logic for FunctionDefinitionASTNode
     enter_and_create_vertex("Function", Structure, node);
@@ -629,7 +629,7 @@ int ASTNodeGraphvizBuilder::visit(FunctionDefinitionASTNodePtr node)
     return 0;
 }
 
-int ASTNodeGraphvizBuilder::visit(CompilationUnitASTNodePtr node)
+int ASTNodeGraphvizBuilder::visit(const CompilationUnitASTNodePtr &node)
 {
     // Graphviz logic for CompilationUnitASTNode
     enter_and_create_vertex("Program", Structure, node);

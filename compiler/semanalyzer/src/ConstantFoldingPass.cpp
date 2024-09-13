@@ -44,7 +44,7 @@ ConstantFoldingPass::~ConstantFoldingPass()
 {
 }
 
-int ConstantFoldingPass::visit(IntegerASTNodePtr node)
+int ConstantFoldingPass::visit(const IntegerASTNodePtr &node)
 {
     BEGIN_VISIT();
     rc = check_integer_range(node->get_value(), node);
@@ -54,45 +54,45 @@ int ConstantFoldingPass::visit(IntegerASTNodePtr node)
     END_VISIT();
 }
 
-int ConstantFoldingPass::visit(BooleanASTNodePtr node)
+int ConstantFoldingPass::visit(const BooleanASTNodePtr &node)
 {
     BEGIN_VISIT();
     attach_constant(node, node->get_value() ? 1 : 0);
     END_VISIT();
 }
 
-int ConstantFoldingPass::visit(VariableDeclarationASTNodePtr node)
+int ConstantFoldingPass::visit(const VariableDeclarationASTNodePtr &node)
 {
     return SemanticAnalysisPass::visit(node);
 }
 
-int ConstantFoldingPass::visit(VariableAssignmentASTNodePtr node)
+int ConstantFoldingPass::visit(const VariableAssignmentASTNodePtr &node)
 {
     return SemanticAnalysisPass::visit(node);
 }
 
-int ConstantFoldingPass::visit(VariableAccessASTNodePtr node)
+int ConstantFoldingPass::visit(const VariableAccessASTNodePtr &node)
 {
     // NOTE: This is not something that can be folded, but it's worth a shot for propagation
     return SemanticAnalysisPass::visit(node);
 }
 
-int ConstantFoldingPass::visit(FloorBoxInitStatementASTNodePtr node)
+int ConstantFoldingPass::visit(const FloorBoxInitStatementASTNodePtr &node)
 {
     return SemanticAnalysisPass::visit(node);
 }
 
-int ConstantFoldingPass::visit(FloorAssignmentASTNodePtr node)
+int ConstantFoldingPass::visit(const FloorAssignmentASTNodePtr &node)
 {
     return SemanticAnalysisPass::visit(node);
 }
 
-int ConstantFoldingPass::visit(FloorAccessASTNodePtr node)
+int ConstantFoldingPass::visit(const FloorAccessASTNodePtr &node)
 {
     return SemanticAnalysisPass::visit(node);
 }
 
-int ConstantFoldingPass::visit(NegativeExpressionASTNodePtr node)
+int ConstantFoldingPass::visit(const NegativeExpressionASTNodePtr &node)
 {
     BEGIN_VISIT();
     rc = fold_unary_expression(node, [](int a, int &out) { out = -a; return 0; });
@@ -100,7 +100,7 @@ int ConstantFoldingPass::visit(NegativeExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int ConstantFoldingPass::visit(NotExpressionASTNodePtr node)
+int ConstantFoldingPass::visit(const NotExpressionASTNodePtr &node)
 {
     BEGIN_VISIT();
     rc = fold_unary_expression(node, [](int a, int &out) {
@@ -116,17 +116,17 @@ int ConstantFoldingPass::visit(NotExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int ConstantFoldingPass::visit(IncrementExpressionASTNodePtr node)
+int ConstantFoldingPass::visit(const IncrementExpressionASTNodePtr &node)
 {
     return SemanticAnalysisPass::visit(node);
 }
 
-int ConstantFoldingPass::visit(DecrementExpressionASTNodePtr node)
+int ConstantFoldingPass::visit(const DecrementExpressionASTNodePtr &node)
 {
     return SemanticAnalysisPass::visit(node);
 }
 
-int ConstantFoldingPass::visit(AddExpressionASTNodePtr node)
+int ConstantFoldingPass::visit(const AddExpressionASTNodePtr &node)
 {
     BEGIN_VISIT();
     rc = fold_binary_expression(node, [](int a, int b, int &out) { out = a + b; return 0; });
@@ -159,7 +159,7 @@ int ConstantFoldingPass::visit(AddExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int ConstantFoldingPass::visit(SubExpressionASTNodePtr node)
+int ConstantFoldingPass::visit(const SubExpressionASTNodePtr &node)
 {
     BEGIN_VISIT();
     rc = fold_binary_expression(node, [](int a, int b, int &out) { out = a - b; return 0; });
@@ -194,7 +194,7 @@ int ConstantFoldingPass::visit(SubExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int ConstantFoldingPass::visit(MulExpressionASTNodePtr node)
+int ConstantFoldingPass::visit(const MulExpressionASTNodePtr &node)
 {
     BEGIN_VISIT();
 
@@ -241,7 +241,7 @@ int ConstantFoldingPass::visit(MulExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int ConstantFoldingPass::visit(DivExpressionASTNodePtr node)
+int ConstantFoldingPass::visit(const DivExpressionASTNodePtr &node)
 {
     BEGIN_VISIT();
 
@@ -305,7 +305,7 @@ int ConstantFoldingPass::visit(DivExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int ConstantFoldingPass::visit(ModExpressionASTNodePtr node)
+int ConstantFoldingPass::visit(const ModExpressionASTNodePtr &node)
 {
     BEGIN_VISIT();
 
@@ -368,7 +368,7 @@ int ConstantFoldingPass::visit(ModExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int ConstantFoldingPass::visit(EqualExpressionASTNodePtr node)
+int ConstantFoldingPass::visit(const EqualExpressionASTNodePtr &node)
 {
     BEGIN_VISIT();
     rc = fold_binary_expression(node, [](int a, int b, int &out) { out = a == b ? 1 : 0; return 0; });
@@ -376,7 +376,7 @@ int ConstantFoldingPass::visit(EqualExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int ConstantFoldingPass::visit(NotEqualExpressionASTNodePtr node)
+int ConstantFoldingPass::visit(const NotEqualExpressionASTNodePtr &node)
 {
     BEGIN_VISIT();
     rc = fold_binary_expression(node, [](int a, int b, int &out) { out = a != b ? 1 : 0; return 0; });
@@ -384,7 +384,7 @@ int ConstantFoldingPass::visit(NotEqualExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int ConstantFoldingPass::visit(GreaterThanExpressionASTNodePtr node)
+int ConstantFoldingPass::visit(const GreaterThanExpressionASTNodePtr &node)
 {
     BEGIN_VISIT();
     rc = fold_binary_expression(node, [](int a, int b, int &out) { out = a > b ? 1 : 0; return 0; });
@@ -392,7 +392,7 @@ int ConstantFoldingPass::visit(GreaterThanExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int ConstantFoldingPass::visit(GreaterEqualExpressionASTNodePtr node)
+int ConstantFoldingPass::visit(const GreaterEqualExpressionASTNodePtr &node)
 {
     BEGIN_VISIT();
     rc = fold_binary_expression(node, [](int a, int b, int &out) { out = a >= b ? 1 : 0; return 0; });
@@ -400,7 +400,7 @@ int ConstantFoldingPass::visit(GreaterEqualExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int ConstantFoldingPass::visit(LessThanExpressionASTNodePtr node)
+int ConstantFoldingPass::visit(const LessThanExpressionASTNodePtr &node)
 {
     BEGIN_VISIT();
     rc = fold_binary_expression(node, [](int a, int b, int &out) { out = a < b ? 1 : 0; return 0; });
@@ -408,7 +408,7 @@ int ConstantFoldingPass::visit(LessThanExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int ConstantFoldingPass::visit(LessEqualExpressionASTNodePtr node)
+int ConstantFoldingPass::visit(const LessEqualExpressionASTNodePtr &node)
 {
     BEGIN_VISIT();
     rc = fold_binary_expression(node, [](int a, int b, int &out) { out = a <= b ? 1 : 0;return 0; });
@@ -416,7 +416,7 @@ int ConstantFoldingPass::visit(LessEqualExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int ConstantFoldingPass::visit(AndExpressionASTNodePtr node)
+int ConstantFoldingPass::visit(const AndExpressionASTNodePtr &node)
 {
     BEGIN_VISIT();
     rc = fold_binary_expression(node, [](int a, int b, int &out) { out = a && b ? 1 : 0; return 0; });
@@ -424,7 +424,7 @@ int ConstantFoldingPass::visit(AndExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int ConstantFoldingPass::visit(OrExpressionASTNodePtr node)
+int ConstantFoldingPass::visit(const OrExpressionASTNodePtr &node)
 {
     BEGIN_VISIT();
     rc = fold_binary_expression(node, [](int a, int b, int &out) { out = a || b ? 1 : 0; return 0; });
@@ -432,63 +432,63 @@ int ConstantFoldingPass::visit(OrExpressionASTNodePtr node)
     END_VISIT();
 }
 
-int ConstantFoldingPass::visit(InvocationExpressionASTNodePtr node)
+int ConstantFoldingPass::visit(const InvocationExpressionASTNodePtr &node)
 {
     // There's no folding for invocation expression, but we can dive into it's expression.
     return SemanticAnalysisPass::visit(node);
 }
 
-int ConstantFoldingPass::visit(EmptyStatementASTNodePtr node)
+int ConstantFoldingPass::visit(const EmptyStatementASTNodePtr &node)
 {
     return SemanticAnalysisPass::visit(node);
 }
 
-int ConstantFoldingPass::visit(IfStatementASTNodePtr node)
+int ConstantFoldingPass::visit(const IfStatementASTNodePtr &node)
 {
     return SemanticAnalysisPass::visit(node);
 }
 
-int ConstantFoldingPass::visit(WhileStatementASTNodePtr node)
+int ConstantFoldingPass::visit(const WhileStatementASTNodePtr &node)
 {
     return SemanticAnalysisPass::visit(node);
 }
 
-int ConstantFoldingPass::visit(ForStatementASTNodePtr node)
+int ConstantFoldingPass::visit(const ForStatementASTNodePtr &node)
 {
     return SemanticAnalysisPass::visit(node);
 }
 
-int ConstantFoldingPass::visit(ReturnStatementASTNodePtr node)
+int ConstantFoldingPass::visit(const ReturnStatementASTNodePtr &node)
 {
     return SemanticAnalysisPass::visit(node);
 }
 
-int ConstantFoldingPass::visit(BreakStatementASTNodePtr node)
+int ConstantFoldingPass::visit(const BreakStatementASTNodePtr &node)
 {
     return SemanticAnalysisPass::visit(node);
 }
 
-int ConstantFoldingPass::visit(ContinueStatementASTNodePtr node)
+int ConstantFoldingPass::visit(const ContinueStatementASTNodePtr &node)
 {
     return SemanticAnalysisPass::visit(node);
 }
 
-int ConstantFoldingPass::visit(StatementBlockASTNodePtr node)
+int ConstantFoldingPass::visit(const StatementBlockASTNodePtr &node)
 {
     return SemanticAnalysisPass::visit(node);
 }
 
-int ConstantFoldingPass::visit(SubprocDefinitionASTNodePtr node)
+int ConstantFoldingPass::visit(const SubprocDefinitionASTNodePtr &node)
 {
     return SemanticAnalysisPass::visit(node);
 }
 
-int ConstantFoldingPass::visit(FunctionDefinitionASTNodePtr node)
+int ConstantFoldingPass::visit(const FunctionDefinitionASTNodePtr &node)
 {
     return SemanticAnalysisPass::visit(node);
 }
 
-int ConstantFoldingPass::visit(CompilationUnitASTNodePtr node)
+int ConstantFoldingPass::visit(const CompilationUnitASTNodePtr &node)
 {
     return SemanticAnalysisPass::visit(node);
 }
