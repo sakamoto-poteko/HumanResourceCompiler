@@ -92,7 +92,16 @@ protected:
 
     bool replace_self_requested() { return _replace_node_asked_by_child_guard.top() == 1; }
 
-    std::function<void(const parser::ASTNodePtr &)> _global_post_process;
+    template <typename PostProcessFunc = std::function<void(const parser::ASTNodePtr &)>>
+    void set_global_postprocess_function(PostProcessFunc postproc)
+    {
+        _global_post_process = postproc;
+    }
+
+    void clear_global_postprocess_function()
+    {
+        _global_post_process = nullptr;
+    }
 
     template <typename ContainerT, typename PostProcessFunc = std::function<void(const parser::ASTNodePtr &)>>
         requires(std::ranges::range<ContainerT> && parser::convertible_to_ASTNodePtr<std::ranges::range_value_t<ContainerT>>)
@@ -117,6 +126,7 @@ protected:
     {
         if (node) {
             int rc = node->accept(this);
+            // default post_process is empty, so as long as global is invalid, we execute this
             if (!_global_post_process) {
                 post_process(node);
             } else {
@@ -168,6 +178,8 @@ protected:
 
 private:
     std::vector<parser::ASTNodePtr> _ancestors;
+
+    std::function<void(const parser::ASTNodePtr &)> _global_post_process;
 
     std::stack<parser::ASTNodePtr> _replace_node_asked_by_child;
     std::stack<int> _replace_node_asked_by_child_guard; // the count guard for single replace node
