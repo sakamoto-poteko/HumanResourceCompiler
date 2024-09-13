@@ -1,6 +1,8 @@
 #ifndef SEMANTICANALYSISPASS_H
 #define SEMANTICANALYSISPASS_H
 
+#include <concepts>
+#include <functional>
 #include <memory>
 #include <stack>
 #include <type_traits>
@@ -90,13 +92,15 @@ protected:
 
     bool replace_self_requested() { return _replace_node_asked_by_child_guard.top() == 1; }
 
-    template <typename ContainerT>
+    template <typename ContainerT, typename PostProcessFunc = std::function<void(const parser::ASTNodePtr &)>>
         requires(std::ranges::range<ContainerT> && parser::convertible_to_ASTNodePtr<std::ranges::range_value_t<ContainerT>>)
-    int traverse(ContainerT &nodes)
+    int traverse(
+        ContainerT &nodes,
+        PostProcessFunc post_process = [](const parser::ASTNodePtr &) {})
     {
         int result = 0;
         for (auto &node : nodes) {
-            int rc = traverse(node);
+            int rc = traverse(node, post_process);
             if (rc != 0) {
                 result = rc;
             }
@@ -104,19 +108,18 @@ protected:
         return result;
     }
 
-    template <typename T>
+    template <typename T, typename PostProcessFunc = std::function<void(const parser::ASTNodePtr &)>>
         requires parser::convertible_to_ASTNodePtr<T>
-    int traverse(T &node)
+    int traverse(
+        T &node, PostProcessFunc post_process = [](const parser::ASTNodePtr &) {})
     {
         if (node) {
             int rc = node->accept(this);
+            post_process(node);
             if (!_replace_node_asked_by_child.empty()) {
                 using NodeType = typename T::element_type;
                 auto top = std::dynamic_pointer_cast<NodeType>(_replace_node_asked_by_child.top());
-                if (!top) {
-                    // this is a bug.
-                    throw;
-                }
+                assert(top);
                 node = top;
                 _replace_node_asked_by_child.pop();
             }
@@ -126,18 +129,19 @@ protected:
         }
     }
 
-    template <typename... T>
-    int traverse_multiple(T &...node_ptr)
+    template <typename PostProcessFunc, typename... T>
+        requires std::invocable<PostProcessFunc, const parser::ASTNodePtr &>
+    int traverse_multiple(PostProcessFunc post_process, T &...node_ptr)
     {
         int result = 0;
-        auto process_result = [&](auto &node) {
+        auto process_result = [&, post_process](auto &node) {
             if constexpr (parser::convertible_to_ASTNodePtr<std::remove_reference_t<decltype(node)>>) {
-                int rc = traverse(node);
+                int rc = traverse(node, post_process);
                 if (rc != 0) {
                     result = rc;
                 }
             } else if constexpr (std::ranges::range<decltype(node)> && parser::convertible_to_ASTNodePtr<std::ranges::range_value_t<decltype(node)>>) {
-                int rc = traverse(node);
+                int rc = traverse(node, post_process);
                 if (rc != 0) {
                     result = rc;
                 }
@@ -148,6 +152,12 @@ protected:
 
         (process_result(node_ptr), ...);
         return result;
+    }
+
+    template <typename... T>
+    int traverse_multiple(T &...node_ptr)
+    {
+        return traverse_multiple([](const auto &) {}, node_ptr...);
     }
 
 private:

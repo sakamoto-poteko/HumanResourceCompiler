@@ -9,6 +9,7 @@
 #include <spdlog/sinks/ostream_sink.h>
 
 #include "ASTBuilder.h"
+#include "ASTNodeGraphvizBuilder.h"
 #include "ConstantFoldingPass.h"
 #include "ErrorManager.h"
 #include "HRLLexer.h"
@@ -59,23 +60,33 @@ protected:
         hrl::lexer::HRLLexer lexer;
         std::vector<hrl::lexer::TokenPtr> tokens;
         bool ok = lexer.lex(file, data.path, tokens);
-        ASSERT_TRUE(ok) << "Lexical analysis failed";
+        errmgr.print_all();
+        ASSERT_TRUE(ok) << "Lexical analysis failed\n"
+                        << captured_outstream.str();
+        ASSERT_FALSE(errmgr.has_errors()) << "Lexing has errors:\n"
+                                          << captured_outstream.str();
         fclose(file);
 
         // Parsing
         hrl::parser::RecursiveDescentParser parser(data.path, tokens);
         hrl::parser::CompilationUnitPTNodePtr compilation_unit;
         bool parsed = parser.parse(compilation_unit);
-        ASSERT_TRUE(parsed) << "Parsing failed";
-        ASSERT_FALSE(errmgr.has_errors()) << "Parsing has errors";
+        errmgr.print_all();
+        ASSERT_TRUE(parsed) << "Parsing failed\n"
+                            << captured_outstream.str();
+        ASSERT_FALSE(errmgr.has_errors()) << "Parsing has errors:\n"
+                                          << captured_outstream.str();
         hrl::parser::ParseTreeNodeGraphvizBuilder graphviz(compilation_unit);
         graphviz.generate_graphviz(data.filename + "-pt.dot");
 
         // Building AST
         hrl::parser::ASTBuilder builder(compilation_unit);
         bool built = builder.build(ast);
-        ASSERT_TRUE(built) << "Failed to build AST";
-        ASSERT_FALSE(errmgr.has_errors()) << "Building AST has errors";
+        errmgr.print_all();
+        ASSERT_TRUE(built) << "Failed to build AST\n"
+                           << captured_outstream.str();
+        ASSERT_FALSE(errmgr.has_errors()) << "Building AST has errors\n"
+                                          << captured_outstream.str();
         hrl::parser::ASTNodeGraphvizBuilder graphviz_ast(ast);
         graphviz_ast.generate_graphviz(data.filename + "-ast.dot");
 
@@ -92,9 +103,12 @@ TEST_P(SemanticAnalyzerTests, SemanticAnalysisTests)
 
     using SemaAttrId = hrl::semanalyzer::SemAnalzyerASTNodeAttributeId;
 
+    auto dbg = data.filename == "E3007_pass_nested_scopes.hrml";
+
     hrl::semanalyzer::SemanticAnalysisPassManager sem_passmgr(ast, std::make_shared<std::string>(data.filename));
     auto symtbl = std::make_shared<hrl::semanalyzer::SymbolTable>();
-    // non-node-mutational
+
+    // won't mutate the node
     auto symtbl_analyzer = sem_passmgr.add_pass<hrl::semanalyzer::SymbolAnalysisPass>(
         "SymbolTableAnalyzer",
         data.filename + "-symtbl.dot",
@@ -102,8 +116,14 @@ TEST_P(SemanticAnalyzerTests, SemanticAnalysisTests)
             SemaAttrId::ATTR_SEMANALYZER_SYMBOL,
             SemaAttrId::ATTR_SEMANALYZER_SCOPE_INFO,
         });
-    auto ubi1 = sem_passmgr.add_pass<hrl::semanalyzer::UseBeforeInitializationCheckPass>("UseBeforeInitializationCheckPass1", data.filename + "-ubi1.dot");
-    // node-mutated
+    auto ubi1 = sem_passmgr.add_pass<hrl::semanalyzer::UseBeforeInitializationCheckPass>("UseBeforeInitializationCheckPass1",
+        data.filename + "-ubi1.dot",
+        std::set<int> {
+            SemaAttrId::ATTR_SEMANALYZER_SYMBOL,
+            SemaAttrId::ATTR_SEMANALYZER_SCOPE_INFO,
+        });
+
+    // may mutate the node
     auto constfolder = sem_passmgr.add_pass<hrl::semanalyzer::ConstantFoldingPass>(
         "ConstantFoldingPass",
         data.filename + "-constfold.dot",

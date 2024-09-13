@@ -7,7 +7,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "ASTNode.h"
 #include "Symbol.h"
 #include "hrl_global.h"
 #include "semanalyzer_global.h"

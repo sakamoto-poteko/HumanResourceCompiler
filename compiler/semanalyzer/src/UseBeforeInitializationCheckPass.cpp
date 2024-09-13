@@ -35,6 +35,26 @@ int UseBeforeInitializationCheckPass::run()
     return _root->accept(this);
 }
 
+int UseBeforeInitializationCheckPass::visit(parser::DecrementExpressionASTNodePtr node)
+{
+    BEGIN_VISIT();
+
+    rc = check_node_symbol_assigned_or_report(node);
+    RETURN_IF_FAIL_IN_VISIT(rc);
+
+    END_VISIT();
+}
+
+int UseBeforeInitializationCheckPass::visit(parser::IncrementExpressionASTNodePtr node)
+{
+    BEGIN_VISIT();
+
+    rc = check_node_symbol_assigned_or_report(node);
+    RETURN_IF_FAIL_IN_VISIT(rc);
+
+    END_VISIT();
+}
+
 int UseBeforeInitializationCheckPass::visit(parser::VariableDeclarationASTNodePtr node)
 {
     BEGIN_VISIT();
@@ -186,13 +206,41 @@ int UseBeforeInitializationCheckPass::visit(parser::VariableAccessASTNodePtr nod
 {
     BEGIN_VISIT();
 
-    SymbolPtr symbol = Symbol::get_from(node);
+    rc = check_node_symbol_assigned_or_report(node);
+    RETURN_IF_FAIL_IN_VISIT(rc);
 
-    int assigned = get_var_init_at_current_scope(symbol);
-    if (!assigned) {
-        log_use_before_initialization_error(symbol, node);
-        RETURN_IF_FAIL_IN_VISIT(E_SEMA_VAR_USE_BEFORE_INIT);
+    END_VISIT();
+}
+
+int UseBeforeInitializationCheckPass::visit(parser::StatementBlockASTNodePtr node)
+{
+    const parser::ASTNodePtr &parent = topmost_node();
+    // is it from while/if/for/function/subroutine which is scope structured?
+    bool come_from_scoped_structure
+        = is_ptr_type<parser::WhileStatementASTNode>(parent)
+        || is_ptr_type<parser::IfStatementASTNode>(parent)
+        || is_ptr_type<parser::ForStatementASTNode>(parent);
+        // || is_ptr_type<parser::FunctionDefinitionASTNode>(parent)
+        // || is_ptr_type<parser::SubprocDefinitionASTNode>(parent);
+
+    BEGIN_VISIT();
+
+    // FIXME: impl
+    // get the result of traversed node, and put to our own scope
+    // the result will only contain ????
+    auto passthrough_result = [this](const parser::ASTNodePtr &nodeparam) {
+        NodeResult result;
+        get_var_init_result(nodeparam, result);
+        set_var_init_at_current_scope(result);
+    };
+
+    // if (come_from_scoped_structure) {
+    if (false) {
+        rc = traverse(node->get_statements());
+    } else {
+        rc = traverse(node->get_statements(), passthrough_result);
     }
+    RETURN_IF_FAIL_IN_VISIT(rc);
 
     END_VISIT();
 }
@@ -220,6 +268,20 @@ int UseBeforeInitializationCheckPass::visit_subroutine(parser::AbstractSubroutin
     set_var_init_at_current_scope(prefunc_result);
 
     END_VISIT();
+}
+
+int UseBeforeInitializationCheckPass::check_node_symbol_assigned_or_report(const parser::ASTNodePtr &node)
+{
+    SymbolPtr symbol = Symbol::get_from(node);
+    assert(symbol);
+
+    int assigned = get_var_init_at_current_scope(symbol);
+    if (!assigned) {
+        log_use_before_initialization_error(symbol, node);
+        return E_SEMA_VAR_USE_BEFORE_INIT;
+    }
+
+    return 0;
 }
 
 void UseBeforeInitializationCheckPass::on_scope_enter(const parser::ASTNodePtr &node, const std::string &scope_id)
@@ -347,4 +409,5 @@ void UseBeforeInitializationCheckPass::leave_node()
 }
 
 CLOSE_SEMANALYZER_NAMESPACE
+
 // end

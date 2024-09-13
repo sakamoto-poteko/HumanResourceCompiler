@@ -1,14 +1,16 @@
 #ifndef USEBEFOREINITIALIZATIONPASS_H
 #define USEBEFOREINITIALIZATIONPASS_H
 
+#include <set>
+#include <stack>
+#include <string>
+
+#include "ASTNodeForward.h"
 #include "SemanticAnalysisPass.h"
 #include "Symbol.h"
 #include "WithScopeTracker.h"
 #include "WithSymbolTable.h"
 #include "semanalyzer_global.h"
-#include <set>
-#include <stack>
-#include <string>
 
 OPEN_SEMANALYZER_NAMESPACE
 
@@ -27,12 +29,12 @@ public:
     int visit(parser::VariableDeclarationASTNodePtr node) override;
     int visit(parser::VariableAssignmentASTNodePtr node) override;
     int visit(parser::VariableAccessASTNodePtr node) override;
-    // int visit(parser::IncrementExpressionASTNodePtr node) override;
-    // int visit(parser::DecrementExpressionASTNodePtr node) override;
+    int visit(parser::IncrementExpressionASTNodePtr node) override;
+    int visit(parser::DecrementExpressionASTNodePtr node) override;
     int visit(parser::IfStatementASTNodePtr node) override;
     int visit(parser::WhileStatementASTNodePtr node) override;
     int visit(parser::ForStatementASTNodePtr node) override;
-    // int visit(parser::StatementBlockASTNodePtr node) override;
+    int visit(parser::StatementBlockASTNodePtr node) override;
     int visit(parser::SubprocDefinitionASTNodePtr node) override;
     int visit(parser::FunctionDefinitionASTNodePtr node) override;
 
@@ -62,6 +64,7 @@ private:
     // [End]
 
     int visit_subroutine(parser::AbstractSubroutineASTNodePtr node);
+    int check_node_symbol_assigned_or_report(const parser::ASTNodePtr &node);
 
     // if the entered a scope: copy all elements from parent's scope
     // if left the scope: return result to parent's scope
