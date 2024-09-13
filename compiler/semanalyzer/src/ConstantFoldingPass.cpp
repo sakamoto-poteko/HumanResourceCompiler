@@ -1,5 +1,3 @@
-#include <cstdint>
-
 #include <memory>
 
 #include <boost/format.hpp>
@@ -26,9 +24,15 @@ OPEN_SEMANALYZER_NAMESPACE
     leave_node();   \
     return result
 
-#define SET_RESULT_RC() \
-    if (rc != 0) {      \
-        result = rc;    \
+#define SET_RESULT_RC_AND_RETURN_IN_VISIT() \
+    if (rc != 0) {                          \
+        result = rc;                        \
+        END_VISIT();                        \
+    }
+
+#define RETURN_IF_FAIL() \
+    if (rc != 0) {       \
+        return rc;       \
     }
 
 ConstantFoldingPass::ConstantFoldingPass(StringPtr filename, parser::CompilationUnitASTNodePtr root)
@@ -44,7 +48,7 @@ int ConstantFoldingPass::visit(IntegerASTNodePtr node)
 {
     BEGIN_VISIT();
     rc = check_integer_range(node->get_value(), node);
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     attach_constant(node, node->get_value());
     END_VISIT();
@@ -92,7 +96,7 @@ int ConstantFoldingPass::visit(NegativeExpressionASTNodePtr node)
 {
     BEGIN_VISIT();
     rc = fold_unary_expression(node, [](int a, int &out) { out = -a; return 0; });
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
     END_VISIT();
 }
 
@@ -108,7 +112,7 @@ int ConstantFoldingPass::visit(NotExpressionASTNodePtr node)
         }
         return 0;
     });
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
     END_VISIT();
 }
 
@@ -126,7 +130,7 @@ int ConstantFoldingPass::visit(AddExpressionASTNodePtr node)
 {
     BEGIN_VISIT();
     rc = fold_binary_expression(node, [](int a, int b, int &out) { out = a + b; return 0; });
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     // visit 2: add 0 and 0 add opt
     auto left = node->get_left();
@@ -159,7 +163,7 @@ int ConstantFoldingPass::visit(SubExpressionASTNodePtr node)
 {
     BEGIN_VISIT();
     rc = fold_binary_expression(node, [](int a, int b, int &out) { out = a - b; return 0; });
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     // visit 2: sub 0 and 0 sub opt
     auto left = node->get_left();
@@ -196,7 +200,7 @@ int ConstantFoldingPass::visit(MulExpressionASTNodePtr node)
 
     // visit 1: fold
     rc = fold_binary_expression(node, [](int a, int b, int &out) { out = a * b; return 0; });
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     // visit 2: mul 0 and mul 1 opt
     auto left = node->get_left();
@@ -258,7 +262,7 @@ int ConstantFoldingPass::visit(DivExpressionASTNodePtr node)
             return 0;
         }
     });
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     // visit 2: div 0 check, div 1 opt, 0 div opt
     auto right = node->get_right();
@@ -322,7 +326,7 @@ int ConstantFoldingPass::visit(ModExpressionASTNodePtr node)
             return 0;
         }
     });
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
     // visit 2: mod 0 check, mod 1 opt, 0 mod opt
     auto left = node->get_left();
@@ -368,7 +372,7 @@ int ConstantFoldingPass::visit(EqualExpressionASTNodePtr node)
 {
     BEGIN_VISIT();
     rc = fold_binary_expression(node, [](int a, int b, int &out) { out = a == b ? 1 : 0; return 0; });
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
     END_VISIT();
 }
 
@@ -376,7 +380,7 @@ int ConstantFoldingPass::visit(NotEqualExpressionASTNodePtr node)
 {
     BEGIN_VISIT();
     rc = fold_binary_expression(node, [](int a, int b, int &out) { out = a != b ? 1 : 0; return 0; });
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
     END_VISIT();
 }
 
@@ -384,7 +388,7 @@ int ConstantFoldingPass::visit(GreaterThanExpressionASTNodePtr node)
 {
     BEGIN_VISIT();
     rc = fold_binary_expression(node, [](int a, int b, int &out) { out = a > b ? 1 : 0; return 0; });
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
     END_VISIT();
 }
 
@@ -392,7 +396,7 @@ int ConstantFoldingPass::visit(GreaterEqualExpressionASTNodePtr node)
 {
     BEGIN_VISIT();
     rc = fold_binary_expression(node, [](int a, int b, int &out) { out = a >= b ? 1 : 0; return 0; });
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
     END_VISIT();
 }
 
@@ -400,7 +404,7 @@ int ConstantFoldingPass::visit(LessThanExpressionASTNodePtr node)
 {
     BEGIN_VISIT();
     rc = fold_binary_expression(node, [](int a, int b, int &out) { out = a < b ? 1 : 0; return 0; });
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
     END_VISIT();
 }
 
@@ -408,7 +412,7 @@ int ConstantFoldingPass::visit(LessEqualExpressionASTNodePtr node)
 {
     BEGIN_VISIT();
     rc = fold_binary_expression(node, [](int a, int b, int &out) { out = a <= b ? 1 : 0;return 0; });
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
     END_VISIT();
 }
 
@@ -416,7 +420,7 @@ int ConstantFoldingPass::visit(AndExpressionASTNodePtr node)
 {
     BEGIN_VISIT();
     rc = fold_binary_expression(node, [](int a, int b, int &out) { out = a && b ? 1 : 0; return 0; });
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
     END_VISIT();
 }
 
@@ -424,7 +428,7 @@ int ConstantFoldingPass::visit(OrExpressionASTNodePtr node)
 {
     BEGIN_VISIT();
     rc = fold_binary_expression(node, [](int a, int b, int &out) { out = a || b ? 1 : 0; return 0; });
-    SET_RESULT_RC();
+    SET_RESULT_RC_AND_RETURN_IN_VISIT();
     END_VISIT();
 }
 
@@ -505,10 +509,10 @@ int ConstantFoldingPass::fold_binary_expression(const AbstractBinaryExpressionAS
     int result = 0, rc = 0;
 
     rc = traverse(node->get_left());
-    SET_RESULT_RC();
+    RETURN_IF_FAIL();
 
     rc = traverse(node->get_right());
-    SET_RESULT_RC();
+    RETURN_IF_FAIL();
 
     ASTNodeAttributePtr left_const_fld;
     ASTNodeAttributePtr right_const_fld;
@@ -520,10 +524,10 @@ int ConstantFoldingPass::fold_binary_expression(const AbstractBinaryExpressionAS
         int right = std::static_pointer_cast<ConstantFoldingAttribute>(right_const_fld)->get_value();
         int val;
         rc = op_func(left, right, val);
-        SET_RESULT_RC();
+        RETURN_IF_FAIL();
 
         rc = check_integer_range(val, node);
-        SET_RESULT_RC();
+        RETURN_IF_FAIL();
 
         attach_constant(node, val);
 
@@ -542,7 +546,7 @@ int ConstantFoldingPass::fold_unary_expression(const AbstractUnaryExpressionASTN
     int result = 0, rc = 0;
 
     rc = traverse(node->get_operand());
-    SET_RESULT_RC();
+    RETURN_IF_FAIL();
 
     ASTNodeAttributePtr const_fld;
     bool is_const = node->get_operand()->get_attribute(ATTR_SEMANALYZER_CONST_FOLDING_VALUE, const_fld);
@@ -551,10 +555,10 @@ int ConstantFoldingPass::fold_unary_expression(const AbstractUnaryExpressionASTN
         int operand = std::static_pointer_cast<ConstantFoldingAttribute>(const_fld)->get_value();
         int val;
         rc = op_func(operand, val);
-        SET_RESULT_RC();
+        RETURN_IF_FAIL();
 
         rc = check_integer_range(val, node);
-        SET_RESULT_RC();
+        RETURN_IF_FAIL();
 
         attach_constant(node, val);
     }
@@ -582,11 +586,6 @@ int ConstantFoldingPass::check_integer_range(int value, const ASTNodePtr &node)
 std::string ConstantFoldingAttribute::to_string()
 {
     return "const: " + std::to_string(_value);
-}
-
-int ConstantFoldingAttribute::get_type()
-{
-    return ATTR_SEMANALYZER_CONST_FOLDING_VALUE;
 }
 
 CLOSE_SEMANALYZER_NAMESPACE

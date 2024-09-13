@@ -1,32 +1,37 @@
 #include <spdlog/spdlog.h>
 
 #include "SemanticAnalysisPass.h"
-#include "hrl_global.h"
 #include "semanalyzer_global.h"
 
 OPEN_SEMANALYZER_NAMESPACE
 
 void SemanticAnalysisPass::enter_node(parser::ASTNodePtr node)
 {
-    _ancestors.push(node);
+    _ancestors.push_back(node);
     _replace_node_asked_by_child_guard.push(0);
 }
 
 void SemanticAnalysisPass::leave_node()
 {
-    _ancestors.pop();
+    assert(!_ancestors.empty());
+    _ancestors.pop_back();
+    assert(!_replace_node_asked_by_child_guard.empty());
     _replace_node_asked_by_child_guard.pop();
 }
 
 int SemanticAnalysisPass::visit(parser::IntegerASTNodePtr node)
 {
-    UNUSED(node);
+
+    enter_node(node);
+    leave_node();
     return 0;
 }
 
 int SemanticAnalysisPass::visit(parser::BooleanASTNodePtr node)
 {
-    UNUSED(node);
+
+    enter_node(node);
+    leave_node();
     return 0;
 }
 
@@ -48,7 +53,9 @@ int SemanticAnalysisPass::visit(parser::VariableAssignmentASTNodePtr node)
 
 int SemanticAnalysisPass::visit(parser::VariableAccessASTNodePtr node)
 {
-    UNUSED(node);
+
+    enter_node(node);
+    leave_node();
     return 0;
 }
 
@@ -94,13 +101,15 @@ int SemanticAnalysisPass::visit(parser::NotExpressionASTNodePtr node)
 
 int SemanticAnalysisPass::visit(parser::IncrementExpressionASTNodePtr node)
 {
-    UNUSED(node);
+    enter_node(node);
+    leave_node();
     return 0;
 }
 
 int SemanticAnalysisPass::visit(parser::DecrementExpressionASTNodePtr node)
 {
-    UNUSED(node);
+    enter_node(node);
+    leave_node();
     return 0;
 }
 
@@ -218,7 +227,8 @@ int SemanticAnalysisPass::visit(parser::InvocationExpressionASTNodePtr node)
 
 int SemanticAnalysisPass::visit(parser::EmptyStatementASTNodePtr node)
 {
-    UNUSED(node);
+    enter_node(node);
+    leave_node();
     return 0;
 }
 
@@ -256,13 +266,15 @@ int SemanticAnalysisPass::visit(parser::ReturnStatementASTNodePtr node)
 
 int SemanticAnalysisPass::visit(parser::BreakStatementASTNodePtr node)
 {
-    UNUSED(node);
+    enter_node(node);
+    leave_node();
     return 0;
 }
 
 int SemanticAnalysisPass::visit(parser::ContinueStatementASTNodePtr node)
 {
-    UNUSED(node);
+    enter_node(node);
+    leave_node();
     return 0;
 }
 
@@ -277,7 +289,7 @@ int SemanticAnalysisPass::visit(parser::StatementBlockASTNodePtr node)
 int SemanticAnalysisPass::visit(parser::SubprocDefinitionASTNodePtr node)
 {
     enter_node(node);
-    int rc = traverse(node->get_body());
+    int rc = traverse_multiple(node->get_parameter(), node->get_body());
     leave_node();
     return rc;
 }
@@ -285,7 +297,7 @@ int SemanticAnalysisPass::visit(parser::SubprocDefinitionASTNodePtr node)
 int SemanticAnalysisPass::visit(parser::FunctionDefinitionASTNodePtr node)
 {
     enter_node(node);
-    int rc = traverse(node->get_body());
+    int rc = traverse_multiple(node->get_parameter(), node->get_body());
     leave_node();
     return rc;
 }
@@ -301,7 +313,7 @@ int SemanticAnalysisPass::visit(parser::CompilationUnitASTNodePtr node)
 void SemanticAnalysisPass::request_to_replace_self(parser::ASTNodePtr to_be_replaced_with)
 {
     if (_replace_node_asked_by_child_guard.top() == 1) {
-        spdlog::warn("[{}:{}] requested node replacement more than once", _ancestors.top()->lineno(), _ancestors.top()->colno());
+        spdlog::warn("[{}:{}] requested node replacement more than once", _ancestors.back()->lineno(), _ancestors.back()->colno());
         _replace_node_asked_by_child.pop();
     }
     _replace_node_asked_by_child.push(to_be_replaced_with);

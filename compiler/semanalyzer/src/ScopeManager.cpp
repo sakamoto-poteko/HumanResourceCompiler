@@ -91,11 +91,6 @@ std::vector<std::string> ScopeManager::get_ancestor_scopes(const std::string &sc
     return result;
 }
 
-int ScopeInfoAttribute::get_type()
-{
-    return SemAnalzyerASTNodeAttributeId::ATTR_SEMANALYZER_SYMBOL;
-}
-
 std::string ScopeInfoAttribute::to_string()
 {
     switch (_type) {

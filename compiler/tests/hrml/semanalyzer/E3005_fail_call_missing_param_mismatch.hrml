@@ -1,0 +1,5 @@
+sub a(param) {}
+sub start()
+{
+    a();
+}

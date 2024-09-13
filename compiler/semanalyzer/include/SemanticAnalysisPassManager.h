@@ -2,12 +2,12 @@
 #define SEMANTICANALYSISPASSMANAGER_H
 
 #include <memory>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "ASTNodeForward.h"
-#include "ASTNodeGraphvizBuilder.h"
 #include "SemanticAnalysisPass.h"
 #include "hrl_global.h"
 #include "semanalyzer_global.h"

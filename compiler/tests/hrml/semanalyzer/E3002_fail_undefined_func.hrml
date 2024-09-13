@@ -1,0 +1,5 @@
+// undefined func
+sub start() {
+    not_defined();
+}
+

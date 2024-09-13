@@ -1,0 +1,7 @@
+let uninit;
+
+sub start()
+{
+    let uninit = 0;
+    outbox(uninit);
+}

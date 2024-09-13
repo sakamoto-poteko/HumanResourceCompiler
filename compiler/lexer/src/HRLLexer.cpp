@@ -3,15 +3,11 @@
 #include "ErrorManager.h"
 #include "HRLLexer.h"
 #include "HRLToken.h"
+#include "lexer.h"
 #include "lexer_global.h"
 #include "lexer_helper.h"
 
-extern int yyleng;
-extern char *yytext;
-extern FILE *yyin;
-extern int yylineno;
 extern int yycolno;
-int yylex();
 
 OPEN_LEXER_NAMESPACE
 
@@ -66,10 +62,11 @@ bool HRLLexer::lex(FILE *in, const std::string &filepath, std::vector<TokenPtr> 
 
 int HRLLexer::lexer_initialize(FILE *in)
 {
+    yylex_destroy();
+
     yyin = in;
-    __currentToken.boolean = false;
-    __currentToken.identifier = StringPtr();
-    __currentToken.integer = 0;
+    __currentToken.clear();
+    yylineno = 1;
     return 0;
 }
 

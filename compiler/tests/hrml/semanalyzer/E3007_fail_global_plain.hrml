@@ -1,0 +1,6 @@
+let uninit;
+
+sub start()
+{
+    outbox(uninit);
+}

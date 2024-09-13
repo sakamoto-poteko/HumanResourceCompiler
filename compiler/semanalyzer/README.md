@@ -18,7 +18,7 @@ The following is a breakdown of pending tasks to be implemented in the semantic 
 - [x] Check div by constant zero error
 
 ### Symbol Use Analysis
-- [ ] Enforce the variable assignment before use
+- [x] Enforce the variable assignment before use
 - [ ] Detect unused variables
 
 ### Control Flow Analysis

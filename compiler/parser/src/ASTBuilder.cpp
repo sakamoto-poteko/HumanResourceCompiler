@@ -259,29 +259,41 @@ void ASTBuilder::visit(InvocationStatementPTNodePtr node)
 void ASTBuilder::visit(SubprocDefinitionPTNodePtr node)
 {
     StringPtr func_name = node->get_function_name()->get_value();
-    StringPtr param_name;
+    auto param = node->get_formal_parameter();
+    VariableDeclarationASTNodePtr param_node;
 
-    if (node->get_formal_parameter()) {
-        param_name = node->get_formal_parameter()->get_value();
+    if (param) {
+        auto param_name = param->get_value();
+
+        param_node = std::make_shared<VariableDeclarationASTNode>(
+            param->lineno(), param->colno(), param->lineno(), param->colno() + param->get_token()->width(),
+            param_name,
+            nullptr);
     }
 
     auto stmt_block = visit_and_cast<StatementBlockASTNodePtr>(node->get_body());
 
-    SET_RESULT(SubprocDefinitionASTNode, func_name, param_name, stmt_block);
+    SET_RESULT(SubprocDefinitionASTNode, func_name, param_node, stmt_block);
 }
 
 void ASTBuilder::visit(FunctionDefinitionPTNodePtr node)
 {
     StringPtr func_name = node->get_function_name()->get_value();
-    StringPtr param_name;
+    auto param = node->get_formal_parameter();
+    VariableDeclarationASTNodePtr param_node;
 
-    if (node->get_formal_parameter()) {
-        param_name = node->get_formal_parameter()->get_value();
+    if (param) {
+        auto param_name = param->get_value();
+
+        param_node = std::make_shared<VariableDeclarationASTNode>(
+            param->lineno(), param->colno(), param->lineno(), param->colno() + param->get_token()->width(),
+            param_name,
+            nullptr);
     }
 
     auto stmt_block = visit_and_cast<StatementBlockASTNodePtr>(node->get_body());
 
-    SET_RESULT(FunctionDefinitionASTNode, func_name, param_name, stmt_block);
+    SET_RESULT(FunctionDefinitionASTNode, func_name, param_node, stmt_block);
 }
 
 void ASTBuilder::visit(ImportDirectivePTNodePtr node)

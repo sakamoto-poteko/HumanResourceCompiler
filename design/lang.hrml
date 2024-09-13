@@ -17,12 +17,13 @@ function countdown(a) {
         outbox(i / 1);
         continue;
     }
-
+    
     let b;
     let ee;
     
     if (globalint) {
-        {{{ee = 5;}}}
+        let b1;
+        {let b2;{let b3;{ee = 5;}}}
     } else {
         ee = 10;
     }

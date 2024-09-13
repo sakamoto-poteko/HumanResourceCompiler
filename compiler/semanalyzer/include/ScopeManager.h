@@ -8,6 +8,8 @@
 #include <vector>
 
 #include "ASTNode.h"
+#include "ASTNodeAttribute.h"
+#include "ASTNodeForward.h"
 #include "hrl_global.h"
 #include "semanalyzer_global.h"
 
@@ -31,6 +33,9 @@ enum class ScopeType : int {
     Block,
 };
 
+class ScopeInfoAttribute;
+using ScopeInfoAttributePtr = std::shared_ptr<ScopeInfoAttribute>;
+
 /**
  * @brief Stores information about the scope of an AST node.
  *
@@ -39,7 +44,7 @@ enum class ScopeType : int {
  * This information is used during semantic analysis to track the scope of variables
  * and ensure that scoping rules are followed correctly.
  */
-class ScopeInfoAttribute : public parser::ASTNodeAttribute {
+class ScopeInfoAttribute : public parser::ASTNodeAttribute, public parser::GetSetAttribute<ScopeInfoAttribute> {
 public:
     ScopeInfoAttribute(const std::string &scope_id, ScopeType scope_type)
         : _scope_id(scope_id)
@@ -49,19 +54,38 @@ public:
 
     ~ScopeInfoAttribute() override = default;
 
-    int get_type() override;
+    static int get_attribute_id() { return SemAnalzyerASTNodeAttributeId::ATTR_SEMANALYZER_SYMBOL; }
+
     std::string to_string() override;
 
     const std::string &get_scope_id() const { return _scope_id; }
 
     ScopeType get_scope_type() const { return _type; }
 
+    static ScopeInfoAttributePtr get_scope(const parser::ASTNodePtr &node)
+    {
+        parser::ASTNodeAttributePtr out;
+        if (node->get_attribute(ATTR_SEMANALYZER_SCOPE_INFO, out)) {
+            return std::static_pointer_cast<ScopeInfoAttribute>(out);
+        } else {
+            return nullptr;
+        }
+    }
+
+    static void set_scope(const parser::ASTNodePtr &node, const ScopeInfoAttributePtr &scope_info)
+    {
+        node->set_attribute(ATTR_SEMANALYZER_SCOPE_INFO, scope_info);
+    }
+
+    void attach(const parser::ASTNodePtr &node)
+    {
+        node->set_attribute(ATTR_SEMANALYZER_SCOPE_INFO, shared_from_this());
+    }
+
 private:
     std::string _scope_id;
     ScopeType _type;
 };
-
-using ScopeInfoAttributePtr = std::shared_ptr<ScopeInfoAttribute>;
 
 /**
  * @brief Manages scoping during compilation.

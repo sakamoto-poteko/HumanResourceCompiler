@@ -1,0 +1,9 @@
+// func can be defined later
+sub start()
+{
+    defined_func();
+}
+
+sub defined_func()
+{
+}

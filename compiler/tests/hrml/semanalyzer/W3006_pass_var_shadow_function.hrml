@@ -1,0 +1,7 @@
+sub start()
+{
+    let funcvar = 1;
+    if (true) {
+        let funcvar = 2;
+    }
+}

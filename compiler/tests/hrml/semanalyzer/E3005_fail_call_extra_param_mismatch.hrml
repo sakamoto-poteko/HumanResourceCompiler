@@ -1,0 +1,5 @@
+sub a() {}
+sub start()
+{
+    a(0);
+}

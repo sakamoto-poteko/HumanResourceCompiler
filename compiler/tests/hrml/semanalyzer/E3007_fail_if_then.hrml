@@ -1,0 +1,12 @@
+sub start()
+{
+    let uninit;
+
+    if (inbox()) {
+        uninit = 0;
+    } else {
+        
+    }
+
+    outbox(uninit);
+}
