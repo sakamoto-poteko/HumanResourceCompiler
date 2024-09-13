@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(hrc_tests)
 
 find_package(GTest REQUIRED)
+find_package(Boost CONFIG REQUIRED)
 
 add_executable(${PROJECT_NAME}
    Tests.cpp
@@ -18,4 +19,6 @@ add_test(
    COMMAND
    ${PROJECT_NAME}
    # ${CMAKE_CURRENT_SOURCE_DIR}/hrml
+   WORKING_DIRECTORY
+   ${CMAKE_CURRENT_SOURCE_DIR}/run
 )

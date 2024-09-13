@@ -2,7 +2,7 @@ let uninit;
 
 sub start()
 {
-    uinint = 0;
+    uninit = 0;
     outbox(uninit);
 }
 

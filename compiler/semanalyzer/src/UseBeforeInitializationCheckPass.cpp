@@ -1,15 +1,15 @@
-#include "UseBeforeInitializationCheckPass.h"
+#include <cassert>
+#include <string>
+
 #include "ASTNodeForward.h"
 #include "ErrorManager.h"
 #include "ScopeManager.h"
 #include "SemanticAnalysisErrors.h"
 #include "SemanticAnalysisPass.h"
 #include "Symbol.h"
+#include "UseBeforeInitializationCheckPass.h"
 #include "hrl_global.h"
 #include "semanalyzer_global.h"
-
-#include <cassert>
-#include <string>
 
 OPEN_SEMANALYZER_NAMESPACE
 
@@ -28,16 +28,11 @@ OPEN_SEMANALYZER_NAMESPACE
         return rc;                  \
     }
 
-void UseBeforeInitializationCheckPass::enter_node(parser::ASTNodePtr node)
+int UseBeforeInitializationCheckPass::run()
 {
-    SemanticAnalysisPass::enter_node(node);
-    update_varinit_record_stack_on_scope_change(node);
-}
-
-void UseBeforeInitializationCheckPass::leave_node()
-{
-    update_varinit_record_stack_on_scope_change(topmost_node());
-    SemanticAnalysisPass::leave_node();
+    init_symbol_table();
+    clear_scope_tracker();
+    return _root->accept(this);
 }
 
 int UseBeforeInitializationCheckPass::visit(parser::VariableDeclarationASTNodePtr node)
@@ -71,149 +66,35 @@ int UseBeforeInitializationCheckPass::visit(parser::IfStatementASTNodePtr node)
 
     // process the var init results. if both are 1, the final is 1. if neither is 0, the final is 0.
     // they may not share the same size. one may define more vars and returned
-    merged_result = else_result;
-    for (const auto &[sym_key, result_then] : then_result) {
-        int result_else = else_result.at(sym_key);
-
-        // Apply the merging rule: if either is 0, result is 0, otherwise result is 1
-        int both_initialized = (result_then == 0 || result_else == 0) ? 0 : 1;
-
-        // Insert the merged value into the result map
-        merged_result[sym_key] = both_initialized;
+    for (const auto &[symbol, _] : then_result) {
+        merged_result[symbol] = 0;
     }
 
+    for (const auto &[symbol, _] : else_result) {
+        merged_result[symbol] = 0;
+    }
+
+    for (auto &[symbol, value] : merged_result) {
+        int then_is_initialized = then_result[symbol];
+        int else_is_initialized = else_result[symbol];
+
+        if (then_is_initialized && else_is_initialized) {
+            value = 1;
+        }
+    }
+
+    strip_symbols_beyond_scope(merged_result, get_current_scope_id());
     set_var_init_at_current_scope(merged_result);
 
     leave_node();
     return 0;
 }
 
-void UseBeforeInitializationCheckPass::get_var_init_result(const parser::ASTNodePtr &node_to_get_result, NodeResult &result)
-{
-    for (const auto &[symbol, _] : result) {
-        assert(_var_occured.top().contains(symbol));
-    }
-    result = _varinit_record_results[node_to_get_result];
-}
-
-void UseBeforeInitializationCheckPass::set_var_init_at_current_scope(const NodeResult &result)
-{
-    for (const auto &[sym_key, sym_initialized] : result) {
-        set_var_init_at_current_scope(sym_key, sym_initialized);
-    }
-}
-
-void UseBeforeInitializationCheckPass::create_var_init_at_current_scope(const SymbolPtr &symbol)
-{
-    assert(symbol);
-    auto &stack = _varinit_record_stacks[symbol];
-    assert(stack.empty());
-
-    stack.push(0);
-    _var_occured.top().insert(symbol);
-}
-
-void UseBeforeInitializationCheckPass::set_var_init_at_current_scope(const SymbolPtr &symbol, int initialized)
-{
-    assert(symbol);
-    auto &stack = _varinit_record_stacks[symbol];
-    assert(!stack.empty());
-    stack.top() = initialized;
-    _var_occured.top().insert(symbol);
-}
-
-int UseBeforeInitializationCheckPass::get_var_init_at_current_scope(const SymbolPtr &symbol)
-{
-    assert(symbol);
-    assert(_var_occured.top().contains(symbol));
-    auto &stack = _varinit_record_stacks[symbol];
-    assert(!stack.empty());
-    return stack.top();
-}
-
-void UseBeforeInitializationCheckPass::update_varinit_record_stack_on_scope_change(const parser::ASTNodePtr &node)
-{
-    const std::string &scope_id = ScopeInfoAttribute::get_scope(node)->get_scope_id();
-
-    // >0: entered scope, <0: left scope, =0: same scope
-    int scope_change = scope_id.size() - _last_scope_id.size();
-
-    if (scope_change > 0) {
-        // entered a scope
-        // copy all elements from parent's scope
-        _var_occured.emplace();
-        for (auto &[symbol, stack] : _varinit_record_stacks) {
-            assert(!stack.empty());
-            stack.push(stack.top());
-            _var_occured.top().insert(symbol);
-        }
-    } else if (scope_change < 0) {
-        // left a scope
-        // return result to parent's scope
-        NodeResult result;
-        for (auto &[symbol, stack] : _varinit_record_stacks) {
-            // record stacks has all symbols. lookup only what we see in current scope
-            if (!_var_occured.top().contains(symbol)) {
-                continue;
-            }
-            assert(!stack.empty());
-            int initialized = stack.top();
-            stack.pop();
-            result[symbol] = initialized;
-        }
-        strip_symbols_beyond_scope(result, node);
-        _varinit_record_results[node] = result;
-        _var_occured.pop();
-    } else {
-        // same scope. we do nothing
-    }
-
-    _last_scope_id = scope_id;
-}
-
-void UseBeforeInitializationCheckPass::strip_symbols_beyond_scope(NodeResult &results, const parser::ASTNodePtr &node)
-{
-    const auto &scope_id = ScopeInfoAttribute::get_scope(node)->get_scope_id();
-    NodeResult stripped;
-    for (const auto &[symbol, is_initialized] : results) {
-        if (_symbol_table->is_symbol_in_scope(symbol, scope_id)) {
-            stripped[symbol] = is_initialized;
-        }
-    }
-
-    results.swap(stripped);
-}
-
-void UseBeforeInitializationCheckPass::log_use_before_initialization_error(const SymbolPtr &symbol, const parser::ASTNodePtr &node)
-{
-    assert(symbol);
-    parser::ASTNodePtr defined_node = WEAK_TO_SHARED(symbol->definition);
-    assert(defined_node);
-    assert(symbol->type == SymbolType::VARIABLE);
-
-    auto errstr = boost::format("Variable '%1%' may be used before assignment.") % symbol->name;
-
-    ErrorManager::instance().report(
-        E_SEMA_VAR_USE_BEFORE_INIT,
-        ErrorSeverity::Error,
-        ErrorLocation(*_filename, node->lineno(), node->colno(), symbol->name.size()),
-        errstr.str());
-
-    ErrorManager::instance().report_continued(
-        ErrorSeverity::Error,
-        ErrorLocation(symbol->filename, defined_node->lineno(), defined_node->colno(), 0),
-        "Original defined in");
-}
-
-int UseBeforeInitializationCheckPass::run()
-{
-    return _root->accept(this);
-}
-
 int UseBeforeInitializationCheckPass::visit(parser::WhileStatementASTNodePtr node)
 {
     BEGIN_VISIT();
 
+    // There won't be var decl or asgn in cond
     rc = traverse(node->get_condition());
     RETURN_IF_FAIL_IN_VISIT(rc);
 
@@ -235,18 +116,54 @@ int UseBeforeInitializationCheckPass::visit(parser::ForStatementASTNodePtr node)
     NodeResult preloop_result; // assume the loop isn't executed
     get_var_init_result(node, preloop_result);
 
-    rc = traverse(node->get_init());
-    RETURN_IF_FAIL_IN_VISIT(rc);
+    NodeResult for_stage_results = preloop_result; // we collect the result after each for stage, and pass it through to the loop
 
-    rc = traverse(node->get_condition());
-    RETURN_IF_FAIL_IN_VISIT(rc);
+    auto &init_node = node->get_init();
+    auto &cond_node = node->get_condition();
+    auto &update_node = node->get_update();
+    auto &body_node = node->get_body();
 
-    rc = traverse(node->get_update());
-    RETURN_IF_FAIL_IN_VISIT(rc);
+    // ensure for stmts share the same scope, so it doesn't pop between init, cond, update and body
+    // body is not nullable
+    track_scope_enter_manually(node, ScopeInfoAttribute::get_scope(body_node)->get_scope_id());
 
-    rc = traverse(node->get_body());
-    RETURN_IF_FAIL_IN_VISIT(rc);
+    if (init_node) {
+        rc = traverse(init_node);
+        if (rc != 0) {
+            track_scope_leave_manually(node);
+            RETURN_IF_FAIL_IN_VISIT(rc);
+        }
+    }
 
+    if (cond_node) {
+        rc = traverse(cond_node);
+        if (rc != 0) {
+            track_scope_leave_manually(node);
+            RETURN_IF_FAIL_IN_VISIT(rc);
+        }
+        // There won't be var decl or asgn in cond
+    }
+
+    if (update_node) {
+        rc = traverse(update_node);
+        if (rc != 0) {
+            track_scope_leave_manually(node);
+            RETURN_IF_FAIL_IN_VISIT(rc);
+        }
+        // There won't be var decl or asgn in update
+    }
+
+    if (body_node) {
+        rc = traverse(body_node);
+        if (rc != 0) {
+            track_scope_leave_manually(node);
+            RETURN_IF_FAIL_IN_VISIT(rc);
+        }
+    }
+
+    track_scope_leave_manually(node);
+
+    // set back to pre loop
     set_var_init_at_current_scope(preloop_result);
 
     END_VISIT();
@@ -303,6 +220,130 @@ int UseBeforeInitializationCheckPass::visit_subroutine(parser::AbstractSubroutin
     set_var_init_at_current_scope(prefunc_result);
 
     END_VISIT();
+}
+
+void UseBeforeInitializationCheckPass::on_scope_enter(const parser::ASTNodePtr &node, const std::string &scope_id)
+{
+    UNUSED(node);
+    UNUSED(scope_id);
+    // copy all elements from parent's scope
+    _var_occured.emplace();
+    for (auto &[symbol, stack] : _varinit_record_stacks) {
+        assert(!stack.empty());
+        stack.push(stack.top());
+        _var_occured.top().insert(symbol);
+    }
+}
+
+void UseBeforeInitializationCheckPass::on_scope_exit(const parser::ASTNodePtr &node, const std::string &current_scope_id)
+{
+    UNUSED(current_scope_id);
+    // return result to parent's scope
+    NodeResult result;
+    for (auto &[symbol, stack] : _varinit_record_stacks) {
+        // record stacks has all symbols. lookup only what we see in current scope
+        if (!_var_occured.top().contains(symbol)) {
+            continue;
+        }
+        assert(!stack.empty());
+        int initialized = stack.top();
+        stack.pop();
+        result[symbol] = initialized;
+    }
+    strip_symbols_beyond_scope(result, current_scope_id);
+    _varinit_record_results[node] = result;
+
+    _var_occured.pop();
+}
+
+void UseBeforeInitializationCheckPass::get_var_init_result(const parser::ASTNodePtr &node_to_get_result, NodeResult &result)
+{
+    for (const auto &[symbol, _] : result) {
+        assert(_var_occured.top().contains(symbol));
+    }
+    result = _varinit_record_results[node_to_get_result];
+}
+
+void UseBeforeInitializationCheckPass::set_var_init_at_current_scope(const NodeResult &result)
+{
+    for (const auto &[sym_key, sym_initialized] : result) {
+        set_var_init_at_current_scope(sym_key, sym_initialized);
+    }
+}
+
+void UseBeforeInitializationCheckPass::create_var_init_at_current_scope(const SymbolPtr &symbol)
+{
+    assert(symbol);
+    auto &stack = _varinit_record_stacks[symbol];
+    assert(stack.empty());
+
+    stack.push(0);
+    _var_occured.top().insert(symbol);
+}
+
+void UseBeforeInitializationCheckPass::set_var_init_at_current_scope(const SymbolPtr &symbol, int initialized)
+{
+    assert(symbol);
+    auto &stack = _varinit_record_stacks[symbol];
+    assert(!stack.empty());
+    stack.top() = initialized;
+    _var_occured.top().insert(symbol);
+}
+
+int UseBeforeInitializationCheckPass::get_var_init_at_current_scope(const SymbolPtr &symbol)
+{
+    assert(symbol);
+    assert(_var_occured.top().contains(symbol));
+    auto &stack = _varinit_record_stacks[symbol];
+    assert(!stack.empty());
+    return stack.top();
+}
+
+void UseBeforeInitializationCheckPass::strip_symbols_beyond_scope(NodeResult &results, const std::string &scope_id)
+{
+    NodeResult stripped;
+    for (const auto &[symbol, is_initialized] : results) {
+        if (_symbol_table->is_symbol_in_scope(symbol, scope_id)) {
+            stripped[symbol] = is_initialized;
+        }
+    }
+
+    results.swap(stripped);
+}
+
+void UseBeforeInitializationCheckPass::log_use_before_initialization_error(const SymbolPtr &symbol, const parser::ASTNodePtr &node)
+{
+    assert(symbol);
+    parser::ASTNodePtr defined_node = WEAK_TO_SHARED(symbol->definition);
+    assert(defined_node);
+    assert(symbol->type == SymbolType::VARIABLE);
+
+    auto errstr = boost::format("Variable '%1%' may be used before assignment.") % symbol->name;
+
+    ErrorManager::instance().report(
+        E_SEMA_VAR_USE_BEFORE_INIT,
+        ErrorSeverity::Error,
+        ErrorLocation(*_filename, node->lineno(), node->colno(), symbol->name.size()),
+        errstr.str());
+
+    ErrorManager::instance().report_continued(
+        ErrorSeverity::Error,
+        ErrorLocation(symbol->filename, defined_node->lineno(), defined_node->colno(), 0),
+        "Original defined in");
+}
+
+void UseBeforeInitializationCheckPass::enter_node(parser::ASTNodePtr node)
+{
+    SemanticAnalysisPass::enter_node(node);
+    track_scope_node_enter(node);
+}
+
+void UseBeforeInitializationCheckPass::leave_node()
+{
+    const auto &current_node = topmost_node();
+
+    track_scope_node_leave(current_node);
+    SemanticAnalysisPass::leave_node();
 }
 
 CLOSE_SEMANALYZER_NAMESPACE

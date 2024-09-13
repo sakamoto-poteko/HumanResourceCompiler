@@ -11,6 +11,7 @@ add_library(${PROJECT_NAME}
     src/SymbolAnalysisPass.Utils.cpp
     src/ConstantFoldingPass.cpp
     src/UseBeforeInitializationCheckPass.cpp
+    src/WithScopeTracker.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

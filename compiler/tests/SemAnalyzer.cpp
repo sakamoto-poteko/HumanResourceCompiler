@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include <boost/format.hpp>
 #include <gtest/gtest.h>
 #include <spdlog/sinks/ostream_sink.h>
 
@@ -12,6 +13,7 @@
 #include "ErrorManager.h"
 #include "HRLLexer.h"
 #include "ParseTreeNodeForward.h"
+#include "ParseTreeNodeGraphvizBuilder.h"
 #include "RecursiveDescentParser.h"
 #include "SemanticAnalysisPassManager.h"
 #include "SymbolAnalysisPass.h"
@@ -54,8 +56,6 @@ protected:
         ASSERT_NE(file, nullptr) << "Failed to open HRML " << data.path;
 
         // Lexing
-        extern int yylineno;
-        yylineno = 1;
         hrl::lexer::HRLLexer lexer;
         std::vector<hrl::lexer::TokenPtr> tokens;
         bool ok = lexer.lex(file, data.path, tokens);
@@ -68,12 +68,16 @@ protected:
         bool parsed = parser.parse(compilation_unit);
         ASSERT_TRUE(parsed) << "Parsing failed";
         ASSERT_FALSE(errmgr.has_errors()) << "Parsing has errors";
+        hrl::parser::ParseTreeNodeGraphvizBuilder graphviz(compilation_unit);
+        graphviz.generate_graphviz(data.filename + "-pt.dot");
 
         // Building AST
         hrl::parser::ASTBuilder builder(compilation_unit);
         bool built = builder.build(ast);
         ASSERT_TRUE(built) << "Failed to build AST";
         ASSERT_FALSE(errmgr.has_errors()) << "Building AST has errors";
+        hrl::parser::ASTNodeGraphvizBuilder graphviz_ast(ast);
+        graphviz_ast.generate_graphviz(data.filename + "-ast.dot");
 
         result = true;
     }
@@ -86,13 +90,26 @@ TEST_P(SemanticAnalyzerTests, SemanticAnalysisTests)
     setup(data, ok);
     ASSERT_TRUE(ok) << "Failed in pre semantic analysis stages";
 
+    using SemaAttrId = hrl::semanalyzer::SemAnalzyerASTNodeAttributeId;
+
     hrl::semanalyzer::SemanticAnalysisPassManager sem_passmgr(ast, std::make_shared<std::string>(data.filename));
     auto symtbl = std::make_shared<hrl::semanalyzer::SymbolTable>();
     // non-node-mutational
-    auto symtbl_analyzer = sem_passmgr.add_pass<hrl::semanalyzer::SymbolAnalysisPass>("SymbolTableAnalyzer");
-    auto ubi1 = sem_passmgr.add_pass<hrl::semanalyzer::UseBeforeInitializationCheckPass>("UseBeforeInitializationCheckPass1");
+    auto symtbl_analyzer = sem_passmgr.add_pass<hrl::semanalyzer::SymbolAnalysisPass>(
+        "SymbolTableAnalyzer",
+        data.filename + "-symtbl.dot",
+        std::set<int> {
+            SemaAttrId::ATTR_SEMANALYZER_SYMBOL,
+            SemaAttrId::ATTR_SEMANALYZER_SCOPE_INFO,
+        });
+    auto ubi1 = sem_passmgr.add_pass<hrl::semanalyzer::UseBeforeInitializationCheckPass>("UseBeforeInitializationCheckPass1", data.filename + "-ubi1.dot");
     // node-mutated
-    auto constfolder = sem_passmgr.add_pass<hrl::semanalyzer::ConstantFoldingPass>("ConstantFoldingPass");
+    auto constfolder = sem_passmgr.add_pass<hrl::semanalyzer::ConstantFoldingPass>(
+        "ConstantFoldingPass",
+        data.filename + "-constfold.dot",
+        std::set<int> {
+            SemaAttrId::ATTR_SEMANALYZER_CONST_FOLDING_VALUE,
+        });
 
     symtbl_analyzer->set_symbol_table(symtbl);
     ubi1->set_symbol_table(symtbl);
@@ -106,11 +123,13 @@ TEST_P(SemanticAnalyzerTests, SemanticAnalysisTests)
     if (data.should_pass) {
         ASSERT_EQ(sema_result, 0) << "Expected semantic analysis to pass but it failed";
     } else {
-        bool correct = data.code.find(std::to_string(sema_result)) != std::string::npos;
-        if (!correct) {
+        std::string result_code = boost::str(boost::format("%04d") % sema_result);
+
+        bool correctly_failed_with_code = data.code.find(result_code) != std::string::npos;
+        if (!correctly_failed_with_code) {
             std::cerr << captured << std::endl;
         }
-        ASSERT_TRUE(correct)
+        ASSERT_TRUE(correctly_failed_with_code)
             << "Expected semantic analysis to fail with " << data.code << " but got " << sema_result;
     }
 
