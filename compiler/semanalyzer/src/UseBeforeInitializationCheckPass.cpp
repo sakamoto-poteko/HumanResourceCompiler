@@ -321,6 +321,8 @@ void UseBeforeInitializationCheckPass::on_scope_exit(const parser::ASTNodePtr &n
 void UseBeforeInitializationCheckPass::get_var_init_result(const parser::ASTNodePtr &node_to_get_result, NodeResult &result)
 {
     for (const auto &[symbol, _] : result) {
+        UNUSED(_);
+        UNUSED(symbol);
         assert(_var_occured.top().contains(symbol));
     }
     result = _varinit_record_results[node_to_get_result];
