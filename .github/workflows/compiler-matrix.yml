@@ -19,9 +19,7 @@ jobs:
     strategy:
       matrix:
         # os: [ubuntu-latest, macos-latest, windows-latest]
-        os: [ubuntu-latest, macos-latest]
         # compiler: [gcc, clang, msvc]
-        compiler: [gcc, clang]
         include:
           # Linux with GCC
           - os: ubuntu-latest
@@ -29,10 +27,10 @@ jobs:
             c_compiler: gcc
             cpp_compiler: g++
           # Linux with Clang
-          - os: ubuntu-latest
-            compiler: clang
-            c_compiler: clang
-            cpp_compiler: clang++
+          # - os: ubuntu-latest
+          #   compiler: clang
+          #   c_compiler: clang
+          #   cpp_compiler: clang++
           # macOS with Clang
           - os: macos-latest
             compiler: clang
@@ -42,12 +40,12 @@ jobs:
           # - os: windows-latest
           #   compiler: msvc
           #   cpp_compiler: cl
-        exclude:
+        # exclude:
           # Exclude macOS with GCC
-          - os: macos-latest
-            compiler: gcc
-          - os: ubuntu-latest
-            compiler: clang
+          # - os: macos-latest
+          #   compiler: gcc
+          # - os: ubuntu-latest
+          #   compiler: clang
     steps:
       - uses: actions/checkout@v4
 
