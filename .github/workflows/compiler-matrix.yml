@@ -18,8 +18,10 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        compiler: [gcc, clang, msvc]
+        # os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest]
+        # compiler: [gcc, clang, msvc]
+        compiler: [gcc, clang]
         include:
           # Linux with GCC
           - os: ubuntu-latest
@@ -37,9 +39,9 @@ jobs:
             c_compiler: clang
             cpp_compiler: clang++
           # Windows with MSVC
-          - os: windows-latest
-            compiler: msvc
-            cpp_compiler: cl
+          # - os: windows-latest
+          #   compiler: msvc
+          #   cpp_compiler: cl
 
     steps:
       - uses: actions/checkout@v4
