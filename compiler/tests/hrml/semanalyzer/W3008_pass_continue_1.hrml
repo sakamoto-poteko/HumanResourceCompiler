@@ -1,0 +1,7 @@
+sub start()
+{
+    while (inbox()) {
+        continue;
+        inbox();
+    }
+}
