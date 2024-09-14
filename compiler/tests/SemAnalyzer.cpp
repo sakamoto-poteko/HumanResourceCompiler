@@ -11,6 +11,7 @@
 #include "ASTBuilder.h"
 #include "ASTNodeGraphvizBuilder.h"
 #include "ConstantFoldingPass.h"
+#include "DeadCodeEliminationPass.h"
 #include "ErrorManager.h"
 #include "HRLLexer.h"
 #include "ParseTreeNodeForward.h"
@@ -109,8 +110,8 @@ TEST_P(SemanticAnalyzerTests, SemanticAnalysisTests)
     auto symtbl = std::make_shared<hrl::semanalyzer::SymbolTable>();
 
     // won't mutate the node
-    auto symtbl_analyzer = sem_passmgr.add_pass<hrl::semanalyzer::SymbolAnalysisPass>(
-        "SymbolTableAnalyzer",
+    auto pre_symtbl_analyzer = sem_passmgr.add_pass<hrl::semanalyzer::SymbolAnalysisPass>(
+        "PreSemanticAnalysisSymbolTableAnalyzer",
         data.filename + "-symtbl.dot",
         std::set<int> {
             SemaAttrId::ATTR_SEMANALYZER_SYMBOL,
@@ -131,7 +132,22 @@ TEST_P(SemanticAnalyzerTests, SemanticAnalysisTests)
             SemaAttrId::ATTR_SEMANALYZER_CONST_FOLDING_VALUE,
         });
 
-    symtbl_analyzer->set_symbol_table(symtbl);
+    // reannotate the node with symbol and scope
+    auto dce = sem_passmgr.add_pass<hrl::semanalyzer::DeadCodeEliminationPass>(
+        "DeadCodeElimination",
+        data.filename + "-symtbl.post.dot",
+        std::set<int> {});
+
+    // reannotate the node with symbol and scope
+    auto post_symtbl_analyzer = sem_passmgr.add_pass<hrl::semanalyzer::SymbolAnalysisPass>(
+        "PostSemanticAnalysisSymbolTableAnalyzer",
+        data.filename + "-symtbl.post.dot",
+        std::set<int> {
+            SemaAttrId::ATTR_SEMANALYZER_SYMBOL,
+            SemaAttrId::ATTR_SEMANALYZER_SCOPE_INFO,
+        });
+
+    pre_symtbl_analyzer->set_symbol_table(symtbl);
     ubi1->set_symbol_table(symtbl);
 
     int sema_result = sem_passmgr.run(true);

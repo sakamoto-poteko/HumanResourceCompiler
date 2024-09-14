@@ -10,6 +10,7 @@ add_library(${PROJECT_NAME}
     src/SymbolAnalysisPass.Visits.cpp
     src/SymbolAnalysisPass.Utils.cpp
     src/ConstantFoldingPass.cpp
+    src/DeadCodeEliminationPass.cpp
     src/UseBeforeInitializationCheckPass.cpp
     src/WithScopeTracker.cpp
 )

@@ -8,15 +8,12 @@ OPEN_SEMANALYZER_NAMESPACE
 void SemanticAnalysisPass::enter_node(parser::ASTNodePtr node)
 {
     _ancestors.push_back(node);
-    _replace_node_asked_by_child_guard.push(0);
 }
 
 void SemanticAnalysisPass::leave_node()
 {
     assert(!_ancestors.empty());
     _ancestors.pop_back();
-    assert(!_replace_node_asked_by_child_guard.empty());
-    _replace_node_asked_by_child_guard.pop();
 }
 
 int SemanticAnalysisPass::visit(const parser::IntegerASTNodePtr &node)
@@ -312,11 +309,12 @@ int SemanticAnalysisPass::visit(const parser::CompilationUnitASTNodePtr &node)
 
 void SemanticAnalysisPass::request_to_replace_self(parser::ASTNodePtr to_be_replaced_with)
 {
-    if (_replace_node_asked_by_child_guard.top() == 1) {
-        spdlog::warn("[{}:{}] requested node replacement more than once", _ancestors.back()->lineno(), _ancestors.back()->colno());
-        _replace_node_asked_by_child.pop();
-    }
-    _replace_node_asked_by_child.push(to_be_replaced_with);
+    _node_replacement_requests[_ancestors.back()] = to_be_replaced_with;
+}
+
+void SemanticAnalysisPass::request_to_remove_self()
+{
+    _node_removal_requests.insert(_ancestors.back());
 }
 
 CLOSE_SEMANALYZER_NAMESPACE

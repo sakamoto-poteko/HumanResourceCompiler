@@ -3,7 +3,9 @@
 
 #include <concepts>
 #include <functional>
+#include <map>
 #include <memory>
+#include <set>
 #include <stack>
 #include <type_traits>
 #include <vector>
@@ -90,7 +92,7 @@ protected:
 
     void request_to_replace_self(parser::ASTNodePtr to_be_replaced_with);
 
-    bool replace_self_requested() { return _replace_node_asked_by_child_guard.top() == 1; }
+    void request_to_remove_self();
 
     template <typename PostProcessFunc = std::function<void(const parser::ASTNodePtr &)>>
     void set_global_postprocess_function(PostProcessFunc postproc)
@@ -132,13 +134,25 @@ protected:
             } else {
                 _global_post_process(node);
             }
-            if (!_replace_node_asked_by_child.empty()) {
-                using NodeType = typename T::element_type;
-                auto top = std::dynamic_pointer_cast<NodeType>(_replace_node_asked_by_child.top());
-                assert(top);
-                node = top;
-                _replace_node_asked_by_child.pop();
+
+            // is the node removal or replacement requestd?
+            // check removal first, then replacement
+            if (_node_removal_requests.contains(node)) {
+                node = nullptr;
+                _node_removal_requests.erase(node);
+                return rc;
             }
+
+            auto replacement_it = _node_replacement_requests.find(node);
+            if (replacement_it != _node_replacement_requests.end()) {
+                using NodeType = typename T::element_type;
+                auto replaced_with = std::dynamic_pointer_cast<NodeType>(replacement_it->second);
+                assert(replaced_with);
+                node = replaced_with;
+                _node_replacement_requests.erase(replacement_it);
+                return rc;
+            }
+
             return rc;
         } else {
             return 0;
@@ -181,8 +195,8 @@ private:
 
     std::function<void(const parser::ASTNodePtr &)> _global_post_process;
 
-    std::stack<parser::ASTNodePtr> _replace_node_asked_by_child;
-    std::stack<int> _replace_node_asked_by_child_guard; // the count guard for single replace node
+    std::map<parser::ASTNodePtr, parser::ASTNodePtr> _node_replacement_requests;
+    std::set<parser::ASTNodePtr> _node_removal_requests;
 };
 
 using SemanticAnalysisPassPtr = std::shared_ptr<SemanticAnalysisPass>;
