@@ -22,9 +22,8 @@ public:
 
     // For all visit, the return value of 0 indicate success.
     int visit(const parser::EmptyStatementASTNodePtr &node) override;
-    // int visit(const parser::IfStatementASTNodePtr &node) override;
+    int visit(const parser::IfStatementASTNodePtr &node) override;
     int visit(const parser::WhileStatementASTNodePtr &node) override;
-    // int visit(const parser::ForStatementASTNodePtr &node) override;
     int visit(const parser::StatementBlockASTNodePtr &node) override;
 
 private:

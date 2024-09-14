@@ -6,12 +6,10 @@
 #include <map>
 #include <memory>
 #include <set>
-#include <stack>
 #include <type_traits>
 #include <vector>
 
 #include "ASTNode.h"
-#include "ASTNodeForward.h"
 #include "ASTNodeVisitor.h"
 #include "hrl_global.h"
 #include "semanalyzer_global.h"
@@ -115,9 +113,12 @@ protected:
         for (auto &node : nodes) {
             int rc = traverse(node, post_process);
             if (rc != 0) {
-                result = rc;
+                std::erase_if(nodes, [](const auto &ptr) { return !ptr; });
+                return rc;
             }
         }
+        // this is to ensure that we do not have null elements in a vector
+        std::erase_if(nodes, [](const auto &ptr) { return !ptr; });
         return result;
     }
 

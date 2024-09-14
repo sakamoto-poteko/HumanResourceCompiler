@@ -1,14 +1,16 @@
+#include <boost/algorithm/string/join.hpp>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <regex>
 #include <string>
 #include <string_view>
 #include <vector>
 
+#include <boost/algorithm/string.hpp>
 #include <spdlog/sinks/ostream_sink.h>
 
 #include "ErrorManager.h"
-#include "TerminalColor.h"
 #include "Tests.h"
 
 std::map<std::string, std::vector<TestCaseData>> __test_cases;
@@ -58,6 +60,29 @@ TestCaseData TestCaseData::parse_path(const fs::path &path)
         std::string code = matches[1];
         bool should_pass = matches[2] == "pass";
         std::string testname = matches[3];
+
+        std::ifstream file(path);
+        if (!file.is_open()) {
+            throw std::invalid_argument("Failed to open file: " + filename);
+        }
+        std::string line;
+        std::vector<std::string> expected_sentences;
+
+        // Process each line in the file
+        while (std::getline(file, line)) {
+            // Remove leading whitespace
+            std::string trimmed_line = boost::algorithm::trim_left_copy(line);
+
+            const std::string expect_prefix = "// Expect: ";
+            if (boost::algorithm::starts_with(trimmed_line, expect_prefix)) {
+                // Extract the part after "// Expect: "
+                std::string expected_sentence = trimmed_line.substr(expect_prefix.size());
+                expected_sentences.push_back(expected_sentence);
+            }
+        }
+
+        file.close(); // Close the file when done
+
         return {
             .path = path.string(),
             .filename = filename,
@@ -65,6 +90,7 @@ TestCaseData TestCaseData::parse_path(const fs::path &path)
             .should_pass = should_pass,
             .testname = testname,
             .expect_code = code.find("X") == std::string::npos,
+            .expected_outputs = expected_sentences,
         };
     }
 
@@ -74,7 +100,10 @@ TestCaseData TestCaseData::parse_path(const fs::path &path)
 void TestCaseData::print_setup() const
 {
     std::cout << "Setting up '" << filename << "'" << std::endl
-              << "  >Expect [" << (should_pass ? "PASS" : "FAILURE") << "] " << __tc.C_DARK_BLUE << code << __tc.C_RESET << ": " << testname << std::endl;
+              << "  >Expect '" << code << "' (" << (should_pass ? "PASS" : "FAILURE") << "): " << testname << std::endl;
+    if (!expected_outputs.empty()) {
+        std::cout << "  >Expect output with [" << boost::join(expected_outputs, ", ") << "]" << std::endl;
+    }
 }
 
 int main(int argc, char **argv)

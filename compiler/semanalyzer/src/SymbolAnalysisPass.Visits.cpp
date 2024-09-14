@@ -45,6 +45,9 @@ int SymbolAnalysisPass::run()
 {
     init_symbol_table();
 
+    // strip all symbols of current file, rerun the symbol analysis
+    _symbol_table->strip_symbols_from_file(_filename);
+
     int result = 0, rc = 0;
     rc = visit(_root);
     RETURN_IF_FAIL();
@@ -443,6 +446,9 @@ int SymbolAnalysisPass::visit_subroutine(AbstractSubroutineASTNodePtr node, bool
 
 void SymbolAnalysisPass::enter_node(parser::ASTNodePtr node)
 {
+    // remove the symbol & scope of the node. the visitor is reanalyzing
+    node->remove_attribute(SemAnalzyerASTNodeAttributeId::ATTR_SEMANALYZER_SYMBOL);
+    node->remove_attribute(SemAnalzyerASTNodeAttributeId::ATTR_SEMANALYZER_SCOPE_INFO);
     SemanticAnalysisPass::enter_node(node);
     attach_scope_id(node);
 }

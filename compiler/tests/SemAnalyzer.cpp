@@ -104,7 +104,9 @@ TEST_P(SemanticAnalyzerTests, SemanticAnalysisTests)
 
     using SemaAttrId = hrl::semanalyzer::SemAnalzyerASTNodeAttributeId;
 
-    // auto dbg = data.filename == "E3007X_pass_multiple_nested_scopes.hrml";
+    // it's for conditional breakpoint
+    auto dbg = data.filename == "W3008_pass_while_true_after.hrml";
+    UNUSED(dbg);
 
     hrl::semanalyzer::SemanticAnalysisPassManager sem_passmgr(ast, std::make_shared<std::string>(data.filename));
     auto symtbl = std::make_shared<hrl::semanalyzer::SymbolTable>();
@@ -171,6 +173,10 @@ TEST_P(SemanticAnalyzerTests, SemanticAnalysisTests)
 
     if (data.expect_code) {
         ASSERT_TRUE(out_has_code) << "Expected '" << data.code << "' but not found in output, result code " << sema_result;
+    }
+
+    for (const auto &exp : data.expected_outputs) {
+        ASSERT_TRUE(captured.find(exp) != std::string::npos) << "Expected output but not found: '" << exp << "'";
     }
 }
 

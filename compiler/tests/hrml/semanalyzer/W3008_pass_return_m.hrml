@@ -1,3 +1,4 @@
+// Expect: end of control flow
 sub start()
 {
     return;

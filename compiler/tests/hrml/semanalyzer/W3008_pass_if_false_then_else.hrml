@@ -1,0 +1,10 @@
+// Expect: constant false condition
+sub start()
+{
+    if (false) {
+        inbox();
+    } else {
+        inbox();
+        inbox();
+    }
+}
