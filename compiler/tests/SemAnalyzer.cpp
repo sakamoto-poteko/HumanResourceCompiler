@@ -114,7 +114,7 @@ TEST_P(SemanticAnalyzerTests, SemanticAnalysisTests)
     // won't mutate the node
     auto pre_symtbl_analyzer = sem_passmgr.add_pass<hrl::semanalyzer::SymbolAnalysisPass>(
         "PreSemanticAnalysisSymbolTableAnalyzer",
-        data.filename + "-symtbl.dot",
+        data.filename + "-symtbl-pre.dot",
         std::set<int> {
             SemaAttrId::ATTR_SEMANALYZER_SYMBOL,
             SemaAttrId::ATTR_SEMANALYZER_SCOPE_INFO,
@@ -144,6 +144,12 @@ TEST_P(SemanticAnalyzerTests, SemanticAnalysisTests)
     auto post_symtbl_analyzer = sem_passmgr.add_pass<hrl::semanalyzer::SymbolAnalysisPass>(
         "PostSemanticAnalysisSymbolTableAnalyzer",
         data.filename + "-symtbl.post.dot",
+        std::set<int> {
+            SemaAttrId::ATTR_SEMANALYZER_SYMBOL,
+            SemaAttrId::ATTR_SEMANALYZER_SCOPE_INFO,
+        });
+    auto ubi2 = sem_passmgr.add_pass<hrl::semanalyzer::UseBeforeInitializationCheckPass>("UseBeforeInitializationCheckPass1",
+        data.filename + "-ubi2.dot",
         std::set<int> {
             SemaAttrId::ATTR_SEMANALYZER_SYMBOL,
             SemaAttrId::ATTR_SEMANALYZER_SCOPE_INFO,
