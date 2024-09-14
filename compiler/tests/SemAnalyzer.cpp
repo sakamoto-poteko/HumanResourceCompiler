@@ -19,6 +19,7 @@
 #include "ParseTreeNodeGraphvizBuilder.h"
 #include "RecursiveDescentParser.h"
 #include "SemanticAnalysisPassManager.h"
+#include "StripAttributePass.h"
 #include "SymbolAnalysisPass.h"
 #include "SymbolTable.h"
 #include "Tests.h"
@@ -113,13 +114,14 @@ TEST_P(SemanticAnalyzerTests, SemanticAnalysisTests)
 
     // won't mutate the node
     auto pre_symtbl_analyzer = sem_passmgr.add_pass<hrl::semanalyzer::SymbolAnalysisPass>(
-        "PreSemanticAnalysisSymbolTableAnalyzer",
+        "1stSemanticAnalysisSymbolTableAnalyzer",
         data.filename + "-symtbl.pre.dot",
         std::set<int> {
             SemaAttrId::ATTR_SEMANALYZER_SYMBOL,
             SemaAttrId::ATTR_SEMANALYZER_SCOPE_INFO,
         });
-    auto ubi_preliminary = sem_passmgr.add_pass<hrl::semanalyzer::UseBeforeInitializationCheckPass>("UseBeforeInitializationCheckPass1",
+    auto ubi_preliminary = sem_passmgr.add_pass<hrl::semanalyzer::UseBeforeInitializationCheckPass>(
+        "1stUseBeforeInitializationCheckPass1",
         data.filename + "-ubi1.dot",
         std::set<int> {
             SemaAttrId::ATTR_SEMANALYZER_SYMBOL,
@@ -140,22 +142,27 @@ TEST_P(SemanticAnalyzerTests, SemanticAnalysisTests)
         data.filename + "-dce.dot",
         std::set<int> {});
 
-    auto clear_symtbl = sem_passmgr.add_pass<hrl::semanalyzer::ClearSymbolTablePass>("ClearSymbolTable");
+    auto clear_symtbl = sem_passmgr.add_pass<hrl::semanalyzer::ClearSymbolTablePass>("ClearSymbolTablePass");
+    auto strip_sym_attr = sem_passmgr.add_pass<hrl::semanalyzer::StripAttributePass>("StripSymbolAttributesPass");
 
     // reannotate the node with symbol and scope
     auto post_symtbl_analyzer = sem_passmgr.add_pass<hrl::semanalyzer::SymbolAnalysisPass>(
-        "PostSemanticAnalysisSymbolTableAnalyzer",
+        "2ndSemanticAnalysisSymbolTableAnalyzer",
         data.filename + "-symtbl.post.dot",
         std::set<int> {
             SemaAttrId::ATTR_SEMANALYZER_SYMBOL,
             SemaAttrId::ATTR_SEMANALYZER_SCOPE_INFO,
         });
-    auto ubi_final = sem_passmgr.add_pass<hrl::semanalyzer::UseBeforeInitializationCheckPass>("UseBeforeInitializationCheckPass1",
+    auto ubi_final = sem_passmgr.add_pass<hrl::semanalyzer::UseBeforeInitializationCheckPass>(
+        "2ndUseBeforeInitializationCheckPass",
         data.filename + "-ubi2.dot",
         std::set<int> {
             SemaAttrId::ATTR_SEMANALYZER_SYMBOL,
             SemaAttrId::ATTR_SEMANALYZER_SCOPE_INFO,
         });
+
+    strip_sym_attr->add_attribute(SemaAttrId::ATTR_SEMANALYZER_SCOPE_INFO);
+    strip_sym_attr->add_attribute(SemaAttrId::ATTR_SEMANALYZER_SYMBOL);
 
     int sema_result = sem_passmgr.run(true);
     ErrorManager::instance().print_all();
