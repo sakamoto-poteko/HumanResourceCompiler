@@ -1,11 +1,12 @@
 #ifndef DEADCODEELIMINATIONPASS_H
 #define DEADCODEELIMINATIONPASS_H
 
+#include <set>
+
 #include "ASTNodeForward.h"
 #include "ASTNodeVisitor.h"
 #include "SemanticAnalysisPass.h"
 #include "semanalyzer_global.h"
-#include <set>
 
 OPEN_SEMANALYZER_NAMESPACE
 

@@ -1,4 +1,3 @@
-#include <boost/algorithm/string/join.hpp>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -8,6 +7,7 @@
 #include <vector>
 
 #include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/join.hpp>
 #include <spdlog/sinks/ostream_sink.h>
 
 #include "ErrorManager.h"

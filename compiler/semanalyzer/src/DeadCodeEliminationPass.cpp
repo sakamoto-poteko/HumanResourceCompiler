@@ -162,7 +162,7 @@ void DeadCodeEliminationPass::report_dead_code(const parser::ASTNodePtr &begin_n
                            "Dead code detected from line %1% to line %2%. Code is unreachable due to '%3%' of line %4%.")
         % begin_node->lineno() % end_node->lineno() % dead_code_reason_to_str(reason) % reason_node->lineno();
     ErrorManager::instance().report(
-        E_SEMA_DEAD_CODE,
+        W_SEMA_DEAD_CODE,
         ErrorSeverity::Warning,
         ErrorLocation(_filename, begin_node->lineno(), begin_node->colno(), -1),
         warning_msg.str());
@@ -174,7 +174,7 @@ void DeadCodeEliminationPass::report_dead_code(const parser::ASTNodePtr &single_
                            "Dead code detected on line %1%. Code is unreachable due to '%2%' of line %3%.")
         % single_node->lineno() % dead_code_reason_to_str(reason) % reason_node->lineno();
     ErrorManager::instance().report(
-        E_SEMA_DEAD_CODE,
+        W_SEMA_DEAD_CODE,
         ErrorSeverity::Warning,
         ErrorLocation(_filename, single_node->lineno(), single_node->colno(), -1),
         warning_msg.str());
