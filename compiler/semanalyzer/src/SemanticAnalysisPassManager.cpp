@@ -57,5 +57,15 @@ int SemanticAnalysisPassManager::run(bool fail_fast)
     return result;
 }
 
+void SemanticAnalysisPassManager::set_symbol_table(const SymbolTablePtr symtbl)
+{
+    _symbol_table = symtbl;
+}
+
+const SymbolTablePtr &SemanticAnalysisPassManager::get_symbol_table() const
+{
+    return _symbol_table;
+}
+
 CLOSE_SEMANALYZER_NAMESPACE
 // end

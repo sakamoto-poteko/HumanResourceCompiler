@@ -106,6 +106,11 @@ void ASTNode::set_attribute(int attribute_id, ASTNodeAttributePtr attr)
     }
 }
 
+void ASTNode::remove_attribute(int attribute_id)
+{
+    _attributes.erase(attribute_id);
+}
+
 void ASTNode::copy_attributes_from(const ASTNodePtr &node)
 {
     _attributes = node->_attributes;

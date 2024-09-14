@@ -10,13 +10,16 @@
 
 #include "ASTBuilder.h"
 #include "ASTNodeGraphvizBuilder.h"
+#include "ClearSymbolTablePass.h"
 #include "ConstantFoldingPass.h"
+#include "DeadCodeEliminationPass.h"
 #include "ErrorManager.h"
 #include "HRLLexer.h"
 #include "ParseTreeNodeForward.h"
 #include "ParseTreeNodeGraphvizBuilder.h"
 #include "RecursiveDescentParser.h"
 #include "SemanticAnalysisPassManager.h"
+#include "StripAttributePass.h"
 #include "SymbolAnalysisPass.h"
 #include "SymbolTable.h"
 #include "Tests.h"
@@ -103,20 +106,22 @@ TEST_P(SemanticAnalyzerTests, SemanticAnalysisTests)
 
     using SemaAttrId = hrl::semanalyzer::SemAnalzyerASTNodeAttributeId;
 
-    // auto dbg = data.filename == "E3007X_pass_multiple_nested_scopes.hrml";
+    // it's for conditional breakpoint
+    auto dbg = data.filename == "W3008_pass_while_true_after.hrml";
+    UNUSED(dbg);
 
     hrl::semanalyzer::SemanticAnalysisPassManager sem_passmgr(ast, std::make_shared<std::string>(data.filename));
-    auto symtbl = std::make_shared<hrl::semanalyzer::SymbolTable>();
 
     // won't mutate the node
-    auto symtbl_analyzer = sem_passmgr.add_pass<hrl::semanalyzer::SymbolAnalysisPass>(
-        "SymbolTableAnalyzer",
-        data.filename + "-symtbl.dot",
+    auto pre_symtbl_analyzer = sem_passmgr.add_pass<hrl::semanalyzer::SymbolAnalysisPass>(
+        "1stSemanticAnalysisSymbolTableAnalyzer",
+        data.filename + "-symtbl.pre.dot",
         std::set<int> {
             SemaAttrId::ATTR_SEMANALYZER_SYMBOL,
             SemaAttrId::ATTR_SEMANALYZER_SCOPE_INFO,
         });
-    auto ubi1 = sem_passmgr.add_pass<hrl::semanalyzer::UseBeforeInitializationCheckPass>("UseBeforeInitializationCheckPass1",
+    auto ubi_preliminary = sem_passmgr.add_pass<hrl::semanalyzer::UseBeforeInitializationCheckPass>(
+        "1stUseBeforeInitializationCheckPass1",
         data.filename + "-ubi1.dot",
         std::set<int> {
             SemaAttrId::ATTR_SEMANALYZER_SYMBOL,
@@ -131,8 +136,33 @@ TEST_P(SemanticAnalyzerTests, SemanticAnalysisTests)
             SemaAttrId::ATTR_SEMANALYZER_CONST_FOLDING_VALUE,
         });
 
-    symtbl_analyzer->set_symbol_table(symtbl);
-    ubi1->set_symbol_table(symtbl);
+    // reannotate the node with symbol and scope
+    auto dce = sem_passmgr.add_pass<hrl::semanalyzer::DeadCodeEliminationPass>(
+        "DeadCodeElimination",
+        data.filename + "-dce.dot",
+        std::set<int> {});
+
+    auto clear_symtbl = sem_passmgr.add_pass<hrl::semanalyzer::ClearSymbolTablePass>("ClearSymbolTablePass");
+    auto strip_sym_attr = sem_passmgr.add_pass<hrl::semanalyzer::StripAttributePass>("StripSymbolAttributesPass");
+
+    // reannotate the node with symbol and scope
+    auto post_symtbl_analyzer = sem_passmgr.add_pass<hrl::semanalyzer::SymbolAnalysisPass>(
+        "2ndSemanticAnalysisSymbolTableAnalyzer",
+        data.filename + "-symtbl.post.dot",
+        std::set<int> {
+            SemaAttrId::ATTR_SEMANALYZER_SYMBOL,
+            SemaAttrId::ATTR_SEMANALYZER_SCOPE_INFO,
+        });
+    auto ubi_final = sem_passmgr.add_pass<hrl::semanalyzer::UseBeforeInitializationCheckPass>(
+        "2ndUseBeforeInitializationCheckPass",
+        data.filename + "-ubi2.dot",
+        std::set<int> {
+            SemaAttrId::ATTR_SEMANALYZER_SYMBOL,
+            SemaAttrId::ATTR_SEMANALYZER_SCOPE_INFO,
+        });
+
+    strip_sym_attr->add_attribute(SemaAttrId::ATTR_SEMANALYZER_SCOPE_INFO);
+    strip_sym_attr->add_attribute(SemaAttrId::ATTR_SEMANALYZER_SYMBOL);
 
     int sema_result = sem_passmgr.run(true);
     ErrorManager::instance().print_all();
@@ -141,6 +171,9 @@ TEST_P(SemanticAnalyzerTests, SemanticAnalysisTests)
     bool out_has_code = captured.find("[" + data.code + "]") != std::string::npos;
 
     if (data.should_pass) {
+        if (sema_result != 0 && !captured.empty()) {
+            std::cerr << captured << std::endl;
+        }
         ASSERT_EQ(sema_result, 0) << "Expected semantic analysis to pass but it failed";
     } else {
         std::string result_code = boost::str(boost::format("%04d") % sema_result);
@@ -155,6 +188,10 @@ TEST_P(SemanticAnalyzerTests, SemanticAnalysisTests)
 
     if (data.expect_code) {
         ASSERT_TRUE(out_has_code) << "Expected '" << data.code << "' but not found in output, result code " << sema_result;
+    }
+
+    for (const auto &exp : data.expected_outputs) {
+        ASSERT_TRUE(captured.find(exp) != std::string::npos) << "Expected output but not found: '" << exp << "'";
     }
 }
 

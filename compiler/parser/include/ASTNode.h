@@ -59,6 +59,8 @@ public:
      */
     void set_attribute(int attribute_id, ASTNodeAttributePtr attr);
 
+    void remove_attribute(int attribute_id);
+
     void copy_attributes_from(const ASTNodePtr &node);
 
 protected:

@@ -3,6 +3,7 @@
 
 #include <filesystem>
 #include <map>
+#include <string>
 #include <vector>
 
 #include <gtest/gtest.h>
@@ -23,6 +24,7 @@ struct TestCaseData {
     bool should_pass;
     std::string testname;
     bool expect_code;
+    std::vector<std::string> expected_outputs;
 
     // Overload the << operator for CustomData
     friend std::ostream &operator<<(std::ostream &os, const TestCaseData &data)

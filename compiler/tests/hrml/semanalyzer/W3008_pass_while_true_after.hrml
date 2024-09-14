@@ -1,0 +1,12 @@
+// Expect: after infinite loop
+sub start()
+{
+    while (true) {
+    }
+    inbox();
+    inbox();
+    inbox();
+    inbox();
+    inbox();
+    inbox();
+}

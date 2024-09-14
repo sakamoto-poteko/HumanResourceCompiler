@@ -1,0 +1,7 @@
+// there's no deadcode, so there's no W3008 message
+sub start()
+{
+    if (true) {
+        inbox();
+    }
+}

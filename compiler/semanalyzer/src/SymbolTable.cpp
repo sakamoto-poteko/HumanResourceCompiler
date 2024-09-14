@@ -158,5 +158,22 @@ bool SymbolTable::is_symbol_in_scope(const SymbolPtr &symbol, const std::string 
     return false;
 }
 
+void hrl::semanalyzer::SymbolTable::strip_symbols_from_file(const StringPtr &filename)
+{
+    for (auto &[scope, map] : _scopes) {
+        for (auto it = map.begin(); it != map.end(); ++it) {
+            if (*it->second->filename == *filename) {
+                it = map.erase(it);
+            }
+        }
+    }
+}
+
+void SymbolTable::clear_symbols()
+{
+    _scopes.clear();
+    create_library_symbols();
+}
+
 CLOSE_SEMANALYZER_NAMESPACE
 // end

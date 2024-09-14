@@ -1,0 +1,9 @@
+// Expect: end of control flow
+sub start()
+{
+    while (inbox()) {
+        continue;
+        inbox();
+        inbox();
+    }
+}

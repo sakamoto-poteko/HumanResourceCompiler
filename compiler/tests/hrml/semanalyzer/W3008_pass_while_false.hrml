@@ -1,0 +1,7 @@
+// Expect: constant false condition
+sub start()
+{
+    while (false) {
+        inbox();
+    }
+}

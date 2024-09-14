@@ -39,7 +39,7 @@ public:
     int visit(const parser::FunctionDefinitionASTNodePtr &node) override;
 
 protected:
-    void enter_node(parser::ASTNodePtr node) override;
+    void enter_node(const parser::ASTNodePtr &node) override;
     void leave_node() override;
 
 private:

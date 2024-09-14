@@ -1,0 +1,13 @@
+// it should not cause sigsegv
+// the if has an empty stmt which is requested to remove - becomes nullptr
+// and if is then pull that nullptr up as if node itself
+// no output expected. there's no dead code, it's merely a smoke test for DCE pass.
+sub start()
+{
+    if (true)
+        if (true)
+            if (true)
+                if (true)
+                    if (true)
+                        ;
+}

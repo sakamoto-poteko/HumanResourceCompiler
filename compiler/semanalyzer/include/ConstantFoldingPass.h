@@ -35,7 +35,9 @@ public:
 
     int get_value() const { return _value; }
 
-    int get_attribute_id() { return ATTR_SEMANALYZER_CONST_FOLDING_VALUE; }
+    void set_value(int value) { _value = value; }
+
+    static int get_attribute_id() { return ATTR_SEMANALYZER_CONST_FOLDING_VALUE; }
 
     std::string to_string() override;
 

@@ -76,6 +76,9 @@ public:
 
     // include parent scopes
     bool is_symbol_in_scope(const SymbolPtr &symbol, const std::string &scope_id);
+    void strip_symbols_from_file(const StringPtr &filename);
+
+    void clear_symbols();
 
 private:
     // map<scope id, hash<symbol name, symbol>>
