@@ -8,24 +8,50 @@ In addition, the project provides a VSCode extension for HRML language support, 
 
 ### Prerequisites
 
-Ensure you have the following dependencies installed before building the project:
+Ensure you have the following dependencies installed before building the project. The exact dependencies vary based on the platform you are using.
 
 - **CMake** (version 3.25 or higher)
-- A **C++** compiler (e.g., `g++` or `clang++`)
+- A **C++** compiler (e.g., `g++`, `clang++`, or `MSVC`)
 - **Flex** and **Bison** (for lexical analysis and parsing)
 - **spdlog** (for logging)
 - **Boost** (for various utilities)
+- **Google Test* (for testing)
 
-To install these on Debian/Ubuntu (minimum Bullseye required):
+### Platform-Specific Dependency Installation
+
+#### Debian/Ubuntu
+
+To install dependencies on Debian and derivations, use the following commands:
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y cmake g++ flex bison libspdlog-dev libboost-all-dev
+sudo apt-get install -y cmake ninja-build flex bison libspdlog-dev libboost-all-dev libgtest-dev
+```
+
+#### macOS
+
+To install dependencies on macOS:
+
+```bash
+brew update
+brew install cmake ninja boost spdlog flex bison googletest
+```
+
+#### Windows
+
+On Windows, dependencies are installed using `vcpkg`. You can follow these steps:
+
+```powershell
+git clone https://github.com/microsoft/vcpkg.git
+.\vcpkg\bootstrap-vcpkg.bat
+.\vcpkg\vcpkg.exe install boost spdlog flex bison gtest
 ```
 
 ### Build Instructions
 
-The project is located in the `compiler/` directory. To build it using CMake, follow the steps below:
+The project is located in the `compiler/` directory. You can build it using CMake on multiple platforms.
+
+#### Manual Build Steps
 
 1. **Clone the Repository:**
    ```bash
@@ -41,18 +67,20 @@ The project is located in the `compiler/` directory. To build it using CMake, fo
 3. **Configure the Build:**
    ```bash
    cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+   # Or with Ninja
+   cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -G Ninja
    ```
    Replace `Release` with `Debug` or other build types if needed.
 
 4. **Build the Project:**
    ```bash
-   cmake --build build -- -j$(nproc)
+   cmake --build build --config Release -- -j$(nproc || sysctl -n hw.ncpu || 2)
    ```
 
-5. **Run Tests (no tests yet):**
+5. **Run Tests:**
    ```bash
    cd build
-   ctest -C Release
+   ctest -C Release --output-on-failure
    ```
 
 ## VSCode Extension Setup
