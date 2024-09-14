@@ -10,6 +10,7 @@
 
 #include "ASTBuilder.h"
 #include "ASTNodeGraphvizBuilder.h"
+#include "ClearSymbolTablePass.h"
 #include "ConstantFoldingPass.h"
 #include "DeadCodeEliminationPass.h"
 #include "ErrorManager.h"
@@ -109,17 +110,16 @@ TEST_P(SemanticAnalyzerTests, SemanticAnalysisTests)
     UNUSED(dbg);
 
     hrl::semanalyzer::SemanticAnalysisPassManager sem_passmgr(ast, std::make_shared<std::string>(data.filename));
-    auto symtbl = std::make_shared<hrl::semanalyzer::SymbolTable>();
 
     // won't mutate the node
     auto pre_symtbl_analyzer = sem_passmgr.add_pass<hrl::semanalyzer::SymbolAnalysisPass>(
         "PreSemanticAnalysisSymbolTableAnalyzer",
-        data.filename + "-symtbl-pre.dot",
+        data.filename + "-symtbl.pre.dot",
         std::set<int> {
             SemaAttrId::ATTR_SEMANALYZER_SYMBOL,
             SemaAttrId::ATTR_SEMANALYZER_SCOPE_INFO,
         });
-    auto ubi1 = sem_passmgr.add_pass<hrl::semanalyzer::UseBeforeInitializationCheckPass>("UseBeforeInitializationCheckPass1",
+    auto ubi_preliminary = sem_passmgr.add_pass<hrl::semanalyzer::UseBeforeInitializationCheckPass>("UseBeforeInitializationCheckPass1",
         data.filename + "-ubi1.dot",
         std::set<int> {
             SemaAttrId::ATTR_SEMANALYZER_SYMBOL,
@@ -137,8 +137,10 @@ TEST_P(SemanticAnalyzerTests, SemanticAnalysisTests)
     // reannotate the node with symbol and scope
     auto dce = sem_passmgr.add_pass<hrl::semanalyzer::DeadCodeEliminationPass>(
         "DeadCodeElimination",
-        data.filename + "-symtbl.post.dot",
+        data.filename + "-dce.dot",
         std::set<int> {});
+
+    auto clear_symtbl = sem_passmgr.add_pass<hrl::semanalyzer::ClearSymbolTablePass>("ClearSymbolTable");
 
     // reannotate the node with symbol and scope
     auto post_symtbl_analyzer = sem_passmgr.add_pass<hrl::semanalyzer::SymbolAnalysisPass>(
@@ -148,15 +150,12 @@ TEST_P(SemanticAnalyzerTests, SemanticAnalysisTests)
             SemaAttrId::ATTR_SEMANALYZER_SYMBOL,
             SemaAttrId::ATTR_SEMANALYZER_SCOPE_INFO,
         });
-    auto ubi2 = sem_passmgr.add_pass<hrl::semanalyzer::UseBeforeInitializationCheckPass>("UseBeforeInitializationCheckPass1",
+    auto ubi_final = sem_passmgr.add_pass<hrl::semanalyzer::UseBeforeInitializationCheckPass>("UseBeforeInitializationCheckPass1",
         data.filename + "-ubi2.dot",
         std::set<int> {
             SemaAttrId::ATTR_SEMANALYZER_SYMBOL,
             SemaAttrId::ATTR_SEMANALYZER_SCOPE_INFO,
         });
-
-    pre_symtbl_analyzer->set_symbol_table(symtbl);
-    ubi1->set_symbol_table(symtbl);
 
     int sema_result = sem_passmgr.run(true);
     ErrorManager::instance().print_all();
@@ -165,6 +164,9 @@ TEST_P(SemanticAnalyzerTests, SemanticAnalysisTests)
     bool out_has_code = captured.find("[" + data.code + "]") != std::string::npos;
 
     if (data.should_pass) {
+        if (sema_result != 0 && !captured.empty()) {
+            std::cerr << captured << std::endl;
+        }
         ASSERT_EQ(sema_result, 0) << "Expected semantic analysis to pass but it failed";
     } else {
         std::string result_code = boost::str(boost::format("%04d") % sema_result);

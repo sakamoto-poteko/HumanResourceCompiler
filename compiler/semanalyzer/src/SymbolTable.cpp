@@ -169,5 +169,11 @@ void hrl::semanalyzer::SymbolTable::strip_symbols_from_file(const StringPtr &fil
     }
 }
 
+void SymbolTable::clear_symbols()
+{
+    _scopes.clear();
+    create_library_symbols();
+}
+
 CLOSE_SEMANALYZER_NAMESPACE
 // end
