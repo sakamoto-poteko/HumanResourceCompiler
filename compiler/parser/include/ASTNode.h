@@ -578,9 +578,7 @@ public:
 // GreaterThanExpressionASTNode
 class GreaterThanExpressionASTNode : public AbstractBinaryExpressionASTNode {
 public:
-    GreaterThanExpressionASTNode(int lineno,
-
-        int colno, int last_lineno, int last_colno, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
+    GreaterThanExpressionASTNode(int lineno, int colno, int last_lineno, int last_colno, AbstractExpressionASTNodePtr left, AbstractExpressionASTNodePtr right)
         : AbstractBinaryExpressionASTNode(lineno, colno, last_lineno, last_colno, std::move(left), std::move(right), ASTBinaryOperator::GT)
     {
     }
