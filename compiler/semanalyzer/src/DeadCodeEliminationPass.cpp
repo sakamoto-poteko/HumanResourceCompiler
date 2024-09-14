@@ -192,6 +192,7 @@ const char *DeadCodeEliminationPass::dead_code_reason_to_str(DeadCodeReason reas
     case AfterInfiniteLoop:
         return "after infinite loop";
     }
+    throw;
 }
 
 CLOSE_SEMANALYZER_NAMESPACE
