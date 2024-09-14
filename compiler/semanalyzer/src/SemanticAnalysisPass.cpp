@@ -5,7 +5,7 @@
 
 OPEN_SEMANALYZER_NAMESPACE
 
-void SemanticAnalysisPass::enter_node(parser::ASTNodePtr node)
+void SemanticAnalysisPass::enter_node(const parser::ASTNodePtr &node)
 {
     _ancestors.push_back(node);
 }

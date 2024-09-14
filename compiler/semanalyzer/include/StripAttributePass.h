@@ -24,7 +24,7 @@ public:
     int run() override;
 
 protected:
-    void enter_node(parser::ASTNodePtr node) override;
+    void enter_node(const parser::ASTNodePtr &node) override;
 
 private:
     std::set<int> _attributes;

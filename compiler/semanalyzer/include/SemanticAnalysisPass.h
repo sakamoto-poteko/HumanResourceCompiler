@@ -84,7 +84,7 @@ protected:
 
     const parser::ASTNodePtr &topmost_node() const { return _ancestors.back(); }
 
-    virtual void enter_node(parser::ASTNodePtr node);
+    virtual void enter_node(const parser::ASTNodePtr &node);
 
     virtual void leave_node();
 

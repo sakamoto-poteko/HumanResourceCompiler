@@ -8,7 +8,7 @@ int StripAttributePass::run()
     return SemanticAnalysisPass::visit(_root);
 }
 
-void StripAttributePass::enter_node(parser::ASTNodePtr node)
+void StripAttributePass::enter_node(const parser::ASTNodePtr &node)
 {
     for (int attr : _attributes) {
         node->remove_attribute(attr);

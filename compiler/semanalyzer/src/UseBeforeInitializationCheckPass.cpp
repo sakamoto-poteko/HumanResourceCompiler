@@ -396,7 +396,7 @@ void UseBeforeInitializationCheckPass::log_use_before_initialization_error(const
         "Original defined in");
 }
 
-void UseBeforeInitializationCheckPass::enter_node(parser::ASTNodePtr node)
+void UseBeforeInitializationCheckPass::enter_node(const parser::ASTNodePtr &node)
 {
     SemanticAnalysisPass::enter_node(node);
     track_scope_node_enter(node);

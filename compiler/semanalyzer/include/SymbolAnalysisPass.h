@@ -78,7 +78,7 @@ public:
     int visit(const CompilationUnitASTNodePtr &node) override;
 
 protected:
-    void enter_node(parser::ASTNodePtr node) override;
+    void enter_node(const parser::ASTNodePtr &node) override;
 
 private:
     // SymbolTablePtr _symbol_table;

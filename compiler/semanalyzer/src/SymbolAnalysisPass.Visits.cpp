@@ -441,7 +441,7 @@ int SymbolAnalysisPass::visit_subroutine(AbstractSubroutineASTNodePtr node, bool
     END_VISIT();
 }
 
-void SymbolAnalysisPass::enter_node(parser::ASTNodePtr node)
+void SymbolAnalysisPass::enter_node(const parser::ASTNodePtr &node)
 {
     SemanticAnalysisPass::enter_node(node);
     attach_scope_id(node);
