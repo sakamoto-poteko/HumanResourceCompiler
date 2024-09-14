@@ -22,7 +22,7 @@ The following is a breakdown of pending tasks to be implemented in the semantic 
 - [ ] Detect unused variables
 
 ### Control Flow Analysis
-- [ ] Implement detection of unreachable code and issue appropriate warnings.
+- [x] Implement detection of unreachable code and issue appropriate warnings.
 - [ ] Validate that all control paths in non-void functions return a value.
 - [ ] Verify correct usage of `break`, `continue`, and `return` statements.
 - [ ] Ensure that all code paths in a function lead to a valid return statement.
