@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <boost/format.hpp>
+#include <boost/graph/directed_graph.hpp>
 #include <spdlog/spdlog.h>
 
 #include "ASTNode.h"
@@ -65,10 +66,8 @@ private:
 
 /**
  * @brief
- - [ ] Validate that all control paths in non-void functions return a value.
- - [ ] Verify correct usage of `break`, `continue`, and `return` statements.
- - [ ] Ensure that all code paths in a function lead to a valid return statement.
- - [ ] Check that all functions with a return statement actually return a value
+ - [x] Verify correct usage of `break`, `continue` statements.
+ - [ ] Ensure that all code paths in a function lead to a valid return statement and returns a value if required.
  *
  */
 class ControlFlowVerificationPass : public SemanticAnalysisPass {
@@ -85,23 +84,54 @@ public:
     void leave_node() override;
 
     // For all visit, the return value of 0 indicate success.
-    // int visit(const parser::IfStatementASTNodePtr &node) override;
+    int visit(const parser::IfStatementASTNodePtr &node) override;
     // int visit(const parser::WhileStatementASTNodePtr &node) override;
     // int visit(const parser::ForStatementASTNodePtr &node) override;
-    // int visit(const parser::ReturnStatementASTNodePtr &node) override;
+    int visit(const parser::ReturnStatementASTNodePtr &node) override;
     int visit(const parser::BreakStatementASTNodePtr &node) override;
     int visit(const parser::ContinueStatementASTNodePtr &node) override;
     // int visit(const parser::StatementBlockASTNodePtr &node) override;
-    // int visit(const parser::SubprocDefinitionASTNodePtr &node) override;
-    // int visit(const parser::FunctionDefinitionASTNodePtr &node) override;
+    int visit(const parser::SubprocDefinitionASTNodePtr &node) override;
+    int visit(const parser::FunctionDefinitionASTNodePtr &node) override;
 
 private:
-    std::vector<parser::ASTNodeType> _ancestor_types;
     std::stack<bool> _subroutine_requires_return;
+
+    /* How to ensure each each ends with a return?
+     * A white node is created at the beginning of the subroutine.
+     * When encountered a return statement, render the node black.
+     * When encountered a if statement, diverge into two nodes, one in then, one in else. They merges back after if statement.
+     * When encountered a loop statement, diverge into two nodes, one for loop execution, one skipping the loop. They merge back after the loop statement.
+     * The merging only happens when both nodes are white. If one node is black, it becomes the leaf.
+     * DFS at end of function definition. Find white leaf
+     */
+    struct ControlFlowInfo {
+        bool is_returned;
+        parser::ASTNodePtr node;
+
+        ControlFlowInfo(bool is_returned, const parser::ASTNodePtr node)
+            : is_returned(is_returned)
+            , node(node)
+        {
+        }
+    };
+
+    using ControlFlowReturnedGraph = boost::directed_graph<ControlFlowInfo>;
+    using CFRGVertex = ControlFlowReturnedGraph::vertex_descriptor;
+    ControlFlowReturnedGraph _control_flow_return_graph;
+    std::stack<CFRGVertex> _current_return_graph_node;
+    std::map<parser::ASTNodePtr, CFRGVertex> _ast_node_to_return_node;
+    std::set<CFRGVertex> _return_graph_node_within_subroutine;
+    bool _expected_return; // subproc? function?
+
+    int visit_subroutine(const parser::AbstractSubroutineASTNodePtr &node, bool expect_return);
 
     int check_loop_control_statements(const parser::ASTNodePtr &node);
 
-    void log_invalid_loop_control_statement_error(const parser::ASTNodePtr &node, const std::string &msg);
+    int log_invalid_loop_control_context_error(const parser::ASTNodePtr &node);
+    int log_invalid_return_context_error(const parser::ASTNodePtr &node);
+    int log_invalid_return_value_error(const std::string &func_name, const parser::ReturnStatementASTNodePtr &return_node, bool expect_value);
+    int log_not_all_path_return_error(const std::string &func_name, const parser::ASTNodePtr &first_block_node);
 };
 
 CLOSE_SEMANALYZER_NAMESPACE

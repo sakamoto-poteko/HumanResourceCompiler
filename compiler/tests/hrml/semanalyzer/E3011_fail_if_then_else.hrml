@@ -1,0 +1,13 @@
+function test()
+{
+    if (inbox()) {
+        return 0;
+    } else {
+        return 0;
+    }
+}
+
+sub start()
+{
+    test();
+}
