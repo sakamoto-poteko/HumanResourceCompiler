@@ -71,6 +71,8 @@ protected:
     StringPtr _filename;
     parser::CompilationUnitASTNodePtr _root;
 
+    std::vector<parser::ASTNodePtr> _ancestors;
+
     template <typename NodeT>
         requires std::is_base_of_v<parser::ASTNode, NodeT>
     bool is_parent_a()
@@ -192,8 +194,6 @@ protected:
     }
 
 private:
-    std::vector<parser::ASTNodePtr> _ancestors;
-
     std::function<void(const parser::ASTNodePtr &)> _global_post_process;
 
     std::map<parser::ASTNodePtr, parser::ASTNodePtr> _node_replacement_requests;

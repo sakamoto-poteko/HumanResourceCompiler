@@ -1,0 +1,11 @@
+// Expect: can only be used inside a loop (for/while).
+function err()
+{
+    continue;
+    return 0;
+}
+
+sub start()
+{
+    err();
+}

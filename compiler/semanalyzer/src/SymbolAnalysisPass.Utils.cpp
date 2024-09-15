@@ -39,7 +39,7 @@ int SymbolAnalysisPass::attach_symbol_or_log_error(const StringPtr &name, Symbol
         log_undefined_error(name, type, node);
         return E_SEMA_SYM_UNDEFINED;
     } else {
-        Symbol::set_to(node, symbol);
+        symbol->set_to(node);
         return 0;
     }
 }
@@ -51,7 +51,7 @@ int SymbolAnalysisPass::add_subroutine_symbol_or_log_error(const StringPtr &name
         log_redefinition_error(name, SymbolType::SUBROUTINE, node);
         return E_SEMA_SYM_REDEF;
     } else {
-        Symbol::set_to(node, added);
+        added->set_to(node);
         return 0;
     }
 }
@@ -85,7 +85,7 @@ int SymbolAnalysisPass::add_variable_symbol_or_log_error(const StringPtr &name, 
     }
 
     // it's a warning so return 0
-    Symbol::set_to(node, added);
+    added->set_to(node);
     return 0;
 }
 

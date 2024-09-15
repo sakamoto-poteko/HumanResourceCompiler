@@ -9,7 +9,6 @@
 #include "ErrorMessage.h"
 #include "SemanticAnalysisErrors.h"
 #include "SemanticAnalysisPass.h"
-#include "SemanticConstants.h"
 #include "hrl_global.h"
 #include "semanalyzer_global.h"
 
@@ -249,7 +248,7 @@ int ConstantFoldingPass::visit(const DivExpressionASTNodePtr &node)
     rc = fold_binary_expression(node, [&](int a, int b, int &out) -> int {
         if (b == 0) {
             auto fmt = boost::format(
-                           "Error: Division by zero detected. The expression '%1% / %2%' results in undefined behavior.")
+                           "Division by zero detected. The expression '%1% / %2%' results in undefined behavior.")
                 % a % b;
             ErrorManager::instance().report(
                 E_SEMA_DIV_MOD_0,
@@ -280,7 +279,7 @@ int ConstantFoldingPass::visit(const DivExpressionASTNodePtr &node)
                     E_SEMA_DIV_MOD_0,
                     ErrorSeverity::Error,
                     ErrorLocation(_filename, node->lineno(), node->colno(), 0),
-                    "Error: Division by zero detected. The expression results in undefined behavior.");
+                    "Division by zero detected. The expression results in undefined behavior.");
                 result = E_SEMA_DIV_MOD_0;
                 break;
             } else if (value == 1) { // div 1
@@ -313,7 +312,7 @@ int ConstantFoldingPass::visit(const ModExpressionASTNodePtr &node)
     rc = fold_binary_expression(node, [&](int a, int b, int &out) -> int {
         if (b == 0) {
             auto fmt = boost::format(
-                           "Error: Mod by zero detected. The expression '%1% / %2%' results in undefined behavior.")
+                           "Mod by zero detected. The expression '%1% / %2%' results in undefined behavior.")
                 % a % b;
             ErrorManager::instance().report(
                 E_SEMA_DIV_MOD_0,
@@ -344,7 +343,7 @@ int ConstantFoldingPass::visit(const ModExpressionASTNodePtr &node)
                     E_SEMA_DIV_MOD_0,
                     ErrorSeverity::Error,
                     ErrorLocation(_filename, node->lineno(), node->colno(), 0),
-                    "Error: Mod by zero detected. The expression results in undefined behavior.");
+                    "Mod by zero detected. The expression results in undefined behavior.");
                 result = E_SEMA_DIV_MOD_0;
                 break;
             } else if (value == 1) { // mod 1
