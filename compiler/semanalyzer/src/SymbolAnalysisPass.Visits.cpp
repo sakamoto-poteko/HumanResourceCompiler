@@ -368,12 +368,13 @@ int SymbolAnalysisPass::visit(const StatementBlockASTNodePtr &node)
     // Implement visit logic for StatementBlockASTNode
     const ASTNodePtr &parent = topmost_node();
     // is it from while/if/for/function/subroutine which is scope structured?
+    auto parent_type = parent->get_node_type();
     bool come_from_scoped_structure
-        = is_ptr_type<WhileStatementASTNode>(parent)
-        || is_ptr_type<IfStatementASTNode>(parent)
-        || is_ptr_type<ForStatementASTNode>(parent)
-        || is_ptr_type<FunctionDefinitionASTNode>(parent)
-        || is_ptr_type<SubprocDefinitionASTNode>(parent);
+        = parent_type == parser::ASTNodeType::WhileStatement
+        || parent_type == parser::ASTNodeType::IfStatement
+        || parent_type == parser::ASTNodeType::ForStatement
+        || parent_type == parser::ASTNodeType::FunctionDefinition
+        || parent_type == parser::ASTNodeType::SubprocDefinition;
 
     BEGIN_VISIT();
 

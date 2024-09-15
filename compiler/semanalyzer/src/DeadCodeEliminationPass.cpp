@@ -118,10 +118,11 @@ int DeadCodeEliminationPass::visit(const parser::StatementBlockASTNodePtr &node)
     parser::StatementsVector &statements = node->get_statements();
     for (auto statement_it = statements.begin(); statement_it != statements.end(); ++statement_it) {
         const auto &current_stmt = *statement_it;
+        auto stmt_type = current_stmt->get_node_type();
         bool is_end_of_control_flow_statement
-            = parser::is_ptr_type<parser::ReturnStatementASTNode>(current_stmt)
-            || parser::is_ptr_type<parser::BreakStatementASTNode>(current_stmt)
-            || parser::is_ptr_type<parser::ContinueStatementASTNode>(current_stmt);
+            = stmt_type == parser::ASTNodeType::ReturnStatement
+            || stmt_type == parser::ASTNodeType::BreakStatement
+            || stmt_type == parser::ASTNodeType::ContinueStatement;
 
         if (is_end_of_control_flow_statement) {
             auto begin_unreachable = std::next(statement_it);

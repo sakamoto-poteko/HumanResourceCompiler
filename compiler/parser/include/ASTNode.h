@@ -19,6 +19,46 @@ class ASTNodeVisitor;
 class ASTNodeAttribute;
 using ASTNodeAttributePtr = std::shared_ptr<ASTNodeAttribute>;
 
+enum class ASTNodeType : int {
+    EmptyStatement,
+    Integer,
+    Boolean,
+    VariableDeclaration,
+    VariableAssignment,
+    VariableAccess,
+    FloorBoxInitStatement,
+    FloorAssignment,
+    FloorAccess,
+    NegativeExpression,
+    NotExpression,
+    IncrementExpression,
+    DecrementExpression,
+    AddExpression,
+    SubExpression,
+    MulExpression,
+    DivExpression,
+    ModExpression,
+    EqualExpression,
+    NotEqualExpression,
+    GreaterThanExpression,
+    GreaterEqualExpression,
+    LessThanExpression,
+    LessEqualExpression,
+    AndExpression,
+    OrExpression,
+    InvocationExpression,
+    IfStatement,
+    WhileStatement,
+    ForStatement,
+    ReturnStatement,
+    BreakStatement,
+    ContinueStatement,
+    StatementBlock,
+    SubprocDefinition,
+    FunctionDefinition,
+    CompilationUnit
+};
+
 class ASTNode : public std::enable_shared_from_this<ASTNode> {
 public:
     ASTNode(int lineno, int colno, int last_lineno, int last_colno)
@@ -32,6 +72,8 @@ public:
     virtual ~ASTNode() = default;
 
     virtual int accept(ASTNodeVisitor *visitor) = 0;
+
+    virtual ASTNodeType get_node_type() = 0;
 
     int &lineno() { return _lineno; }
 
@@ -201,6 +243,8 @@ public:
     }
 
     int accept(ASTNodeVisitor *visitor) override;
+
+    ASTNodeType get_node_type() override { return ASTNodeType::EmptyStatement; }
 };
 
 class IntegerASTNode : public AbstractPrimaryExpressionASTNode {
@@ -212,6 +256,8 @@ public:
     }
 
     int accept(ASTNodeVisitor *visitor) override;
+
+    ASTNodeType get_node_type() override { return ASTNodeType::Integer; }
 
     int &get_value() { return _value; }
 
@@ -231,6 +277,8 @@ public:
 
     int accept(ASTNodeVisitor *visitor) override;
 
+    ASTNodeType get_node_type() override { return ASTNodeType::Boolean; }
+
     bool &get_value() { return _value; }
 
 protected:
@@ -249,6 +297,8 @@ public:
     }
 
     int accept(ASTNodeVisitor *visitor) override;
+
+    ASTNodeType get_node_type() override { return ASTNodeType::VariableDeclaration; }
 
     StringPtr &get_name() { return _name; }
 
@@ -272,6 +322,8 @@ public:
 
     int accept(ASTNodeVisitor *visitor) override;
 
+    ASTNodeType get_node_type() override { return ASTNodeType::VariableAssignment; }
+
     StringPtr &get_name() { return _name; }
 
     AbstractExpressionASTNodePtr &get_value() { return _value; }
@@ -293,6 +345,8 @@ public:
 
     int accept(ASTNodeVisitor *visitor) override;
 
+    ASTNodeType get_node_type() override { return ASTNodeType::VariableAccess; }
+
     StringPtr &get_name() { return _name; }
 
 protected:
@@ -309,6 +363,8 @@ public:
     }
 
     int accept(ASTNodeVisitor *visitor) override;
+
+    ASTNodeType get_node_type() override { return ASTNodeType::FloorBoxInitStatement; }
 
     FloorAssignmentASTNodePtr &get_assignment() { return _assignment; }
 
@@ -327,6 +383,8 @@ public:
     }
 
     int accept(ASTNodeVisitor *visitor) override;
+
+    ASTNodeType get_node_type() override { return ASTNodeType::FloorAssignment; }
 
     AbstractExpressionASTNodePtr &get_floor_number() { return _floor_number; }
 
@@ -349,6 +407,8 @@ public:
 
     int accept(ASTNodeVisitor *visitor) override;
 
+    ASTNodeType get_node_type() override { return ASTNodeType::FloorAccess; }
+
     AbstractExpressionASTNodePtr &get_index_expr() { return _index_expr; }
 
 protected:
@@ -366,6 +426,8 @@ public:
 
     int accept(ASTNodeVisitor *visitor) override;
 
+    ASTNodeType get_node_type() override { return ASTNodeType::NegativeExpression; }
+
 private:
 };
 
@@ -378,6 +440,8 @@ public:
     }
 
     int accept(ASTNodeVisitor *visitor) override;
+
+    ASTNodeType get_node_type() override { return ASTNodeType::NotExpression; }
 
 private:
 };
@@ -392,6 +456,8 @@ public:
     }
 
     int accept(ASTNodeVisitor *visitor) override;
+
+    ASTNodeType get_node_type() override { return ASTNodeType::IncrementExpression; }
 
     StringPtr &get_var_name() { return _var_name; }
 
@@ -410,6 +476,8 @@ public:
 
     int accept(ASTNodeVisitor *visitor) override;
 
+    ASTNodeType get_node_type() override { return ASTNodeType::DecrementExpression; }
+
     StringPtr &get_var_name() { return _var_name; }
 
 private:
@@ -425,6 +493,8 @@ public:
     }
 
     int accept(ASTNodeVisitor *visitor) override;
+
+    ASTNodeType get_node_type() override { return ASTNodeType::AddExpression; }
 };
 
 // SubExpressionASTNode
@@ -436,6 +506,8 @@ public:
     }
 
     int accept(ASTNodeVisitor *visitor) override;
+
+    ASTNodeType get_node_type() override { return ASTNodeType::SubExpression; }
 };
 
 // MulExpressionASTNode
@@ -447,6 +519,8 @@ public:
     }
 
     int accept(ASTNodeVisitor *visitor) override;
+
+    ASTNodeType get_node_type() override { return ASTNodeType::MulExpression; }
 };
 
 // DivExpressionASTNode
@@ -458,6 +532,8 @@ public:
     }
 
     int accept(ASTNodeVisitor *visitor) override;
+
+    ASTNodeType get_node_type() override { return ASTNodeType::DivExpression; }
 };
 
 // ModExpressionASTNode
@@ -469,6 +545,8 @@ public:
     }
 
     int accept(ASTNodeVisitor *visitor) override;
+
+    ASTNodeType get_node_type() override { return ASTNodeType::ModExpression; }
 };
 
 // EqualExpressionASTNode
@@ -480,6 +558,8 @@ public:
     }
 
     int accept(ASTNodeVisitor *visitor) override;
+
+    ASTNodeType get_node_type() override { return ASTNodeType::EqualExpression; }
 };
 
 // NotEqualExpressionASTNode
@@ -491,6 +571,8 @@ public:
     }
 
     int accept(ASTNodeVisitor *visitor) override;
+
+    ASTNodeType get_node_type() override { return ASTNodeType::NotEqualExpression; }
 };
 
 // GreaterThanExpressionASTNode
@@ -502,6 +584,8 @@ public:
     }
 
     int accept(ASTNodeVisitor *visitor) override;
+
+    ASTNodeType get_node_type() override { return ASTNodeType::GreaterThanExpression; }
 };
 
 // GreaterEqualExpressionASTNode
@@ -513,6 +597,8 @@ public:
     }
 
     int accept(ASTNodeVisitor *visitor) override;
+
+    ASTNodeType get_node_type() override { return ASTNodeType::GreaterEqualExpression; }
 };
 
 // LessThanExpressionASTNode
@@ -524,6 +610,8 @@ public:
     }
 
     int accept(ASTNodeVisitor *visitor) override;
+
+    ASTNodeType get_node_type() override { return ASTNodeType::LessThanExpression; }
 };
 
 // LessEqualExpressionASTNode
@@ -535,6 +623,8 @@ public:
     }
 
     int accept(ASTNodeVisitor *visitor) override;
+
+    ASTNodeType get_node_type() override { return ASTNodeType::LessEqualExpression; }
 };
 
 // AndExpressionASTNode
@@ -546,6 +636,8 @@ public:
     }
 
     int accept(ASTNodeVisitor *visitor) override;
+
+    ASTNodeType get_node_type() override { return ASTNodeType::AndExpression; }
 };
 
 // OrExpressionASTNode
@@ -557,6 +649,8 @@ public:
     }
 
     int accept(ASTNodeVisitor *visitor) override;
+
+    ASTNodeType get_node_type() override { return ASTNodeType::OrExpression; }
 };
 
 // InvocationExpressionASTNode
@@ -570,6 +664,8 @@ public:
     }
 
     int accept(ASTNodeVisitor *visitor) override;
+
+    ASTNodeType get_node_type() override { return ASTNodeType::InvocationExpression; }
 
     StringPtr &get_func_name() { return _func_name; }
 
@@ -593,6 +689,8 @@ public:
     }
 
     int accept(ASTNodeVisitor *visitor) override;
+
+    ASTNodeType get_node_type() override { return ASTNodeType::IfStatement; }
 
     AbstractExpressionASTNodePtr &get_condition() { return _condition; }
 
@@ -619,6 +717,8 @@ public:
 
     int accept(ASTNodeVisitor *visitor) override;
 
+    ASTNodeType get_node_type() override { return ASTNodeType::WhileStatement; }
+
     AbstractExpressionASTNodePtr &get_condition() { return _condition; }
 
     AbstractEmbeddedStatementASTNodePtr &get_body() { return _body; }
@@ -642,6 +742,8 @@ public:
     }
 
     int accept(ASTNodeVisitor *visitor) override;
+
+    ASTNodeType get_node_type() override { return ASTNodeType::ForStatement; }
 
     AbstractStatementASTNodePtr &get_init() { return _init; }
 
@@ -672,6 +774,8 @@ public:
 
     int accept(ASTNodeVisitor *visitor) override;
 
+    ASTNodeType get_node_type() override { return ASTNodeType::ReturnStatement; }
+
     AbstractExpressionASTNodePtr &get_expression() { return _expression; }
 
 protected:
@@ -688,6 +792,8 @@ public:
 
     int accept(ASTNodeVisitor *visitor) override;
 
+    ASTNodeType get_node_type() override { return ASTNodeType::BreakStatement; }
+
 protected:
 private:
 };
@@ -700,6 +806,8 @@ public:
     }
 
     int accept(ASTNodeVisitor *visitor) override;
+
+    ASTNodeType get_node_type() override { return ASTNodeType::ContinueStatement; }
 
 protected:
 private:
@@ -715,6 +823,8 @@ public:
     }
 
     int accept(ASTNodeVisitor *visitor) override;
+
+    ASTNodeType get_node_type() override { return ASTNodeType::StatementBlock; }
 
     StatementsVector &get_statements() { return _statements; }
 
@@ -732,6 +842,8 @@ public:
 
     int accept(ASTNodeVisitor *visitor) override;
 
+    ASTNodeType get_node_type() override { return ASTNodeType::SubprocDefinition; }
+
 protected:
 private:
 };
@@ -744,6 +856,8 @@ public:
     }
 
     int accept(ASTNodeVisitor *visitor) override;
+
+    ASTNodeType get_node_type() override { return ASTNodeType::FunctionDefinition; }
 
 protected:
 private:
@@ -768,6 +882,8 @@ public:
     }
 
     int accept(ASTNodeVisitor *visitor) override;
+
+    ASTNodeType get_node_type() override { return ASTNodeType::CompilationUnit; }
 
     std::vector<StringPtr> &get_imports() { return _imports; }
 
