@@ -73,9 +73,11 @@ int UseBeforeInitializationCheckPass::visit(const parser::IfStatementASTNodePtr 
 
     NodeResult then_result, else_result, merged_result;
     auto &then_branch = node->get_then_branch();
-    int rc_then = traverse(then_branch);
-    RETURN_IF_FAIL_IN_VISIT(rc_then);
-    get_var_init_result(then_branch, then_result);
+    if (then_branch) {
+        int rc_then = traverse(then_branch);
+        RETURN_IF_FAIL_IN_VISIT(rc_then);
+        get_var_init_result(then_branch, then_result);
+    }
 
     auto &else_branch = node->get_else_branch();
     if (else_branch) {
