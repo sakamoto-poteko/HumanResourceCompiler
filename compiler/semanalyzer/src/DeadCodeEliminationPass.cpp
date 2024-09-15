@@ -68,8 +68,10 @@ int DeadCodeEliminationPass::visit(const parser::IfStatementASTNodePtr &node)
             // we'll check if there's an else branch, since it's the only one get executed
             // if there is, we pull it up as node itself
             // if there is not, this if is empty
-            report_dead_code(node->get_then_branch(), condition, DeadCodeReason::ConstantFalse);
-            // node->get_then_branch() is always not null
+            if (node->get_then_branch()) {
+                // node->get_then_branch() can be null after DCE
+                report_dead_code(node->get_then_branch(), condition, DeadCodeReason::ConstantFalse);
+            }
             auto &else_branch = node->get_else_branch();
             if (else_branch) {
                 rc = traverse(else_branch);
@@ -78,6 +80,11 @@ int DeadCodeEliminationPass::visit(const parser::IfStatementASTNodePtr &node)
             } else {
                 request_to_remove_self();
             }
+        }
+
+        // an extreme case: both then and else are null
+        if (!node->get_then_branch() && !node->get_else_branch()) {
+            request_to_remove_self();
         }
     } else {
         rc = traverse_multiple(node->get_condition(), node->get_then_branch(), node->get_else_branch());
