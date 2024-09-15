@@ -290,9 +290,11 @@ int ControlFlowVerificationPass::visit_subroutine(const parser::AbstractSubrouti
 
     class FindUnreturnedVisitor : public boost::default_dfs_visitor {
     public:
-        FindUnreturnedVisitor(const std::function<void(const parser::ASTNodePtr &)> err_rpt)
+        FindUnreturnedVisitor(const std::function<void(const parser::ASTNodePtr &)> err_rpt, bool &has_err_out)
             : _err_reporting(err_rpt)
+            , _err(has_err_out)
         {
+            _err = false;
         }
 
         void discover_vertex(CFRGVertex v, ControlFlowReturnedGraph const &g)
@@ -304,17 +306,16 @@ int ControlFlowVerificationPass::visit_subroutine(const parser::AbstractSubrouti
             }
         }
 
-        bool has_err() const { return _err; }
-
     private:
         std::function<void(const parser::ASTNodePtr &)> _err_reporting;
-        bool _err = false;
+        bool &_err;
     };
 
     // only check the function (which expects return)
     if (_expected_return) {
         std::vector<boost::default_color_type> color_map(_control_flow_return_graph.num_vertices());
-        FindUnreturnedVisitor visitor(std::bind(&ControlFlowVerificationPass::log_not_all_path_return_error, this, *node->get_name(), std::placeholders::_1));
+        bool has_err = false;
+        FindUnreturnedVisitor visitor(std::bind(&ControlFlowVerificationPass::log_not_all_path_return_error, this, *node->get_name(), std::placeholders::_1), has_err);
         boost::depth_first_visit(
             _control_flow_return_graph,
             node_vertex,
@@ -323,7 +324,7 @@ int ControlFlowVerificationPass::visit_subroutine(const parser::AbstractSubrouti
 
         _return_graph_node_within_subroutine.clear();
 
-        if (visitor.has_err()) {
+        if (has_err) {
             rc = E_SEMA_NOT_ALL_PATH_RETURN_VALUE;
             RETURN_IF_FAIL_IN_VISIT();
         }

@@ -108,7 +108,7 @@ TEST_P(SemanticAnalyzerTests, SemanticAnalysisTests)
     using SemaAttrId = hrl::semanalyzer::SemAnalzyerASTNodeAttributeId;
 
     // it's for conditional breakpoint
-    auto dbg = data.filename == "W3008_pass_while_true_after.hrml";
+    auto dbg = data.filename == "E3011_fail_if_then.hrml";
     UNUSED(dbg);
 
     hrl::semanalyzer::SemanticAnalysisPassManager sem_passmgr(ast, std::make_shared<std::string>(data.filename));
