@@ -220,10 +220,11 @@ int UseBeforeInitializationCheckPass::visit(const parser::StatementBlockASTNodeP
     auto passthrough_result = [this](const parser::ASTNodePtr &nodeparam) {
         // these are the nodes with statement blocks
         // can't be FunctionDefinitionASTNode nor SubprocDefinitionASTNode because we're in a statement block
+        auto node_type = nodeparam->get_node_type();
         bool visit_defined_with_statement_block
-            = is_ptr_type<parser::WhileStatementASTNode>(nodeparam)
-            || is_ptr_type<parser::IfStatementASTNode>(nodeparam)
-            || is_ptr_type<parser::ForStatementASTNode>(nodeparam);
+            = node_type == parser::ASTNodeType::WhileStatement
+            || node_type == parser::ASTNodeType::IfStatement
+            || node_type == parser::ASTNodeType::ForStatement;
 
         // we skip this for those defined their own visits
         if (!visit_defined_with_statement_block) {
