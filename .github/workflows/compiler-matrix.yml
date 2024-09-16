@@ -42,7 +42,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - run: ln -s "$(echo "${{github.workspace}}" | sed 's#^/__w/#/home/runner/work/#')" "${{github.workspace}}"
+      - run: |
+          mkdir -p "$(dirname "$(echo "${{github.workspace}}" | sed 's#^/__w/#/home/runner/work/#')")"
+          ln -s "$(echo "${{github.workspace}}" | sed 's#^/__w/#/home/runner/work/#')" "${{github.workspace}}"
 
       # Dependency installation on Ubuntu
       - name: Install dependencies (Ubuntu)
