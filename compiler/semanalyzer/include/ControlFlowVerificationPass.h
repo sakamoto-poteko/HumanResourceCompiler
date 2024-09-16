@@ -99,6 +99,19 @@ public:
 private:
     std::stack<bool> _subroutine_requires_return;
 
+    // map<symbol, stack<initialized_in_scope>>
+    std::stack<bool> _returned_record_stack;
+    // map<node, result>
+    std::map<parser::ASTNodePtr, bool> _returned_record_results;
+
+    void push_return_record() { _returned_record_stack.push(false); }
+
+    void set_return_record(bool returned) { _returned_record_stack.top() = true; }
+
+    bool get_return_record() { return _returned_record_stack.top(); }
+
+    void pop_return_record() { }
+
     /* How to ensure each each ends with a return?
      * A white node is created at the beginning of the subroutine.
      * When encountered a return statement, render the node black.
@@ -107,31 +120,6 @@ private:
      * The merging only happens when both nodes are white. If one node is black, it becomes the leaf.
      * DFS at end of function definition. Find white leaf
      */
-    struct ControlFlowInfo {
-        bool is_returned;
-        parser::ASTNodePtr node;
-        std::string msg;
-
-        ControlFlowInfo(bool is_returned, const parser::ASTNodePtr node)
-            : is_returned(is_returned)
-            , node(node)
-        {
-        }
-
-        ControlFlowInfo(bool is_returned, const parser::ASTNodePtr node, const std::string &msg)
-            : is_returned(is_returned)
-            , node(node)
-            , msg(msg)
-        {
-        }
-    };
-
-    using ControlFlowReturnedGraph = boost::directed_graph<ControlFlowInfo>;
-    using CFRGVertex = ControlFlowReturnedGraph::vertex_descriptor;
-    ControlFlowReturnedGraph _control_flow_return_graph;
-    std::stack<CFRGVertex> _return_graph_traversal_history;
-    std::stack<CFRGVertex> _previous_return_graph_nodes; // only to be used in enter_node and leave_node, for edging purpose
-    std::map<parser::ASTNodePtr, CFRGVertex> _ast_node_to_return_node;
     bool _expected_return; // subproc? function?
 
     int visit_subroutine(const parser::AbstractSubroutineASTNodePtr &node, bool expect_return);
