@@ -10,12 +10,14 @@ on:
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
+  WITH_IMAGE: '{"image": "mcr.microsoft.com/devcontainers/cpp:debian-12"}'
+  NO_IMAGE: '{"image": null}'
 
 jobs:
   build:
     if: "!startsWith(github.event.pull_request.title, 'WIP')"
     runs-on: ${{ matrix.os }}
-
+    container: ${{ fromJSON(env[matrix.container]) }}
     strategy:
       matrix:
         # os: [ubuntu-latest, macos-latest, windows-latest]
@@ -26,7 +28,7 @@ jobs:
             compiler: gcc
             c_compiler: gcc
             cpp_compiler: g++
-            container: mcr.microsoft.com/devcontainers/cpp:debian-12
+            container: WITH_IMAGE
           # Linux with Clang
           # - os: ubuntu-latest
           #   compiler: clang
@@ -37,6 +39,7 @@ jobs:
             compiler: clang
             c_compiler: clang
             cpp_compiler: clang++
+            container: NO_IMAGE
           # Windows with MSVC
           # - os: windows-latest
           #   compiler: msvc
@@ -57,18 +60,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake ninja-build flex bison libspdlog-dev libboost-all-dev libgtest-dev
-
-      - name: Install dependencies and Clang 16 on Ubuntu
-        if: matrix.os == 'ubuntu-latest' && matrix.compiler == 'clang'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wget gnupg software-properties-common
-          # Add the repository for Clang 16
-          wget https://apt.llvm.org/llvm.sh
-          chmod +x llvm.sh
-          sudo ./llvm.sh 16
-          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-16 100
-          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-16 100
 
       # Dependency installation on macOS
       - name: Install dependencies (macOS)
