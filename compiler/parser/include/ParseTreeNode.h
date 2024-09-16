@@ -228,7 +228,7 @@ public:
         case lexer::TokenId::MOD:
             return MOD;
         default:
-            spdlog::critical("unknown lexer TokenId {}. {}", token_id, __PRETTY_FUNCTION__);
+            spdlog::critical("unknown lexer TokenId {}. {}", static_cast<int>(token_id), __PRETTY_FUNCTION__);
             throw;
         }
     }

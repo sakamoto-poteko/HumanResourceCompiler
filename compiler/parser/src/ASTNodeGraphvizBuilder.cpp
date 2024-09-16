@@ -191,7 +191,7 @@ std::string ASTNodeGraphvizBuilder::generate_graphviz(const std::string &filepat
                 out << "[" << label_xlabel.str() << R"( shape=cds style="filled" fillcolor=peachpuff fontname=Helvetica])";
                 break;
             default:
-                spdlog::critical("unrecognized node type {}. {}", node.type, __PRETTY_FUNCTION__);
+                spdlog::critical("unrecognized node type {}. {}", static_cast<int>(node.type), __PRETTY_FUNCTION__);
                 throw;
             }
         },

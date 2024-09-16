@@ -91,7 +91,7 @@ bool RecursiveDescentParser::parse_compilation_unit(CompilationUnitPTNodePtr &no
 
             subroutine_definitions.push_back(sub);
         } else {
-            spdlog::critical("unexpected code reached, the token is {}. {}", token->token_id(), __PRETTY_FUNCTION__);
+            spdlog::critical("unexpected code reached, the token is {}. {}", static_cast<int>(token->token_id()), __PRETTY_FUNCTION__);
             throw; // won't be here
         }
 
