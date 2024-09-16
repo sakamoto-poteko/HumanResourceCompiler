@@ -26,6 +26,7 @@ jobs:
             compiler: gcc
             c_compiler: gcc
             cpp_compiler: g++
+            container: mcr.microsoft.com/devcontainers/cpp:debian-12
           # Linux with Clang
           # - os: ubuntu-latest
           #   compiler: clang
@@ -46,6 +47,7 @@ jobs:
           #   compiler: gcc
           # - os: ubuntu-latest
           #   compiler: clang
+
     steps:
       - uses: actions/checkout@v4
 
