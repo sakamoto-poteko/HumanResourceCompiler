@@ -56,7 +56,6 @@ jobs:
         run: |
           brew update
           brew install cmake ninja boost spdlog flex bison googletest tree
-      - run: tree $GITHUB_WORKSPACE
 
       # Dependency installation on Windows (using vcpkg)
       - name: Install dependencies (Windows)
@@ -70,7 +69,7 @@ jobs:
       # CMake configuration step
       - name: Configure CMake
         run: |
-          cmake -B $GITHUB_WORKSPACE/compiler/build -S $GITHUB_WORKSPACE/compiler \
+          cmake -B ${GITHUB_WORKSPACE}/compiler/build -S ${GITHUB_WORKSPACE}/compiler \
           -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
           -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
@@ -79,11 +78,11 @@ jobs:
 
       # Build step
       - name: Build
-        run: cmake --build $GITHUB_WORKSPACE/compiler/build --config ${{env.BUILD_TYPE}} -- -j$(nproc || sysctl -n hw.ncpu || 2)
+        run: cmake --build ${GITHUB_WORKSPACE}/compiler/build --config ${{env.BUILD_TYPE}} -- -j$(nproc || sysctl -n hw.ncpu || 2)
         shell: bash
 
       # Test step
       - name: Test
-        working-directory: $GITHUB_WORKSPACE/compiler/build
+        working-directory: ${GITHUB_WORKSPACE}/compiler/build
         run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
         shell: bash
