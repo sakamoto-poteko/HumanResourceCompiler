@@ -15,7 +15,9 @@ jobs:
   build:
     if: "!startsWith(github.event.pull_request.title, 'WIP')"
     runs-on: ${{ matrix.os }}
-    container: ${{ matrix.container }}
+    container:
+      image: ${{ matrix.container }}
+      options: --user root
     strategy:
       matrix:
         include:
@@ -23,11 +25,7 @@ jobs:
           - os: ubuntu-latest
             c_compiler: gcc
             cpp_compiler: g++
-            container:
-              {
-                image: mcr.microsoft.com/devcontainers/cpp:debian-12,
-                options: --user root,
-              }
+            container: mcr.microsoft.com/devcontainers/cpp:debian-12,
           # Linux with Clang
           # - os: ubuntu-latest
           #   c_compiler: clang
