@@ -1,4 +1,5 @@
 #include <functional>
+#include <optional>
 #include <string>
 
 #include <boost/format.hpp>
@@ -17,11 +18,11 @@
 
 OPEN_SEMANALYZER_NAMESPACE
 
-#define BEGIN_VISIT()                                          \
-    enter_node(node);                                          \
-    int result = 0, rc = 0;                                    \
-    UNUSED(rc);                                                \
-    CFRGVertex node_vertex = _current_return_graph_node.top(); \
+#define BEGIN_VISIT()                                               \
+    enter_node(node);                                               \
+    int result = 0, rc = 0;                                         \
+    UNUSED(rc);                                                     \
+    CFRGVertex node_vertex = _return_graph_traversal_history.top(); \
     UNUSED(node_vertex)
 
 #define END_VISIT() \
@@ -46,8 +47,8 @@ int ControlFlowVerificationPass::run()
     }
 
     CFRGVertex root_vertex = _control_flow_return_graph.add_vertex(ControlFlowInfo(false, nullptr));
-    _current_return_graph_node.push(root_vertex);
-    _previous_return_graph_node_queue.push(root_vertex);
+    _return_graph_traversal_history.push(root_vertex);
+    _current_return_graph_node = root_vertex;
 
     return SemanticAnalysisPass::visit(_root);
 }
@@ -56,20 +57,19 @@ void ControlFlowVerificationPass::enter_node(const parser::ASTNodePtr &node)
 {
     SemanticAnalysisPass::enter_node(node);
 
-    auto last_vert = _current_return_graph_node.top();
+    auto last_vert = _return_graph_traversal_history.top();
     // inherit the parent's color
     CFRGVertex vertex = _control_flow_return_graph.add_vertex(ControlFlowInfo(_control_flow_return_graph[last_vert].is_returned, node));
-    _control_flow_return_graph.add_edge(_previous_return_graph_node_queue.front(), vertex);
-    _previous_return_graph_node_queue.pop();
+    _control_flow_return_graph.add_edge(_current_return_graph_node, vertex);
 
-    _current_return_graph_node.push(vertex);
-    _previous_return_graph_node_queue.push(vertex);
+    _return_graph_traversal_history.push(vertex);
+    _current_return_graph_node = vertex;
 }
 
 void ControlFlowVerificationPass::leave_node()
 {
-    _ast_node_to_return_node[_ancestors.back()] = _current_return_graph_node.top();
-    _current_return_graph_node.pop();
+    _ast_node_to_return_node[_ancestors.back()] = _return_graph_traversal_history.top();
+    _return_graph_traversal_history.pop();
 
     SemanticAnalysisPass::leave_node();
 }
@@ -86,22 +86,69 @@ int ControlFlowVerificationPass::visit(const parser::IfStatementASTNodePtr &node
     CFRGVertex else_result = null_vertex;
 
     if (then_branch) {
+        _current_return_graph_node = node_vertex;
         rc = traverse(then_branch);
         RETURN_IF_FAIL_IN_VISIT();
         then_result = _ast_node_to_return_node.at(then_branch);
     }
-    assert(then_result != null_vertex);
 
     if (else_branch) {
+        _current_return_graph_node = node_vertex;
         rc = traverse(else_branch);
         RETURN_IF_FAIL_IN_VISIT();
         else_result = _ast_node_to_return_node.at(else_branch);
     }
 
+    std::optional<bool> then_returned;
+    if (then_branch) {
+        then_returned = _control_flow_return_graph[then_result].is_returned;
+    }
+    std::optional<bool> else_returned;
+    if (else_branch) {
+        else_returned = _control_flow_return_graph[else_result].is_returned;
+    }
+
+    // | Id | Then | Else | Action
+    // | 1  | Null | Null | Nothing returned. Merge with node vertex
+    // | 2  | Ret  | Null | Single branch returned. End
+    // | 3  | Null | Ret  | Single branch returned. End
+    // | 4  | Ret  | NR   | One return one not. Connect the not one
+    // | 5  | NR   | Ret  | One return one not. Connect the not one
+    // | 6  | NR   | NR   | Both not returned. Merge with two result vertices
+    // | 7  | Ret  | Ret  | Both returned. End
+    // | 8  | Null | NR   | Single branch not returned. Connect the not one
+    // | 9  | NR   | Null | Single branch not returned. Connect the not one
+
+    // Case 2, 3, 7: All flow returned. End.
+    if ((then_returned == true && else_returned == true)
+        || (then_returned == true && else_returned == std::nullopt)
+        || (then_returned == std::nullopt && else_returned == true)) {
+        END_VISIT();
+    }
+
+    // Case 1: Merge with node vertex
+    if (!then_returned.has_value() && !else_returned.has_value()) {
+    }
+
+    // Case 6: Merge with two result vertices
+    if (then_returned == false && else_returned == false) {
+    }
+
+    // Case 5, 8: Then not returned, but else end or null.
+    // Connect with then result
+    if (then_returned == false && (else_returned == std::nullopt || else_returned == true)) {
+    }
+
+    // Case 4, 9: Else not returned, but then end or null.
+    // Connect with else result
+    if (else_returned == true && (then_returned == std::nullopt || then_returned == true)) {
+    }
+
     // Create the merged node first. We'll check if it should connect to else branch later
     bool then_branch_returned = _control_flow_return_graph[then_result].is_returned;
-    CFRGVertex merged_vert = _control_flow_return_graph.add_vertex(ControlFlowInfo(then_branch_returned, node));
-    _current_return_graph_node.top() = merged_vert;
+    CFRGVertex merged_vert = _control_flow_return_graph.add_vertex(ControlFlowInfo(then_branch_returned, node, "merged_if"));
+    _return_graph_traversal_history.top() = merged_vert;
+    _current_return_graph_node = merged_vert;
 
     // always connect to then branch
     _control_flow_return_graph.add_edge(then_result, merged_vert);
@@ -337,6 +384,32 @@ int ControlFlowVerificationPass::visit_subroutine(const parser::AbstractSubrouti
     END_VISIT();
 }
 
+int ControlFlowVerificationPass::visit(const parser::StatementBlockASTNodePtr &node)
+{
+    return SemanticAnalysisPass::visit(node);
+    // BEGIN_VISIT();
+
+    // rc = traverse(node->get_statements(), [this, &node_vertex](const parser::ASTNodePtr &) {
+    //     _current_return_graph_node = node_vertex;
+    // });
+    // RETURN_IF_FAIL_IN_VISIT();
+
+    // END_VISIT();
+}
+
+int ControlFlowVerificationPass::visit(const parser::CompilationUnitASTNodePtr &node)
+{
+    BEGIN_VISIT();
+
+    // there's no control flow outside the subroutines
+    rc = traverse(node->get_subroutines(), [this, &node_vertex](const parser::ASTNodePtr &) {
+        _current_return_graph_node = node_vertex;
+    });
+    RETURN_IF_FAIL_IN_VISIT();
+
+    END_VISIT();
+}
+
 bool ControlFlowVerificationPass::generate_return_graph(const std::string &dot_path)
 {
     std::stringstream dotfile;
@@ -348,9 +421,14 @@ bool ControlFlowVerificationPass::generate_return_graph(const std::string &dot_p
             const auto &vert = _control_flow_return_graph[v];
             out << "[label=";
             if (vert.node) {
-                out << "\"(" << parser::ast_node_type_to_string(vert.node->get_node_type()) << ")" << vert.node->lineno() << ":" << vert.node->colno() << ",\\n" << (vert.is_returned ? "RETURNED" : "N/A") << "\"";
+                out << "\"(" << parser::ast_node_type_to_string(vert.node->get_node_type()) << ")" << vert.node->lineno() << ":" << vert.node->colno() << ",\\n";
+                if (!vert.msg.empty()) {
+                    out << vert.msg << "\\n";
+                }
+                out << (vert.is_returned ? "RETURNED" : "N/A") << "\"";
             } else {
-                out << "\"(nullptr)\\n" << (vert.is_returned ? "RETURNED" : "N/A") << "\"";
+                out << "\"(nullptr)\\n"
+                    << (vert.is_returned ? "RETURNED" : "N/A") << "\"";
             }
             out << "]";
         },

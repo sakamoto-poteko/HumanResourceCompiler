@@ -3,6 +3,7 @@
 
 #include <queue>
 #include <stack>
+#include <string>
 #include <vector>
 
 #include <boost/format.hpp>
@@ -90,9 +91,10 @@ public:
     int visit(const parser::ReturnStatementASTNodePtr &node) override;
     int visit(const parser::BreakStatementASTNodePtr &node) override;
     int visit(const parser::ContinueStatementASTNodePtr &node) override;
-    // int visit(const parser::StatementBlockASTNodePtr &node) override;
+    int visit(const parser::StatementBlockASTNodePtr &node) override;
     int visit(const parser::SubprocDefinitionASTNodePtr &node) override;
     int visit(const parser::FunctionDefinitionASTNodePtr &node) override;
+    int visit(const parser::CompilationUnitASTNodePtr &node) override;
 
 private:
     std::stack<bool> _subroutine_requires_return;
@@ -108,10 +110,18 @@ private:
     struct ControlFlowInfo {
         bool is_returned;
         parser::ASTNodePtr node;
+        std::string msg;
 
         ControlFlowInfo(bool is_returned, const parser::ASTNodePtr node)
             : is_returned(is_returned)
             , node(node)
+        {
+        }
+
+        ControlFlowInfo(bool is_returned, const parser::ASTNodePtr node, const std::string &msg)
+            : is_returned(is_returned)
+            , node(node)
+            , msg(msg)
         {
         }
     };
@@ -119,8 +129,8 @@ private:
     using ControlFlowReturnedGraph = boost::directed_graph<ControlFlowInfo>;
     using CFRGVertex = ControlFlowReturnedGraph::vertex_descriptor;
     ControlFlowReturnedGraph _control_flow_return_graph;
-    std::stack<CFRGVertex> _current_return_graph_node;
-    std::queue<CFRGVertex> _previous_return_graph_node_queue; // only to be used in enter_node and leave_node, for edging purpose
+    std::stack<CFRGVertex> _return_graph_traversal_history;
+    CFRGVertex _current_return_graph_node; // only to be used in enter_node and leave_node, for edging purpose
     std::map<parser::ASTNodePtr, CFRGVertex> _ast_node_to_return_node;
     bool _expected_return; // subproc? function?
 
