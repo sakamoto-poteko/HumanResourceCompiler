@@ -272,6 +272,7 @@ int UseBeforeInitializationCheckPass::check_node_symbol_assigned_or_report(const
 {
     SymbolPtr symbol = Symbol::get_from(node);
     assert(symbol);
+    assert(symbol->type == SymbolType::VARIABLE);
 
     int assigned = get_var_init_at_current_scope(symbol);
     if (!assigned) {
@@ -341,6 +342,7 @@ void UseBeforeInitializationCheckPass::set_var_init_at_current_scope(const NodeR
 void UseBeforeInitializationCheckPass::create_var_init_at_current_scope(const SymbolPtr &symbol)
 {
     assert(symbol);
+    assert(symbol->type == SymbolType::VARIABLE);
     auto &stack = _varinit_record_stacks[symbol];
     assert(stack.empty());
 
