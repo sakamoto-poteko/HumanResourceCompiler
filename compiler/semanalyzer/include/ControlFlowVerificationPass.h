@@ -69,7 +69,7 @@ private:
 /**
  * @brief
  - [x] Verify correct usage of `break`, `continue` statements.
- - [ ] Ensure that all code paths in a function lead to a valid return statement and returns a value if required.
+ - [x] Ensure that all code paths in a function lead to a valid return statement and returns a value if required.
  *
  */
 class ControlFlowVerificationPass : public SemanticAnalysisPass {
@@ -130,7 +130,7 @@ private:
     using CFRGVertex = ControlFlowReturnedGraph::vertex_descriptor;
     ControlFlowReturnedGraph _control_flow_return_graph;
     std::stack<CFRGVertex> _return_graph_traversal_history;
-    CFRGVertex _current_return_graph_node; // only to be used in enter_node and leave_node, for edging purpose
+    std::stack<CFRGVertex> _previous_return_graph_nodes; // only to be used in enter_node and leave_node, for edging purpose
     std::map<parser::ASTNodePtr, CFRGVertex> _ast_node_to_return_node;
     bool _expected_return; // subproc? function?
 
