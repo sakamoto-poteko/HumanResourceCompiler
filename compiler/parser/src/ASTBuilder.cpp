@@ -1,9 +1,10 @@
 #include <cassert>
-
 #include <memory>
 #include <optional>
 #include <utility>
 #include <vector>
+
+#include <spdlog/spdlog.h>
 
 #include "ASTBuilder.h"
 #include "ASTNode.h"
@@ -114,6 +115,7 @@ void ASTBuilder::visit(BinaryExpressionPTNodePtr node)
     case BinaryOperatorPTNode::MOD:
         SET_RESULT(ModExpressionASTNode, left, right);
     default:
+        spdlog::critical("unrecognized binary operator {}. {}", node->get_op()->get_op(), __PRETTY_FUNCTION__);
         throw;
     }
 }

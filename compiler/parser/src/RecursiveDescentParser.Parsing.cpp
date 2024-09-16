@@ -91,6 +91,7 @@ bool RecursiveDescentParser::parse_compilation_unit(CompilationUnitPTNodePtr &no
 
             subroutine_definitions.push_back(sub);
         } else {
+            spdlog::critical("unexpected code reached, the token is {}. {}", token->token_id(), __PRETTY_FUNCTION__);
             throw; // won't be here
         }
 
@@ -643,6 +644,7 @@ bool RecursiveDescentParser::parse_for_statement(ForStatementPTNodePtr &node)
     } else if (init_var_declaration) {
         SET_NODE(init_var_declaration, cond, update, body, for_token, open_paren, comma1, comma2, close_paren);
     } else {
+        spdlog::critical("unexpected code reached, neither var asgn nor var decl. {}", __PRETTY_FUNCTION__);
         throw; // not supposed to be here
     }
 

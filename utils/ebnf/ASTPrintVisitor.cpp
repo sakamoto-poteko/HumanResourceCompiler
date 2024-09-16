@@ -1,4 +1,5 @@
 #include <iostream>
+#include <spdlog/spdlog.h>
 
 #include "ASTNode.h"
 #include "ASTNodeVisitor.h"
@@ -53,6 +54,7 @@ int ASTPrintVisitor::accept(FactorNodePtr node)
         } else if (node->literal) {
             node->literal->accept(this);
         } else {
+            spdlog::critical("node is not identifier nor literal. {}", __PRETTY_FUNCTION__);
             throw;
         }
     }
