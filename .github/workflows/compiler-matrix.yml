@@ -41,7 +41,7 @@ jobs:
           #   cpp_compiler: cl
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
       # Dependency installation on Ubuntu
       - name: Install dependencies (Ubuntu)
