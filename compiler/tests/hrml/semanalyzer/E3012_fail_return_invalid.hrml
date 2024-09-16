@@ -1,0 +1,10 @@
+function test()
+{
+    return;
+    // supposed to return a value
+}
+
+sub start()
+{
+    test();
+}

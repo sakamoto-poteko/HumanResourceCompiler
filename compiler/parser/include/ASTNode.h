@@ -907,7 +907,7 @@ private:
 };
 
 template <typename T>
-concept convertible_to_ASTNodePtr = requires {
+concept ConvertibleToASTNodePtr = requires {
     typename T::element_type;
     requires std::convertible_to<T, ASTNodePtr> && std::is_same_v<T, std::shared_ptr<typename T::element_type>>;
 };

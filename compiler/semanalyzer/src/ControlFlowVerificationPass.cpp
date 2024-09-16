@@ -1,12 +1,10 @@
 #include <cassert>
 #include <functional>
+#include <memory>
 #include <optional>
 #include <string>
 
 #include <boost/format.hpp>
-#include <boost/graph/depth_first_search.hpp>
-#include <boost/graph/directed_graph.hpp>
-#include <boost/graph/graphviz.hpp>
 
 #include "ASTNode.h"
 #include "ASTNodeForward.h"
@@ -47,17 +45,11 @@ int ControlFlowVerificationPass::run()
         _subroutine_requires_return.pop();
     }
 
-    return visit(_root);
-}
+    while (!_returned_record_stack.empty()) {
+        _returned_record_stack.pop();
+    }
 
-void ControlFlowVerificationPass::enter_node(const parser::ASTNodePtr &node)
-{
-    SemanticAnalysisPass::enter_node(node);
-}
-
-void ControlFlowVerificationPass::leave_node()
-{
-    SemanticAnalysisPass::leave_node();
+    return SemanticAnalysisPass::visit(_root);
 }
 
 int ControlFlowVerificationPass::visit(const parser::IfStatementASTNodePtr &node)
@@ -130,7 +122,6 @@ int ControlFlowVerificationPass::visit(const parser::ReturnStatementASTNodePtr &
 
     // 1. Add context info.
     // Search the ancestors from top to bottom. The first sub or function is what we return
-    bool found_context = false;
     parser::AbstractSubroutineASTNodePtr subroutine_node = nullptr;
 
     for (auto it = _ancestors.rbegin(); it != _ancestors.rend(); ++it) {
@@ -139,13 +130,13 @@ int ControlFlowVerificationPass::visit(const parser::ReturnStatementASTNodePtr &
         if (ancestor_type == parser::ASTNodeType::FunctionDefinition || ancestor_type == parser::ASTNodeType::SubprocDefinition) {
             auto attr = std::make_shared<ControlFlowAttribute>(ancestor_node);
             attr->set_to(node);
-            found_context = true;
+            subroutine_node = std::static_pointer_cast<parser::AbstractSubroutineASTNode>(ancestor_node);
             break;
         }
     }
 
     // no context found?
-    if (!found_context) {
+    if (!subroutine_node) {
         rc = log_invalid_return_context_error(node);
         RETURN_IF_FAIL_IN_VISIT();
     }
@@ -182,12 +173,6 @@ int ControlFlowVerificationPass::visit(const parser::ContinueStatementASTNodePtr
 
     END_VISIT();
 }
-
-// int ControlFlowVerificationPass::visit(const parser::StatementBlockASTNodePtr &node)
-// {
-//     BEGIN_VISIT();
-//     END_VISIT();
-// }
 
 int ControlFlowVerificationPass::visit(const parser::SubprocDefinitionASTNodePtr &node)
 {
@@ -298,29 +283,6 @@ int ControlFlowVerificationPass::visit_subroutine(const parser::AbstractSubrouti
     }
 
     END_VISIT();
-}
-
-int ControlFlowVerificationPass::visit(const parser::StatementBlockASTNodePtr &node)
-{
-    return SemanticAnalysisPass::visit(node);
-    // BEGIN_VISIT();
-
-    // rc = traverse(node->get_statements(), [this, &node_vertex](const parser::ASTNodePtr &) {
-    //     _current_return_graph_node = node_vertex;
-    // });
-    // RETURN_IF_FAIL_IN_VISIT();
-
-    // END_VISIT();
-}
-
-int ControlFlowVerificationPass::visit(const parser::CompilationUnitASTNodePtr &node)
-{
-    return SemanticAnalysisPass::visit(node);
-}
-
-bool ControlFlowVerificationPass::generate_return_graph(const std::string &dot_path)
-{
-    return true;
 }
 
 void hrl::semanalyzer::ControlFlowVerificationPass::push_return_record()

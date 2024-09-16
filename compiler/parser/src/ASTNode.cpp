@@ -1,7 +1,10 @@
+#include <type_traits>
+
+#include <spdlog/spdlog.h>
+
 #include "ASTNode.h"
 #include "ASTNodeVisitor.h"
 #include "parser_global.h"
-#include <type_traits>
 
 OPEN_PARSER_NAMESPACE
 
@@ -194,7 +197,8 @@ const char *ast_node_type_to_string(ASTNodeType type)
     case ASTNodeType::CompilationUnit:
         return "CompilationUnit";
     default:
-        return "Unknown";
+        spdlog::critical("Unrecognized ASTNodeType {}: {}", static_cast<int>(type), __PRETTY_FUNCTION__);
+        throw;
     }
 }
 

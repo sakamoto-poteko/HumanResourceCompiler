@@ -1251,7 +1251,7 @@ private:
 };
 
 template <typename T>
-concept convertible_to_ParseTreeNodePtr = requires {
+concept ConvertibleToParseTreeNodePtr = requires {
     typename T::element_type;
     requires std::convertible_to<T, ParseTreePTNodePtr> && std::is_same_v<T, std::shared_ptr<typename T::element_type>>;
 };

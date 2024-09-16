@@ -23,6 +23,6 @@ The following is a breakdown of pending tasks to be implemented in the semantic 
 
 ### Control Flow Analysis
 - [x] Implement detection of unreachable code and issue appropriate warnings.
-- [ ] Verify correct usage of `break`, `continue`, and `return` statements.
-- [ ] Ensure that all code paths in a function lead to a valid return statement.
-- [ ] Check that all functions with a return statement actually return a value, and flag unreachable after return.
+- [x] Verify correct usage of `break`, `continue`, and `return` statements.
+- [x] Ensure that all code paths in a function lead to a valid return statement.
+- [x] Check that all functions with a return statement actually return a value, and flag unreachable after return.

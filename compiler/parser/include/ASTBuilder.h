@@ -60,7 +60,7 @@ protected:
     std::stack<ASTNodePtr> _result_stack;
 
     template <typename ASTNodePtrT, typename ParseTreeNodePtrT>
-        requires convertible_to_ASTNodePtr<ASTNodePtrT> && convertible_to_ParseTreeNodePtr<ParseTreeNodePtrT>
+        requires ConvertibleToASTNodePtr<ASTNodePtrT> && ConvertibleToParseTreeNodePtr<ParseTreeNodePtrT>
     inline ASTNodePtrT visit_and_cast(ParseTreeNodePtrT target)
     {
         using ElementType = typename ASTNodePtrT::element_type;

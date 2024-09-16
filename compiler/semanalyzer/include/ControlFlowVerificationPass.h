@@ -7,12 +7,10 @@
 #include <vector>
 
 #include <boost/format.hpp>
-#include <boost/graph/directed_graph.hpp>
 #include <spdlog/spdlog.h>
 
 #include "ASTNode.h"
 #include "ASTNodeAttribute.h"
-#include "ASTNodeForward.h"
 #include "SemanticAnalysisPass.h"
 #include "semanalyzer_global.h"
 
@@ -47,7 +45,7 @@ public:
                 node_type = "function";
                 break;
             default:
-                spdlog::error("Invalid node type seen in ControlFlowAttribute. {}", __PRETTY_FUNCTION__);
+                spdlog::critical("Invalid node type seen in ControlFlowAttribute. {}", __PRETTY_FUNCTION__);
                 throw;
             }
         } else {
@@ -66,23 +64,13 @@ private:
     parser::ASTNodePtr _context;
 };
 
-/**
- * @brief
- - [x] Verify correct usage of `break`, `continue` statements.
- - [x] Ensure that all code paths in a function lead to a valid return statement and returns a value if required.
- *
- */
 class ControlFlowVerificationPass : public SemanticAnalysisPass {
 public:
     ControlFlowVerificationPass(StringPtr filename, parser::CompilationUnitASTNodePtr root);
 
     ~ControlFlowVerificationPass() = default;
 
-    bool generate_return_graph(const std::string &dot_path);
-
     int run() override;
-    void enter_node(const parser::ASTNodePtr &node) override;
-    void leave_node() override;
 
     // For all visit, the return value of 0 indicate success.
     int visit(const parser::IfStatementASTNodePtr &node) override;
@@ -91,30 +79,27 @@ public:
     int visit(const parser::ReturnStatementASTNodePtr &node) override;
     int visit(const parser::BreakStatementASTNodePtr &node) override;
     int visit(const parser::ContinueStatementASTNodePtr &node) override;
-    int visit(const parser::StatementBlockASTNodePtr &node) override;
+    // int visit(const parser::StatementBlockASTNodePtr &node) override;
     int visit(const parser::SubprocDefinitionASTNodePtr &node) override;
     int visit(const parser::FunctionDefinitionASTNodePtr &node) override;
-    int visit(const parser::CompilationUnitASTNodePtr &node) override;
+    // int visit(const parser::CompilationUnitASTNodePtr &node) override;
 
 private:
     std::stack<bool> _subroutine_requires_return;
-
-    // map<symbol, stack<initialized_in_scope>>
     std::stack<bool> _returned_record_stack;
-    // map<node, result>
-    std::map<parser::ASTNodePtr, bool> _returned_record_results;
     void push_return_record();
     void set_return_record(bool returned);
     bool get_return_record();
     void pop_return_record();
 
     /* How to ensure each each ends with a return?
-     * A white node is created at the beginning of the subroutine.
-     * When encountered a return statement, render the node black.
-     * When encountered a if statement, diverge into two nodes, one in then, one in else. They merges back after if statement.
-     * When encountered a loop statement, diverge into two nodes, one for loop execution, one skipping the loop. They merge back after the loop statement.
-     * The merging only happens when both nodes are white. If one node is black, it becomes the leaf.
-     * DFS at end of function definition. Find white leaf
+     * Push `is_returned` of false to the stack when enter a new function/sub
+     * Push `is_returned` of previous to the stack when enter a new selection/loop structure
+     * When encountered a return statement, set `is_returned` to true
+     * When encountered a if statement, set `is_returned` to true iif both branches returns
+     * When encountered a loop statement, ignore the loop's `is_returned`
+     * Check `is_returned` at the end of function traversal
+     * Pop the `is_returned` from stack
      */
     bool _expected_return; // subproc? function?
 
