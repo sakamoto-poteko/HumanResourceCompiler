@@ -35,7 +35,7 @@ bool SymbolAnalysisPass::lookup_symbol_with_ancestors(const StringPtr &name, Sym
 int SymbolAnalysisPass::attach_symbol_or_log_error(const StringPtr &name, SymbolType type, const ASTNodePtr &node)
 {
     SymbolPtr symbol;
-    if (!lookup_symbol_with_ancestors(name, symbol)) {
+    if (!lookup_symbol_with_ancestors(name, symbol) || symbol->type != type) {
         log_undefined_error(name, type, node);
         return E_SEMA_SYM_UNDEFINED;
     } else {
@@ -70,7 +70,8 @@ int SymbolAnalysisPass::add_variable_symbol_or_log_error(const StringPtr &name, 
         // added to current scope and ancestor has it
         auto original_node = WEAK_TO_SHARED(symbol->definition);
 
-        auto errstr = boost::format("variable '%1%' shadows a variable from the outer scope") % *name;
+        auto errstr = boost::format("variable '%1%' shadows a %2% from the outer scope")
+            % *name % (symbol->type == SymbolType::VARIABLE ? "variable" : "function");
 
         ErrorManager::instance().report(
             W_SEMA_VAR_SHADOW_OUTER,

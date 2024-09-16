@@ -1,0 +1,6 @@
+// var and func have the same name
+// Expect: shadows a function from the outer scope
+sub start()
+{
+    let start = 0;
+}
