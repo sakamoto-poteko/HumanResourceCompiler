@@ -116,6 +116,88 @@ void ASTNode::copy_attributes_from(const ASTNodePtr &node)
     _attributes = node->_attributes;
 }
 
+const char *ast_node_type_to_string(ASTNodeType type)
+{
+    switch (type) {
+    case ASTNodeType::EmptyStatement:
+        return "EmptyStatement";
+    case ASTNodeType::Integer:
+        return "Integer";
+    case ASTNodeType::Boolean:
+        return "Boolean";
+    case ASTNodeType::VariableDeclaration:
+        return "VariableDeclaration";
+    case ASTNodeType::VariableAssignment:
+        return "VariableAssignment";
+    case ASTNodeType::VariableAccess:
+        return "VariableAccess";
+    case ASTNodeType::FloorBoxInitStatement:
+        return "FloorBoxInitStatement";
+    case ASTNodeType::FloorAssignment:
+        return "FloorAssignment";
+    case ASTNodeType::FloorAccess:
+        return "FloorAccess";
+    case ASTNodeType::NegativeExpression:
+        return "NegativeExpression";
+    case ASTNodeType::NotExpression:
+        return "NotExpression";
+    case ASTNodeType::IncrementExpression:
+        return "IncrementExpression";
+    case ASTNodeType::DecrementExpression:
+        return "DecrementExpression";
+    case ASTNodeType::AddExpression:
+        return "AddExpression";
+    case ASTNodeType::SubExpression:
+        return "SubExpression";
+    case ASTNodeType::MulExpression:
+        return "MulExpression";
+    case ASTNodeType::DivExpression:
+        return "DivExpression";
+    case ASTNodeType::ModExpression:
+        return "ModExpression";
+    case ASTNodeType::EqualExpression:
+        return "EqualExpression";
+    case ASTNodeType::NotEqualExpression:
+        return "NotEqualExpression";
+    case ASTNodeType::GreaterThanExpression:
+        return "GreaterThanExpression";
+    case ASTNodeType::GreaterEqualExpression:
+        return "GreaterEqualExpression";
+    case ASTNodeType::LessThanExpression:
+        return "LessThanExpression";
+    case ASTNodeType::LessEqualExpression:
+        return "LessEqualExpression";
+    case ASTNodeType::AndExpression:
+        return "AndExpression";
+    case ASTNodeType::OrExpression:
+        return "OrExpression";
+    case ASTNodeType::InvocationExpression:
+        return "InvocationExpression";
+    case ASTNodeType::IfStatement:
+        return "IfStatement";
+    case ASTNodeType::WhileStatement:
+        return "WhileStatement";
+    case ASTNodeType::ForStatement:
+        return "ForStatement";
+    case ASTNodeType::ReturnStatement:
+        return "ReturnStatement";
+    case ASTNodeType::BreakStatement:
+        return "BreakStatement";
+    case ASTNodeType::ContinueStatement:
+        return "ContinueStatement";
+    case ASTNodeType::StatementBlock:
+        return "StatementBlock";
+    case ASTNodeType::SubprocDefinition:
+        return "SubprocDefinition";
+    case ASTNodeType::FunctionDefinition:
+        return "FunctionDefinition";
+    case ASTNodeType::CompilationUnit:
+        return "CompilationUnit";
+    default:
+        return "Unknown";
+    }
+}
+
 CLOSE_PARSER_NAMESPACE
 
 // end

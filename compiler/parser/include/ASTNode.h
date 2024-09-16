@@ -59,6 +59,8 @@ enum class ASTNodeType : int {
     CompilationUnit
 };
 
+const char *ast_node_type_to_string(ASTNodeType type);
+
 class ASTNode : public std::enable_shared_from_this<ASTNode> {
 public:
     ASTNode(int lineno, int colno, int last_lineno, int last_colno)

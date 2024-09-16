@@ -173,6 +173,7 @@ TEST_P(SemanticAnalyzerTests, SemanticAnalysisTests)
 
     int sema_result = sem_passmgr.run(true);
     ErrorManager::instance().print_all();
+    cfv->generate_return_graph(data.filename + "-cfv-ret.dot");
 
     std::string captured = captured_outstream.str();
     bool out_has_code = captured.find("[" + data.code + "]") != std::string::npos;

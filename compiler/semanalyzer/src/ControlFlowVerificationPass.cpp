@@ -1,10 +1,10 @@
-#include <boost/graph/filtered_graph.hpp>
 #include <functional>
 #include <string>
 
 #include <boost/format.hpp>
 #include <boost/graph/depth_first_search.hpp>
 #include <boost/graph/directed_graph.hpp>
+#include <boost/graph/graphviz.hpp>
 
 #include "ASTNode.h"
 #include "ASTNodeForward.h"
@@ -34,6 +34,11 @@ OPEN_SEMANALYZER_NAMESPACE
         END_VISIT();              \
     }
 
+ControlFlowVerificationPass::ControlFlowVerificationPass(StringPtr filename, parser::CompilationUnitASTNodePtr root)
+    : SemanticAnalysisPass(std::move(filename), std::move(root))
+{
+}
+
 int ControlFlowVerificationPass::run()
 {
     while (!_subroutine_requires_return.empty()) {
@@ -42,6 +47,7 @@ int ControlFlowVerificationPass::run()
 
     CFRGVertex root_vertex = _control_flow_return_graph.add_vertex(ControlFlowInfo(false, nullptr));
     _current_return_graph_node.push(root_vertex);
+    _previous_return_graph_node_queue.push(root_vertex);
 
     return SemanticAnalysisPass::visit(_root);
 }
@@ -53,9 +59,11 @@ void ControlFlowVerificationPass::enter_node(const parser::ASTNodePtr &node)
     auto last_vert = _current_return_graph_node.top();
     // inherit the parent's color
     CFRGVertex vertex = _control_flow_return_graph.add_vertex(ControlFlowInfo(_control_flow_return_graph[last_vert].is_returned, node));
-    _control_flow_return_graph.add_edge(_current_return_graph_node.top(), vertex);
+    _control_flow_return_graph.add_edge(_previous_return_graph_node_queue.front(), vertex);
+    _previous_return_graph_node_queue.pop();
+
     _current_return_graph_node.push(vertex);
-    _return_graph_node_within_subroutine.insert(vertex);
+    _previous_return_graph_node_queue.push(vertex);
 }
 
 void ControlFlowVerificationPass::leave_node()
@@ -282,8 +290,6 @@ int ControlFlowVerificationPass::visit_subroutine(const parser::AbstractSubrouti
     BEGIN_VISIT();
 
     _expected_return = expect_return;
-    _return_graph_node_within_subroutine.clear();
-    _return_graph_node_within_subroutine.insert(node_vertex);
 
     rc = traverse(node->get_body());
     RETURN_IF_FAIL_IN_VISIT();
@@ -322,8 +328,6 @@ int ControlFlowVerificationPass::visit_subroutine(const parser::AbstractSubrouti
             visitor,
             boost::make_iterator_property_map(color_map.begin(), get(boost::vertex_index, _control_flow_return_graph)));
 
-        _return_graph_node_within_subroutine.clear();
-
         if (has_err) {
             rc = E_SEMA_NOT_ALL_PATH_RETURN_VALUE;
             RETURN_IF_FAIL_IN_VISIT();
@@ -331,6 +335,42 @@ int ControlFlowVerificationPass::visit_subroutine(const parser::AbstractSubrouti
     }
 
     END_VISIT();
+}
+
+bool ControlFlowVerificationPass::generate_return_graph(const std::string &dot_path)
+{
+    std::stringstream dotfile;
+    boost::write_graphviz(
+        dotfile,
+        _control_flow_return_graph,
+        // vertex
+        [this](std::ostream &out, CFRGVertex &v) {
+            const auto &vert = _control_flow_return_graph[v];
+            out << "[label=";
+            if (vert.node) {
+                out << "\"(" << parser::ast_node_type_to_string(vert.node->get_node_type()) << ")" << vert.node->lineno() << ":" << vert.node->colno() << ",\\n" << (vert.is_returned ? "RETURNED" : "N/A") << "\"";
+            } else {
+                out << "\"(nullptr)\\n" << (vert.is_returned ? "RETURNED" : "N/A") << "\"";
+            }
+            out << "]";
+        },
+        // edge
+        [](std::ostream &out, const auto &e) {
+            //
+            UNUSED(out);
+            UNUSED(e);
+        },
+        // graph
+        [](std::ostream &out) { out << "node[ordering=out];\n"; });
+
+    std::ofstream out(dot_path);
+    if (out) {
+        out << dotfile.str();
+        out.close();
+        return true;
+    } else {
+        return false;
+    }
 }
 
 CLOSE_SEMANALYZER_NAMESPACE

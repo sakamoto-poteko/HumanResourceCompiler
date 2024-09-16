@@ -1,6 +1,7 @@
 #ifndef CONTROLFLOWVERIFICATIONPASS_H
 #define CONTROLFLOWVERIFICATIONPASS_H
 
+#include <queue>
 #include <stack>
 #include <vector>
 
@@ -72,12 +73,11 @@ private:
  */
 class ControlFlowVerificationPass : public SemanticAnalysisPass {
 public:
-    ControlFlowVerificationPass(StringPtr filename, parser::CompilationUnitASTNodePtr root)
-        : SemanticAnalysisPass(std::move(filename), std::move(root))
-    {
-    }
+    ControlFlowVerificationPass(StringPtr filename, parser::CompilationUnitASTNodePtr root);
 
     ~ControlFlowVerificationPass() = default;
+
+    bool generate_return_graph(const std::string &dot_path);
 
     int run() override;
     void enter_node(const parser::ASTNodePtr &node) override;
@@ -120,8 +120,8 @@ private:
     using CFRGVertex = ControlFlowReturnedGraph::vertex_descriptor;
     ControlFlowReturnedGraph _control_flow_return_graph;
     std::stack<CFRGVertex> _current_return_graph_node;
+    std::queue<CFRGVertex> _previous_return_graph_node_queue; // only to be used in enter_node and leave_node, for edging purpose
     std::map<parser::ASTNodePtr, CFRGVertex> _ast_node_to_return_node;
-    std::set<CFRGVertex> _return_graph_node_within_subroutine;
     bool _expected_return; // subproc? function?
 
     int visit_subroutine(const parser::AbstractSubroutineASTNodePtr &node, bool expect_return);
