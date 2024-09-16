@@ -27,18 +27,15 @@ jobs:
             cpp_compiler: g++
             container: mcr.microsoft.com/devcontainers/cpp:debian-12
           # Linux with Clang
-          # - os: ubuntu-latest
-          #   c_compiler: clang
-          #   cpp_compiler: clang++
+          - os: ubuntu-latest
+            c_compiler: clang
+            cpp_compiler: clang++
+            container: mcr.microsoft.com/devcontainers/cpp:debian-12
           # macOS with Clang
           - os: macos-latest
             c_compiler: clang
             cpp_compiler: clang++
             container: null
-          # Windows with MSVC
-          # - os: windows-latest
-          #   c_compiler: msvc
-          #   cpp_compiler: cl
 
     steps:
       - uses: actions/checkout@v4
@@ -56,15 +53,6 @@ jobs:
         run: |
           brew update
           brew install cmake ninja boost spdlog flex bison googletest tree
-
-      # Dependency installation on Windows (using vcpkg)
-      - name: Install dependencies (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          git clone https://github.com/microsoft/vcpkg.git
-          .\vcpkg\bootstrap-vcpkg.bat
-          .\vcpkg\vcpkg.exe install boost spdlog flex bison gtest
-        shell: powershell
 
       # CMake configuration step
       - name: Configure CMake
