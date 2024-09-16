@@ -202,6 +202,7 @@ const char *DeadCodeEliminationPass::dead_code_reason_to_str(DeadCodeReason reas
     case AfterInfiniteLoop:
         return "after infinite loop";
     }
+    spdlog::critical("unrecognized dead code reason: {}. {}", static_cast<int>(reason), __PRETTY_FUNCTION__);
     throw;
 }
 

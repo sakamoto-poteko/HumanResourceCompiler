@@ -5,6 +5,7 @@
 #include <boost/format.hpp>
 #include <boost/graph/directed_graph.hpp>
 #include <boost/graph/graphviz.hpp>
+#include <spdlog/spdlog.h>
 
 #include "ASTNode.h"
 #include "DependencyGraphBuilder.h"
@@ -250,24 +251,14 @@ int DependencyGraphBuilder::accept(TermNodePtr node)
 
 int DependencyGraphBuilder::accept(FactorNodePtr node)
 {
-    // don't add this node. useless
-
-    // Vertex v = boost::add_vertex(node, _state->dependency_graph);
-    // boost::add_edge(_state->vertices.top(), v, _state->dependency_graph);
-
     if (node->literal) {
-        // _state->vertices.push(v);
         node->literal->accept(this);
-        // _state->vertices.pop();
     } else if (node->identifier) {
-        // _state->vertices.push(v);
         node->identifier->accept(this);
-        // _state->vertices.pop();
     } else if (node->node) {
-        // _state->vertices.push(v);
         node->node->accept(this);
-        // _state->vertices.pop();
     } else {
+        spdlog::critical("node is not literal nor identifier nor having another node. {}", __PRETTY_FUNCTION__);
         throw;
     }
     return 0;

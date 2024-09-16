@@ -197,7 +197,7 @@ const char *ast_node_type_to_string(ASTNodeType type)
     case ASTNodeType::CompilationUnit:
         return "CompilationUnit";
     default:
-        spdlog::critical("Unrecognized ASTNodeType {}: {}", static_cast<int>(type), __PRETTY_FUNCTION__);
+        spdlog::critical("Unrecognized ASTNodeType {}. {}", static_cast<int>(type), __PRETTY_FUNCTION__);
         throw;
     }
 }

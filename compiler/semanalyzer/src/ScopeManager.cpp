@@ -4,6 +4,7 @@
 
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <spdlog/spdlog.h>
 
 #include "ScopeManager.h"
 #include "hrl_global.h"
@@ -102,6 +103,8 @@ std::string ScopeInfoAttribute::to_string()
         return "scope: [blk]" + _scope_id;
     }
     // not supposed to happen
+    spdlog::critical("unrecognized scope type: {}. {}", static_cast<int>(_type), __PRETTY_FUNCTION__);
+
     throw;
 }
 

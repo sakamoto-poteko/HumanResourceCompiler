@@ -20,9 +20,7 @@ OPEN_SEMANALYZER_NAMESPACE
 #define BEGIN_VISIT()       \
     enter_node(node);       \
     int result = 0, rc = 0; \
-    UNUSED(rc);             \
-    // CFRGVertex node_vertex = _return_graph_traversal_history.top(); \
-    // UNUSED(node_vertex)
+    UNUSED(rc);
 
 #define END_VISIT() \
     leave_node();   \

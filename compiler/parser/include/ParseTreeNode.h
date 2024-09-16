@@ -5,6 +5,8 @@
 #include <utility>
 #include <vector>
 
+#include <spdlog/spdlog.h>
+
 #include "HRLToken.h"
 #include "ParseTreeNodeForward.h"
 #include "hrl_global.h"
@@ -226,7 +228,7 @@ public:
         case lexer::TokenId::MOD:
             return MOD;
         default:
-            //  FIXME: error handling
+            spdlog::critical("unknown lexer TokenId {}. {}", static_cast<int>(token_id), __PRETTY_FUNCTION__);
             throw;
         }
     }
