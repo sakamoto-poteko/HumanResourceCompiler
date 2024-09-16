@@ -1,9 +1,8 @@
 function test()
 {
+    // all missing return
     if (inbox()) {
-        return 0;
     } else {
-        return 0;
     }
 }
 

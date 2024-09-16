@@ -1,9 +1,8 @@
 function test()
 {
-    if (inbox()) {
-        return 0;
-    } else {
+    while (inbox) {
     }
+    return 0;
 }
 
 sub start()

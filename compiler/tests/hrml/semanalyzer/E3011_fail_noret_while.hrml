@@ -1,7 +1,6 @@
 function test()
 {
-    if (inbox()) {
-    } else {
+    while (inbox) {
         return 0;
     }
 }

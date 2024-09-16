@@ -103,14 +103,10 @@ private:
     std::stack<bool> _returned_record_stack;
     // map<node, result>
     std::map<parser::ASTNodePtr, bool> _returned_record_results;
-
-    void push_return_record() { _returned_record_stack.push(false); }
-
-    void set_return_record(bool returned) { _returned_record_stack.top() = true; }
-
-    bool get_return_record() { return _returned_record_stack.top(); }
-
-    void pop_return_record() { }
+    void push_return_record();
+    void set_return_record(bool returned);
+    bool get_return_record();
+    void pop_return_record();
 
     /* How to ensure each each ends with a return?
      * A white node is created at the beginning of the subroutine.

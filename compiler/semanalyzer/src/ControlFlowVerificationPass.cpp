@@ -1,3 +1,4 @@
+#include <cassert>
 #include <functional>
 #include <optional>
 #include <string>
@@ -46,44 +47,12 @@ int ControlFlowVerificationPass::run()
         _subroutine_requires_return.pop();
     }
 
-    CFRGVertex root_vertex = _control_flow_return_graph.add_vertex(ControlFlowInfo(false, nullptr));
-    _return_graph_traversal_history.push(root_vertex);
-    // _previous_return_graph_nodes.push(root_vertex);
-
     return visit(_root);
-}
-
-ControlFlowVerificationPass::CFRGVertex ControlFlowVerificationPass::enter_return_node_branch(const parser::ASTNodePtr &node)
-{
-    // auto last_vert = _return_graph_traversal_history.top();
-    // inherit the parent's color
-    CFRGVertex vertex = _control_flow_return_graph.add_vertex(ControlFlowInfo(false, node));
-    // while (!_previous_return_graph_nodes.empty()) {
-    //     CFRGVertex previous_vertex = _previous_return_graph_nodes.top();
-    //     _previous_return_graph_nodes.pop();
-    //     // Return marks an end of flow
-    //     if (!_control_flow_return_graph[previous_vertex].is_returned) {
-    //         _control_flow_return_graph.add_edge(previous_vertex, vertex);
-    //     }
-    // }
-
-    _return_graph_traversal_history.push(vertex);
-    // _previous_return_graph_nodes.push(vertex);
-
-    return vertex;
 }
 
 void ControlFlowVerificationPass::enter_node(const parser::ASTNodePtr &node)
 {
     SemanticAnalysisPass::enter_node(node);
-}
-
-ControlFlowVerificationPass::CFRGVertex ControlFlowVerificationPass::leave_return_node_branch()
-{
-    auto vertex = _return_graph_traversal_history.top();
-    // _ast_node_to_return_node[_ancestors.back()] = vertex;
-    _return_graph_traversal_history.pop();
-    return vertex;
 }
 
 void ControlFlowVerificationPass::leave_node()
@@ -109,8 +78,6 @@ int ControlFlowVerificationPass::visit(const parser::IfStatementASTNodePtr &node
     }
 
     if (else_branch) {
-        // _previous_return_graph_nodes.top() = node_vertex;
-        enter_return_node_branch(node);
         push_return_record();
         rc = traverse(else_branch);
         RETURN_IF_FAIL_IN_VISIT();
@@ -310,7 +277,7 @@ int ControlFlowVerificationPass::visit_subroutine(const parser::AbstractSubrouti
 
     // only check the function (which expects return)
     if (_expected_return && !returned) {
-        rc = E_SEMA_NOT_ALL_PATH_RETURN_VALUE;
+        rc = log_not_all_path_return_error(*node->get_name(), node);
         RETURN_IF_FAIL_IN_VISIT();
     }
 
@@ -337,43 +304,34 @@ int ControlFlowVerificationPass::visit(const parser::CompilationUnitASTNodePtr &
 
 bool ControlFlowVerificationPass::generate_return_graph(const std::string &dot_path)
 {
-    std::stringstream dotfile;
-    boost::write_graphviz(
-        dotfile,
-        _control_flow_return_graph,
-        // vertex
-        [this](std::ostream &out, CFRGVertex &v) {
-            const auto &vert = _control_flow_return_graph[v];
-            out << "[label=";
-            if (vert.node) {
-                out << "\"(" << parser::ast_node_type_to_string(vert.node->get_node_type()) << ")" << vert.node->lineno() << ":" << vert.node->colno() << ",\\n";
-                if (!vert.msg.empty()) {
-                    out << vert.msg << "\\n";
-                }
-                out << (vert.is_returned ? "RETURNED" : "N/A") << "\"";
-            } else {
-                out << "\"(nullptr)\\n"
-                    << (vert.is_returned ? "RETURNED" : "N/A") << "\"";
-            }
-            out << "]";
-        },
-        // edge
-        [](std::ostream &out, const auto &e) {
-            //
-            UNUSED(out);
-            UNUSED(e);
-        },
-        // graph
-        [](std::ostream &out) { out << "node[ordering=out];\n"; });
+    return true;
+}
 
-    std::ofstream out(dot_path);
-    if (out) {
-        out << dotfile.str();
-        out.close();
-        return true;
+void hrl::semanalyzer::ControlFlowVerificationPass::push_return_record()
+{
+    if (_returned_record_stack.empty()) {
+        _returned_record_stack.push(false);
     } else {
-        return false;
+        _returned_record_stack.push(_returned_record_stack.top());
     }
+}
+
+void hrl::semanalyzer::ControlFlowVerificationPass::set_return_record(bool returned)
+{
+    assert(!_returned_record_stack.empty());
+    _returned_record_stack.top() = true;
+}
+
+bool hrl::semanalyzer::ControlFlowVerificationPass::get_return_record()
+{
+    assert(!_returned_record_stack.empty());
+    return _returned_record_stack.top();
+}
+
+void hrl::semanalyzer::ControlFlowVerificationPass::pop_return_record()
+{
+    assert(!_returned_record_stack.empty());
+    _returned_record_stack.pop();
 }
 
 CLOSE_SEMANALYZER_NAMESPACE

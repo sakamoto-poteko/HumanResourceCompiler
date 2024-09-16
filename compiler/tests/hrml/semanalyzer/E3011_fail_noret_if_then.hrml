@@ -1,11 +1,9 @@
 function test()
 {
     if (inbox()) {
-        if (inbox) {
-            return 0;
-        }
-    } else {
         return 0;
+    } else {
+        // missing return
     }
 }
 
