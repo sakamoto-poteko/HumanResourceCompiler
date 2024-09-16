@@ -50,7 +50,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake ninja-build flex bison libspdlog-dev libboost-all-dev libgtest-dev tree
-      - run: tree ${{github.workspace}}
 
       # Dependency installation on macOS
       - name: Install dependencies (macOS)
@@ -58,6 +57,7 @@ jobs:
         run: |
           brew update
           brew install cmake ninja boost spdlog flex bison googletest tree
+      - run: tree ${{github.workspace}}
 
       # Dependency installation on Windows (using vcpkg)
       - name: Install dependencies (Windows)
