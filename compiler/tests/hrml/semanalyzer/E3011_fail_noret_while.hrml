@@ -1,8 +1,9 @@
 function test()
 {
-    while (inbox) {
+    while (inbox()) {
         return 0;
     }
+    // missing return outside while
 }
 
 sub start()

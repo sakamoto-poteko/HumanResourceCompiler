@@ -92,17 +92,33 @@ int ControlFlowVerificationPass::visit(const parser::IfStatementASTNodePtr &node
     END_VISIT();
 }
 
-// int ControlFlowVerificationPass::visit(const parser::WhileStatementASTNodePtr &node)
-// {
-//     BEGIN_VISIT();
-//     END_VISIT();
-// }
+int ControlFlowVerificationPass::visit(const parser::WhileStatementASTNodePtr &node)
+{
+    BEGIN_VISIT();
 
-// int ControlFlowVerificationPass::visit(const parser::ForStatementASTNodePtr &node)
-// {
-//     BEGIN_VISIT();
-//     END_VISIT();
-// }
+    push_return_record();
+    // condition cannot return nor break/continue
+    rc = traverse(node->get_body());
+    RETURN_IF_FAIL_IN_VISIT();
+    // we don't even care if the while returns. a return is required outside while anyway
+    pop_return_record();
+
+    END_VISIT();
+}
+
+int ControlFlowVerificationPass::visit(const parser::ForStatementASTNodePtr &node)
+{
+    BEGIN_VISIT();
+
+    push_return_record();
+    // init/cond/update cannot return nor break/continue
+    rc = traverse(node->get_body());
+    RETURN_IF_FAIL_IN_VISIT();
+    // we don't even care if the for returns. a return is required outside while anyway
+    pop_return_record();
+
+    END_VISIT();
+}
 
 // Three checks:
 // Add return context info.

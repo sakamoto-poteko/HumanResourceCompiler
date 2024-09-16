@@ -1,6 +1,7 @@
 function test()
 {
-    while (inbox) {
+    while (inbox()) {
+        // no return inside while
     }
     return 0;
 }

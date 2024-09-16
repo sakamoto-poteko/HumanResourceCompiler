@@ -1,0 +1,13 @@
+function test()
+{
+    for (let a = 0, a < 10, ++a) {
+        outbox(0);
+        // no return inside for
+    }
+    return 0;
+}
+
+sub start()
+{
+    test();
+}

@@ -4,6 +4,7 @@ function err()
         {
             {
                 break;
+                // no return in the while
             }
         }
     }

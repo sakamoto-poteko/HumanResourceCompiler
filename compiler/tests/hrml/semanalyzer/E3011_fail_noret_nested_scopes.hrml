@@ -1,7 +1,7 @@
 function test()
 {
     if (inbox()) {
-        if (inbox) {
+        if (inbox()) {
             return 0;
         }
         // missing else return

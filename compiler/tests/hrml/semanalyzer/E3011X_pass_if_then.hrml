@@ -1,9 +1,10 @@
 function test()
 {
     if (inbox()) {
-        if (inbox) {
+        if (inbox()) {
             return 0;
         }
+        // no else return, but there's a final return
     }
     return 1;
 }

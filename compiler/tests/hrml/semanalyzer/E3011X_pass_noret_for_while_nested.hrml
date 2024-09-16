@@ -1,0 +1,19 @@
+function test()
+{
+    // nested while, for, while, while
+    while (inbox()) {
+        for (let a = 0, a < 10, ++a) {
+            while (inbox()) {
+                while (inbox()) {
+                    outbox(0);
+                }
+            }
+        }
+    }
+    return 0;
+}
+
+sub start()
+{
+    test();
+}
