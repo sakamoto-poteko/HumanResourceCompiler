@@ -41,8 +41,8 @@ jobs:
           #   cpp_compiler: cl
 
     steps:
-      - run: mkdir -p ${{github.workspace}}
-      - uses: actions/checkout@v3
+      - run: ln -s "$(echo "${{github.workspace}}" | sed 's#^/__w/#/home/runner/work/#')" "${{github.workspace}}"
+      - uses: actions/checkout@v4
 
       # Dependency installation on Ubuntu
       - name: Install dependencies (Ubuntu)
