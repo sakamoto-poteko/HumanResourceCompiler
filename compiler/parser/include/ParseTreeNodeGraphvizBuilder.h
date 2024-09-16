@@ -76,7 +76,7 @@ protected:
     static std::string escape_graphviz(const std::string &text);
 
     template <typename Container>
-        requires std::ranges::range<Container> && convertible_to_ParseTreeNodePtr<std::ranges::range_value_t<Container>>
+        requires std::ranges::range<Container> && ConvertibleToParseTreeNodePtr<std::ranges::range_value_t<Container>>
     void traverse(const Container &nodes)
     {
         for (const auto &node : nodes) {
@@ -85,7 +85,7 @@ protected:
     }
 
     template <typename T>
-        requires convertible_to_ParseTreeNodePtr<T>
+        requires ConvertibleToParseTreeNodePtr<T>
     void traverse(const T &node)
     {
         if (node) {

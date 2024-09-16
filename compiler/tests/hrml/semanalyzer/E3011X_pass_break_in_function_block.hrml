@@ -1,0 +1,17 @@
+function err()
+{
+    while (inbox()) {
+        {
+            {
+                break;
+                // no return in the while
+            }
+        }
+    }
+    return 0;
+}
+
+sub start()
+{
+    err();
+}

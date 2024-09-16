@@ -1,0 +1,15 @@
+function test()
+{
+    if (inbox()) {
+        if (inbox()) {
+            return 0;
+        }
+        // no else return, but there's a final return
+    }
+    return 1;
+}
+
+sub start()
+{
+    test();
+}

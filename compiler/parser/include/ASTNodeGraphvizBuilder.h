@@ -90,7 +90,7 @@ protected:
     virtual int leave();
 
     template <typename Container>
-        requires std::ranges::range<Container> && convertible_to_ASTNodePtr<std::ranges::range_value_t<Container>>
+        requires std::ranges::range<Container> && ConvertibleToASTNodePtr<std::ranges::range_value_t<Container>>
     void traverse(const Container &nodes)
     {
         for (const auto &node : nodes) {
@@ -99,7 +99,7 @@ protected:
     }
 
     template <typename T>
-        requires convertible_to_ASTNodePtr<T>
+        requires ConvertibleToASTNodePtr<T>
     void traverse(const T &node)
     {
         if (node) {

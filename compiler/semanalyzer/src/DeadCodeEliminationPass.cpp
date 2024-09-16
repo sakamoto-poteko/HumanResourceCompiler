@@ -131,8 +131,10 @@ int DeadCodeEliminationPass::visit(const parser::StatementBlockASTNodePtr &node)
             || stmt_type == parser::ASTNodeType::BreakStatement
             || stmt_type == parser::ASTNodeType::ContinueStatement;
 
-        if (is_end_of_control_flow_statement) {
-            auto begin_unreachable = std::next(statement_it);
+        auto begin_unreachable = std::next(statement_it);
+
+        // current stmt is end of flow but not the end of a block
+        if (begin_unreachable != statements.end() && is_end_of_control_flow_statement) {
             report_dead_code(*begin_unreachable, *std::prev(statements.end()), current_stmt, DeadCodeReason::EndOfFlow);
             // WARN: erase invalidates iterators and must return
             statements.erase(begin_unreachable, statements.end());

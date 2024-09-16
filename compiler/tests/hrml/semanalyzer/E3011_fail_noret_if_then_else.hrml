@@ -1,0 +1,12 @@
+function test()
+{
+    // all missing return
+    if (inbox()) {
+    } else {
+    }
+}
+
+sub start()
+{
+    test();
+}

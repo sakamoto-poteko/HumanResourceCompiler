@@ -1,0 +1,16 @@
+function err()
+{
+    while (inbox()) {
+        {
+            {
+                break;
+            }
+        }
+    }
+    return 0;
+}
+
+sub start()
+{
+    err();
+}

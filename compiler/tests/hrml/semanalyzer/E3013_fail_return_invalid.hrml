@@ -1,0 +1,10 @@
+sub test()
+{
+    return 0;
+    // not supposed to return a value
+}
+
+sub start()
+{
+    test();
+}

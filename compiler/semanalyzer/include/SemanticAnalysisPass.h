@@ -71,6 +71,8 @@ protected:
     StringPtr _filename;
     parser::CompilationUnitASTNodePtr _root;
 
+    std::vector<parser::ASTNodePtr> _ancestors;
+
     template <typename NodeT>
         requires std::is_base_of_v<parser::ASTNode, NodeT>
     bool is_parent_a()
@@ -104,7 +106,7 @@ protected:
     }
 
     template <typename ContainerT, typename PostProcessFunc = std::function<void(const parser::ASTNodePtr &)>>
-        requires(std::ranges::range<ContainerT> && parser::convertible_to_ASTNodePtr<std::ranges::range_value_t<ContainerT>>)
+        requires(std::ranges::range<ContainerT> && parser::ConvertibleToASTNodePtr<std::ranges::range_value_t<ContainerT>>)
     int traverse(
         ContainerT &nodes,
         PostProcessFunc post_process = [](const parser::ASTNodePtr &) {})
@@ -123,7 +125,7 @@ protected:
     }
 
     template <typename T, typename PostProcessFunc = std::function<void(const parser::ASTNodePtr &)>>
-        requires parser::convertible_to_ASTNodePtr<T>
+        requires parser::ConvertibleToASTNodePtr<T>
     int traverse(
         T &node, PostProcessFunc post_process = [](const parser::ASTNodePtr &) {})
     {
@@ -166,12 +168,12 @@ protected:
     {
         int result = 0;
         auto process_result = [&, post_process](auto &node) {
-            if constexpr (parser::convertible_to_ASTNodePtr<std::remove_reference_t<decltype(node)>>) {
+            if constexpr (parser::ConvertibleToASTNodePtr<std::remove_reference_t<decltype(node)>>) {
                 int rc = traverse(node, post_process);
                 if (rc != 0) {
                     result = rc;
                 }
-            } else if constexpr (std::ranges::range<decltype(node)> && parser::convertible_to_ASTNodePtr<std::ranges::range_value_t<decltype(node)>>) {
+            } else if constexpr (std::ranges::range<decltype(node)> && parser::ConvertibleToASTNodePtr<std::ranges::range_value_t<decltype(node)>>) {
                 int rc = traverse(node, post_process);
                 if (rc != 0) {
                     result = rc;
@@ -192,8 +194,6 @@ protected:
     }
 
 private:
-    std::vector<parser::ASTNodePtr> _ancestors;
-
     std::function<void(const parser::ASTNodePtr &)> _global_post_process;
 
     std::map<parser::ASTNodePtr, parser::ASTNodePtr> _node_replacement_requests;
@@ -203,7 +203,7 @@ private:
 using SemanticAnalysisPassPtr = std::shared_ptr<SemanticAnalysisPass>;
 
 template <typename T>
-concept convertible_to_SemanticAnalysisPassPtr = requires {
+concept ConvertibleToSemanticAnalysisPassPtr = requires {
     typename T::element_type;
     requires std::convertible_to<T, SemanticAnalysisPassPtr> && std::is_same_v<T, std::shared_ptr<typename T::element_type>>;
 };

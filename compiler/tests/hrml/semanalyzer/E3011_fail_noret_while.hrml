@@ -1,0 +1,12 @@
+function test()
+{
+    while (inbox()) {
+        return 0;
+    }
+    // missing return outside while
+}
+
+sub start()
+{
+    test();
+}

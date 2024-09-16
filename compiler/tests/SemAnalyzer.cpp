@@ -12,6 +12,7 @@
 #include "ASTNodeGraphvizBuilder.h"
 #include "ClearSymbolTablePass.h"
 #include "ConstantFoldingPass.h"
+#include "ControlFlowVerificationPass.h"
 #include "DeadCodeEliminationPass.h"
 #include "ErrorManager.h"
 #include "HRLLexer.h"
@@ -107,7 +108,7 @@ TEST_P(SemanticAnalyzerTests, SemanticAnalysisTests)
     using SemaAttrId = hrl::semanalyzer::SemAnalzyerASTNodeAttributeId;
 
     // it's for conditional breakpoint
-    auto dbg = data.filename == "W3008_pass_while_true_after.hrml";
+    auto dbg = data.filename == "E3011X_pass_if_then_else_multiple.hrml";
     UNUSED(dbg);
 
     hrl::semanalyzer::SemanticAnalysisPassManager sem_passmgr(ast, std::make_shared<std::string>(data.filename));
@@ -159,6 +160,12 @@ TEST_P(SemanticAnalyzerTests, SemanticAnalysisTests)
         std::set<int> {
             SemaAttrId::ATTR_SEMANALYZER_SYMBOL,
             SemaAttrId::ATTR_SEMANALYZER_SCOPE_INFO,
+        });
+    auto cfv = sem_passmgr.add_pass<hrl::semanalyzer::ControlFlowVerificationPass>(
+        "ControlFlowVerificationPass",
+        data.filename + "-cfv.dot",
+        std::set<int> {
+            SemaAttrId::ATTR_SEMANALYZER_CONTROL_CONTEXT_INFO,
         });
 
     strip_sym_attr->add_attribute(SemaAttrId::ATTR_SEMANALYZER_SCOPE_INFO);

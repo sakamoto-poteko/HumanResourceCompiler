@@ -3,6 +3,7 @@
 
 #include <concepts>
 #include <memory>
+#include <type_traits>
 
 #include "ASTNode.h"
 #include "ASTNodeForward.h"
@@ -28,6 +29,12 @@ enum ParserASTNodeAttributeId : int {
 
 using ASTNodeAttributePtr = std::shared_ptr<ASTNodeAttribute>;
 
+template <typename T>
+concept ConvertibleToASTNodeAttributePtr = requires {
+    typename T::element_type;
+    requires std::convertible_to<T, ASTNodeAttribute> && std::is_same_v<T, std::shared_ptr<typename T::element_type>>;
+};
+
 template <typename AttrT>
 concept HasASTNodeGetAttributeId = requires {
     {
@@ -52,6 +59,13 @@ public:
     static void set_to(const ASTNodePtrT &node, const std::shared_ptr<T> &attr)
     {
         node->set_attribute(static_cast<T *>(nullptr)->get_attribute_id(), attr);
+    }
+
+    template <typename ASTNodePtrT = ASTNodePtr>
+        requires HasASTNodeGetAttributeId<T> && std::is_base_of_v<ASTNodeAttribute, T>
+    void set_to(const ASTNodePtrT &node)
+    {
+        node->set_attribute(static_cast<T *>(nullptr)->get_attribute_id(), reinterpret_cast<ASTNodeAttribute *>(this)->shared_from_this());
     }
 };
 
