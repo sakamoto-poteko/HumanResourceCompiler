@@ -25,7 +25,7 @@ jobs:
           - os: ubuntu-latest
             c_compiler: gcc
             cpp_compiler: g++
-            container: mcr.microsoft.com/devcontainers/cpp:debian-12,
+            container: mcr.microsoft.com/devcontainers/cpp:debian-12
           # Linux with Clang
           # - os: ubuntu-latest
           #   c_compiler: clang
