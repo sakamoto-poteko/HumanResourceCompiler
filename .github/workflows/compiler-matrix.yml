@@ -10,6 +10,7 @@ on:
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
+  VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
 
 jobs:
   build:
@@ -47,6 +48,13 @@ jobs:
             nproc: 2
 
     steps:
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
       - uses: actions/checkout@v4
 
       - name: Prepare (Linux)
@@ -61,19 +69,6 @@ jobs:
         run: |
           brew update
           brew install cmake ninja boost spdlog flex bison googletest tree
-
-      - name: Cache vcpkg
-        if: matrix.os == 'windows-latest'
-        uses: actions/cache@v3
-        with:
-          path: |
-            ${GITHUB_WORKSPACE}/vcpkg/downloads
-            ${GITHUB_WORKSPACE}/vcpkg/buildtrees
-            ${GITHUB_WORKSPACE}/vcpkg/installed
-            ${GITHUB_WORKSPACE}/vcpkg/packages
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('compiler/vcpkg.json') }}
-          restore-keys: |
-            vcpkg-${{ runner.os }}-
 
       - name: Prepare (Windows)
         if: matrix.os == 'windows-latest'
