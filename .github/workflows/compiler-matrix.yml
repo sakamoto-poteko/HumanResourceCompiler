@@ -26,18 +26,27 @@ jobs:
             c_compiler: gcc
             cpp_compiler: g++
             container: mcr.microsoft.com/devcontainers/cpp:debian-12
+            toolchain: null
             nproc: 22
           # Linux with Clang
           - os: deb
             c_compiler: clang-16
             cpp_compiler: clang++-16
             container: mcr.microsoft.com/devcontainers/cpp:debian-12
+            toolchain: null
             nproc: 22
           # macOS with Clang
           - os: macos-latest
             c_compiler: clang
             cpp_compiler: clang++
             container: null
+            toolchain: null
+            nproc: 3
+          - os: windows-latest
+            c_compiler: cl.exe
+            cpp_compiler: cl.exe
+            container: null
+            toolchain: vcpkg/scripts/buildsystems/vcpkg.cmake
             nproc: 2
 
     steps:
@@ -56,12 +65,36 @@ jobs:
           brew update
           brew install cmake ninja boost spdlog flex bison googletest tree
 
+      - name: Cache vcpkg
+        if: matrix.os == 'windows-latest'
+        uses: actions/cache@v3
+        with:
+          path: |
+            vcpkg_installed
+            vcpkg_downloads
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}-x64-windows
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-
+
+      - name: Prepare (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
+          vcpkgGitCommitId: 'latest'
+          vcpkgTriplet: 'x64-windows'
+          cleanAfterBuild: false
+          additionalCachedPaths: |
+            vcpkg_installed
+            vcpkg_downloads
+
       - name: Configure CMake
         run: |
           cmake -B compiler/build -S compiler \
           -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
           -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+          -DCMAKE_TOOLCHAIN_FILE=${{ matrix.toolchain }} \
           -G Ninja
         shell: bash
 
