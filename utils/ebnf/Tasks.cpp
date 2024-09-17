@@ -101,7 +101,7 @@ const std::map<std::string, std::set<std::string>> __ebnf_first_set_token {
                 first_tokens.push_back("            // EPSILON");
                 break;
             case FirstSetElement::Token:
-                first_tokens.push_back((first_entry_element_token % f.value % (f.produced_by.empty() ? production_id : f.produced_by)).str());
+                first_tokens.push_back((first_entry_element_token % f.value % (f.produced_by.empty() ? production_id : boost::join(f.produced_by, ","))).str());
                 break;
             case FirstSetElement::Reference:
                 first_tokens.push_back((first_entry_element_reference % f.value).str());
@@ -164,7 +164,7 @@ void calculate_first_follow_set(DependencyGraphAnalyzer &checker, bool check_con
             case FirstSetElement::Token:
                 std::cout << f.value;
                 if (!f.produced_by.empty()) {
-                    std::cout << "(" << f.produced_by << ")";
+                    std::cout << "(" << boost::join(f.produced_by, ",") << ")";
                 }
                 break;
             case FirstSetElement::Reference:
