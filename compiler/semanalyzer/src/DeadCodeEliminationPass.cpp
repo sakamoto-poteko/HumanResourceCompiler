@@ -174,7 +174,7 @@ void DeadCodeEliminationPass::report_dead_code(const parser::ASTNodePtr &begin_n
     ErrorManager::instance().report(
         W_SEMA_DEAD_CODE,
         ErrorSeverity::Warning,
-        ErrorLocation(_filename, begin_node->lineno(), begin_node->colno(), -1),
+        ErrorLocation(_filename, begin_node->lineno(), begin_node->colno(), 0),
         warning_msg.str());
 }
 
@@ -186,7 +186,7 @@ void DeadCodeEliminationPass::report_dead_code(const parser::ASTNodePtr &single_
     ErrorManager::instance().report(
         W_SEMA_DEAD_CODE,
         ErrorSeverity::Warning,
-        ErrorLocation(_filename, single_node->lineno(), single_node->colno(), -1),
+        ErrorLocation(_filename, single_node->lineno(), single_node->colno(), 0),
         warning_msg.str());
 }
 

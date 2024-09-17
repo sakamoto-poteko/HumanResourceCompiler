@@ -268,7 +268,7 @@ void ASTBuilder::visit(SubprocDefinitionPTNodePtr node)
         auto param_name = param->get_value();
 
         param_node = std::make_shared<VariableDeclarationASTNode>(
-            param->lineno(), param->colno(), param->lineno(), param->colno() + param->get_token()->width(),
+            param->lineno(), param->colno(), param->lineno(), param->colno() + static_cast<int>(param->get_token()->width()),
             param_name,
             nullptr);
     }
