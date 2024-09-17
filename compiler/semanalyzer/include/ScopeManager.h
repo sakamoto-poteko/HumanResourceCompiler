@@ -9,7 +9,6 @@
 
 #include "ASTNode.h"
 #include "ASTNodeAttribute.h"
-#include "ASTNodeForward.h"
 #include "hrl_global.h"
 #include "semanalyzer_global.h"
 

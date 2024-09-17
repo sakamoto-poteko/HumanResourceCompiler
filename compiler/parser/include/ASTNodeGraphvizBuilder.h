@@ -8,7 +8,6 @@
 #include <boost/graph/directed_graph.hpp>
 
 #include "ASTNode.h"
-#include "ASTNodeForward.h"
 #include "ASTNodeVisitor.h"
 #include "hrl_global.h"
 #include "parser_global.h"

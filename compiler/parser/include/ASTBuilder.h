@@ -6,7 +6,6 @@
 #include <stack>
 
 #include "ASTNode.h"
-#include "ASTNodeForward.h"
 #include "ParseTreeNode.h"
 #include "ParseTreeNodeForward.h"
 #include "ParseTreeNodeVisitor.h"

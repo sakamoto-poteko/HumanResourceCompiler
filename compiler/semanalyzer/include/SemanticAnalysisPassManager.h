@@ -7,7 +7,6 @@
 #include <utility>
 #include <vector>
 
-#include "ASTNodeForward.h"
 #include "SemanticAnalysisPass.h"
 #include "SymbolTable.h"
 #include "WithSymbolTable.h"

@@ -9,9 +9,7 @@
     }                          \
     }
 
-#include <cstdio>
-
-#include "hrl_global.h"
+#include "hrl_global.h" // IWYU pragma: keep
 
 OPEN_PARSER_NAMESPACE
 

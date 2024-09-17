@@ -1,7 +1,7 @@
 #ifndef RECURSIVEDESCENTPARSER_COMMON_H
 #define RECURSIVEDESCENTPARSER_COMMON_H
 
-#include "RecursiveDescentParser.h"
+#include "RecursiveDescentParser.h" // IWYU pragma: keep
 #include "hrl_global.h"
 
 OPEN_PARSER_NAMESPACE
