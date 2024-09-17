@@ -85,7 +85,7 @@ jobs:
           .\vcpkg\bootstrap-vcpkg.bat
           echo "VCPKG_ROOT=${{ github.workspace }}\\vcpkg" >> $env:GITHUB_ENV
           echo "VCPKG_DEFAULT_TRIPLET=x64-windows" >> $env:GITHUB_ENV
-          echo "TOOLCHAIN=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" >> $env:GITHUB_ENV
+          echo "TOOLCHAIN=vcpkg/scripts/buildsystems/vcpkg.cmake" >> $env:GITHUB_ENV
 
       - uses: ilammy/msvc-dev-cmd@v1
         if: matrix.os == 'windows-latest'
