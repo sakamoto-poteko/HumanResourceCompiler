@@ -96,7 +96,7 @@ jobs:
           -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
           -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
-          -DCMAKE_TOOLCHAIN_FILE=${{ env.TOOLCHAIN }}
+          -DCMAKE_TOOLCHAIN_FILE=${{ env.TOOLCHAIN }} \
           -G Ninja
         shell: bash
 
