@@ -46,8 +46,9 @@ jobs:
       - name: Install dependencies (Linux)
         if: matrix.os == 'self-hosted'
         run: |
+          sudo sed -i 's|http://deb.debian.org|http://chinanet.mirrors.ustc.edu.cn|g' /etc/apt/sources.list
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build flex bison libspdlog-dev libboost-graph-dev libboost-program-options libgtest-dev ${{ matrix.c_compiler }}
+          sudo apt-get install -y cmake ninja-build flex bison libspdlog-dev libboost-graph-dev libboost-program-options-dev libgtest-dev ${{ matrix.c_compiler }}
 
       - name: Install dependencies (macOS)
         if: matrix.os == 'macos-latest'
