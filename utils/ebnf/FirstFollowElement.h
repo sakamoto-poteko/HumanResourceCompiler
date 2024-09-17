@@ -1,7 +1,6 @@
 #ifndef FIRSTFOLLOWELEMENT_H
 #define FIRSTFOLLOWELEMENT_H
 
-#include <set>
 #include <string>
 
 struct FirstSetElement {
@@ -16,7 +15,7 @@ struct FirstSetElement {
     std::string value;
     Type type;
     // produced_by is the production id after expansion
-    std::set<std::string> produced_by;
+    std::string produced_by;
 
     explicit FirstSetElement(const std::string &value, Type type)
         : value(value)
@@ -24,11 +23,17 @@ struct FirstSetElement {
     {
     }
 
+    explicit FirstSetElement(const std::string &value, Type type, const std::string &produced_by)
+        : value(value)
+        , type(type)
+        , produced_by(produced_by)
+    {
+    }
+
     static const char *type_str(Type type);
 
     bool operator<(const FirstSetElement &other) const
     {
-        // not comparing "produced_by", since it's not they "key" of this element
         if (type == other.type) {
             return value < other.value;
         }

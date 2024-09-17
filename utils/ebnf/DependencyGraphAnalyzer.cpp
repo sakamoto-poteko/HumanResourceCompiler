@@ -16,7 +16,6 @@
 #include "ASTNode.h"
 #include "ASTNodeForward.h"
 #include "DependencyGraphAnalyzer.h"
-#include "FirstFollowElement.h"
 #include "ebnf_global.h"
 
 void DependencyGraphAnalyzer::find_unreachable()
@@ -85,21 +84,8 @@ void DependencyGraphAnalyzer::expand_first_set()
                 const auto &referenced_first_set = _state->first_set[ref_element.value];
                 // for each FIRST in the referenced rule, construct ours, populating the produced_by field
                 for (const auto &ref_first : referenced_first_set) {
-                    auto our_first = FirstSetElement(ref_first.value, ref_first.type);
-                    auto found_it = current_first_set.find(our_first);
-                    if (found_it == current_first_set.end()) {
-                        our_first.produced_by.insert(ref_element.value);
-                    } else {
-                        // there's an element with same first name and type already
-                        FirstSetElement found_element = *found_it;
-                        // we have to erase first and then insert. this is the property of set
-                        // found_it is const
-                        found_element.produced_by.insert(ref_element.value);
-                        current_first_set.erase(found_it);
-                        current_first_set.insert(found_element);
-                    }
-                    // auto our_first = FirstSetElement(ref_first.value, ref_first.type, ref_element.value);
-                    // current_first_set.insert(our_first);
+                    auto our_first = FirstSetElement(ref_first.value, ref_first.type, ref_element.value);
+                    current_first_set.insert(our_first);
                     current_first_set.erase(ref_element);
                 }
             }
