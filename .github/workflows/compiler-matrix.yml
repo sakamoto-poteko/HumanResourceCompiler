@@ -26,16 +26,19 @@ jobs:
             c_compiler: gcc
             cpp_compiler: g++
             container: mcr.microsoft.com/devcontainers/cpp:debian-12
+            nproc: 7
           # Linux with Clang
           - os: self-hosted
             c_compiler: clang-16
             cpp_compiler: clang++-16
             container: mcr.microsoft.com/devcontainers/cpp:debian-12
+            nproc: 7
           # macOS with Clang
           - os: macos-latest
             c_compiler: clang
             cpp_compiler: clang++
             container: null
+            nproc: 2
 
     steps:
       - uses: actions/checkout@v4
@@ -44,7 +47,7 @@ jobs:
         if: matrix.os == 'self-hosted'
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build flex bison libspdlog-dev libboost-all-dev libgtest-dev tree ${{ matrix.c_compiler }}
+          sudo apt-get install -y cmake ninja-build flex bison libspdlog-dev libboost-graph-dev libboost-program-options libgtest-dev ${{ matrix.c_compiler }}
 
       - name: Install dependencies (macOS)
         if: matrix.os == 'macos-latest'
@@ -62,7 +65,7 @@ jobs:
         shell: bash
 
       - name: Build
-        run: cmake --build compiler/build --config ${{env.BUILD_TYPE}} -- -j$(nproc || sysctl -n hw.ncpu || 2)
+        run: cmake --build compiler/build --config ${{env.BUILD_TYPE}} -- -j${{ matrix.nproc }}
         shell: bash
 
       - name: Test
