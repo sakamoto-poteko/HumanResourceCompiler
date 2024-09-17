@@ -70,23 +70,22 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            vcpkg_installed
-            vcpkg_downloads
-          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}-x64-windows
+            ${GITHUB_WORKSPACE}/vcpkg/downloads
+            ${GITHUB_WORKSPACE}/vcpkg/buildtrees
+            ${GITHUB_WORKSPACE}/vcpkg/installed
+            ${GITHUB_WORKSPACE}/vcpkg/packages
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('compiler/vcpkg.json') }}
           restore-keys: |
-            ${{ runner.os }}-vcpkg-
+            vcpkg-${{ runner.os }}-
 
       - name: Prepare (Windows)
         if: matrix.os == 'windows-latest'
-        uses: lukka/run-vcpkg@v11
-        with:
-          vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
-          vcpkgGitCommitId: 'latest'
-          vcpkgTriplet: 'x64-windows'
-          cleanAfterBuild: false
-          additionalCachedPaths: |
-            vcpkg_installed
-            vcpkg_downloads
+        run: |
+          # Install vcpkg
+          git clone https://github.com/microsoft/vcpkg.git
+          .\vcpkg\bootstrap-vcpkg.bat
+          echo "VCPKG_ROOT=${{ github.workspace }}\\vcpkg" >> $env:GITHUB_ENV
+          echo "VCPKG_DEFAULT_TRIPLET=x64-windows" >> $env:GITHUB_ENV
 
       - name: Configure CMake
         run: |
@@ -94,7 +93,6 @@ jobs:
           -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
           -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
-          -DCMAKE_TOOLCHAIN_FILE=${{ matrix.toolchain }} \
           -G Ninja
         shell: bash
 
