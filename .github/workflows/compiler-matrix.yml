@@ -43,13 +43,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies (Linux)
+      - name: Prepare (Linux)
         if: matrix.os == 'self-hosted'
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake ninja-build flex bison libspdlog-dev libboost-graph-dev libboost-program-options-dev libgtest-dev ${{ matrix.c_compiler }}
+          git config --global --add safe.directory ${GITHUB_WORKSPACE}
 
-      - name: Install dependencies (macOS)
+      - name: Prepare (macOS)
         if: matrix.os == 'macos-latest'
         run: |
           brew update
