@@ -15,7 +15,7 @@ Ensure you have the following dependencies installed before building the project
 - **Flex** and **Bison** (for lexical analysis and parsing)
 - **spdlog** (for logging)
 - **Boost** (for various utilities)
-- **Google Test* (for testing)
+- **Google Test** (for testing)
 
 ### Platform-Specific Dependency Installation
 
