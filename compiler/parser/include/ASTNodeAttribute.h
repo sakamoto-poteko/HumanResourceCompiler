@@ -65,7 +65,7 @@ public:
         requires HasASTNodeGetAttributeId<T> && std::is_base_of_v<ASTNodeAttribute, T>
     void set_to(const ASTNodePtrT &node)
     {
-        node->set_attribute(static_cast<T *>(nullptr)->get_attribute_id(), reinterpret_cast<ASTNodeAttribute *>(this)->shared_from_this());
+        node->set_attribute(static_cast<T *>(nullptr)->get_attribute_id(), static_cast<T *>(this)->shared_from_this());
     }
 };
 
