@@ -33,20 +33,17 @@ jobs:
             c_compiler: clang-16
             cpp_compiler: clang++-16
             container: mcr.microsoft.com/devcontainers/cpp:debian-12
-            toolchain: null
             nproc: 22
           # macOS with Clang
           - os: macos-latest
             c_compiler: clang
             cpp_compiler: clang++
             container: null
-            toolchain: null
             nproc: 3
           - os: windows-latest
             c_compiler: cl
             cpp_compiler: cl
             container: null
-            toolchain: vcpkg/scripts/buildsystems/vcpkg.cmake
             nproc: 2
 
     steps:
@@ -78,11 +75,16 @@ jobs:
           restore-keys: |
             vcpkg-${{ runner.os }}-
 
+      - uses: ilammy/msvc-dev-cmd@v1
+        if: matrix.os == 'windows-latest'
+
       - name: Prepare (Windows)
         if: matrix.os == 'windows-latest'
         run: |
           choco install ninja
           git clone https://github.com/microsoft/vcpkg.git
+          cd vcpkg
+          git checkout 2024.08.23
           .\vcpkg\bootstrap-vcpkg.bat
           echo "VCPKG_ROOT=${{ github.workspace }}\\vcpkg" >> $env:GITHUB_ENV
           echo "VCPKG_DEFAULT_TRIPLET=x64-windows" >> $env:GITHUB_ENV
