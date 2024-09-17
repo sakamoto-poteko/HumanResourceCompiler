@@ -12,5 +12,6 @@ sub start()
             }
         }
     }
+    // var difined in inner scope but used outer
     outbox(uninit);
 }

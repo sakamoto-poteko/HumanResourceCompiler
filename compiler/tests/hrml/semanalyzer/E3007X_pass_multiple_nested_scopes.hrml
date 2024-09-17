@@ -13,6 +13,7 @@ sub start()
         {
             {
                 {
+                    // it's initialized
                     outbox(uninit);
                 }
             }

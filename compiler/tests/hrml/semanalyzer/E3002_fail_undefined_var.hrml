@@ -1,3 +1,5 @@
 sub start() {
     a = 5;
+    outbox(a);
+    // undefined var
 }

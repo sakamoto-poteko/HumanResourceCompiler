@@ -1,4 +1,6 @@
 sub start() {
     a = 5;
     let a = 4;
+    // var is defined after use
+    outbox(a);
 }

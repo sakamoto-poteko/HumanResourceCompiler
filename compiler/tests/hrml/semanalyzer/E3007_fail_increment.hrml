@@ -2,4 +2,5 @@ sub start()
 {
     let uninit;
     outbox(++uninit);
+    // uninit not assigned here
 }

@@ -5,6 +5,7 @@ sub start()
     if (inbox()) {
     } else {
     }
+    // uninit not assigned here
 
     outbox(uninit);
 }

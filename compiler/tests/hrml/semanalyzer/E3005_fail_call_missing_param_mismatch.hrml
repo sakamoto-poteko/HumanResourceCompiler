@@ -1,5 +1,6 @@
-sub a(param) {}
+sub a(param) {outbox(0);}
 sub start()
 {
+    // a has a param
     a();
 }

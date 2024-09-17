@@ -1,6 +1,7 @@
 function subproc() {
 }
 
+// func with same name but diff param
 function subproc(z) {
 }
 

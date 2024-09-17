@@ -1,5 +1,6 @@
 sub start()
 {
     let uninit;
+    // uninit is unitialized
     outbox(++uninit);
 }
