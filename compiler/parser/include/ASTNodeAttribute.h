@@ -1,12 +1,10 @@
 #ifndef ASTNODEATTRIBUTE_H
 #define ASTNODEATTRIBUTE_H
 
-#include <concepts>
 #include <memory>
 #include <type_traits>
 
 #include "ASTNode.h"
-#include "ASTNodeForward.h"
 #include "parser_global.h"
 
 OPEN_PARSER_NAMESPACE
