@@ -81,10 +81,10 @@ jobs:
       - name: Prepare (Windows)
         if: matrix.os == 'windows-latest'
         run: |
-          choco install ninja
-          git clone https://github.com/microsoft/vcpkg.git
-          cd vcpkg
-          git checkout 2024.08.23
+          curl -L -o ninja.zip https://github.com/ninja-build/ninja/releases/download/v1.11.1/ninja-win.zip
+          powershell -Command "Expand-Archive ninja.zip -DestinationPath ."
+          echo "::add-path::${{ github.workspace }}"
+          git clone --depth=1 --branch 2024.08.23 https://github.com/microsoft/vcpkg.git
           .\vcpkg\bootstrap-vcpkg.bat
           echo "VCPKG_ROOT=${{ github.workspace }}\\vcpkg" >> $env:GITHUB_ENV
           echo "VCPKG_DEFAULT_TRIPLET=x64-windows" >> $env:GITHUB_ENV
