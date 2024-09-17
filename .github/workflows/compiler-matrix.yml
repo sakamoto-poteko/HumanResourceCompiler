@@ -28,8 +28,8 @@ jobs:
             container: mcr.microsoft.com/devcontainers/cpp:debian-12
           # Linux with Clang
           - os: ubuntu-latest
-            c_compiler: clang
-            cpp_compiler: clang++
+            c_compiler: clang-16
+            cpp_compiler: clang++-16
             container: mcr.microsoft.com/devcontainers/cpp:debian-12
           # macOS with Clang
           - os: macos-latest
@@ -41,11 +41,12 @@ jobs:
       - uses: actions/checkout@v4
 
       # Dependency installation on Ubuntu
-      - name: Install dependencies (Ubuntu)
+      - name: Install dependencies (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build flex bison libspdlog-dev libboost-all-dev libgtest-dev tree
+          sudo apt-get install -y cmake ninja-build flex bison libspdlog-dev libboost-all-dev libgtest-dev tree ${{ matrix.c_compiler }}
+
 
       # Dependency installation on macOS
       - name: Install dependencies (macOS)
