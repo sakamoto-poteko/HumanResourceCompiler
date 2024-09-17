@@ -75,9 +75,6 @@ jobs:
           restore-keys: |
             vcpkg-${{ runner.os }}-
 
-      - uses: ilammy/msvc-dev-cmd@v1
-        if: matrix.os == 'windows-latest'
-
       - name: Prepare (Windows)
         if: matrix.os == 'windows-latest'
         run: |
@@ -88,6 +85,10 @@ jobs:
           .\vcpkg\bootstrap-vcpkg.bat
           echo "VCPKG_ROOT=${{ github.workspace }}\\vcpkg" >> $env:GITHUB_ENV
           echo "VCPKG_DEFAULT_TRIPLET=x64-windows" >> $env:GITHUB_ENV
+          echo "TOOLCHAIN=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" >> $env:GITHUB_ENV
+
+      - uses: ilammy/msvc-dev-cmd@v1
+        if: matrix.os == 'windows-latest'
 
       - name: Configure CMake
         run: |
@@ -95,6 +96,7 @@ jobs:
           -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
           -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+          -DCMAKE_TOOLCHAIN_FILE=${{ env.TOOLCHAIN }}
           -G Ninja
         shell: bash
 
