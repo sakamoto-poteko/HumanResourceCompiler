@@ -90,11 +90,7 @@ jobs:
 
       - name: Configure CMake
         run: |
-          cmake -B compiler/build -S compiler \
-          -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
-          -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
-          -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
-          -DCMAKE_TOOLCHAIN_FILE=${{ env.TOOLCHAIN }}
+          cmake -B compiler/build -S compiler -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_TOOLCHAIN_FILE=${{ env.TOOLCHAIN }}
 
       - name: Build
         run: cmake --build compiler/build --config ${{env.BUILD_TYPE}} -- -j${{ matrix.nproc }}
