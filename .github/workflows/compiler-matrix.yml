@@ -17,7 +17,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     container:
       image: ${{ matrix.container }}
-      options: --user root
+      options: --user root -v "/etc/apt/sources.list:/etc/apt/sources.list:ro"
     strategy:
       matrix:
         include:
@@ -46,7 +46,6 @@ jobs:
       - name: Install dependencies (Linux)
         if: matrix.os == 'self-hosted'
         run: |
-          sudo sed -i 's|http://deb.debian.org|http://chinanet.mirrors.ustc.edu.cn|g' /etc/apt/sources.list
           sudo apt-get update
           sudo apt-get install -y cmake ninja-build flex bison libspdlog-dev libboost-graph-dev libboost-program-options-dev libgtest-dev ${{ matrix.c_compiler }}
 
