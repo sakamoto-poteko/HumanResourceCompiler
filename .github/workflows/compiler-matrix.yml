@@ -43,8 +43,8 @@ jobs:
             toolchain: null
             nproc: 3
           - os: windows-latest
-            c_compiler: cl.exe
-            cpp_compiler: cl.exe
+            c_compiler: cl
+            cpp_compiler: cl
             container: null
             toolchain: vcpkg/scripts/buildsystems/vcpkg.cmake
             nproc: 2
