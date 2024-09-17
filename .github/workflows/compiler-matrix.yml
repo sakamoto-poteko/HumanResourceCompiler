@@ -44,7 +44,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Prepare (Linux)
-        if: matrix.os == 'self-hosted'
+        if: matrix.os == 'deb'
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake ninja-build flex bison libspdlog-dev libboost-graph-dev libboost-program-options-dev libgtest-dev ${{ matrix.c_compiler }}
