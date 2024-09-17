@@ -1,5 +1,7 @@
 # Human Resource Machine Compiler
 
+[![Compiler](https://github.com/sakamoto-poteko/HumanResourceCompiler/actions/workflows/compiler-matrix.yml/badge.svg)](https://github.com/sakamoto-poteko/HumanResourceCompiler/actions/workflows/compiler-matrix.yml)
+
 This project aims to create a compiler for the game Human Resource Machine using a custom language called "Human Resource Machine LazyCoder Language" (HRML). The language simplifies the game's coding challenges by abstracting some of its assembly-like constructs, allowing you to write code more efficiently. 
 
 In addition, the project provides a VSCode extension for HRML language support, allowing syntax highlighting and language-specific configuration.
