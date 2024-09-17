@@ -22,12 +22,12 @@ jobs:
       matrix:
         include:
           # Linux with GCC
-          - os: ubuntu-latest
+          - os: self-hosted
             c_compiler: gcc
             cpp_compiler: g++
             container: mcr.microsoft.com/devcontainers/cpp:debian-12
           # Linux with Clang
-          - os: ubuntu-latest
+          - os: self-hosted
             c_compiler: clang-16
             cpp_compiler: clang++-16
             container: mcr.microsoft.com/devcontainers/cpp:debian-12
@@ -40,22 +40,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Dependency installation on Ubuntu
       - name: Install dependencies (Linux)
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'self-hosted'
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake ninja-build flex bison libspdlog-dev libboost-all-dev libgtest-dev tree ${{ matrix.c_compiler }}
 
-
-      # Dependency installation on macOS
       - name: Install dependencies (macOS)
         if: matrix.os == 'macos-latest'
         run: |
           brew update
           brew install cmake ninja boost spdlog flex bison googletest tree
 
-      # CMake configuration step
       - name: Configure CMake
         run: |
           cmake -B compiler/build -S compiler \
@@ -65,12 +61,10 @@ jobs:
           -G Ninja
         shell: bash
 
-      # Build step
       - name: Build
         run: cmake --build compiler/build --config ${{env.BUILD_TYPE}} -- -j$(nproc || sysctl -n hw.ncpu || 2)
         shell: bash
 
-      # Test step
       - name: Test
         working-directory: compiler/build
         run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
