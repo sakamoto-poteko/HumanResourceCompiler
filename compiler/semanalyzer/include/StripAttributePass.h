@@ -1,8 +1,6 @@
 #ifndef STRIPATTRIBUTEPASS_H
 #define STRIPATTRIBUTEPASS_H
 
-#include <algorithm>
-
 #include "SemanticAnalysisPass.h"
 #include "semanalyzer_global.h"
 

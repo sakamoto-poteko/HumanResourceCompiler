@@ -5,7 +5,6 @@
 #include <stack>
 #include <string>
 
-#include "ASTNodeForward.h"
 #include "SemanticAnalysisPass.h"
 #include "Symbol.h"
 #include "WithScopeTracker.h"

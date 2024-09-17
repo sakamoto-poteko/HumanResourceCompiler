@@ -4,6 +4,8 @@ sub start()
     defined_func();
 }
 
+// functions can be defined later but called earlier
 sub defined_func()
 {
+    inbox();
 }

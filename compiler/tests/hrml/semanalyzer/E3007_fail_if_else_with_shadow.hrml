@@ -5,7 +5,7 @@ sub start()
     let uninit;
 
     if (inbox()) {
-
+        // uninit not assigned here
     } else {
         uninit = 0;
     }

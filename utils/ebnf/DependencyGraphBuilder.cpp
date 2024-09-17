@@ -9,6 +9,7 @@
 
 #include "ASTNode.h"
 #include "DependencyGraphBuilder.h"
+#include "ebnf_global.h"
 
 // Quick & dirty
 static std::string escapeGraphviz(const std::string &origin)

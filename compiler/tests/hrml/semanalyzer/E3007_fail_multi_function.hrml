@@ -8,5 +8,6 @@ sub start()
 
 sub fail()
 {
+    // uninit may not be assigned here (cross func)
     outbox(uninit);
 }

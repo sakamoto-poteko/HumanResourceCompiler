@@ -2,8 +2,9 @@ let uninit;
 
 sub start()
 {
-    for (let x = 0, x < 1, ++x) {
+    for (let x = inbox(), x < 1, ++x) {
         uninit = 1;
     }
+    // loop may not be executed
     outbox(uninit);
 }

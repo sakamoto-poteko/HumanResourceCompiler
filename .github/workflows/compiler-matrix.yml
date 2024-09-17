@@ -10,6 +10,7 @@ on:
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
+  VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
 
 jobs:
   build:
@@ -22,13 +23,14 @@ jobs:
       matrix:
         include:
           # Linux with GCC
-          - os: self-hosted
+          - os: deb
             c_compiler: gcc
             cpp_compiler: g++
             container: mcr.microsoft.com/devcontainers/cpp:debian-12
+            toolchain: null
             nproc: 22
           # Linux with Clang
-          - os: self-hosted
+          - os: deb
             c_compiler: clang-16
             cpp_compiler: clang++-16
             container: mcr.microsoft.com/devcontainers/cpp:debian-12
@@ -38,16 +40,28 @@ jobs:
             c_compiler: clang
             cpp_compiler: clang++
             container: null
+            nproc: 3
+          - os: windows-latest
+            c_compiler: cl
+            cpp_compiler: cl
+            container: null
             nproc: 2
 
     steps:
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
       - uses: actions/checkout@v4
 
       - name: Prepare (Linux)
-        if: matrix.os == 'self-hosted'
+        if: matrix.os == 'deb'
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build flex bison libspdlog-dev libboost-graph-dev libboost-program-options-dev libgtest-dev ${{ matrix.c_compiler }}
+          sudo apt-get install -y cmake ninja-build flex bison libspdlog-dev libboost-dev libboost-graph-dev libboost-program-options-dev libgtest-dev ${{ matrix.c_compiler }}
           git config --global --add safe.directory ${GITHUB_WORKSPACE}
 
       - name: Prepare (macOS)
@@ -56,20 +70,25 @@ jobs:
           brew update
           brew install cmake ninja boost spdlog flex bison googletest tree
 
+      - name: Prepare (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          git clone --depth=1 --branch 2024.08.23 https://github.com/microsoft/vcpkg.git
+          .\vcpkg\bootstrap-vcpkg.bat
+          echo "VCPKG_ROOT=${{ github.workspace }}\\vcpkg" >> $env:GITHUB_ENV
+          echo "VCPKG_DEFAULT_TRIPLET=x64-windows" >> $env:GITHUB_ENV
+          echo "TOOLCHAIN=${{ github.workspace }}\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake" >> $env:GITHUB_ENV
+
+      - uses: ilammy/msvc-dev-cmd@v1
+        if: matrix.os == 'windows-latest'
+
       - name: Configure CMake
         run: |
-          cmake -B compiler/build -S compiler \
-          -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
-          -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
-          -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
-          -G Ninja
-        shell: bash
+          cmake -B compiler/build -S compiler -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_TOOLCHAIN_FILE=${{ env.TOOLCHAIN }} -G Ninja
 
       - name: Build
         run: cmake --build compiler/build --config ${{env.BUILD_TYPE}} -- -j${{ matrix.nproc }}
-        shell: bash
 
       - name: Test
         working-directory: compiler/build
         run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
-        shell: bash

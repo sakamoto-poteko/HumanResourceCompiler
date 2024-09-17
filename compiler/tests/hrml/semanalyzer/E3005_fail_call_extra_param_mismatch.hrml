@@ -1,5 +1,6 @@
-sub a() {}
+sub a() {outbox(0);}
 sub start()
 {
+    // a has no param
     a(0);
 }

@@ -1,4 +1,7 @@
 sub start() {
     let a;
     let a;
+    // two var have same name
+    a = 0;
+    outbox(a);
 }

@@ -1,14 +1,11 @@
 #ifndef SYMBOLTABLEBUILDER_H
 #define SYMBOLTABLEBUILDER_H
 
-#include <cassert>
-
 #include <queue>
 #include <string>
 
 #include "ScopeManager.h"
 #include "SemanticAnalysisPass.h"
-#include "SymbolTable.h"
 #include "WithSymbolTable.h"
 #include "hrl_global.h"
 #include "semanalyzer_global.h"

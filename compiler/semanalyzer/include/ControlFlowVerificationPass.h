@@ -1,10 +1,8 @@
 #ifndef CONTROLFLOWVERIFICATIONPASS_H
 #define CONTROLFLOWVERIFICATIONPASS_H
 
-#include <queue>
 #include <stack>
 #include <string>
-#include <vector>
 
 #include <boost/format.hpp>
 #include <spdlog/spdlog.h>

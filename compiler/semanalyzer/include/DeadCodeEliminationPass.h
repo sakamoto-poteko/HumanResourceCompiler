@@ -3,8 +3,6 @@
 
 #include <set>
 
-#include "ASTNodeForward.h"
-#include "ASTNodeVisitor.h"
 #include "SemanticAnalysisPass.h"
 #include "semanalyzer_global.h"
 

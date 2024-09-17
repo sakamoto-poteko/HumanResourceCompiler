@@ -1,9 +1,8 @@
 #ifndef PARSE_TREE_NODE_VISITOR_H
 #define PARSE_TREE_NODE_VISITOR_H
 
-#include "parser_global.h"
-
 #include "ParseTreeNodeForward.h"
+#include "parser_global.h"
 
 OPEN_PARSER_NAMESPACE
 

@@ -1,6 +1,7 @@
 sub subproc(a) {
 }
 
+// sub with same name and param
 function subproc(b) {
 }
 
