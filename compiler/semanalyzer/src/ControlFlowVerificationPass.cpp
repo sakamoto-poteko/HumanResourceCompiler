@@ -295,7 +295,7 @@ void hrl::semanalyzer::ControlFlowVerificationPass::push_return_record()
 void hrl::semanalyzer::ControlFlowVerificationPass::set_return_record(bool returned)
 {
     assert(!_returned_record_stack.empty());
-    _returned_record_stack.top() = true;
+    _returned_record_stack.top() = returned;
 }
 
 bool hrl::semanalyzer::ControlFlowVerificationPass::get_return_record()

@@ -26,13 +26,13 @@ jobs:
             c_compiler: gcc
             cpp_compiler: g++
             container: mcr.microsoft.com/devcontainers/cpp:debian-12
-            nproc: 7
+            nproc: 20
           # Linux with Clang
           - os: self-hosted
             c_compiler: clang-16
             cpp_compiler: clang++-16
             container: mcr.microsoft.com/devcontainers/cpp:debian-12
-            nproc: 7
+            nproc: 20
           # macOS with Clang
           - os: macos-latest
             c_compiler: clang
