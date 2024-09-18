@@ -1,0 +1,10 @@
+sub start()
+{
+    f(0);
+    outbox(uninit);
+}
+
+function f(num)
+{
+    outbox(num);
+}
