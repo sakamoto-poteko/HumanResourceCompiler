@@ -1,10 +1,11 @@
 sub start()
 {
     f(0);
-    outbox(uninit);
 }
 
 function f(num)
 {
-    outbox(num);
+    for (let a = 0, a < num, ++a)
+        outbox(num);
+    return inbox();
 }
