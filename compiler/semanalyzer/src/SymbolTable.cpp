@@ -1,6 +1,5 @@
 #include <memory>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include <boost/format.hpp>
