@@ -2,6 +2,8 @@
 
 [![Compiler](https://github.com/sakamoto-poteko/HumanResourceCompiler/actions/workflows/compiler-matrix.yml/badge.svg)](https://github.com/sakamoto-poteko/HumanResourceCompiler/actions/workflows/compiler-matrix.yml)
 
+[![VSCode Extension](https://github.com/sakamoto-poteko/HumanResourceCompiler/actions/workflows/vsce.yml/badge.svg)](https://github.com/sakamoto-poteko/HumanResourceCompiler/actions/workflows/vsce.yml)
+
 This project aims to create a compiler for the game Human Resource Machine using a custom language called "Human Resource Machine LazyCoder Language" (HRML). The language simplifies the game's coding challenges by abstracting some of its assembly-like constructs, allowing you to write code more efficiently. 
 
 In addition, the project provides a VSCode extension for HRML language support, allowing syntax highlighting and language-specific configuration.
@@ -27,7 +29,7 @@ To install dependencies on Debian and derivations, use the following commands:
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y cmake ninja-build flex bison libspdlog-dev libboost-all-dev libgtest-dev
+sudo apt-get install -y cmake ninja-build flex bison libspdlog-dev libboost-dev libboost-graph-dev libboost-program-options-dev libgtest-dev
 ```
 
 #### macOS
@@ -46,7 +48,6 @@ On Windows, dependencies are installed using `vcpkg`. You can follow these steps
 ```powershell
 git clone https://github.com/microsoft/vcpkg.git
 .\vcpkg\bootstrap-vcpkg.bat
-.\vcpkg\vcpkg.exe install boost spdlog flex bison gtest
 ```
 
 ### Build Instructions
@@ -56,34 +57,41 @@ The project is located in the `compiler/` directory. You can build it using CMak
 #### Manual Build Steps
 
 1. **Clone the Repository:**
-   ```bash
-   git clone https://github.com/sakamoto-poteko/HumanResourceCompiler.git
-   cd HumanResourceCompiler/compiler
-   ```
+    ```bash
+    git clone https://github.com/sakamoto-poteko/HumanResourceCompiler.git
+    cd HumanResourceCompiler/compiler
+    ```
 
 2. **Create a Build Directory:**
-   ```bash
-   mkdir build
-   ```
+    ```bash
+    mkdir build
+    ```
 
 3. **Configure the Build:**
-   ```bash
-   cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
-   # Or with Ninja
-   cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -G Ninja
-   ```
-   Replace `Release` with `Debug` or other build types if needed.
+    ```bash
+    # *nix
+    cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+    # Or with Ninja
+    cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -G Ninja
+    ```
+
+    ```powershell
+    # Windows w/ vcpkg
+    cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DDCMAKE_TOOLCHAIN_FILE=vcpkg\\scripts\\buildsystems\\vcpkg.cmake
+    ```
+
+    Replace `Release` with `Debug` or other build types if needed.
 
 4. **Build the Project:**
-   ```bash
-   cmake --build build --config Release -- -j$(nproc || sysctl -n hw.ncpu || 2)
-   ```
+    ```bash
+    cmake --build build --config Release -- -j$(nproc || sysctl -n hw.ncpu || 2)
+    ```
 
 5. **Run Tests:**
-   ```bash
-   cd build
-   ctest -C Release --output-on-failure
-   ```
+    ```bash
+    cd build
+    ctest -C Release --output-on-failure
+    ```
 
 ## VSCode Extension Setup
 
@@ -115,30 +123,6 @@ This project also includes a VSCode extension for Human Resource Machine LazyCod
    ```bash
    vsce package
    ```
-
-4. **Install the Extension Locally:**
-   - In VSCode, press `F1`, type "Extensions: Install from VSIX...", and select the `.vsix` file generated in the previous step.
-   - You can also install it manually by running:
-
-     ```bash
-     code --install-extension path_to_vsix_file
-     ```
-
-### Installation Instructions for Users
-
-If you're not developing but just want to install the extension:
-
-1. **Download the `.vsix` File:**
-   Download the packaged extension from the repository or from a release.
-
-2. **Install the Extension in VSCode:**
-   - Open VSCode.
-   - Press `F1`, type "Extensions: Install from VSIX...", and select the `.vsix` file.
-   - Alternatively, you can use the terminal:
-
-     ```bash
-     code --install-extension path_to_vsix_file
-     ```
 
 Once installed, the extension will provide:
 - **Syntax highlighting** for `.hrml` files.

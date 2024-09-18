@@ -22,15 +22,9 @@
 #include "SemanticAnalysisPassManager.h"
 #include "StripAttributePass.h"
 #include "SymbolAnalysisPass.h"
-#include "SymbolTable.h"
 #include "Tests.h"
 #include "UnusedSymbolAnalysisPass.h"
 #include "UseBeforeInitializationCheckPass.h"
-
-#define RETURN_FALSE_IF(x) \
-    if (x) {               \
-        return false;      \
-    }
 
 std::vector<TestCaseData> read_semanalyzer_test_cases()
 {
