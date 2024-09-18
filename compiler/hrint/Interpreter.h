@@ -82,6 +82,7 @@ private:
     int invoke_outbox();
 
     int visit_binary_expression(const parser::AbstractBinaryExpressionASTNodePtr &node);
+    int visit_subroutine(const parser::AbstractSubroutineASTNodePtr &node);
     void ensure_non_zero(int value);
 
     std::stack<parser::AbstractSubroutineASTNodePtr> _call_stack;

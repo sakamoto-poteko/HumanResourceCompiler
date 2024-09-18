@@ -8,6 +8,7 @@
 #include "CompileAST.h"
 #include "IOManager.h"
 #include "Interpreter.h"
+#include "InterpreterExceptions.h"
 #include "InterpreterOptions.h"
 #include "MemoryManager.h"
 #include "SymbolTable.h"
@@ -42,10 +43,10 @@ int main(int argc, char **argv)
     interpreter.set_symbol_table(symtbl);
 
     ioman.set_on_input_popped([](int val) {
-        spdlog::info("I: {}", val);
+        spdlog::info("Input: {}", val);
     });
     ioman.set_on_output_pushed([](int val) {
-        spdlog::info("O: {}", val);
+        spdlog::info("Output: {}", val);
     });
 
     ioman.push_input(1);
@@ -59,7 +60,16 @@ int main(int argc, char **argv)
     ioman.push_input(9);
     ioman.push_input(10);
 
-    interpreter.run();
+    try {
+        int rc = interpreter.run();
+    } catch (InterpreterException ex) {
+        if (ex.get_error_type() == InterpreterException::ErrorType::EndOfInput) {
+            spdlog::info("End of input reached");
+        } else {
+            spdlog::error(ex.what());
+            exit(EXIT_FAILURE);
+        }
+    }
 
     return 0;
 }

@@ -39,21 +39,21 @@ Interpreter::~Interpreter()
 {
 }
 
-int Interpreter::visit(const hrl::parser::IntegerASTNodePtr &node)
+int Interpreter::visit(const parser::IntegerASTNodePtr &node)
 {
     BEGIN_VISIT();
     _accumulator.set_register(node->get_value());
     END_VISIT();
 }
 
-int Interpreter::visit(const hrl::parser::BooleanASTNodePtr &node)
+int Interpreter::visit(const parser::BooleanASTNodePtr &node)
 {
     BEGIN_VISIT();
     _accumulator.set_register(node->get_value() ? 1 : 0);
     END_VISIT();
 }
 
-int Interpreter::visit(const hrl::parser::VariableDeclarationASTNodePtr &node)
+int Interpreter::visit(const parser::VariableDeclarationASTNodePtr &node)
 {
     BEGIN_VISIT();
 
@@ -63,7 +63,7 @@ int Interpreter::visit(const hrl::parser::VariableDeclarationASTNodePtr &node)
     END_VISIT();
 }
 
-int Interpreter::visit(const hrl::parser::VariableAssignmentASTNodePtr &node)
+int Interpreter::visit(const parser::VariableAssignmentASTNodePtr &node)
 {
     BEGIN_VISIT();
 
@@ -77,7 +77,7 @@ int Interpreter::visit(const hrl::parser::VariableAssignmentASTNodePtr &node)
     END_VISIT();
 }
 
-int Interpreter::visit(const hrl::parser::VariableAccessASTNodePtr &node)
+int Interpreter::visit(const parser::VariableAccessASTNodePtr &node)
 {
     BEGIN_VISIT();
 
@@ -87,7 +87,7 @@ int Interpreter::visit(const hrl::parser::VariableAccessASTNodePtr &node)
     END_VISIT();
 }
 
-int Interpreter::visit(const hrl::parser::FloorBoxInitStatementASTNodePtr &node)
+int Interpreter::visit(const parser::FloorBoxInitStatementASTNodePtr &node)
 {
     BEGIN_VISIT();
 
@@ -97,7 +97,7 @@ int Interpreter::visit(const hrl::parser::FloorBoxInitStatementASTNodePtr &node)
     END_VISIT();
 }
 
-int Interpreter::visit(const hrl::parser::FloorAssignmentASTNodePtr &node)
+int Interpreter::visit(const parser::FloorAssignmentASTNodePtr &node)
 {
     BEGIN_VISIT();
 
@@ -116,7 +116,7 @@ int Interpreter::visit(const hrl::parser::FloorAssignmentASTNodePtr &node)
     END_VISIT();
 }
 
-int Interpreter::visit(const hrl::parser::FloorAccessASTNodePtr &node)
+int Interpreter::visit(const parser::FloorAccessASTNodePtr &node)
 {
     BEGIN_VISIT();
 
@@ -129,7 +129,7 @@ int Interpreter::visit(const hrl::parser::FloorAccessASTNodePtr &node)
     END_VISIT();
 }
 
-int Interpreter::visit(const hrl::parser::NegativeExpressionASTNodePtr &node)
+int Interpreter::visit(const parser::NegativeExpressionASTNodePtr &node)
 {
     BEGIN_VISIT();
 
@@ -141,7 +141,7 @@ int Interpreter::visit(const hrl::parser::NegativeExpressionASTNodePtr &node)
     END_VISIT();
 }
 
-int Interpreter::visit(const hrl::parser::NotExpressionASTNodePtr &node)
+int Interpreter::visit(const parser::NotExpressionASTNodePtr &node)
 {
     BEGIN_VISIT();
 
@@ -153,7 +153,7 @@ int Interpreter::visit(const hrl::parser::NotExpressionASTNodePtr &node)
     END_VISIT();
 }
 
-int Interpreter::visit(const hrl::parser::IncrementExpressionASTNodePtr &node)
+int Interpreter::visit(const parser::IncrementExpressionASTNodePtr &node)
 {
     BEGIN_VISIT();
     auto symbol = semanalyzer::Symbol::get_from(node);
@@ -162,7 +162,7 @@ int Interpreter::visit(const hrl::parser::IncrementExpressionASTNodePtr &node)
     END_VISIT();
 }
 
-int Interpreter::visit(const hrl::parser::DecrementExpressionASTNodePtr &node)
+int Interpreter::visit(const parser::DecrementExpressionASTNodePtr &node)
 {
     BEGIN_VISIT();
     auto symbol = semanalyzer::Symbol::get_from(node);
@@ -171,67 +171,67 @@ int Interpreter::visit(const hrl::parser::DecrementExpressionASTNodePtr &node)
     END_VISIT();
 }
 
-int Interpreter::visit(const hrl::parser::AddExpressionASTNodePtr &node)
+int Interpreter::visit(const parser::AddExpressionASTNodePtr &node)
 {
     return visit_binary_expression(node);
 }
 
-int Interpreter::visit(const hrl::parser::SubExpressionASTNodePtr &node)
+int Interpreter::visit(const parser::SubExpressionASTNodePtr &node)
 {
     return visit_binary_expression(node);
 }
 
-int Interpreter::visit(const hrl::parser::MulExpressionASTNodePtr &node)
+int Interpreter::visit(const parser::MulExpressionASTNodePtr &node)
 {
     return visit_binary_expression(node);
 }
 
-int Interpreter::visit(const hrl::parser::DivExpressionASTNodePtr &node)
+int Interpreter::visit(const parser::DivExpressionASTNodePtr &node)
 {
     return visit_binary_expression(node);
 }
 
-int Interpreter::visit(const hrl::parser::ModExpressionASTNodePtr &node)
+int Interpreter::visit(const parser::ModExpressionASTNodePtr &node)
 {
     return visit_binary_expression(node);
 }
 
-int Interpreter::visit(const hrl::parser::EqualExpressionASTNodePtr &node)
+int Interpreter::visit(const parser::EqualExpressionASTNodePtr &node)
 {
     return visit_binary_expression(node);
 }
 
-int Interpreter::visit(const hrl::parser::NotEqualExpressionASTNodePtr &node)
+int Interpreter::visit(const parser::NotEqualExpressionASTNodePtr &node)
 {
     return visit_binary_expression(node);
 }
 
-int Interpreter::visit(const hrl::parser::GreaterThanExpressionASTNodePtr &node)
+int Interpreter::visit(const parser::GreaterThanExpressionASTNodePtr &node)
 {
     return visit_binary_expression(node);
 }
 
-int Interpreter::visit(const hrl::parser::GreaterEqualExpressionASTNodePtr &node)
+int Interpreter::visit(const parser::GreaterEqualExpressionASTNodePtr &node)
 {
     return visit_binary_expression(node);
 }
 
-int Interpreter::visit(const hrl::parser::LessThanExpressionASTNodePtr &node)
+int Interpreter::visit(const parser::LessThanExpressionASTNodePtr &node)
 {
     return visit_binary_expression(node);
 }
 
-int Interpreter::visit(const hrl::parser::LessEqualExpressionASTNodePtr &node)
+int Interpreter::visit(const parser::LessEqualExpressionASTNodePtr &node)
 {
     return visit_binary_expression(node);
 }
 
-int Interpreter::visit(const hrl::parser::AndExpressionASTNodePtr &node)
+int Interpreter::visit(const parser::AndExpressionASTNodePtr &node)
 {
     return visit_binary_expression(node);
 }
 
-int Interpreter::visit(const hrl::parser::OrExpressionASTNodePtr &node)
+int Interpreter::visit(const parser::OrExpressionASTNodePtr &node)
 {
     return visit_binary_expression(node);
 }
@@ -300,9 +300,12 @@ int Interpreter::visit_binary_expression(const parser::AbstractBinaryExpressionA
     END_VISIT();
 }
 
-int Interpreter::visit(const hrl::parser::InvocationExpressionASTNodePtr &node)
+int Interpreter::visit(const parser::InvocationExpressionASTNodePtr &node)
 {
     BEGIN_VISIT();
+
+    rc = traverse(node->get_argument());
+    RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
 
     auto symbol = semanalyzer::Symbol::get_from(node);
     // special handling for lib func
@@ -334,14 +337,14 @@ int Interpreter::visit(const hrl::parser::InvocationExpressionASTNodePtr &node)
     END_VISIT();
 }
 
-int Interpreter::visit(const hrl::parser::EmptyStatementASTNodePtr &node)
+int Interpreter::visit(const parser::EmptyStatementASTNodePtr &node)
 {
     UNUSED(node);
     // do nothing
     return 0;
 }
 
-int Interpreter::visit(const hrl::parser::IfStatementASTNodePtr &node)
+int Interpreter::visit(const parser::IfStatementASTNodePtr &node)
 {
     BEGIN_VISIT();
 
@@ -359,7 +362,7 @@ int Interpreter::visit(const hrl::parser::IfStatementASTNodePtr &node)
     END_VISIT();
 }
 
-int Interpreter::visit(const hrl::parser::WhileStatementASTNodePtr &node)
+int Interpreter::visit(const parser::WhileStatementASTNodePtr &node)
 {
     BEGIN_VISIT();
 
@@ -378,19 +381,21 @@ int Interpreter::visit(const hrl::parser::WhileStatementASTNodePtr &node)
 
         if (rc == CF_BreakRequested) {
             // for hit break
+            rc = 0;
             END_VISIT();
         }
 
         if (rc == CF_ContinueRequested) {
             // for hit continue. enter next loop
             // there's nothing special inside this if. it's the same as body is normally finished
+            rc = 0;
         }
     } while (true);
 
     END_VISIT();
 }
 
-int Interpreter::visit(const hrl::parser::ForStatementASTNodePtr &node)
+int Interpreter::visit(const parser::ForStatementASTNodePtr &node)
 {
     BEGIN_VISIT();
 
@@ -413,6 +418,7 @@ int Interpreter::visit(const hrl::parser::ForStatementASTNodePtr &node)
 
         if (rc == CF_BreakRequested) {
             // for hit break
+            rc = 0;
             END_VISIT();
         }
 
@@ -427,7 +433,7 @@ int Interpreter::visit(const hrl::parser::ForStatementASTNodePtr &node)
     END_VISIT();
 }
 
-int Interpreter::visit(const hrl::parser::ReturnStatementASTNodePtr &node)
+int Interpreter::visit(const parser::ReturnStatementASTNodePtr &node)
 {
     BEGIN_VISIT();
     rc = traverse(node->get_expression());
@@ -437,21 +443,21 @@ int Interpreter::visit(const hrl::parser::ReturnStatementASTNodePtr &node)
     END_VISIT();
 }
 
-int Interpreter::visit(const hrl::parser::BreakStatementASTNodePtr &node)
+int Interpreter::visit(const parser::BreakStatementASTNodePtr &node)
 {
     BEGIN_VISIT();
     rc = CF_BreakRequested;
     END_VISIT();
 }
 
-int Interpreter::visit(const hrl::parser::ContinueStatementASTNodePtr &node)
+int Interpreter::visit(const parser::ContinueStatementASTNodePtr &node)
 {
     BEGIN_VISIT();
     rc = CF_ContinueRequested;
     END_VISIT();
 }
 
-int Interpreter::visit(const hrl::parser::StatementBlockASTNodePtr &node)
+int Interpreter::visit(const parser::StatementBlockASTNodePtr &node)
 {
     BEGIN_VISIT();
     parser::StatementsVector &stmts = node->get_statements();
@@ -460,25 +466,34 @@ int Interpreter::visit(const hrl::parser::StatementBlockASTNodePtr &node)
     END_VISIT();
 }
 
-int Interpreter::visit(const hrl::parser::SubprocDefinitionASTNodePtr &node)
+int Interpreter::visit_subroutine(const parser::AbstractSubroutineASTNodePtr &node)
 {
     BEGIN_VISIT();
+    auto &param = node->get_parameter();
+    if (param) {
+        // store the parameter value
+        semanalyzer::SymbolPtr sym = semanalyzer::Symbol::get_from(param);
+        assert(sym);
+        _accumulator.copy_to(sym);
+    }
     rc = traverse(node->get_body());
     RETURN_IF_FAIL_IN_VISIT(rc);
+    rc = 0;
     // for rc < 0 we just return
     END_VISIT();
 }
 
-int Interpreter::visit(const hrl::parser::FunctionDefinitionASTNodePtr &node)
+int Interpreter::visit(const parser::SubprocDefinitionASTNodePtr &node)
 {
-    BEGIN_VISIT();
-    rc = traverse(node->get_body());
-    RETURN_IF_FAIL_IN_VISIT(rc);
-    // for rc < 0 we just return
-    END_VISIT();
+    return visit_subroutine(node);
 }
 
-int Interpreter::visit(const hrl::parser::CompilationUnitASTNodePtr &node)
+int Interpreter::visit(const parser::FunctionDefinitionASTNodePtr &node)
+{
+    return visit_subroutine(node);
+}
+
+int Interpreter::visit(const parser::CompilationUnitASTNodePtr &node)
 {
     BEGIN_VISIT();
 
@@ -508,6 +523,7 @@ int Interpreter::run()
 
 void Interpreter::enter_node(const parser::ASTNodePtr &node)
 {
+    spdlog::debug("Entered node {} on {}:{}", ast_node_type_to_string(node->get_node_type()), node->lineno(), node->colno());
     semanalyzer::SemanticAnalysisPass::enter_node(node);
 }
 

@@ -1,11 +1,15 @@
 init floor[1] = 1;
 init floor[0] = 0;
 
+function inc(a) {
+    return ++a;
+}
+
 sub start() {
     while (true) {
         let a = inbox();
         let b = inbox();
         let c = a * b;
-        outbox(c);
+        outbox(inc(c));
     }
 }

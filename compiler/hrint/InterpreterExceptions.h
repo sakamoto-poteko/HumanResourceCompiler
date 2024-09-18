@@ -13,6 +13,8 @@ public:
     enum class ErrorType {
         ValueIsZero,
         RegisterIsEmpty,
+        EndOfInput,
+        FloorIsEmpty,
     };
 
     InterpreterException(ErrorType err, const std::string &message = "")

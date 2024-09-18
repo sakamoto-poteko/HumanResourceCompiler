@@ -22,6 +22,7 @@ bool IOManager::pop_input(int &value)
         return false;
     } else {
         value = _input.front();
+        _input.pop();
         if (_on_input_popped) {
             _on_input_popped(value);
         }
@@ -43,6 +44,7 @@ bool IOManager::pop_output(int &value)
         return false;
     } else {
         value = _output.front();
+        _output.pop();
         return true;
     }
 }
