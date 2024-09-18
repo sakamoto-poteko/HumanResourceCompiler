@@ -1,0 +1,46 @@
+name: VSCode Extension
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - '*'
+
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'human-resource-lazycoder-vscode/**'
+
+jobs:
+  build:
+    runs-on: deb
+    container:
+      image: mcr.microsoft.com/devcontainers/typescript-node:22
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        working-directory: human-resource-lazycoder-vscode
+        run: npm install
+
+      - name: Package VSCode Extension
+        working-directory: human-resource-lazycoder-vscode
+        run: npx vsce package
+
+      - name: Upload VSIX Artifact for master
+        if: github.ref == 'refs/heads/master'
+        uses: actions/upload-artifact@v3
+        with:
+          name: hrml-vscode-extension-master
+          path: human-resource-lazycoder-vscode/*.vsix
+
+      - name: Upload VSIX Artifact for tags
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v3
+        with:
+          name: hrml-vscode-extension-tag
+          path: human-resource-lazycoder-vscode/*.vsix
