@@ -24,6 +24,7 @@
 #include "SymbolAnalysisPass.h"
 #include "SymbolTable.h"
 #include "Tests.h"
+#include "UnusedSymbolAnalysisPass.h"
 #include "UseBeforeInitializationCheckPass.h"
 
 #define RETURN_FALSE_IF(x) \
@@ -108,7 +109,7 @@ TEST_P(SemanticAnalyzerTests, SemanticAnalysisTests)
     using SemaAttrId = hrl::semanalyzer::SemAnalzyerASTNodeAttributeId;
 
     // it's for conditional breakpoint
-    auto dbg = data.filename == "E3011X_pass_if_then_else_multiple.hrml";
+    auto dbg = data.filename == "W3006_pass_var_shadow_global_block.hrml";
     UNUSED(dbg);
 
     hrl::semanalyzer::SemanticAnalysisPassManager sem_passmgr(ast, std::make_shared<std::string>(data.filename));
@@ -142,6 +143,14 @@ TEST_P(SemanticAnalyzerTests, SemanticAnalysisTests)
         "DeadCodeElimination",
         data.filename + "-dce.dot",
         std::set<int> {});
+
+    auto unused_var = sem_passmgr.add_pass<hrl::semanalyzer::UnusedSymbolAnalysisPass>(
+        "UnusedVariableElimination",
+        data.filename + "-uvar.dot",
+        std::set<int> {
+            SemaAttrId::ATTR_SEMANALYZER_SYMBOL,
+            SemaAttrId::ATTR_SEMANALYZER_SCOPE_INFO,
+        });
 
     auto clear_symtbl = sem_passmgr.add_pass<hrl::semanalyzer::ClearSymbolTablePass>("ClearSymbolTablePass");
     auto strip_sym_attr = sem_passmgr.add_pass<hrl::semanalyzer::StripAttributePass>("StripSymbolAttributesPass");

@@ -1,5 +1,5 @@
 # CMake project for Linux, macOS, and Windows located under the `compiler` directory.
-name: CMake on multiple platforms
+name: Compiler
 
 on:
   push:

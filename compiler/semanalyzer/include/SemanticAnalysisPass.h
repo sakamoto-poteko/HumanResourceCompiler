@@ -72,6 +72,8 @@ protected:
 
     std::vector<parser::ASTNodePtr> _ancestors;
 
+    bool ancestor_has(parser::ASTNodeType type) const;
+
     template <typename NodeT>
         requires std::is_base_of_v<parser::ASTNode, NodeT>
     bool is_parent_a()

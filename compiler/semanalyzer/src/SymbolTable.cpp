@@ -141,6 +141,22 @@ void hrl::semanalyzer::SymbolTable::get_symbols_exclude_ancestors(const std::str
     out.swap(result);
 }
 
+void SymbolTable::get_all_symbols(std::vector<std::pair<SymbolPtr, std::string>> &out)
+{
+    std::vector<std::pair<SymbolPtr, std::string>> result;
+
+    for (const auto &[id, sym_name_map] : _scopes) {
+        // skip the library functions
+        if (!id.empty()) {
+            for (const auto &[defined_scope, symbol] : sym_name_map) {
+                result.push_back(std::make_pair(symbol, defined_scope));
+            }
+        }
+    }
+
+    out.swap(result);
+}
+
 bool SymbolTable::is_symbol_in_scope(const SymbolPtr &symbol, const std::string &scope_id)
 {
     auto ancestors = ScopeManager::get_ancestor_scopes(scope_id);

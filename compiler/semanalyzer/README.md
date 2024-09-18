@@ -19,7 +19,7 @@ The following is a breakdown of pending tasks to be implemented in the semantic 
 
 ### Symbol Use Analysis
 - [x] Enforce the variable assignment before use
-- [ ] Detect unused variables
+- [x] Detect unused variables
 
 ### Control Flow Analysis
 - [x] Implement detection of unreachable code and issue appropriate warnings.
