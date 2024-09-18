@@ -305,25 +305,31 @@ int Interpreter::visit(const hrl::parser::InvocationExpressionASTNodePtr &node)
     BEGIN_VISIT();
 
     auto symbol = semanalyzer::Symbol::get_from(node);
-    auto subroutine_node = WEAK_TO_SHARED(symbol->definition);
-    assert(subroutine_node);
-
-    auto type = subroutine_node->get_node_type();
-
-    if (type == parser::ASTNodeType::FunctionDefinition) {
-        auto func = std::dynamic_pointer_cast<parser::FunctionDefinitionASTNode>(subroutine_node);
-        _call_stack.push(func);
-        rc = visit(func);
-    } else if (type == parser::ASTNodeType::SubprocDefinition) {
-        auto sub = std::dynamic_pointer_cast<parser::SubprocDefinitionASTNode>(subroutine_node);
-        _call_stack.push(sub);
-        rc = visit(sub);
+    // special handling for lib func
+    if (_symbol_table->is_library_function(symbol)) {
+        rc = invoke_library_function(symbol->name);
+        RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
     } else {
-        // not possible
-        throw;
+        auto subroutine_node = WEAK_TO_SHARED(symbol->definition);
+        assert(subroutine_node);
+
+        auto type = subroutine_node->get_node_type();
+
+        if (type == parser::ASTNodeType::FunctionDefinition) {
+            auto func = std::dynamic_pointer_cast<parser::FunctionDefinitionASTNode>(subroutine_node);
+            _call_stack.push(func);
+            rc = visit(func);
+        } else if (type == parser::ASTNodeType::SubprocDefinition) {
+            auto sub = std::dynamic_pointer_cast<parser::SubprocDefinitionASTNode>(subroutine_node);
+            _call_stack.push(sub);
+            rc = visit(sub);
+        } else {
+            // not possible
+            throw;
+        }
+        RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
+        _call_stack.pop();
     }
-    RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
-    _call_stack.pop();
 
     END_VISIT();
 }
@@ -495,25 +501,49 @@ int Interpreter::visit(const hrl::parser::CompilationUnitASTNodePtr &node)
     END_VISIT();
 }
 
-int hrl::hrint::Interpreter::run()
+int Interpreter::run()
 {
     return visit(_root);
 }
 
-void hrl::hrint::Interpreter::enter_node(const parser::ASTNodePtr &node)
+void Interpreter::enter_node(const parser::ASTNodePtr &node)
 {
     semanalyzer::SemanticAnalysisPass::enter_node(node);
 }
 
-void hrl::hrint::Interpreter::leave_node()
+void Interpreter::leave_node()
 {
     semanalyzer::SemanticAnalysisPass::leave_node();
 }
 
-void hrl::hrint::Interpreter::ensure_non_zero(int value)
+void Interpreter::ensure_non_zero(int value)
 {
     if (value == 0) {
         throw InterpreterException(InterpreterException::ErrorType::ValueIsZero, "Value cannot be zero");
+    }
+}
+
+int Interpreter::invoke_inbox()
+{
+    _accumulator.inbox();
+    return 0;
+}
+
+int Interpreter::invoke_outbox()
+{
+    _accumulator.outbox();
+    return 0;
+}
+
+int Interpreter::invoke_library_function(const std::string &name)
+{
+    if (name == "inbox") {
+        return invoke_inbox();
+    } else if (name == "outbox") {
+        return invoke_outbox();
+    } else {
+        // FIXME:
+        throw;
     }
 }
 

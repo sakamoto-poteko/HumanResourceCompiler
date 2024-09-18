@@ -18,6 +18,7 @@
 #include "SemanticAnalysisPassManager.h"
 #include "StripAttributePass.h"
 #include "SymbolAnalysisPass.h"
+#include "SymbolTable.h"
 #include "UnusedSymbolAnalysisPass.h"
 #include "UseBeforeInitializationCheckPass.h"
 #include "hrint_global.h"
@@ -30,7 +31,7 @@ OPEN_HRINT_NAMESPACE
         return 1;                         \
     }
 
-int compile_to_ast(const InterpreterOptions &options, hrl::parser::CompilationUnitASTNodePtr &ast)
+int compile_to_ast(const InterpreterOptions &options, hrl::parser::CompilationUnitASTNodePtr &ast, semanalyzer::SymbolTablePtr &symtbl)
 {
     FILE *file = std::fopen(options.input_file.c_str(), "r");
 
@@ -78,6 +79,7 @@ int compile_to_ast(const InterpreterOptions &options, hrl::parser::CompilationUn
         return sema_result;
     }
 
+    symtbl = sem_passmgr.get_symbol_table();
     return 0;
 }
 

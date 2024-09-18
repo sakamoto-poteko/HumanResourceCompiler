@@ -22,6 +22,9 @@ bool IOManager::pop_input(int &value)
         return false;
     } else {
         value = _input.front();
+        if (_on_input_popped) {
+            _on_input_popped(value);
+        }
         return true;
     }
 }
@@ -29,6 +32,9 @@ bool IOManager::pop_input(int &value)
 void IOManager::push_output(int value)
 {
     _output.push(value);
+    if (_on_output_pushed) {
+        _on_output_pushed(value);
+    }
 }
 
 bool IOManager::pop_output(int &value)
@@ -39,6 +45,16 @@ bool IOManager::pop_output(int &value)
         value = _output.front();
         return true;
     }
+}
+
+void IOManager::set_on_input_popped(std::function<void(int)> hook)
+{
+    _on_input_popped = hook;
+}
+
+void IOManager::set_on_output_pushed(std::function<void(int)> hook)
+{
+    _on_output_pushed = hook;
 }
 
 CLOSE_HRINT_NAMESPACE

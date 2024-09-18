@@ -4,10 +4,7 @@
 #include <stack>
 
 #include "ASTNodeForward.h"
-#include "ASTNodeVisitor.h"
 #include "Accumulator.h"
-#include "IOManager.h"
-#include "MemoryManager.h"
 #include "SemanticAnalysisPass.h"
 #include "WithSymbolTable.h"
 #include "hrint_global.h"
@@ -15,13 +12,11 @@
 
 OPEN_HRINT_NAMESPACE
 
-class Interpreter : public hrl::semanalyzer::SemanticAnalysisPass {
+class Interpreter : public hrl::semanalyzer::SemanticAnalysisPass, public semanalyzer::WithSymbolTable {
 public:
-    Interpreter(StringPtr filename, hrl::parser::CompilationUnitASTNodePtr root)
+    Interpreter(StringPtr filename, hrl::parser::CompilationUnitASTNodePtr root, Accumulator &accumulator)
         : hrl::semanalyzer::SemanticAnalysisPass(std::move(filename), std::move(root))
-        , _memory_manager()
-        , _io_manager()
-        , _accumulator(_memory_manager, _io_manager)
+        , _accumulator(accumulator)
     {
     }
 
@@ -67,16 +62,12 @@ public:
     int visit(const hrl::parser::FunctionDefinitionASTNodePtr &node) override;
     int visit(const hrl::parser::CompilationUnitASTNodePtr &node) override;
 
-    IOManager &get_io_manager() { return _io_manager; }
-
 protected:
     void enter_node(const parser::ASTNodePtr &node) override;
     void leave_node() override;
 
 private:
-    MemoryManager _memory_manager;
-    IOManager _io_manager;
-    Accumulator _accumulator;
+    Accumulator &_accumulator;
 
     enum ControlFlowState : int {
         CF_Normal = 0,
@@ -84,6 +75,11 @@ private:
         CF_ContinueRequested = -2,
         CF_BreakRequested = -3,
     };
+
+    int invoke_library_function(const std::string &name);
+
+    int invoke_inbox();
+    int invoke_outbox();
 
     int visit_binary_expression(const parser::AbstractBinaryExpressionASTNodePtr &node);
     void ensure_non_zero(int value);
