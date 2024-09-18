@@ -3,10 +3,18 @@ name: Compiler
 
 on:
   push:
-    branches: ["master"]
-  pull_request:
-    branches: ["master"]
+    branches:
+      - master
+    tags:
+      - '*'
 
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'compiler/**'
+      - 'design/**'
+      - 'utils/**'
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
