@@ -317,5 +317,15 @@ void SemanticAnalysisPass::request_to_remove_self()
     _node_removal_requests.insert(_ancestors.back());
 }
 
+bool SemanticAnalysisPass::ancestor_has(parser::ASTNodeType type) const
+{
+    for (const auto &node : _ancestors) {
+        if (node->get_node_type() == type) {
+            return true;
+        }
+    }
+    return false;
+}
+
 CLOSE_SEMANALYZER_NAMESPACE
 // end

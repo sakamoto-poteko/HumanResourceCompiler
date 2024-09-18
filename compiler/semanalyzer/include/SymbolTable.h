@@ -73,6 +73,7 @@ public:
     // vector<pair<Symbol, sym_defined_scope>>
     void get_symbols_include_ancestors(const std::string &scope_id, std::vector<std::pair<SymbolPtr, std::string>> &out);
     void get_symbols_exclude_ancestors(const std::string &scope_id, std::vector<SymbolPtr> &out);
+    void get_all_symbols(std::vector<std::pair<SymbolPtr, std::string>> &out);
 
     // include parent scopes
     bool is_symbol_in_scope(const SymbolPtr &symbol, const std::string &scope_id);

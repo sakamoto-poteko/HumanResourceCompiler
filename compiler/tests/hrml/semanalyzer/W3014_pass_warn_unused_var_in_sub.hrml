@@ -1,0 +1,9 @@
+// both vars should be warned
+// Expect: 'xx'
+// Expect: 'yy'
+sub start()
+{
+    let xx = 0;
+    let yy;
+    outbox(0);
+}

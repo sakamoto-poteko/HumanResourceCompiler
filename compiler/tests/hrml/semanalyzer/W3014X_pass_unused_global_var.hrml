@@ -1,0 +1,7 @@
+// global unused vars shouldn't be warned
+let xx = 0;
+let yy;
+sub start()
+{
+    outbox(0);
+}

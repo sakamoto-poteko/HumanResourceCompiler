@@ -1,5 +1,6 @@
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <boost/format.hpp>
@@ -134,6 +135,22 @@ void hrl::semanalyzer::SymbolTable::get_symbols_exclude_ancestors(const std::str
         if (id == scope_id) {
             for (const auto &[_, symbol] : sym_name_map) {
                 result.push_back(symbol);
+            }
+        }
+    }
+
+    out.swap(result);
+}
+
+void SymbolTable::get_all_symbols(std::vector<std::pair<SymbolPtr, std::string>> &out)
+{
+    std::vector<std::pair<SymbolPtr, std::string>> result;
+
+    for (const auto &[id, sym_name_map] : _scopes) {
+        // skip the library functions
+        if (!id.empty()) {
+            for (const auto &[defined_scope, symbol] : sym_name_map) {
+                result.push_back(std::make_pair(symbol, defined_scope));
             }
         }
     }
