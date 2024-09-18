@@ -1,6 +1,7 @@
 #ifndef SEMANTICANALYSISPASS_H
 #define SEMANTICANALYSISPASS_H
 
+#include <cassert>
 #include <functional>
 #include <map>
 #include <memory>
