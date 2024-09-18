@@ -73,6 +73,8 @@ int UnusedSymbolAnalysisPass::visit(const parser::VariableDeclarationASTNodePtr 
 
     switch (_visit_state) {
     case VisitState::CollectionPass: {
+        rc = traverse(node->get_assignment());
+        RETURN_IF_FAIL_IN_VISIT(rc);
     } break;
     case VisitState::MutationPass: {
         // we skip global vars. this is done by visit compilation unit without visiting globals
@@ -114,6 +116,25 @@ int hrl::semanalyzer::UnusedSymbolAnalysisPass::visit_using_variable(const parse
     case VisitState::MutationPass: {
     } break;
     }
+
+    END_VISIT();
+}
+
+int UnusedSymbolAnalysisPass::visit(const parser::FunctionDefinitionASTNodePtr &node)
+{
+    BEGIN_VISIT();
+
+    auto &param = node->get_parameter();
+    if (param) {
+        rc = traverse(param);
+        RETURN_IF_FAIL_IN_VISIT(rc);
+        SymbolPtr sym = Symbol::get_from(param);
+        assert(sym);
+        _unused_symbols.erase(sym);
+    }
+
+    rc = traverse(node->get_body());
+    RETURN_IF_FAIL_IN_VISIT(rc);
 
     END_VISIT();
 }

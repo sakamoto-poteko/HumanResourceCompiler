@@ -1,0 +1,6 @@
+sub start() {
+    let a = inbox();
+    let b = inbox();
+    let c = a * b;
+    outbox(c);
+}
