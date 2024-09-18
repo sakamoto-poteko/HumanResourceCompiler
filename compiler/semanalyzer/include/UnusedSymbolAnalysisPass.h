@@ -26,7 +26,8 @@ public:
     int visit(const parser::VariableAssignmentASTNodePtr &node) override;
     // Don't strip out unused function calls. It can be exported
     // int visit(const parser::SubprocDefinitionASTNodePtr &node) override;
-    // int visit(const parser::FunctionDefinitionASTNodePtr &node) override;
+    // special handling for param
+    int visit(const parser::FunctionDefinitionASTNodePtr &node) override;
     // int visit(const parser::InvocationExpressionASTNodePtr &node) override;
     int visit(const parser::CompilationUnitASTNodePtr &node) override;
 
