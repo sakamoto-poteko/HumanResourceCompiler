@@ -1,6 +1,7 @@
 #include <cassert>
 #include <string>
 
+#include "ASTNode.h"
 #include "ASTNodeForward.h"
 #include "ErrorManager.h"
 #include "ScopeManager.h"
@@ -260,8 +261,19 @@ int UseBeforeInitializationCheckPass::visit_subroutine(parser::AbstractSubroutin
     NodeResult prefunc_result; // assume the function isn't executed
     get_var_init_result(node, prefunc_result);
 
-    rc = traverse_multiple(node->get_parameter(), node->get_body());
+    track_scope_enter_manually(node, ScopeInfoAttribute::get_scope(node->get_body())->get_scope_id());
+    auto &parameter = node->get_parameter();
+    if (parameter) {
+        rc = traverse(parameter);
+        RETURN_IF_FAIL_IN_VISIT(rc);
+        auto param_sym = Symbol::get_from(parameter);
+        assert(param_sym);
+        // we have to manually set visited here because parameter doesn't have an 'assignment' part
+        set_var_init_at_current_scope(param_sym, 1);
+    }
+    rc = traverse(node->get_body());
     RETURN_IF_FAIL_IN_VISIT(rc);
+    track_scope_leave_manually(node);
 
     set_var_init_at_current_scope(prefunc_result);
 
