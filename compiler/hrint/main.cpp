@@ -26,7 +26,7 @@ int main(int argc, char **argv)
     if (options.verbose) {
         spdlog::set_level(spdlog::level::debug);
     } else {
-        spdlog::set_level(spdlog::level::warn);
+        spdlog::set_level(spdlog::level::info);
     }
 
     hrl::parser::CompilationUnitASTNodePtr ast;
@@ -44,13 +44,15 @@ int main(int argc, char **argv)
     interpreter.set_symbol_table(symtbl);
 
     ioman.set_on_input_popped([](int val) {
-        spdlog::info("Input: {}", val);
+        spdlog::info("<< {}", val);
     });
     ioman.set_on_output_pushed([](int val) {
-        spdlog::info("Output: {}", val);
+        spdlog::info("=> {}", val);
     });
 
-    ioman.push_input(456);
+    for (int input : options.input_data) {
+        ioman.push_input(input);
+    }
 
     try {
         int rc = interpreter.run();
