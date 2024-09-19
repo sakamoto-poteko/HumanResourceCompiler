@@ -704,3 +704,4 @@ latex
 
 build/
 cmake-build*/
+CMakeSettings.json
