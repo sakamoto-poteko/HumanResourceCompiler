@@ -1,5 +1,4 @@
 let uninit;
-
 sub start()
 {
     for (let x = inbox(), x < 1, ++x) {
@@ -8,3 +7,5 @@ sub start()
     uninit = 1;
     outbox(uninit);
 }
+// Input: 0
+// Output: 1

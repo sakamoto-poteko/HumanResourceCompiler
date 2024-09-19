@@ -5,3 +5,5 @@ sub start()
     let uninit = 0;
     outbox(uninit);
 }
+// Input:
+// Output: 0

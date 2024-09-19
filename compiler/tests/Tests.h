@@ -24,7 +24,9 @@ struct TestCaseData {
     bool should_pass;
     std::string testname;
     bool expect_code;
-    std::vector<std::string> expected_outputs;
+    std::vector<std::string> expected_compiler_outputs;
+    std::vector<int> program_inputs;
+    std::vector<int> expected_program_outputs;
 
     // Overload the << operator for CustomData
     friend std::ostream &operator<<(std::ostream &os, const TestCaseData &data)

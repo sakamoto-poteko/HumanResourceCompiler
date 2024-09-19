@@ -1,7 +1,7 @@
-#include "IOManager.h"
-#include "hrint_global.h"
+#include "IntIOManager.h"
+#include "interpreter_global.h"
 
-OPEN_HRINT_NAMESPACE
+OPEN_INTERPRETER_NAMESPACE
 
 IOManager::IOManager()
 {
@@ -59,6 +59,6 @@ void IOManager::set_on_output_pushed(std::function<void(int)> hook)
     _on_output_pushed = hook;
 }
 
-CLOSE_HRINT_NAMESPACE
+CLOSE_INTERPRETER_NAMESPACE
 
 // end

@@ -1,10 +1,10 @@
-#ifndef MEMORYMANAGER_H
-#define MEMORYMANAGER_H
+#ifndef INT_MEMORYMANAGER_H
+#define INT_MEMORYMANAGER_H
 
 #include "Symbol.h"
-#include "hrint_global.h"
+#include "interpreter_global.h"
 
-OPEN_HRINT_NAMESPACE
+OPEN_INTERPRETER_NAMESPACE
 
 class MemoryManager {
 public:
@@ -21,6 +21,6 @@ private:
     std::map<hrl::semanalyzer::SymbolPtr, int> _variables;
 };
 
-CLOSE_HRINT_NAMESPACE
+CLOSE_INTERPRETER_NAMESPACE
 
 #endif

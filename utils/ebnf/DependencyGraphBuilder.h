@@ -27,7 +27,7 @@ public:
     {
     }
 
-    virtual void build();
+    virtual bool build();
     virtual bool write_graphviz(const std::string &path);
     virtual bool get_dependency_graph(boost::directed_graph<ASTNodePtr> &graph)
     {

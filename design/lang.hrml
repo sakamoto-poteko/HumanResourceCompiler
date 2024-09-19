@@ -1,15 +1,13 @@
-init floor[1] = 1;
-init floor[0] = 0;
-
-function inc(a) {
-    return ++a;
+// Input: 345
+// Output: 345
+// func can be defined later
+sub start()
+{
+    defined_func();
 }
 
-sub start() {
-    while (true) {
-        let a = inbox();
-        let b = inbox();
-        let c = a * b;
-        outbox(inc(c));
-    }
+// functions can be defined later but called earlier
+sub defined_func()
+{
+    outbox(inbox());
 }

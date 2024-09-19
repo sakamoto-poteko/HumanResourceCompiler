@@ -8,3 +8,5 @@ sub start()
     uninit = 1;
     outbox(uninit);
 }
+// Input: 1, 1, 0
+// Output: 1

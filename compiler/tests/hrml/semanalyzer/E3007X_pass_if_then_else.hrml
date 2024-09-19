@@ -10,3 +10,5 @@ sub start()
 
     outbox(uninit);
 }
+// Input: 5
+// Output: 1

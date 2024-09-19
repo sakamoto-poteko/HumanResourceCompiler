@@ -4,9 +4,9 @@
 #include <exception>
 #include <string>
 
-#include "hrint_global.h"
+#include "interpreter_global.h"
 
-OPEN_HRINT_NAMESPACE
+OPEN_INTERPRETER_NAMESPACE
 
 class InterpreterException : public std::exception {
 public:
@@ -15,6 +15,7 @@ public:
         RegisterIsEmpty,
         EndOfInput,
         FloorIsEmpty,
+        ValueOutOfRange,
     };
 
     InterpreterException(ErrorType err, const std::string &message = "")
@@ -35,6 +36,6 @@ private:
     std::string _msg;
 };
 
-CLOSE_HRINT_NAMESPACE
+CLOSE_INTERPRETER_NAMESPACE
 
 #endif

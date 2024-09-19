@@ -4,17 +4,18 @@
 #include <spdlog/spdlog.h>
 
 #include "ASTNodeForward.h"
-#include "Accumulator.h"
 #include "CompileAST.h"
-#include "IOManager.h"
+#include "IntAccumulator.h"
+#include "IntIOManager.h"
+#include "IntMemoryManager.h"
 #include "Interpreter.h"
 #include "InterpreterExceptions.h"
 #include "InterpreterOptions.h"
-#include "MemoryManager.h"
 #include "SymbolTable.h"
 #include "TerminalColor.h"
 
 using namespace hrl::hrint;
+using namespace hrl::interpreter;
 
 int main(int argc, char **argv)
 {
@@ -49,16 +50,7 @@ int main(int argc, char **argv)
         spdlog::info("Output: {}", val);
     });
 
-    ioman.push_input(1);
-    ioman.push_input(2);
-    ioman.push_input(3);
-    ioman.push_input(4);
-    ioman.push_input(5);
-    ioman.push_input(6);
-    ioman.push_input(7);
-    ioman.push_input(8);
-    ioman.push_input(9);
-    ioman.push_input(10);
+    ioman.push_input(456);
 
     try {
         int rc = interpreter.run();

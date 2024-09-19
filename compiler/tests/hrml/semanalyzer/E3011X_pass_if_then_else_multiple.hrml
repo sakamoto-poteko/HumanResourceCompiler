@@ -27,6 +27,8 @@ function test2()
 
 sub start()
 {
-    test();
-    test2();
+    outbox(test());
+    outbox(test2());
 }
+// Input: 0, 0, 0, 0
+// Output: 2, 1

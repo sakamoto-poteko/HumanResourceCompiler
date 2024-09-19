@@ -15,3 +15,5 @@ sub start()
 {
     err();
 }
+// Input: 1
+// Output:

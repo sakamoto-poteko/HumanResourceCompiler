@@ -4,13 +4,13 @@
 #include <stack>
 
 #include "ASTNodeForward.h"
-#include "Accumulator.h"
+#include "IntAccumulator.h"
 #include "SemanticAnalysisPass.h"
 #include "WithSymbolTable.h"
-#include "hrint_global.h"
 #include "hrl_global.h"
+#include "interpreter_global.h"
 
-OPEN_HRINT_NAMESPACE
+OPEN_INTERPRETER_NAMESPACE
 
 class Interpreter : public hrl::semanalyzer::SemanticAnalysisPass, public semanalyzer::WithSymbolTable {
 public:
@@ -88,6 +88,6 @@ private:
     std::stack<parser::AbstractSubroutineASTNodePtr> _call_stack;
 };
 
-CLOSE_HRINT_NAMESPACE
+CLOSE_INTERPRETER_NAMESPACE
 
 #endif

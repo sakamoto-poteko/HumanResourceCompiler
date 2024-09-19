@@ -1,6 +1,6 @@
 sub start()
 {
-    f(0);
+    outbox(f(1));
 }
 
 function f(num)
@@ -9,3 +9,5 @@ function f(num)
         outbox(num);
     return inbox();
 }
+// Input: 456
+// Output: 1, 456

@@ -189,6 +189,8 @@ enum class ASTBinaryOperator : int {
     NE,
 };
 
+const char *get_ast_binary_operator_str(ASTBinaryOperator op);
+
 // AbstractBinaryExpressionASTNode
 class AbstractBinaryExpressionASTNode : public AbstractExpressionASTNode {
 public:

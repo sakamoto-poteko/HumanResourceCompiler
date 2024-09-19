@@ -1,3 +1,5 @@
+// Input: 345
+// Output: 345
 // func can be defined later
 sub start()
 {
@@ -7,5 +9,5 @@ sub start()
 // functions can be defined later but called earlier
 sub defined_func()
 {
-    inbox();
+    outbox(inbox());
 }

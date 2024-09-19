@@ -1,18 +1,18 @@
-#include "Interpreter.h"
-#include "ASTNode.h"
-#include "ASTNodeForward.h"
-#include "InterpreterExceptions.h"
-#include "SemanticAnalysisPass.h"
-#include "Symbol.h"
-#include "hrint_global.h"
-#include "hrl_global.h"
-
 #include <algorithm>
 #include <cassert>
 #include <memory>
+
 #include <spdlog/spdlog.h>
 
-OPEN_HRINT_NAMESPACE
+#include "ASTNode.h"
+#include "Interpreter.h"
+#include "InterpreterExceptions.h"
+#include "SemanticAnalysisPass.h"
+#include "Symbol.h"
+#include "hrl_global.h"
+#include "interpreter_global.h"
+
+OPEN_INTERPRETER_NAMESPACE
 
 #define BEGIN_VISIT() \
     enter_node(node); \
@@ -57,6 +57,7 @@ int Interpreter::visit(const parser::VariableDeclarationASTNodePtr &node)
 {
     BEGIN_VISIT();
 
+    spdlog::debug("declared variable '{}'", *node->get_name());
     rc = traverse(node->get_assignment());
     RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
 
@@ -72,6 +73,7 @@ int Interpreter::visit(const parser::VariableAssignmentASTNodePtr &node)
     rc = traverse(node->get_value());
     RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
 
+    spdlog::debug("assigned variable '{}' with value {}", symbol->name, _accumulator.get_register());
     _accumulator.copy_to(symbol);
 
     END_VISIT();
@@ -83,6 +85,8 @@ int Interpreter::visit(const parser::VariableAccessASTNodePtr &node)
 
     auto symbol = semanalyzer::Symbol::get_from(node);
     _accumulator.copy_from(symbol);
+
+    spdlog::debug("loaded variable '{}' with value {}", symbol->name, _accumulator.get_register());
 
     END_VISIT();
 }
@@ -110,8 +114,8 @@ int Interpreter::visit(const parser::FloorAssignmentASTNodePtr &node)
     int flrid = _accumulator.get_register();
 
     _accumulator.set_register(value);
-
     _accumulator.copy_to_floor(flrid);
+    spdlog::debug("set floor[{}] with value {}", flrid, value);
 
     END_VISIT();
 }
@@ -125,6 +129,7 @@ int Interpreter::visit(const parser::FloorAccessASTNodePtr &node)
     int idx = _accumulator.get_register();
 
     _accumulator.copy_from_floor(idx);
+    spdlog::debug("loaded floor[{}] with value {}", idx, _accumulator.get_register());
 
     END_VISIT();
 }
@@ -137,6 +142,7 @@ int Interpreter::visit(const parser::NegativeExpressionASTNodePtr &node)
     RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
 
     _accumulator.set_register(-_accumulator.get_register());
+    spdlog::debug("negated {}. result: {}", -_accumulator.get_register(), _accumulator.get_register());
 
     END_VISIT();
 }
@@ -147,8 +153,9 @@ int Interpreter::visit(const parser::NotExpressionASTNodePtr &node)
 
     rc = traverse(node->get_operand());
     RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
-
-    _accumulator.set_register(_accumulator.get_register() ? 0 : 1);
+    int val = _accumulator.get_register();
+    _accumulator.set_register(val ? 0 : 1);
+    spdlog::debug("notted {}. result: {}", val, _accumulator.get_register());
 
     END_VISIT();
 }
@@ -159,6 +166,7 @@ int Interpreter::visit(const parser::IncrementExpressionASTNodePtr &node)
     auto symbol = semanalyzer::Symbol::get_from(node);
     assert(symbol);
     _accumulator.bumpup(symbol);
+    spdlog::debug("bumped up {} to {}", symbol->name, _accumulator.get_register());
     END_VISIT();
 }
 
@@ -168,6 +176,7 @@ int Interpreter::visit(const parser::DecrementExpressionASTNodePtr &node)
     auto symbol = semanalyzer::Symbol::get_from(node);
     assert(symbol);
     _accumulator.bumpdn(symbol);
+    spdlog::debug("bumped down {} to {}", symbol->name, _accumulator.get_register());
     END_VISIT();
 }
 
@@ -251,7 +260,8 @@ int Interpreter::visit_binary_expression(const parser::AbstractBinaryExpressionA
     int right = _accumulator.get_register();
 
     int result = 0;
-    switch (node->get_op()) {
+    auto op = node->get_op();
+    switch (op) {
     case parser::ASTBinaryOperator::ADD:
         result = left + right;
         break;
@@ -296,6 +306,7 @@ int Interpreter::visit_binary_expression(const parser::AbstractBinaryExpressionA
     }
 
     _accumulator.set_register(result);
+    spdlog::debug("binary operation {} performed with {} and {}, result {}", parser::get_ast_binary_operator_str(op), left, right, result);
 
     END_VISIT();
 }
@@ -304,12 +315,19 @@ int Interpreter::visit(const parser::InvocationExpressionASTNodePtr &node)
 {
     BEGIN_VISIT();
 
-    rc = traverse(node->get_argument());
-    RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
+    spdlog::debug("preparing invocation to {}", *node->get_func_name());
+
+    auto &arg_node = node->get_argument();
+    if (arg_node) {
+        rc = traverse(arg_node);
+        RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
+        spdlog::debug("evaulated invocation parameter {}", _accumulator.get_register());
+    }
 
     auto symbol = semanalyzer::Symbol::get_from(node);
     // special handling for lib func
     if (_symbol_table->is_library_function(symbol)) {
+        spdlog::debug("invoking library function {}", symbol->name);
         rc = invoke_library_function(symbol->name);
         RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
     } else {
@@ -319,19 +337,22 @@ int Interpreter::visit(const parser::InvocationExpressionASTNodePtr &node)
         auto type = subroutine_node->get_node_type();
 
         if (type == parser::ASTNodeType::FunctionDefinition) {
+            spdlog::debug("invoking function {}", symbol->name);
             auto func = std::dynamic_pointer_cast<parser::FunctionDefinitionASTNode>(subroutine_node);
             _call_stack.push(func);
             rc = visit(func);
         } else if (type == parser::ASTNodeType::SubprocDefinition) {
+            spdlog::debug("invoking subproc {}", symbol->name);
             auto sub = std::dynamic_pointer_cast<parser::SubprocDefinitionASTNode>(subroutine_node);
             _call_stack.push(sub);
             rc = visit(sub);
         } else {
-            // not possible
+            spdlog::critical("Unknwon ASTNode type {}. {}", static_cast<int>(type), __PRETTY_FUNCTION__);
             throw;
         }
         RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
         _call_stack.pop();
+        spdlog::debug("return from invocation to {}", *node->get_func_name());
     }
 
     END_VISIT();
@@ -350,11 +371,14 @@ int Interpreter::visit(const parser::IfStatementASTNodePtr &node)
 
     rc = traverse(node->get_condition());
     RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
+    spdlog::debug("evaluated if condition: {}", _accumulator.get_register());
 
     if (_accumulator.is_true()) {
+        spdlog::debug("branching to if-then");
         rc = traverse(node->get_then_branch());
         RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
     } else {
+        spdlog::debug("branching to if-else");
         rc = traverse(node->get_else_branch());
         RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
     }
@@ -369,11 +393,15 @@ int Interpreter::visit(const parser::WhileStatementASTNodePtr &node)
     do {
         rc = traverse(node->get_condition());
         RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
+        spdlog::debug("evaluated while condition: {}", _accumulator.get_register());
 
         if (!_accumulator.is_true()) {
             // condition evaluated to false
+            spdlog::debug("while condition evaluated to false");
             break;
         }
+
+        spdlog::debug("looping...");
 
         // condition is true
         rc = traverse(node->get_body());
@@ -382,6 +410,7 @@ int Interpreter::visit(const parser::WhileStatementASTNodePtr &node)
         if (rc == CF_BreakRequested) {
             // for hit break
             rc = 0;
+            spdlog::debug("break requested");
             END_VISIT();
         }
 
@@ -389,6 +418,7 @@ int Interpreter::visit(const parser::WhileStatementASTNodePtr &node)
             // for hit continue. enter next loop
             // there's nothing special inside this if. it's the same as body is normally finished
             rc = 0;
+            spdlog::debug("continue requested");
         }
     } while (true);
 
@@ -406,9 +436,11 @@ int Interpreter::visit(const parser::ForStatementASTNodePtr &node)
         // evaluate the condition of for
         rc = traverse(node->get_condition());
         RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
+        spdlog::debug("evaluated for condition: {}", _accumulator.get_register());
 
         if (!_accumulator.is_true()) {
             // condition evaluated to false
+            spdlog::debug("for condition evaluated to false");
             break;
         }
 
@@ -419,16 +451,19 @@ int Interpreter::visit(const parser::ForStatementASTNodePtr &node)
         if (rc == CF_BreakRequested) {
             // for hit break
             rc = 0;
+            spdlog::debug("break requested");
             END_VISIT();
         }
 
         if (rc == CF_ContinueRequested) {
             // for hit continue. update and enter next loop
             // there's nothing special inside this if. it's the same as body is normally finished
+            spdlog::debug("continue requested");
         }
 
         rc = traverse(node->get_update());
         RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
+        spdlog::debug("for state updated");
     } while (true);
     END_VISIT();
 }
@@ -436,8 +471,14 @@ int Interpreter::visit(const parser::ForStatementASTNodePtr &node)
 int Interpreter::visit(const parser::ReturnStatementASTNodePtr &node)
 {
     BEGIN_VISIT();
-    rc = traverse(node->get_expression());
-    RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
+    auto &retexpr = node->get_expression();
+    if (retexpr) {
+        rc = traverse(retexpr);
+        RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
+        spdlog::debug("return requested: {}", _accumulator.get_register());
+    } else {
+        spdlog::debug("return requested");
+    }
 
     rc = CF_ReturnRequested;
     END_VISIT();
@@ -460,15 +501,20 @@ int Interpreter::visit(const parser::ContinueStatementASTNodePtr &node)
 int Interpreter::visit(const parser::StatementBlockASTNodePtr &node)
 {
     BEGIN_VISIT();
+    spdlog::debug("entered statement block");
     parser::StatementsVector &stmts = node->get_statements();
     rc = traverse(stmts);
     RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
+    spdlog::debug("left statement block");
+
     END_VISIT();
 }
 
 int Interpreter::visit_subroutine(const parser::AbstractSubroutineASTNodePtr &node)
 {
     BEGIN_VISIT();
+    spdlog::debug("entered subroutine '{}' {} param.", *node->get_name(), node->get_parameter() ? "with" : "without");
+
     auto &param = node->get_parameter();
     if (param) {
         // store the parameter value
@@ -480,6 +526,8 @@ int Interpreter::visit_subroutine(const parser::AbstractSubroutineASTNodePtr &no
     RETURN_IF_FAIL_IN_VISIT(rc);
     rc = 0;
     // for rc < 0 we just return
+
+    spdlog::debug("left subroutine '{}'.", *node->get_name());
     END_VISIT();
 }
 
@@ -510,6 +558,7 @@ int Interpreter::visit(const parser::CompilationUnitASTNodePtr &node)
     } else if (auto start = std::dynamic_pointer_cast<parser::FunctionDefinitionASTNode>(*start_func)) {
         rc = visit(start);
     } else {
+        spdlog::critical("Unknwon subroutine type {}. {}", static_cast<int>(start_func->get()->get_node_type()), __PRETTY_FUNCTION__);
         throw;
     }
 
@@ -558,11 +607,11 @@ int Interpreter::invoke_library_function(const std::string &name)
     } else if (name == "outbox") {
         return invoke_outbox();
     } else {
-        // FIXME:
+        spdlog::critical("Unknwon library function {}. {}", name, __PRETTY_FUNCTION__);
         throw;
     }
 }
 
-CLOSE_HRINT_NAMESPACE
+CLOSE_INTERPRETER_NAMESPACE
 
 // end

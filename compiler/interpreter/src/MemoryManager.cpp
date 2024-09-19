@@ -1,7 +1,7 @@
-#include "MemoryManager.h"
-#include "hrint_global.h"
+#include "IntMemoryManager.h"
+#include "interpreter_global.h"
 
-OPEN_HRINT_NAMESPACE
+OPEN_INTERPRETER_NAMESPACE
 
 MemoryManager::MemoryManager()
 {
@@ -11,7 +11,7 @@ MemoryManager::~MemoryManager()
 {
 }
 
-bool hrl::hrint::MemoryManager::get_variable(const hrl::semanalyzer::SymbolPtr &symbol, int &value)
+bool MemoryManager::get_variable(const hrl::semanalyzer::SymbolPtr &symbol, int &value)
 {
     auto found = _variables.find(symbol);
     if (found == _variables.end()) {
@@ -22,17 +22,17 @@ bool hrl::hrint::MemoryManager::get_variable(const hrl::semanalyzer::SymbolPtr &
     }
 }
 
-void hrl::hrint::MemoryManager::set_variable(const hrl::semanalyzer::SymbolPtr &symbol, int value)
+void MemoryManager::set_variable(const hrl::semanalyzer::SymbolPtr &symbol, int value)
 {
     _variables[symbol] = value;
 }
 
-void hrl::hrint::MemoryManager::set_floor(int id, int value)
+void MemoryManager::set_floor(int id, int value)
 {
     _floor[id] = value;
 }
 
-bool hrl::hrint::MemoryManager::get_floor(int id, int &value)
+bool MemoryManager::get_floor(int id, int &value)
 {
     auto found = _floor.find(id);
     if (found == _floor.end()) {
@@ -43,5 +43,5 @@ bool hrl::hrint::MemoryManager::get_floor(int id, int &value)
     }
 }
 
-CLOSE_HRINT_NAMESPACE
+CLOSE_INTERPRETER_NAMESPACE
 // end

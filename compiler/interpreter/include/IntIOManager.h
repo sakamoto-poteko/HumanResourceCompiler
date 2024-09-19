@@ -1,11 +1,12 @@
-#ifndef IOMANAGER_H
-#define IOMANAGER_H
+#ifndef INT_IOMANAGER_H
+#define INT_IOMANAGER_H
 
-#include "hrint_global.h"
 #include <functional>
 #include <queue>
 
-OPEN_HRINT_NAMESPACE
+#include "interpreter_global.h"
+
+OPEN_INTERPRETER_NAMESPACE
 
 class IOManager {
 public:
@@ -27,6 +28,6 @@ private:
     std::function<void(int)> _on_output_pushed;
 };
 
-CLOSE_HRINT_NAMESPACE
+CLOSE_INTERPRETER_NAMESPACE
 
 #endif

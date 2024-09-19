@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -36,13 +37,14 @@ static std::string escapeGraphviz(const std::string &origin)
     return escaped;
 }
 
-void DependencyGraphBuilder::build()
+bool DependencyGraphBuilder::build()
 {
     _state = std::make_unique<VisitState>();
 
     for (const auto &prod : _root_node->productions) {
         if (_state->productions.find(prod->id) != _state->productions.end()) {
-            // FIXME: raise error conflicting production rule
+            std::cerr << "Rules are conflicting: " << prod->id << std::endl;
+            return false;
         }
         _state->productions[prod->id] = boost::add_vertex(prod, _state->dependency_graph);
     }
@@ -51,6 +53,7 @@ void DependencyGraphBuilder::build()
     for (const auto &warning : _state->warnings) {
         std::cout << warning << std::endl;
     }
+    return true;
 }
 
 bool DependencyGraphBuilder::write_graphviz(const std::string &path)

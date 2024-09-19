@@ -1,12 +1,12 @@
-#ifndef ACCUMULATOR_H
-#define ACCUMULATOR_H
+#ifndef INT_ACCUMULATOR_H
+#define INT_ACCUMULATOR_H
 
 #include <optional>
 
 #include "Symbol.h"
-#include "hrint_global.h"
+#include "interpreter_global.h"
 
-OPEN_HRINT_NAMESPACE
+OPEN_INTERPRETER_NAMESPACE
 
 class IOManager;
 class MemoryManager;
@@ -29,7 +29,8 @@ public:
         Sub,
     };
 
-    void arithmetic_operation(ArithmeticOperator op);
+    void arithmetic_operation(ArithmeticOperator op, const hrl::semanalyzer::SymbolPtr &symbol);
+    void arithmetic_operation(ArithmeticOperator op, unsigned int floor_id);
     bool is_zero();
     bool is_not_zero();
     bool is_negative();
@@ -44,14 +45,14 @@ public:
     }
 
     void bumpup(const hrl::semanalyzer::SymbolPtr &symbol);
-    void bumpup(int floor_id);
+    void bumpup(unsigned int floor_id);
     void bumpdn(const hrl::semanalyzer::SymbolPtr &symbol);
-    void bumpdn(int floor_id);
+    void bumpdn(unsigned int floor_id);
 
     void copy_to(const hrl::semanalyzer::SymbolPtr &symbol);
-    void copy_to_floor(int floor_id);
+    void copy_to_floor(unsigned int floor_id);
     void copy_from(const hrl::semanalyzer::SymbolPtr &symbol);
-    void copy_from_floor(int floor_id);
+    void copy_from_floor(unsigned int floor_id);
 
 private:
     MemoryManager &_memory;
@@ -59,8 +60,13 @@ private:
     std::optional<int> _register;
 
     void __set_register(int value);
+    int __get_register();
+    void __arithmetic_operation(ArithmeticOperator op, int target);
+
+
+    void ensure_range(int value);
 };
 
-CLOSE_HRINT_NAMESPACE
+CLOSE_INTERPRETER_NAMESPACE
 
 #endif

@@ -49,6 +49,22 @@ void GlobalTestEnvironment::TearDown()
 {
 }
 
+static bool parse_integer_line(const std::string &input_part, std::vector<int> &result)
+{
+    std::vector<std::string> tokens;
+    boost::split(tokens, input_part, boost::is_any_of(","));
+
+    for (auto &token : tokens) {
+        int value;
+        boost::algorithm::trim(token);
+        if (std::from_chars(token.data(), token.data() + token.size(), value).ec != std::errc()) {
+            return false;
+        }
+        result.push_back(value);
+    }
+    return true;
+}
+
 // E3001_fail_1.hrml
 TestCaseData TestCaseData::parse_path(const fs::path &path)
 {
@@ -67,6 +83,8 @@ TestCaseData TestCaseData::parse_path(const fs::path &path)
         }
         std::string line;
         std::vector<std::string> expected_sentences;
+        std::vector<int> inputs;
+        std::vector<int> outputs;
 
         // Process each line in the file
         while (std::getline(file, line)) {
@@ -79,6 +97,25 @@ TestCaseData TestCaseData::parse_path(const fs::path &path)
                 std::string expected_sentence = trimmed_line.substr(expect_prefix.size());
                 expected_sentences.push_back(expected_sentence);
             }
+
+            const std::string input_prefix = "// Input:";
+            if (boost::algorithm::starts_with(trimmed_line, input_prefix)) {
+                std::string input_part = trimmed_line.substr(input_prefix.size());
+                // Extract the part after "// Input: "
+                std::vector<int> i;
+                if (parse_integer_line(input_part, i)) {
+                    i.swap(inputs);
+                }
+            }
+            const std::string output_prefix = "// Output:";
+            if (boost::algorithm::starts_with(trimmed_line, output_prefix)) {
+                std::string output_part = trimmed_line.substr(output_prefix.size());
+                // Extract the part after "// Output: "
+                std::vector<int> i;
+                if (parse_integer_line(output_part, i)) {
+                    i.swap(outputs);
+                }
+            }
         }
 
         file.close(); // Close the file when done
@@ -90,7 +127,9 @@ TestCaseData TestCaseData::parse_path(const fs::path &path)
             .should_pass = should_pass,
             .testname = testname,
             .expect_code = code.find("X") == std::string::npos,
-            .expected_outputs = expected_sentences,
+            .expected_compiler_outputs = expected_sentences,
+            .program_inputs = inputs,
+            .expected_program_outputs = outputs,
         };
     }
 
@@ -101,8 +140,8 @@ void TestCaseData::print_setup() const
 {
     std::cout << "Setting up '" << filename << "'" << std::endl
               << "  >Expect '" << code << "' (" << (should_pass ? "PASS" : "FAILURE") << "): " << testname << std::endl;
-    if (!expected_outputs.empty()) {
-        std::cout << "  >Expect output with [" << boost::join(expected_outputs, ", ") << "]" << std::endl;
+    if (!expected_compiler_outputs.empty()) {
+        std::cout << "  >Expect output with [" << boost::join(expected_compiler_outputs, ", ") << "]" << std::endl;
     }
 }
 

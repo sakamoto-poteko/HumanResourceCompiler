@@ -10,5 +10,7 @@ function test()
 
 sub start()
 {
-    test();
+    outbox(test());
 }
+// Input: 1
+// Output: 1

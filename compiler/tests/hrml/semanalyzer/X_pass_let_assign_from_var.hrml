@@ -4,3 +4,5 @@ sub start() {
     let c = a * b;
     outbox(c);
 }
+// Input: 4, 7
+// Output: 28
