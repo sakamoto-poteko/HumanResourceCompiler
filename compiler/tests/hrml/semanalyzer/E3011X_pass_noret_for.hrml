@@ -1,7 +1,8 @@
 function test()
 {
-    for (let a = 0, a < 10, ++a) {
-        outbox(0);
+    let x = inbox();
+    for (let a = 0, a < x, ++a) {
+        outbox(a);
         // no return inside for
     }
     return 0;
@@ -11,3 +12,5 @@ sub start()
 {
     test();
 }
+// Input: 5
+// Output: 0, 1, 2, 3, 4

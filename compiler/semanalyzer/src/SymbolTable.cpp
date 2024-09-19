@@ -191,5 +191,10 @@ void SymbolTable::clear_symbols()
     create_library_symbols();
 }
 
+bool SymbolTable::is_library_function(const SymbolPtr &symbol)
+{
+    return symbol->type == SymbolType::SUBROUTINE && is_symbol_in_scope(symbol, "");
+}
+
 CLOSE_SEMANALYZER_NAMESPACE
 // end

@@ -6,8 +6,10 @@ sub start()
     outbox(uninit);
 }
 
-sub fail()
+sub not_called()
 {
     uninit = 1;
     outbox(uninit);
 }
+// Input: 
+// Output: 0

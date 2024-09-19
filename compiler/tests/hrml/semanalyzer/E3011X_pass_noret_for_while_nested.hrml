@@ -2,10 +2,10 @@ function test()
 {
     // nested while, for, while, while
     while (inbox()) {
-        for (let a = 0, a < 10, ++a) {
+        for (let a = 0, a < 1, ++a) {
             while (inbox()) {
                 while (inbox()) {
-                    outbox(0);
+                    outbox(6);
                 }
             }
         }
@@ -17,3 +17,5 @@ sub start()
 {
     test();
 }
+// Input: 1, 1, 1, 0, 0, 0
+// Output: 6

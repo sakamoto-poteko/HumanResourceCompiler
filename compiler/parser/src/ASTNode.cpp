@@ -202,6 +202,41 @@ const char *ast_node_type_to_string(ASTNodeType type)
     }
 }
 
+const char *get_ast_binary_operator_str(ASTBinaryOperator op)
+{
+    switch (op) {
+    case ASTBinaryOperator::ADD:
+        return "+";
+    case ASTBinaryOperator::SUB:
+        return "-";
+    case ASTBinaryOperator::MUL:
+        return "*";
+    case ASTBinaryOperator::DIV:
+        return "/";
+    case ASTBinaryOperator::MOD:
+        return "%";
+    case ASTBinaryOperator::AND:
+        return "&&";
+    case ASTBinaryOperator::OR:
+        return "||";
+    case ASTBinaryOperator::GT:
+        return ">";
+    case ASTBinaryOperator::GE:
+        return ">=";
+    case ASTBinaryOperator::LT:
+        return "<";
+    case ASTBinaryOperator::LE:
+        return "<=";
+    case ASTBinaryOperator::EQ:
+        return "==";
+    case ASTBinaryOperator::NE:
+        return "!=";
+    default:
+        spdlog::critical("Unknown ASTBinaryOperator {}. {}", static_cast<int>(op), __PRETTY_FUNCTION__);
+        throw;
+    }
+}
+
 CLOSE_PARSER_NAMESPACE
 
 // end

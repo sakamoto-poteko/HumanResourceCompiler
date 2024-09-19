@@ -1,4 +1,3 @@
-#include <list>
 #include <memory>
 #include <string>
 #include <vector>
@@ -290,7 +289,6 @@ bool RecursiveDescentParser::parse_statement(AbstractStatementPTNodePtr &node)
     AbstractEmbeddedStatementPTNodePtr embedded_statement;
 
     switch (token->token_id()) {
-        // FIXME: remove FLOOR & ID
     case lexer::LET: // variable_declaration_statement
         ok = parse_variable_declaration_statement(var_decl);
         CHECK_ERROR(ok);
@@ -314,7 +312,6 @@ bool RecursiveDescentParser::parse_statement(AbstractStatementPTNodePtr &node)
         CHECK_ERROR_MSG(false, 2004, "Expect a statement but got '" + *token->token_text() + "'", lineno, colno, width);
     }
 
-    // FIXME: impl
     LEAVE_PARSE_FRAME();
 }
 

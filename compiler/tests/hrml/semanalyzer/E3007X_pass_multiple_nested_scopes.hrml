@@ -22,7 +22,6 @@ sub start()
     }
     outbox(a);
 
-    // if (inbox()) {
     {
         let b;
         {
@@ -33,3 +32,5 @@ sub start()
         outbox(b);
     }
 }
+// Input:
+// Output: 0, 5, 1

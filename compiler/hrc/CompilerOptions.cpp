@@ -22,31 +22,32 @@ CompilerOptions parse_arguments(int argc, char **argv)
         ("optimization,O", po::value<std::string>(), "Optimization level (0-2 or 's' for size)") //
         ("include,I", po::value<std::vector<std::string>>()->multitoken(), "Include paths for header files") //
         ("verbose,v", "Enable verbose output") //
-        ("version", "Show version information") //
-        ("help", "Show help message") //
+        ("version,V", "Show version information") //
+        ("help,h", "Show help message") //
         ("stage,s", po::value<std::string>()->implicit_value(""), "Run a specific compilation stage (lexer, parser, etc.)");
 
     po::variables_map vm;
     try {
         po::store(po::parse_command_line(argc, argv, desc), vm);
+
+        if (vm.count("help")) {
+            std::cout << "Usage: " << argv[0] << " [options] [input_file]\n";
+            std::cout << desc << std::endl;
+            exit(EXIT_SUCCESS);
+        }
+
+        if (vm.count("version")) {
+            std::cout << "hrc compiler " << git_tag() << std::endl;
+            std::cout << "built with " << compiler_version() << " (" << build_type() << ") on " << build_timestamp() << std::endl;
+            std::cout << "    Report bugs in https://github.com/sakamoto-poteko/HumanResourceCompiler" << std::endl;
+            exit(EXIT_SUCCESS);
+        }
+
         po::notify(vm);
     } catch (const po::error &ex) {
         std::cerr << "Error: " << ex.what() << std::endl;
         std::cerr << desc << std::endl;
         exit(EXIT_FAILURE);
-    }
-
-    if (vm.count("help")) {
-        std::cout << "Usage: " << argv[0] << " [options] [input_file]\n";
-        std::cout << desc << std::endl;
-        exit(EXIT_SUCCESS);
-    }
-
-    if (vm.count("version")) {
-        std::cout << "hrc compiler " << git_tag() << std::endl;
-        std::cout << "built with " << compiler_version() << " (" << build_type() << ") on " << build_timestamp() << std::endl;
-        std::cout << "    Report bugs in https://github.com/sakamoto-poteko/HumanResourceCompiler" << std::endl;
-        exit(EXIT_SUCCESS);
     }
 
     if (vm.count("input")) {

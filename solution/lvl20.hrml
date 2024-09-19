@@ -1,7 +1,7 @@
-init mem[1] = 1;
-init mem[0] = 0;
+init floor[1] = 1;
+init floor[0] = 0;
 
-void start() {
+sub start() {
     while (true) {
         let a = inbox();
         let b = inbox();
