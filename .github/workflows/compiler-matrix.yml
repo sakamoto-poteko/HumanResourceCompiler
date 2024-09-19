@@ -86,14 +86,14 @@ jobs:
             vcpkg
             vcpkg_installed
             vcpkg_downloads
-          key: vcpkg-${{ matrix.os }}-${{ hashFiles('vcpkg.json', 'vcpkg-lock.json') }}
+          key: vcpkg-${{ matrix.os }}-${{ hashFiles('compiler/vcpkg*') }}
 
       - name: Cache winflexbison
         if: matrix.os == 'windows-latest'
         uses: actions/cache@v3
         with:
           path: compiler/build/tools/winflexbison/src
-          key: winflexbison-${{ matrix.os }}-${{ hashFiles('compiler/build/tools/winflexbison/src') }}
+          key: winflexbison-${{ matrix.os }}-${{ hashFiles('compiler/build/tools/winflexbison/src/**') }}
 
       - name: Prepare (Windows)
         if: matrix.os == 'windows-latest'
