@@ -6,15 +6,19 @@ on:
     branches:
       - master
     tags:
-      - '*'
+      - "*"
 
   pull_request:
     branches:
       - master
     paths:
-      - 'compiler/**'
-      - 'design/**'
-      - 'utils/**'
+      - "compiler/**"
+      - "design/**"
+      - "utils/**"
+
+  schedule:
+    - cron: "0 0 * * 0,3,5,6" # At 00:00 on Sunday, Wednesday, Friday, and Saturday
+
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
@@ -78,11 +82,32 @@ jobs:
           brew update
           brew install cmake ninja boost spdlog flex bison googletest tree
 
+      - name: Cache vcpkg
+        if: matrix.os == 'windows-latest'
+        uses: actions/cache@v3
+        with:
+          path: |
+            vcpkg
+            vcpkg_installed
+            vcpkg_downloads
+          key: vcpkg-${{ matrix.os }}-${{ hashFiles('compiler/vcpkg*') }}
+
+      - name: Cache winflexbison
+        if: matrix.os == 'windows-latest'
+        uses: actions/cache@v3
+        with:
+          path: compiler/build/tools/winflexbison/src
+          key: winflexbison-${{ matrix.os }}-${{ hashFiles('compiler/build/tools/winflexbison/src/*') }}
+
       - name: Prepare (Windows)
         if: matrix.os == 'windows-latest'
         run: |
-          git clone --depth=1 --branch 2024.08.23 https://github.com/microsoft/vcpkg.git
-          .\vcpkg\bootstrap-vcpkg.bat
+          if (Test-Path vcpkg) {
+            echo "Using cached vcpkg"
+          } else {
+            git clone --depth=1 --branch 2024.08.23 https://github.com/microsoft/vcpkg.git
+            .\vcpkg\bootstrap-vcpkg.bat
+          }
           echo "VCPKG_ROOT=${{ github.workspace }}\\vcpkg" >> $env:GITHUB_ENV
           echo "VCPKG_DEFAULT_TRIPLET=x64-windows" >> $env:GITHUB_ENV
           echo "TOOLCHAIN=${{ github.workspace }}\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake" >> $env:GITHUB_ENV
