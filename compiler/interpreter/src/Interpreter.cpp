@@ -549,16 +549,16 @@ int Interpreter::visit(const parser::CompilationUnitASTNodePtr &node)
     RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
 
     auto subroutines = node->get_subroutines();
-    auto start_func = std::find_if(subroutines.cbegin(), subroutines.cend(), [](const parser::AbstractSubroutineASTNodePtr &subroutine) {
+    auto start_it = std::find_if(subroutines.cbegin(), subroutines.cend(), [](const parser::AbstractSubroutineASTNodePtr &subroutine) {
         return *subroutine->get_name() == "start";
     });
 
-    if (auto start = std::dynamic_pointer_cast<parser::SubprocDefinitionASTNode>(*start_func)) {
-        rc = visit(start);
-    } else if (auto start = std::dynamic_pointer_cast<parser::FunctionDefinitionASTNode>(*start_func)) {
-        rc = visit(start);
+    if (auto sub_start = std::dynamic_pointer_cast<parser::SubprocDefinitionASTNode>(*start_it)) {
+        rc = visit(sub_start);
+    } else if (auto func_start = std::dynamic_pointer_cast<parser::FunctionDefinitionASTNode>(*start_it)) {
+        rc = visit(func_start);
     } else {
-        spdlog::critical("Unknwon subroutine type {}. {}", static_cast<int>(start_func->get()->get_node_type()), __PRETTY_FUNCTION__);
+        spdlog::critical("Unknwon subroutine type {}. {}", static_cast<int>(start_it->get()->get_node_type()), __PRETTY_FUNCTION__);
         throw;
     }
 

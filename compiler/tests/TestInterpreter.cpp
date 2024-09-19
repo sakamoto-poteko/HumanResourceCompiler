@@ -1,6 +1,4 @@
-#include <iostream>
 #include <memory>
-#include <sstream>
 #include <string>
 #include <vector>
 
@@ -66,7 +64,7 @@ TEST_P(InterpreterTests, InterpreterCorrectnessTests)
     try {
         rc = interpreter.run();
         ASSERT_EQ(rc, 0) << "Interpreter did not return a success code";
-    } catch (hrl::interpreter::InterpreterException ex) {
+    } catch (const hrl::interpreter::InterpreterException &ex) {
         ASSERT_EQ(ex.get_error_type(), hrl::interpreter::InterpreterException::ErrorType::EndOfInput)
             << "Interpreter reported an error: " << ex.what();
     }

@@ -29,9 +29,11 @@ int main(int argc, char **argv)
         spdlog::set_level(spdlog::level::info);
     }
 
+    int rc = 0;
+
     hrl::parser::CompilationUnitASTNodePtr ast;
     hrl::semanalyzer::SymbolTablePtr symtbl;
-    int rc = compile_to_ast(options, ast, symtbl);
+    rc = compile_to_ast(options, ast, symtbl);
     if (rc) {
         exit(EXIT_FAILURE);
     }
@@ -55,8 +57,12 @@ int main(int argc, char **argv)
     }
 
     try {
-        int rc = interpreter.run();
-    } catch (InterpreterException ex) {
+        rc = interpreter.run();
+        if (rc != 0) {
+            spdlog::error("The interpreter returned a non-success code: {}", rc);
+            exit(EXIT_FAILURE);
+        }
+    } catch (const InterpreterException &ex) {
         if (ex.get_error_type() == InterpreterException::ErrorType::EndOfInput) {
             spdlog::info("End of input reached");
         } else {

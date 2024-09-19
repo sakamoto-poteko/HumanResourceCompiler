@@ -18,7 +18,7 @@ static std::vector<int> parse_data(const std::string &data_str)
         while (std::getline(ss, item, ',')) {
             data.push_back(std::stoi(item));
         }
-    } catch (const std::exception &e) {
+    } catch (const std::exception &) {
         throw std::runtime_error("Invalid input data format: " + data_str);
     }
     return data;
@@ -72,7 +72,7 @@ InterpreterOptions parse_arguments(int argc, char **argv)
             std::cout << "    Report bugs in https://github.com/sakamoto-poteko/HumanResourceCompiler" << std::endl;
             exit(EXIT_SUCCESS);
         }
-        
+
         po::notify(vm);
     } catch (const po::error &e) {
         std::cerr << "Error: " << e.what() << "\n";

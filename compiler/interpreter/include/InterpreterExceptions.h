@@ -29,7 +29,7 @@ public:
         return _msg.c_str();
     }
 
-    ErrorType get_error_type() { return _err; }
+    ErrorType get_error_type() const noexcept { return _err; }
 
 private:
     ErrorType _err;
