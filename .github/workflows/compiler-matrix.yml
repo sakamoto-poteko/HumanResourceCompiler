@@ -15,6 +15,10 @@ on:
       - "compiler/**"
       - "design/**"
       - "utils/**"
+
+  schedule:
+    - cron: "0 0 * * 0,3,5,6" # At 00:00 on Sunday, Wednesday, Friday, and Saturday
+
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
@@ -93,7 +97,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: compiler/build/tools/winflexbison/src
-          key: winflexbison-${{ matrix.os }}-${{ hashFiles('compiler/build/tools/winflexbison/src/**') }}
+          key: winflexbison-${{ matrix.os }}-${{ hashFiles('compiler/build/tools/winflexbison/src/*') }}
 
       - name: Prepare (Windows)
         if: matrix.os == 'windows-latest'
