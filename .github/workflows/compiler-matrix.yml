@@ -57,7 +57,7 @@ jobs:
             c_compiler: cl
             cpp_compiler: cl
             container: null
-            nproc: 2
+            nproc: 4
 
     steps:
       - name: Export GitHub Actions cache environment variables
