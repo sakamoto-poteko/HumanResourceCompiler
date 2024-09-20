@@ -37,7 +37,7 @@ void MemoryManager::set_floor(int id, HRMByte value)
 {
     if (id < 0 || id > _floormax) {
         auto errstr = boost::format("floor id %1% is out of range [0, %2%]") % id % _floormax;
-        throw InterpreterException(InterpreterException::ErrorType::ValueOutOfRange, errstr.str());
+        throw InterpreterException(InterpreterException::ErrorType::FloorOutOfRange, errstr.str());
     }
     _floor[id] = value;
 }
@@ -46,7 +46,7 @@ bool MemoryManager::get_floor(int id, HRMByte &value)
 {
     if (id < 0 || id > _floormax) {
         auto errstr = boost::format("floor id %1% is out of range [0, %2%]") % id % _floormax;
-        throw InterpreterException(InterpreterException::ErrorType::ValueOutOfRange, errstr.str());
+        throw InterpreterException(InterpreterException::ErrorType::FloorOutOfRange, errstr.str());
     }
 
     auto found = _floor.find(id);
@@ -61,7 +61,7 @@ bool MemoryManager::get_floor(int id, HRMByte &value)
 void MemoryManager::set_floor_max(int floormax)
 {
     if (floormax < 0) {
-        throw InterpreterException(InterpreterException::ErrorType::ValueOutOfRange, "floor max cannot be negative");
+        throw InterpreterException(InterpreterException::ErrorType::FloorOutOfRange, "floor max cannot be negative");
     }
 
     _floormax = floormax;
