@@ -1,8 +1,8 @@
 sub start()
 {
-    outbox(inbox());
-    outbox(inbox());
-    outbox(inbox());
+    while (true) {
+        outbox(inbox());
+    }
 }
-// Input: A,U,T,O,E,X,E
-// Output: A,U,T,O,E,X,E
+// Input: B,O,O,T,S,E,Q,U,E,N,C,E
+// Output: B,O,O,T,S,E,Q,U,E,N,C,E

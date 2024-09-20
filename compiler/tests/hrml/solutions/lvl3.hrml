@@ -1,0 +1,15 @@
+init floor[0] = 'U';
+init floor[1] = 'J';
+init floor[2] = 'X';
+init floor[3] = 'G';
+init floor[4] = 'B';
+init floor[5] = 'E';
+
+sub start()
+{
+    outbox(floor[4]);
+    outbox(floor[0]);
+    outbox(floor[3]);
+}
+// Input: -99,-99,-99,-99
+// Output: B,U,G
