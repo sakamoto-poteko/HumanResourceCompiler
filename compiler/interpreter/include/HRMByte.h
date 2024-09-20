@@ -26,13 +26,11 @@ public:
         set_value(value);
     }
 
-    // HRMByte(const HRMByte &copy)
-    // {
-    //     // if (this != &copy) {
-    //     //     _value = copy._value;
-    //     //     _is_char = copy._is_char;
-    //     // }
-    // }
+    HRMByte(const HRMByte &copy)
+        : _value(copy._value)
+        , _is_char(copy._is_char)
+    {
+    }
 
     ~HRMByte() = default;
 
