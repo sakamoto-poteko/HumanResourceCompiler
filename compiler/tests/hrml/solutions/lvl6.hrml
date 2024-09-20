@@ -1,0 +1,10 @@
+init floor_max = 2;
+
+sub start()
+{
+    while (true) {
+        outbox(inbox() + inbox());
+    }
+}
+// Input: 2,2,6,6,-2,2,2,-9
+// Output: 4,12,0,-7

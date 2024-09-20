@@ -1,0 +1,13 @@
+init floor_max = 2;
+
+sub start()
+{
+    while (true) {
+        let temp = inbox();
+        if (!temp) {
+            outbox(temp);
+        }
+    }
+}
+// Input: 8,0,-3,D,0,0,3,0
+// Output: 0,0,0,0

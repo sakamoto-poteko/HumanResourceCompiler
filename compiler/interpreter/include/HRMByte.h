@@ -1,8 +1,9 @@
 #ifndef HRMBYTE_H
 #define HRMBYTE_H
 
-#include <spdlog/fmt/ostr.h>
 #include <string>
+
+#include <spdlog/fmt/ostr.h>
 
 #include "InterpreterExceptions.h"
 #include "interpreter_global.h"
