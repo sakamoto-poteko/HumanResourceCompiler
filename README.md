@@ -14,44 +14,15 @@ In addition, the project provides a VSCode extension for HRML language support, 
 Ensure you have the following dependencies installed before building the project. The exact dependencies vary based on the platform you are using.
 
 - **CMake** (version 3.25 or higher)
-- A **C++** compiler (e.g., `g++`, `clang++`, or `MSVC`)
+- A modern **C++** compiler with C++20 support
 - **Flex** and **Bison** (for lexical analysis and parsing)
 - **spdlog** (for logging)
 - **Boost** (for various utilities)
 - **Google Test** (for testing)
 
-### Platform-Specific Dependency Installation
-
-#### Debian/Ubuntu
-
-To install dependencies on Debian and derivations, use the following commands:
-
-```bash
-sudo apt-get update
-sudo apt-get install -y cmake ninja-build flex bison libspdlog-dev libboost-dev libboost-graph-dev libboost-program-options-dev libgtest-dev
-```
-
-#### macOS
-
-To install dependencies on macOS:
-
-```bash
-brew update
-brew install cmake ninja boost spdlog flex bison googletest
-```
-
-#### Windows
-
-On Windows, dependencies are installed using `vcpkg`. You can follow these steps:
-
-```powershell
-git clone https://github.com/microsoft/vcpkg.git
-.\vcpkg\bootstrap-vcpkg.bat
-```
-
 ### Build Instructions
 
-The project is located in the `compiler/` directory. You can build it using CMake on multiple platforms.
+The project is located in the `compiler/` directory. You can build it using CMake.
 
 #### Manual Build Steps
 
@@ -66,6 +37,35 @@ The project is located in the `compiler/` directory. You can build it using CMak
     mkdir build
     ```
 
+3. **Install Dependencies:**
+
+    *Debian/Ubuntu*
+    
+    To install dependencies on Debian and derivations, use the following commands:
+    
+    ```bash
+    sudo apt-get install -y cmake ninja-build flex bison libspdlog-dev libboost-dev libboost-graph-dev libboost-program-options-dev libgtest-dev
+    ```
+    
+    *macOS*
+    
+    To install dependencies on macOS:
+    
+    ```bash
+    brew update
+    brew install cmake ninja boost spdlog flex bison googletest
+    ```
+    
+    *Windows*
+    
+    On Windows, dependencies are installed using `vcpkg`. You can follow these steps:
+    
+    ```powershell
+    git clone https://github.com/microsoft/vcpkg.git
+    .\vcpkg\bootstrap-vcpkg.bat
+    ```
+    
+
 3. **Configure the Build:**
     ```bash
     # *nix
@@ -76,7 +76,7 @@ The project is located in the `compiler/` directory. You can build it using CMak
 
     ```powershell
     # Windows w/ vcpkg
-    cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DDCMAKE_TOOLCHAIN_FILE=vcpkg\\scripts\\buildsystems\\vcpkg.cmake
+    cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=vcpkg\scripts\buildsystems\vcpkg.cmake
     ```
 
     Replace `Release` with `Debug` or other build types if needed.
