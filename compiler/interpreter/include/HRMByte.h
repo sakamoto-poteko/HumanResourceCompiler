@@ -115,7 +115,7 @@ public:
 
     operator int() { return _value; }
 
-    operator char() { return _value; }
+    operator char() { return static_cast<char>(_value); }
 
     operator bool() { return _value == 0 ? false : true; }
 
