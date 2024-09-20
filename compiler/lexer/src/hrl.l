@@ -78,6 +78,7 @@ for (int i = 0; i < yyleng; ++i) { if (yytext[i] == '\n') { last_token_newline =
 "true"                          { __currentToken.boolean = true; return BOOLEAN; }
 "false"                         { __currentToken.boolean = false; return BOOLEAN; }
 [0-9]+                          { __currentToken.integer = atoi(yytext); return INTEGER; }
+"'"[A-Za-z]"'"                  { __currentToken.integer = toupper(yytext[1]) - 'A'; __currentToken.is_char = true; return INTEGER; }
 
 [A-Za-z_][A-Za-z0-9_]*          { __currentToken.identifier = std::make_shared<std::string>(yytext); return IDENTIFIER; }
 [ \t]+                          { }

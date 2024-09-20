@@ -7,6 +7,7 @@ add_library(${PROJECT_NAME}
     src/IOManager.cpp
     src/MemoryManager.cpp
     src/InterpreterExceptions.cpp
+    src/HRMByte.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

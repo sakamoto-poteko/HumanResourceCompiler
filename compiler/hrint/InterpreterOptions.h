@@ -4,9 +4,11 @@
 #include <string>
 #include <vector>
 
+#include "HRMByte.h"
+
 struct InterpreterOptions {
     std::string input_file;
-    std::vector<int> input_data;
+    std::vector<hrl::interpreter::HRMByte> input_data;
     bool enable_opt = true;
     bool verbose = false;
 };

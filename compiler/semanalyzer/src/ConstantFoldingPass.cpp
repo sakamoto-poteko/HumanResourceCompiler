@@ -49,14 +49,14 @@ int ConstantFoldingPass::visit(const IntegerASTNodePtr &node)
     rc = check_integer_range(node->get_value(), node);
     SET_RESULT_RC_AND_RETURN_IN_VISIT();
 
-    attach_constant(node, node->get_value());
+    attach_constant(node, node->get_value(), node->get_is_char());
     END_VISIT();
 }
 
 int ConstantFoldingPass::visit(const BooleanASTNodePtr &node)
 {
     BEGIN_VISIT();
-    attach_constant(node, node->get_value() ? 1 : 0);
+    attach_constant(node, node->get_value() ? 1 : 0, false);
     END_VISIT();
 }
 
@@ -209,28 +209,29 @@ int ConstantFoldingPass::visit(const MulExpressionASTNodePtr &node)
     right->get_attribute(ATTR_SEMANALYZER_CONST_FOLDING_VALUE, rattr);
     do {
         if (lattr && !rattr) {
-            int value = std::static_pointer_cast<ConstantFoldingAttribute>(lattr)->get_value();
-            if (value == 0) {
-                auto zero = std::make_shared<IntegerASTNode>(node->lineno(), node->colno(), node->last_lineno(), node->last_colno(), 0);
+            int lvalue = std::static_pointer_cast<ConstantFoldingAttribute>(lattr)->get_value();
+            if (lvalue == 0) {
+                // 0 * 'A' = 0
+                auto zero = std::make_shared<IntegerASTNode>(node->lineno(), node->colno(), node->last_lineno(), node->last_colno(), 0, false);
                 zero->copy_attributes_from(node);
-                attach_constant(zero, 0);
+                attach_constant(zero, 0, false);
                 request_to_replace_self(zero);
                 break;
-            } else if (value == 1) {
+            } else if (lvalue == 1) {
                 request_to_replace_self(right);
                 break;
             }
         }
 
         if (rattr && !lattr) {
-            int value = std::static_pointer_cast<ConstantFoldingAttribute>(rattr)->get_value();
-            if (value == 0) {
-                auto zero = std::make_shared<IntegerASTNode>(node->lineno(), node->colno(), node->last_lineno(), node->last_colno(), 0);
+            int rvalue = std::static_pointer_cast<ConstantFoldingAttribute>(rattr)->get_value();
+            if (rvalue == 0) {
+                auto zero = std::make_shared<IntegerASTNode>(node->lineno(), node->colno(), node->last_lineno(), node->last_colno(), 0, false);
                 zero->copy_attributes_from(node);
-                attach_constant(zero, 0);
+                attach_constant(zero, 0, false);
                 request_to_replace_self(zero);
                 break;
-            } else if (value == 1) {
+            } else if (rvalue == 1) {
                 request_to_replace_self(left);
                 break;
             }
@@ -291,9 +292,9 @@ int ConstantFoldingPass::visit(const DivExpressionASTNodePtr &node)
         if (lattr && !rattr) {
             int value = std::static_pointer_cast<ConstantFoldingAttribute>(lattr)->get_value();
             if (value == 0) { // 0 div
-                auto zero = std::make_shared<IntegerASTNode>(node->lineno(), node->colno(), node->last_lineno(), node->last_colno(), 0);
+                auto zero = std::make_shared<IntegerASTNode>(node->lineno(), node->colno(), node->last_lineno(), node->last_colno(), 0, false);
                 zero->copy_attributes_from(node);
-                attach_constant(zero, 0);
+                attach_constant(zero, 0, false);
                 request_to_replace_self(zero);
                 break;
             }
@@ -355,9 +356,9 @@ int ConstantFoldingPass::visit(const ModExpressionASTNodePtr &node)
         if (lattr && !rattr) {
             int value = std::static_pointer_cast<ConstantFoldingAttribute>(lattr)->get_value();
             if (value == 0) { // 0 mod
-                auto zero = std::make_shared<IntegerASTNode>(node->lineno(), node->colno(), node->last_lineno(), node->last_colno(), 0);
+                auto zero = std::make_shared<IntegerASTNode>(node->lineno(), node->colno(), node->last_lineno(), node->last_colno(), 0, false);
                 zero->copy_attributes_from(node);
-                attach_constant(zero, 0);
+                attach_constant(zero, 0, false);
                 request_to_replace_self(zero);
                 break;
             }
@@ -497,9 +498,9 @@ int ConstantFoldingPass::run()
     return visit(_root);
 }
 
-void ConstantFoldingPass::attach_constant(const ASTNodePtr &node, int value)
+void ConstantFoldingPass::attach_constant(const ASTNodePtr &node, int value, bool is_char)
 {
-    auto attr = std::make_shared<ConstantFoldingAttribute>(value);
+    auto attr = std::make_shared<ConstantFoldingAttribute>(value, is_char);
     node->set_attribute(ATTR_SEMANALYZER_CONST_FOLDING_VALUE, attr);
 }
 
@@ -519,24 +520,30 @@ int ConstantFoldingPass::fold_binary_expression(const AbstractBinaryExpressionAS
     bool right_const = node->get_right()->get_attribute(ATTR_SEMANALYZER_CONST_FOLDING_VALUE, right_const_fld);
 
     if (left_const && right_const) {
-        int left = std::static_pointer_cast<ConstantFoldingAttribute>(left_const_fld)->get_value();
-        int right = std::static_pointer_cast<ConstantFoldingAttribute>(right_const_fld)->get_value();
-        int val;
-        rc = op_func(left, right, val);
-        RETURN_IF_FAIL();
+        auto left_attr = std::static_pointer_cast<ConstantFoldingAttribute>(left_const_fld);
+        auto right_attr = std::static_pointer_cast<ConstantFoldingAttribute>(right_const_fld);
 
-        rc = check_integer_range(val, node);
-        RETURN_IF_FAIL();
+        // only perform folding when two types are equal
+        if (left_attr->get_is_char() == right_attr->get_is_char()) {
+            int left = left_attr->get_value();
+            int right = right_attr->get_value();
 
-        attach_constant(node, val);
+            int val;
+            rc = op_func(left, right, val);
+            RETURN_IF_FAIL();
 
-        auto const_node = std::make_shared<IntegerASTNode>(node->lineno(), node->colno(), node->last_lineno(), node->last_colno(), val);
-        const_node->copy_attributes_from(node);
-        attach_constant(const_node, val);
+            rc = check_integer_range(val, node);
+            RETURN_IF_FAIL();
 
-        request_to_replace_self(const_node);
+            attach_constant(node, val, left_attr->get_is_char());
+
+            auto const_node = std::make_shared<IntegerASTNode>(node->lineno(), node->colno(), node->last_lineno(), node->last_colno(), val, left_attr->get_is_char());
+            const_node->copy_attributes_from(node);
+            attach_constant(const_node, val, left_attr->get_is_char());
+
+            request_to_replace_self(const_node);
+        }
     }
-
     return result;
 }
 
@@ -551,7 +558,8 @@ int ConstantFoldingPass::fold_unary_expression(const AbstractUnaryExpressionASTN
     bool is_const = node->get_operand()->get_attribute(ATTR_SEMANALYZER_CONST_FOLDING_VALUE, const_fld);
 
     if (is_const) {
-        int operand = std::static_pointer_cast<ConstantFoldingAttribute>(const_fld)->get_value();
+        auto attr = std::static_pointer_cast<ConstantFoldingAttribute>(const_fld);
+        int operand = attr->get_value();
         int val;
         rc = op_func(operand, val);
         RETURN_IF_FAIL();
@@ -559,7 +567,7 @@ int ConstantFoldingPass::fold_unary_expression(const AbstractUnaryExpressionASTN
         rc = check_integer_range(val, node);
         RETURN_IF_FAIL();
 
-        attach_constant(node, val);
+        attach_constant(node, val, attr->get_is_char());
     }
 
     return result;

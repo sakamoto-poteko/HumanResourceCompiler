@@ -98,6 +98,7 @@ public:
     explicit IntegerLiteralPTNode(const lexer::IntegerTokenPtr &token)
         : AbstractPrimaryExpressionPTNode(token->lineno(), token->colno())
         , _value(token->get_value())
+        , _is_char(token->get_is_char())
         , _token(token)
     {
     }
@@ -108,10 +109,13 @@ public:
 
     int get_value() const { return _value; }
 
+    int get_is_char() const { return _is_char; }
+
     lexer::TokenPtr get_token() const { return _token; }
 
 private:
     int _value;
+    bool _is_char;
     lexer::TokenPtr _token;
 };
 

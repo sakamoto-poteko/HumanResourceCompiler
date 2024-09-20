@@ -156,16 +156,20 @@ protected:
 
 class IntegerToken : public Token {
 public:
-    IntegerToken(TokenId id, int value, int row, int col, int width, StringPtr text, const std::vector<TokenMetadata> &metadata)
+    IntegerToken(TokenId id, int value, bool is_char, int row, int col, int width, StringPtr text, const std::vector<TokenMetadata> &metadata)
         : Token(id, row, col, width, text, metadata)
         , _value(value)
+        , _is_char(is_char)
     {
     }
 
     int get_value() const { return _value; }
 
+    bool get_is_char() const { return _is_char; }
+
 protected:
     int _value;
+    bool _is_char;
 };
 
 class IdentifierToken : public Token {

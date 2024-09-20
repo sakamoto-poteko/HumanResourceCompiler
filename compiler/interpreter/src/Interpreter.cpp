@@ -5,6 +5,7 @@
 #include <spdlog/spdlog.h>
 
 #include "ASTNode.h"
+#include "HRMByte.h"
 #include "Interpreter.h"
 #include "InterpreterExceptions.h"
 #include "SemanticAnalysisPass.h"
@@ -42,7 +43,11 @@ Interpreter::~Interpreter()
 int Interpreter::visit(const parser::IntegerASTNodePtr &node)
 {
     BEGIN_VISIT();
-    _accumulator.set_register(node->get_value());
+    if (node->get_is_char()) {
+        _accumulator.set_register(static_cast<char>(node->get_value()));
+    } else {
+        _accumulator.set_register(node->get_value());
+    }
     END_VISIT();
 }
 
@@ -252,14 +257,14 @@ int Interpreter::visit_binary_expression(const parser::AbstractBinaryExpressionA
     rc = traverse(node->get_left());
     RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
 
-    int left = _accumulator.get_register();
+    HRMByte left = _accumulator.get_register();
 
     rc = traverse(node->get_right());
     RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
 
-    int right = _accumulator.get_register();
+    HRMByte right = _accumulator.get_register();
 
-    int result = 0;
+    HRMByte result;
     auto op = node->get_op();
     switch (op) {
     case parser::ASTBinaryOperator::ADD:
@@ -286,23 +291,26 @@ int Interpreter::visit_binary_expression(const parser::AbstractBinaryExpressionA
         result = left || right ? 1 : 0;
         break;
     case parser::ASTBinaryOperator::GT:
-        result = left > right ? 1 : 0;
+        result = static_cast<int>(left) > static_cast<int>(right) ? 1 : 0;
         break;
     case parser::ASTBinaryOperator::GE:
-        result = left >= right ? 1 : 0;
+        result = static_cast<int>(left) >= static_cast<int>(right) ? 1 : 0;
         break;
     case parser::ASTBinaryOperator::LT:
-        result = left < right ? 1 : 0;
+        result = static_cast<int>(left) < static_cast<int>(right) ? 1 : 0;
         break;
     case parser::ASTBinaryOperator::LE:
-        result = left <= right ? 1 : 0;
+        result = static_cast<int>(left) <= static_cast<int>(right) ? 1 : 0;
         break;
     case parser::ASTBinaryOperator::EQ:
-        result = left == right ? 1 : 0;
+        result = static_cast<int>(left) == static_cast<int>(right) ? 1 : 0;
         break;
     case parser::ASTBinaryOperator::NE:
-        result = left != right ? 1 : 0;
+        result = static_cast<int>(left) != static_cast<int>(right) ? 1 : 0;
         break;
+    default:
+        spdlog::critical("Unknown ASTBinaryOperator {}. {}", static_cast<int>(op), __PRETTY_FUNCTION__);
+        throw;
     }
 
     _accumulator.set_register(result);
