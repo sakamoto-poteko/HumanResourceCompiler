@@ -23,7 +23,7 @@ static std::vector<hrl::interpreter::HRMByte> parse_data(const std::string &data
         int value;
 
         if (token.size() == 1 && std::isalpha(token[0])) {
-            char ch = std::toupper(token[0]);
+            char ch = std::toupper(static_cast<char>(token[0]));
             data.push_back(hrl::interpreter::HRMByte(ch));
         } else if (std::from_chars(token.data(), token.data() + token.size(), value).ec == std::errc()) {
             data.push_back(hrl::interpreter::HRMByte(value));
