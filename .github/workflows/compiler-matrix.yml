@@ -30,7 +30,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     container:
       image: ${{ matrix.container }}
-      options: --user root -v "/etc/apt/sources.list:/etc/apt/sources.list:ro"
+      options: --user root -v "/etc/apt/:/etc/apt/:ro"
     strategy:
       matrix:
         include:
