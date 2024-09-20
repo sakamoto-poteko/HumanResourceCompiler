@@ -15,6 +15,7 @@ public:
         RegisterIsEmpty,
         EndOfInput,
         FloorIsEmpty,
+        FloorOutOfRange,
         ValueOutOfRange,
         DivByZero,
         ModByZero,

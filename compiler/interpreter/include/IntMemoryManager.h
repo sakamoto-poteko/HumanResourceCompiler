@@ -16,10 +16,12 @@ public:
     bool get_variable(const hrl::semanalyzer::SymbolPtr &symbol, HRMByte &value);
     void set_floor(int id, HRMByte value);
     bool get_floor(int id, HRMByte &value);
+    void set_floor_max(int floormax);
 
 private:
     std::map<int, HRMByte> _floor;
     std::map<hrl::semanalyzer::SymbolPtr, HRMByte> _variables;
+    int _floormax = 63;
 };
 
 CLOSE_INTERPRETER_NAMESPACE

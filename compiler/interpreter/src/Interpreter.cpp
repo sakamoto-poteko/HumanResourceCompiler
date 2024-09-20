@@ -553,6 +553,10 @@ int Interpreter::visit(const parser::CompilationUnitASTNodePtr &node)
 {
     BEGIN_VISIT();
 
+    if (node->get_floor_max().has_value()) {
+        _memory_manager.set_floor_max(node->get_floor_max().value());
+    }
+
     rc = traverse_multiple(node->get_floor_inits(), node->get_var_decls());
     RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
 
