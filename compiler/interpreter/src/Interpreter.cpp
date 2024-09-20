@@ -112,7 +112,7 @@ int Interpreter::visit(const parser::FloorAssignmentASTNodePtr &node)
 
     rc = traverse(node->get_value());
     RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
-    int value = _accumulator.get_register();
+    HRMByte value = _accumulator.get_register();
 
     rc = traverse(node->get_floor_number());
     RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
@@ -158,7 +158,7 @@ int Interpreter::visit(const parser::NotExpressionASTNodePtr &node)
 
     rc = traverse(node->get_operand());
     RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
-    int val = _accumulator.get_register();
+    HRMByte val = _accumulator.get_register();
     _accumulator.set_register(val ? 0 : 1);
     spdlog::debug("notted {}. result: {}", val, _accumulator.get_register());
 

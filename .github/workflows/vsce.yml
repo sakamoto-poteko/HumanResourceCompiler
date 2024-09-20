@@ -14,7 +14,7 @@ on:
       - 'human-resource-lazycoder-vscode/**'
 
 jobs:
-  build:
+  build_vsce:
     runs-on: deb
     container:
       image: mcr.microsoft.com/devcontainers/typescript-node:22

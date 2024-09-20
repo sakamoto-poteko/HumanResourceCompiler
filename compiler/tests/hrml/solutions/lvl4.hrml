@@ -1,0 +1,12 @@
+init floor_max = 2;
+
+sub start()
+{
+    while (true) {
+        let temp = inbox();
+        outbox(inbox());
+        outbox(temp);
+    }
+}
+// Input: 4,5,B,E,3,5
+// Output: 5,4,E,B,5,3

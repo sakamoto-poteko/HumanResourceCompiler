@@ -1,0 +1,8 @@
+sub start()
+{
+    outbox(inbox());
+    outbox(inbox());
+    outbox(inbox());
+}
+// Input: 4,1,1
+// Output: 4,1,1

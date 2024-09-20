@@ -1,0 +1,16 @@
+init floor_max = 2;
+
+sub start()
+{
+    while (true) {
+        let i1 = inbox();
+        let i2 = inbox();
+        if (i1 > i2) {
+            outbox(i1);
+        } else {
+            outbox(i2);
+        }
+    }
+}
+// Input: 9,1,-7,-8,2,2,9,-7
+// Output: 9,-7,2,9

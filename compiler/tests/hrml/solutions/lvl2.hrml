@@ -1,0 +1,8 @@
+sub start()
+{
+    while (true) {
+        outbox(inbox());
+    }
+}
+// Input: B,O,O,T,S,E,Q,U,E,N,C,E
+// Output: B,O,O,T,S,E,Q,U,E,N,C,E

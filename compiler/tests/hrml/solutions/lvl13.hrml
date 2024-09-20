@@ -1,0 +1,13 @@
+init floor_max = 2;
+
+sub start()
+{
+    while (true) {
+        let i1 = inbox();
+        if (i1 == inbox()) {
+            outbox(i1);
+        }
+    }
+}
+// Input: 9,6,6,6,0,-2,-1,-1
+// Output: 6,-1
