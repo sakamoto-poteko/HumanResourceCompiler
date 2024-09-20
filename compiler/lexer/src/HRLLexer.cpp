@@ -139,7 +139,7 @@ TokenPtr HRLLexer::tokenize()
         token = std::make_shared<BooleanToken>(token_id, __currentToken.boolean, lineno, colno, width, std::make_shared<std::string>(yytext), __currentToken.preceding_metadata);
         break;
     case INTEGER:
-        token = std::make_shared<IntegerToken>(token_id, __currentToken.integer, lineno, colno, width, std::make_shared<std::string>(yytext), __currentToken.preceding_metadata);
+        token = std::make_shared<IntegerToken>(token_id, __currentToken.integer, __currentToken.is_char, lineno, colno, width, std::make_shared<std::string>(yytext), __currentToken.preceding_metadata);
         break;
     case IDENTIFIER:
         token = std::make_shared<IdentifierToken>(token_id, __currentToken.identifier, lineno, colno, width, std::make_shared<std::string>(yytext), __currentToken.preceding_metadata);

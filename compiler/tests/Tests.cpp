@@ -12,6 +12,7 @@
 #include <spdlog/sinks/ostream_sink.h>
 
 #include "ErrorManager.h"
+#include "HRMByte.h"
 #include "Tests.h"
 
 std::map<std::string, std::vector<TestCaseData>> __test_cases;
@@ -50,19 +51,25 @@ void GlobalTestEnvironment::TearDown()
 {
 }
 
-static bool parse_integer_line(const std::string &input_part, std::vector<int> &result)
+static bool parse_io_line(const std::string &input_part, std::vector<hrl::interpreter::HRMByte> &result)
 {
     std::vector<std::string> tokens;
     boost::split(tokens, input_part, boost::is_any_of(","));
 
     for (auto &token : tokens) {
+        boost::algorithm::trim(token); // Trim whitespace
         int value;
-        boost::algorithm::trim(token);
-        if (std::from_chars(token.data(), token.data() + token.size(), value).ec != std::errc()) {
+
+        if (token.size() == 1 && std::isalpha(token[0])) {
+            char ch = std::toupper(static_cast<char>(token[0]));
+            result.push_back(hrl::interpreter::HRMByte(ch));
+        } else if (std::from_chars(token.data(), token.data() + token.size(), value).ec == std::errc()) {
+            result.push_back(hrl::interpreter::HRMByte(value));
+        } else {
             return false;
         }
-        result.push_back(value);
     }
+
     return true;
 }
 
@@ -84,8 +91,8 @@ TestCaseData TestCaseData::parse_path(const fs::path &path)
         }
         std::string line;
         std::vector<std::string> expected_sentences;
-        std::vector<int> inputs;
-        std::vector<int> outputs;
+        std::vector<hrl::interpreter::HRMByte> inputs;
+        std::vector<hrl::interpreter::HRMByte> outputs;
 
         // Process each line in the file
         while (std::getline(file, line)) {
@@ -103,8 +110,8 @@ TestCaseData TestCaseData::parse_path(const fs::path &path)
             if (boost::algorithm::starts_with(trimmed_line, input_prefix)) {
                 std::string input_part = trimmed_line.substr(input_prefix.size());
                 // Extract the part after "// Input: "
-                std::vector<int> i;
-                if (parse_integer_line(input_part, i)) {
+                std::vector<hrl::interpreter::HRMByte> i;
+                if (parse_io_line(input_part, i)) {
                     i.swap(inputs);
                 }
             }
@@ -112,9 +119,9 @@ TestCaseData TestCaseData::parse_path(const fs::path &path)
             if (boost::algorithm::starts_with(trimmed_line, output_prefix)) {
                 std::string output_part = trimmed_line.substr(output_prefix.size());
                 // Extract the part after "// Output: "
-                std::vector<int> i;
-                if (parse_integer_line(output_part, i)) {
-                    i.swap(outputs);
+                std::vector<hrl::interpreter::HRMByte> o;
+                if (parse_io_line(output_part, o)) {
+                    o.swap(outputs);
                 }
             }
         }

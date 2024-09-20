@@ -1,3 +1,4 @@
+#include "HRMByte.h"
 #include "IntMemoryManager.h"
 #include "interpreter_global.h"
 
@@ -11,7 +12,7 @@ MemoryManager::~MemoryManager()
 {
 }
 
-bool MemoryManager::get_variable(const hrl::semanalyzer::SymbolPtr &symbol, int &value)
+bool MemoryManager::get_variable(const hrl::semanalyzer::SymbolPtr &symbol, HRMByte &value)
 {
     auto found = _variables.find(symbol);
     if (found == _variables.end()) {
@@ -22,17 +23,17 @@ bool MemoryManager::get_variable(const hrl::semanalyzer::SymbolPtr &symbol, int 
     }
 }
 
-void MemoryManager::set_variable(const hrl::semanalyzer::SymbolPtr &symbol, int value)
+void MemoryManager::set_variable(const hrl::semanalyzer::SymbolPtr &symbol, HRMByte value)
 {
     _variables[symbol] = value;
 }
 
-void MemoryManager::set_floor(int id, int value)
+void MemoryManager::set_floor(int id, HRMByte value)
 {
     _floor[id] = value;
 }
 
-bool MemoryManager::get_floor(int id, int &value)
+bool MemoryManager::get_floor(int id, HRMByte &value)
 {
     auto found = _floor.find(id);
     if (found == _floor.end()) {

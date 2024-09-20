@@ -14,7 +14,7 @@ Accumulator::~Accumulator()
 
 void Accumulator::inbox()
 {
-    int value;
+    HRMByte value;
     bool ok = _ioman.pop_input(value);
     if (!ok) {
         throw InterpreterException(InterpreterException::ErrorType::EndOfInput, "End of input reached");
@@ -32,11 +32,11 @@ void Accumulator::outbox()
     }
 }
 
-void Accumulator::__arithmetic_operation(ArithmeticOperator op, int target)
+void Accumulator::__arithmetic_operation(ArithmeticOperator op, HRMByte target)
 {
     switch (op) {
     case ArithmeticOperator::Add:
-        target += get_register();
+        target = get_register() + target;
         break;
     case ArithmeticOperator::Sub:
         target = get_register() - target;
@@ -50,66 +50,62 @@ void Accumulator::__arithmetic_operation(ArithmeticOperator op, int target)
 
 void Accumulator::arithmetic_operation(ArithmeticOperator op, const hrl::semanalyzer::SymbolPtr &symbol)
 {
-    int val;
+    HRMByte val;
     _memory.get_variable(symbol, val);
     __arithmetic_operation(op, val);
 }
 
 void Accumulator::arithmetic_operation(ArithmeticOperator op, unsigned int floor_id)
 {
-    int val;
+    HRMByte val;
     _memory.get_floor(floor_id, val);
     __arithmetic_operation(op, val);
 }
 
 void Accumulator::bumpdn(unsigned int floor_id)
 {
-    int val;
+    HRMByte val;
     bool ok = _memory.get_floor(floor_id, val);
     if (!ok) {
         throw InterpreterException(InterpreterException::ErrorType::FloorIsEmpty, "Floor is null");
     }
     --val;
-    ensure_range(val);
     _memory.set_floor(floor_id, val);
     set_register(val);
 }
 
 void Accumulator::bumpdn(const hrl::semanalyzer::SymbolPtr &symbol)
 {
-    int val;
+    HRMByte val;
     bool ok = _memory.get_variable(symbol, val);
     if (!ok) {
         throw InterpreterException(InterpreterException::ErrorType::FloorIsEmpty, "Variable is null");
     }
     --val;
-    ensure_range(val);
     _memory.set_variable(symbol, val);
     set_register(val);
 }
 
 void Accumulator::bumpup(unsigned int floor_id)
 {
-    int val;
+    HRMByte val;
     bool ok = _memory.get_floor(floor_id, val);
     if (!ok) {
         throw InterpreterException(InterpreterException::ErrorType::FloorIsEmpty, "Floor is null");
     }
     ++val;
-    ensure_range(val);
     _memory.set_floor(floor_id, val);
     set_register(val);
 }
 
 void Accumulator::bumpup(const hrl::semanalyzer::SymbolPtr &symbol)
 {
-    int val;
+    HRMByte val;
     bool ok = _memory.get_variable(symbol, val);
     if (!ok) {
         throw InterpreterException(InterpreterException::ErrorType::FloorIsEmpty, "Variable is null");
     }
     ++val;
-    ensure_range(val);
     _memory.set_variable(symbol, val);
     set_register(val);
 }
@@ -126,7 +122,7 @@ void Accumulator::copy_to_floor(unsigned int floor_id)
 
 void Accumulator::copy_from(const hrl::semanalyzer::SymbolPtr &symbol)
 {
-    int value;
+    HRMByte value;
     bool ok = _memory.get_variable(symbol, value);
     if (!ok) {
         throw InterpreterException(InterpreterException::ErrorType::FloorIsEmpty, "Variable is null");
@@ -136,7 +132,7 @@ void Accumulator::copy_from(const hrl::semanalyzer::SymbolPtr &symbol)
 
 void Accumulator::copy_from_floor(unsigned int floor_id)
 {
-    int value;
+    HRMByte value;
     bool ok = _memory.get_floor(floor_id, value);
     if (!ok) {
         throw InterpreterException(InterpreterException::ErrorType::FloorIsEmpty, "Floor is null");
@@ -144,45 +140,37 @@ void Accumulator::copy_from_floor(unsigned int floor_id)
     set_register(value);
 }
 
-void Accumulator::__set_register(int value)
+void Accumulator::__set_register(HRMByte value)
 {
-    ensure_range(value);
     _register = value;
 }
 
-int Accumulator::get_register()
+HRMByte Accumulator::get_register()
 {
     return __get_register();
 }
 
 bool Accumulator::is_zero()
 {
-    return __get_register() == 0;
+    return __get_register().operator int() == 0;
 }
 
 bool Accumulator::is_not_zero()
 {
-    return __get_register() != 0;
+    return __get_register().operator int() != 0;
 }
 
 bool Accumulator::is_negative()
 {
-    return __get_register() < 0;
+    return __get_register().operator int() < 0;
 }
 
 bool Accumulator::is_true()
 {
-    return __get_register() == 0 ? false : true;
+    return __get_register().operator bool();
 }
 
-void Accumulator::ensure_range(int value)
-{
-    if (value < -999 || value > 999) {
-        throw InterpreterException(InterpreterException::ErrorType::ValueOutOfRange, "value is out of range");
-    }
-}
-
-int Accumulator::__get_register()
+HRMByte Accumulator::__get_register()
 {
     if (_register.has_value()) {
         return _register.value();

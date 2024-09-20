@@ -3,6 +3,11 @@
 
 #include <optional>
 
+#include <spdlog/cfg/env.h>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/spdlog.h>
+
+#include "HRMByte.h"
 #include "Symbol.h"
 #include "interpreter_global.h"
 
@@ -35,10 +40,11 @@ public:
     bool is_not_zero();
     bool is_negative();
     bool is_true();
-    int get_register();
+    HRMByte get_register();
 
-    // this func is to enforce calling with int, instead of other implicitly convertible, such as bool
-    template <typename T, typename = std::enable_if_t<std::is_same_v<T, int> && !std::is_same_v<T, bool>>>
+    // this func is to enforce calling with int, char or HRMByte, instead of other implicitly convertible, such as bool
+    template <typename T>
+        requires(std::is_same_v<T, int> || std::is_same_v<T, char> || std::is_same_v<T, HRMByte>)
     void set_register(T value)
     {
         __set_register(value);
@@ -57,14 +63,16 @@ public:
 private:
     MemoryManager &_memory;
     IOManager &_ioman;
-    std::optional<int> _register;
+    std::optional<HRMByte> _register;
 
-    void __set_register(int value);
-    int __get_register();
-    void __arithmetic_operation(ArithmeticOperator op, int target);
+    void __set_register(HRMByte value);
 
+    void __set_register(int value) { __set_register(HRMByte(value)); }
 
-    void ensure_range(int value);
+    void __set_register(char value) { __set_register(HRMByte(value)); }
+
+    HRMByte __get_register();
+    void __arithmetic_operation(ArithmeticOperator op, HRMByte target);
 };
 
 CLOSE_INTERPRETER_NAMESPACE

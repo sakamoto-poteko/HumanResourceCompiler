@@ -45,14 +45,14 @@ int main(int argc, char **argv)
     Interpreter interpreter(std::make_shared<std::string>(options.input_file), ast, accumulator);
     interpreter.set_symbol_table(symtbl);
 
-    ioman.set_on_input_popped([](int val) {
+    ioman.set_on_input_popped([](HRMByte val) {
         spdlog::info("<< {}", val);
     });
-    ioman.set_on_output_pushed([](int val) {
+    ioman.set_on_output_pushed([](HRMByte val) {
         spdlog::info("=> {}", val);
     });
 
-    for (int input : options.input_data) {
+    for (HRMByte input : options.input_data) {
         ioman.push_input(input);
     }
 

@@ -252,9 +252,10 @@ public:
 
 class IntegerASTNode : public AbstractPrimaryExpressionASTNode {
 public:
-    IntegerASTNode(int lineno, int colno, int last_lineno, int last_colno, int value)
+    IntegerASTNode(int lineno, int colno, int last_lineno, int last_colno, int value, bool is_char)
         : AbstractPrimaryExpressionASTNode(lineno, colno, last_lineno, last_colno)
         , _value(value)
+        , _is_char(is_char)
     {
     }
 
@@ -264,9 +265,12 @@ public:
 
     int &get_value() { return _value; }
 
+    bool get_is_char() const { return _is_char; }
+
 protected:
 private:
     int _value;
+    bool _is_char;
 };
 
 // BooleanASTNode

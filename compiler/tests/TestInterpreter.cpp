@@ -48,15 +48,15 @@ TEST_P(InterpreterTests, InterpreterCorrectnessTests)
     hrl::interpreter::Interpreter interpreter(std::make_shared<std::string>(data.filename), ast, accumulator);
     interpreter.set_symbol_table(symtbl);
 
-    for (int input : data.program_inputs) {
+    for (hrl::interpreter::HRMByte input : data.program_inputs) {
         ioman.push_input(input);
     }
 
-    std::vector<int> inputs, outputs;
-    ioman.set_on_input_popped([&](int val) {
+    std::vector<hrl::interpreter::HRMByte> inputs, outputs;
+    ioman.set_on_input_popped([&](hrl::interpreter::HRMByte val) {
         inputs.push_back(val);
     });
-    ioman.set_on_output_pushed([&](int val) {
+    ioman.set_on_output_pushed([&](hrl::interpreter::HRMByte val) {
         outputs.push_back(val);
     });
 

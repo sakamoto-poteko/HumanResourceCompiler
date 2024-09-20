@@ -78,7 +78,7 @@ protected:
 
     static IntegerASTNodePtr make_literal_node(const IntegerLiteralPTNodePtr &node)
     {
-        IntegerASTNodePtr val_expr = std::make_shared<IntegerASTNode>(node->lineno(), node->colno(), node->lineno(), int(node->lineno() + node->get_token()->width()), node->get_value());
+        IntegerASTNodePtr val_expr = std::make_shared<IntegerASTNode>(node->lineno(), node->colno(), node->lineno(), int(node->lineno() + node->get_token()->width()), node->get_value(), node->get_is_char());
         return val_expr;
     }
 
