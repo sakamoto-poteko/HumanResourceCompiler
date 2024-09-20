@@ -18,6 +18,7 @@ public:
         ValueOutOfRange,
         DivByZero,
         ModByZero,
+        TypeMismatch,
     };
 
     InterpreterException(ErrorType err, const std::string &message = "")

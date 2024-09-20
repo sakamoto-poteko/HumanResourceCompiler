@@ -16,12 +16,12 @@ public:
     {
     }
 
-    HRMByte(int value)
+    explicit HRMByte(int value)
     {
         set_value(value);
     }
 
-    HRMByte(char value)
+    explicit HRMByte(char value)
     {
         set_value(value);
     }
@@ -53,18 +53,26 @@ public:
         return *this;
     }
 
+    bool operator==(const HRMByte &other) const
+    {
+        return other._is_char == _is_char && other._value == _value;
+    }
+
     HRMByte operator+(const HRMByte &rhs) const
     {
+        ensure_same_type(rhs);
         return HRMByte(this->_value + rhs._value);
     }
 
     HRMByte operator-(const HRMByte &rhs) const
     {
+        ensure_same_type(rhs);
         return HRMByte(this->_value - rhs._value);
     }
 
     HRMByte operator*(const HRMByte &rhs) const
     {
+        ensure_same_type(rhs);
         return HRMByte(this->_value * rhs._value);
     }
 
@@ -73,6 +81,7 @@ public:
         if (rhs._value == 0) {
             throw InterpreterException(InterpreterException::ErrorType::DivByZero, "Division by zero");
         }
+        ensure_same_type(rhs);
         return HRMByte(this->_value / rhs._value);
     }
 
@@ -81,6 +90,7 @@ public:
         if (rhs._value == 0) {
             throw InterpreterException(InterpreterException::ErrorType::ModByZero, "Mod by zero");
         }
+        ensure_same_type(rhs);
         return HRMByte(this->_value % rhs._value);
     }
 
@@ -131,6 +141,13 @@ public:
 private:
     int _value;
     bool _is_char;
+
+    void ensure_same_type(const HRMByte &other) const
+    {
+        if (_is_char != other._is_char) {
+            throw InterpreterException(InterpreterException::ErrorType::TypeMismatch, "Operation performed on int and char");
+        }
+    }
 };
 
 CLOSE_INTERPRETER_NAMESPACE

@@ -8,6 +8,8 @@
 
 #include <gtest/gtest.h>
 
+#include "HRMByte.h"
+
 namespace fs = std::filesystem;
 
 class GlobalTestEnvironment : public ::testing::Environment {
@@ -25,8 +27,8 @@ struct TestCaseData {
     std::string testname;
     bool expect_code;
     std::vector<std::string> expected_compiler_outputs;
-    std::vector<int> program_inputs;
-    std::vector<int> expected_program_outputs;
+    std::vector<hrl::interpreter::HRMByte> program_inputs;
+    std::vector<hrl::interpreter::HRMByte> expected_program_outputs;
 
     // Overload the << operator for CustomData
     friend std::ostream &operator<<(std::ostream &os, const TestCaseData &data)

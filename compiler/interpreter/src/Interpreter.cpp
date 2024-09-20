@@ -260,7 +260,7 @@ int Interpreter::visit_binary_expression(const parser::AbstractBinaryExpressionA
 
     HRMByte right = _accumulator.get_register();
 
-    HRMByte result = 0;
+    HRMByte result;
     auto op = node->get_op();
     switch (op) {
     case parser::ASTBinaryOperator::ADD:
@@ -304,6 +304,9 @@ int Interpreter::visit_binary_expression(const parser::AbstractBinaryExpressionA
     case parser::ASTBinaryOperator::NE:
         result = static_cast<int>(left) != static_cast<int>(right) ? 1 : 0;
         break;
+    default:
+        spdlog::critical("Unknown ASTBinaryOperator {}. {}", static_cast<int>(op), __PRETTY_FUNCTION__);
+        throw;
     }
 
     _accumulator.set_register(result);

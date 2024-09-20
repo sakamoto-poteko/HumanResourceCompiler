@@ -1,30 +1,41 @@
+#include <charconv>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
 
+#include <boost/algorithm/string.hpp>
 #include <boost/program_options.hpp>
 
+#include "HRMByte.h"
 #include "InterpreterOptions.h"
 #include "Versioning.h"
 
 namespace po = boost::program_options;
 
-static std::vector<int> parse_data(const std::string &data_str)
+static std::vector<hrl::interpreter::HRMByte> parse_data(const std::string &data_str)
 {
-    std::vector<int> data;
-    std::stringstream ss(data_str);
-    std::string item;
-    try {
-        while (std::getline(ss, item, ',')) {
-            data.push_back(std::stoi(item));
+    std::vector<hrl::interpreter::HRMByte> data;
+    std::vector<std::string> tokens;
+    boost::split(tokens, data_str, boost::is_any_of(","));
+
+    for (auto &token : tokens) {
+        boost::algorithm::trim(token); // Trim whitespace
+        int value;
+
+        if (token.size() == 1 && std::isalpha(token[0])) {
+            char ch = std::toupper(token[0]);
+            data.push_back(hrl::interpreter::HRMByte(ch));
+        } else if (std::from_chars(token.data(), token.data() + token.size(), value).ec == std::errc()) {
+            data.push_back(hrl::interpreter::HRMByte(value));
+        } else {
+            throw std::runtime_error("Invalid input: " + token);
         }
-    } catch (const std::exception &) {
-        throw std::runtime_error("Invalid input data format: " + data_str);
     }
+
     return data;
 }
 
-static std::vector<int> load_data_from_file(const std::string &filename)
+static std::vector<hrl::interpreter::HRMByte> load_data_from_file(const std::string &filename)
 {
     std::ifstream file(filename);
     if (!file) {

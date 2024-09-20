@@ -3,7 +3,6 @@
 
 #include <optional>
 
-#include <fmt/core.h>
 #include <spdlog/cfg/env.h>
 #include <spdlog/fmt/ostr.h>
 #include <spdlog/spdlog.h>
@@ -67,6 +66,11 @@ private:
     std::optional<HRMByte> _register;
 
     void __set_register(HRMByte value);
+
+    void __set_register(int value) { __set_register(HRMByte(value)); }
+
+    void __set_register(char value) { __set_register(HRMByte(value)); }
+
     HRMByte __get_register();
     void __arithmetic_operation(ArithmeticOperator op, HRMByte target);
 };
