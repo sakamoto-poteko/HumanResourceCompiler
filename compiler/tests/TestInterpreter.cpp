@@ -51,7 +51,7 @@ TEST_P(InterpreterTests, InterpreterCorrectnessTests)
     hrl::interpreter::IOManager ioman;
     hrl::interpreter::Accumulator accumulator(memman, ioman);
 
-    hrl::interpreter::Interpreter interpreter(std::make_shared<std::string>(data.filename), ast, accumulator);
+    hrl::interpreter::Interpreter interpreter(std::make_shared<std::string>(data.filename), ast, accumulator, memman);
     interpreter.set_symbol_table(symtbl);
 
     for (hrl::interpreter::HRMByte input : data.program_inputs) {

@@ -42,7 +42,7 @@ int main(int argc, char **argv)
     IOManager ioman;
     Accumulator accumulator(memman, ioman);
 
-    Interpreter interpreter(std::make_shared<std::string>(options.input_file), ast, accumulator);
+    Interpreter interpreter(std::make_shared<std::string>(options.input_file), ast, accumulator, memman);
     interpreter.set_symbol_table(symtbl);
 
     ioman.set_on_input_popped([](HRMByte val) {

@@ -5,6 +5,7 @@
 
 #include "ASTNodeForward.h"
 #include "IntAccumulator.h"
+#include "IntMemoryManager.h"
 #include "SemanticAnalysisPass.h"
 #include "WithSymbolTable.h"
 #include "hrl_global.h"
@@ -14,9 +15,10 @@ OPEN_INTERPRETER_NAMESPACE
 
 class Interpreter : public hrl::semanalyzer::SemanticAnalysisPass, public semanalyzer::WithSymbolTable {
 public:
-    Interpreter(StringPtr filename, hrl::parser::CompilationUnitASTNodePtr root, Accumulator &accumulator)
+    Interpreter(StringPtr filename, hrl::parser::CompilationUnitASTNodePtr root, Accumulator &accumulator, MemoryManager &memman)
         : hrl::semanalyzer::SemanticAnalysisPass(std::move(filename), std::move(root))
         , _accumulator(accumulator)
+        , _memory_manager(memman)
     {
     }
 
@@ -68,6 +70,7 @@ protected:
 
 private:
     Accumulator &_accumulator;
+    MemoryManager &_memory_manager;
 
     enum ControlFlowState : int {
         CF_Normal = 0,
