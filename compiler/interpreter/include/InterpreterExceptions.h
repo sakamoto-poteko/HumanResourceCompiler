@@ -16,6 +16,8 @@ public:
         EndOfInput,
         FloorIsEmpty,
         ValueOutOfRange,
+        DivByZero,
+        ModByZero,
     };
 
     InterpreterException(ErrorType err, const std::string &message = "")
