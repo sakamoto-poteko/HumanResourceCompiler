@@ -2,6 +2,7 @@
 #define HRMBYTE_H
 
 #include <spdlog/fmt/ostr.h>
+#include <string>
 
 #include "InterpreterExceptions.h"
 #include "interpreter_global.h"
@@ -113,11 +114,11 @@ public:
         return *this;
     }
 
-    operator int() { return _value; }
+    operator int() const { return _value; }
 
-    operator char() { return static_cast<char>(_value); }
+    operator char() const { return static_cast<char>(_value); }
 
-    operator bool() { return _value == 0 ? false : true; }
+    operator bool() const { return _value == 0 ? false : true; }
 
     void set_value(int value)
     {
@@ -138,6 +139,23 @@ public:
 
     bool is_int() const { return !_is_char; }
 
+    friend std::ostream &operator<<(std::ostream &os, const hrl::interpreter::HRMByte &hrmbyte)
+    {
+        os << hrmbyte.to_string();
+        return os;
+    }
+
+    std::string to_string() const
+    {
+        if (_is_char) {
+            std::string str(3, '\'');
+            str[1] = operator char();
+            return str;
+        } else {
+            return std::to_string(operator int());
+        }
+    }
+
 private:
     int _value;
     bool _is_char;
@@ -157,11 +175,7 @@ template <>
 struct fmt::formatter<hrl::interpreter::HRMByte> : fmt::formatter<std::string> {
     auto format(hrl::interpreter::HRMByte hrmbyte, format_context &ctx) const -> decltype(ctx.out())
     {
-        if (hrmbyte.is_char()) {
-            return fmt::format_to(ctx.out(), "{}", static_cast<char>(hrmbyte));
-        } else {
-            return fmt::format_to(ctx.out(), "'{}'", static_cast<int>(hrmbyte));
-        }
+        return fmt::format_to(ctx.out(), "{}", hrmbyte.to_string());
     }
 };
 #else

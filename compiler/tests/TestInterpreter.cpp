@@ -19,7 +19,13 @@ std::vector<TestCaseData> read_interpreter_test_cases()
 {
     std::vector<TestCaseData> result;
 
-    for (const auto &[_, cases] : __test_cases) {
+    std::set<std::string> enabled_test_group { "semanalyzer", "solutions" };
+
+    for (const auto &[testgruop, cases] : __test_cases) {
+        if (!enabled_test_group.contains(testgruop)) {
+            continue;
+        }
+
         for (const auto &testcase : cases) {
             if (testcase.should_pass && (!testcase.program_inputs.empty() || !testcase.expected_program_outputs.empty())) {
                 result.push_back(testcase);

@@ -3,12 +3,14 @@
 #include <fstream>
 #include <iostream>
 #include <regex>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <vector>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/join.hpp>
+#include <boost/range/adaptor/transformed.hpp>
 #include <spdlog/sinks/ostream_sink.h>
 
 #include "ErrorManager.h"
@@ -28,12 +30,15 @@ void load_test_cases(const std::string &directory_path)
             auto &vec = test_cases[test_group];
             for (const auto &entry : fs::directory_iterator(dir.path())) {
                 if (entry.path().extension() == ".hrml") {
+                    std::vector<fs::path> run_tests;
                     try {
                         auto parsed = TestCaseData::parse_path(entry.path());
+                        parsed.parse_hrml_file();
                         vec.push_back(std::move(parsed));
                     } catch (const std::invalid_argument &e) {
                         std::cerr << e.what() << std::endl; // Ignore files that don't match the pattern
                     }
+                    // test for run_tests
                 }
             }
         }
@@ -79,77 +84,46 @@ TestCaseData TestCaseData::parse_path(const fs::path &path)
     std::regex pattern(R"(([EWNX]\d*X?)_(fail|pass)_([^\.]+)\.hrml)");
     std::smatch matches;
 
+    std::string code;
+    bool should_pass = true;
+    std::string testname;
+
     auto filename = path.filename().string();
     if (std::regex_match(filename, matches, pattern)) {
-        std::string code = matches[1];
-        bool should_pass = matches[2] == "pass";
-        std::string testname = matches[3];
-
-        std::ifstream file(path);
-        if (!file.is_open()) {
-            throw std::invalid_argument("Failed to open file: " + filename);
-        }
-        std::string line;
-        std::vector<std::string> expected_sentences;
-        std::vector<hrl::interpreter::HRMByte> inputs;
-        std::vector<hrl::interpreter::HRMByte> outputs;
-
-        // Process each line in the file
-        while (std::getline(file, line)) {
-            // Remove leading whitespace
-            std::string trimmed_line = boost::algorithm::trim_left_copy(line);
-
-            const std::string expect_prefix = "// Expect: ";
-            if (boost::algorithm::starts_with(trimmed_line, expect_prefix)) {
-                // Extract the part after "// Expect: "
-                std::string expected_sentence = trimmed_line.substr(expect_prefix.size());
-                expected_sentences.push_back(expected_sentence);
-            }
-
-            const std::string input_prefix = "// Input:";
-            if (boost::algorithm::starts_with(trimmed_line, input_prefix)) {
-                std::string input_part = trimmed_line.substr(input_prefix.size());
-                // Extract the part after "// Input: "
-                std::vector<hrl::interpreter::HRMByte> i;
-                if (parse_io_line(input_part, i)) {
-                    i.swap(inputs);
-                }
-            }
-            const std::string output_prefix = "// Output:";
-            if (boost::algorithm::starts_with(trimmed_line, output_prefix)) {
-                std::string output_part = trimmed_line.substr(output_prefix.size());
-                // Extract the part after "// Output: "
-                std::vector<hrl::interpreter::HRMByte> o;
-                if (parse_io_line(output_part, o)) {
-                    o.swap(outputs);
-                }
-            }
-        }
-
-        file.close(); // Close the file when done
-
-        return {
-            .path = path.string(),
-            .filename = filename,
-            .code = code,
-            .should_pass = should_pass,
-            .testname = testname,
-            .expect_code = code.find("X") == std::string::npos,
-            .expected_compiler_outputs = expected_sentences,
-            .program_inputs = inputs,
-            .expected_program_outputs = outputs,
-        };
+        code = matches[1];
+        should_pass = matches[2] == "pass";
+        testname = matches[3];
     }
 
-    throw std::invalid_argument("Filename does not match expected pattern: " + filename);
+    return {
+        .path = path.string(),
+        .filename = filename,
+        .code = code,
+        .should_pass = should_pass,
+        .testname = testname,
+        .expect_code = code.find("X") == std::string::npos && !code.empty(),
+        .expected_compiler_outputs = {},
+        .program_inputs = {},
+        .expected_program_outputs = {},
+    };
 }
 
 void TestCaseData::print_setup() const
 {
-    std::cout << "Setting up '" << filename << "'" << std::endl
-              << "  >Expect '" << code << "' (" << (should_pass ? "PASS" : "FAILURE") << "): " << testname << std::endl;
+    std::cout << "Setting up '" << filename << "'" << std::endl;
+    if (expect_code) {
+        std::cout << "  >Expect '" << code << "' (" << (should_pass ? "PASS" : "FAILURE") << "): " << testname << std::endl;
+    }
     if (!expected_compiler_outputs.empty()) {
-        std::cout << "  >Expect output with [" << boost::join(expected_compiler_outputs, ", ") << "]" << std::endl;
+        std::cout << "  >Expect message with [" << boost::join(expected_compiler_outputs, ", ") << "]" << std::endl;
+    }
+    if (!program_inputs.empty()) {
+        auto inputs = program_inputs | boost::adaptors::transformed([](const auto &hrmbyte) { return hrmbyte.to_string(); });
+        std::cout << "  >Inputs [" << boost::join(inputs, ", ") << "]" << std::endl;
+    }
+    if (!expected_program_outputs.empty()) {
+        auto outputs = expected_program_outputs | boost::adaptors::transformed([](const auto &hrmbyte) { return hrmbyte.to_string(); });
+        std::cout << "  >Expect outputs [" << boost::join(outputs, ", ") << "]" << std::endl;
     }
 }
 
@@ -173,10 +147,56 @@ int main(int argc, char **argv)
     load_test_cases(directory);
 
     ::testing::InitGoogleTest(&argc, argv);
-    ::testing::AddGlobalTestEnvironment(new GlobalTestEnvironment()); // Register the global fixture
-
-    // ::testing::TestEventListeners &listeners = ::testing::UnitTest::GetInstance()->listeners();
-    // listeners.Append(new VerboseTestListener());
-
+    ::testing::AddGlobalTestEnvironment(new GlobalTestEnvironment());
     return RUN_ALL_TESTS();
+}
+
+void TestCaseData::parse_hrml_file()
+{
+    std::ifstream file(path);
+    if (!file.is_open()) {
+        throw std::invalid_argument("Failed to open file: " + filename);
+    }
+    std::string line;
+    std::vector<std::string> expected_sentences;
+    std::vector<hrl::interpreter::HRMByte> inputs;
+    std::vector<hrl::interpreter::HRMByte> outputs;
+
+    // Process each line in the file
+    while (std::getline(file, line)) {
+        // Remove leading whitespace
+        std::string trimmed_line = boost::algorithm::trim_left_copy(line);
+
+        const std::string expect_prefix = "// Expect: ";
+        if (boost::algorithm::starts_with(trimmed_line, expect_prefix)) {
+            // Extract the part after "// Expect: "
+            std::string expected_sentence = trimmed_line.substr(expect_prefix.size());
+            expected_sentences.push_back(expected_sentence);
+        }
+
+        const std::string input_prefix = "// Input:";
+        if (boost::algorithm::starts_with(trimmed_line, input_prefix)) {
+            std::string input_part = trimmed_line.substr(input_prefix.size());
+            // Extract the part after "// Input: "
+            std::vector<hrl::interpreter::HRMByte> i;
+            if (parse_io_line(input_part, i)) {
+                i.swap(inputs);
+            }
+        }
+        const std::string output_prefix = "// Output:";
+        if (boost::algorithm::starts_with(trimmed_line, output_prefix)) {
+            std::string output_part = trimmed_line.substr(output_prefix.size());
+            // Extract the part after "// Output: "
+            std::vector<hrl::interpreter::HRMByte> o;
+            if (parse_io_line(output_part, o)) {
+                o.swap(outputs);
+            }
+        }
+    }
+
+    expected_compiler_outputs.swap(expected_sentences);
+    expected_program_outputs.swap(outputs);
+    program_inputs.swap(inputs);
+
+    file.close(); // Close the file when done
 }

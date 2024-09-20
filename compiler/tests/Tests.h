@@ -39,6 +39,8 @@ struct TestCaseData {
 
     static TestCaseData parse_path(const fs::path &path);
 
+    void parse_hrml_file();
+
     void print_setup() const;
 };
 
