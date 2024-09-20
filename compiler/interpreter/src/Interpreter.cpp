@@ -43,7 +43,11 @@ Interpreter::~Interpreter()
 int Interpreter::visit(const parser::IntegerASTNodePtr &node)
 {
     BEGIN_VISIT();
-    _accumulator.set_register(node->get_value());
+    if (node->get_is_char()) {
+        _accumulator.set_register(static_cast<char>(node->get_value()));
+    } else {
+        _accumulator.set_register(node->get_value());
+    }
     END_VISIT();
 }
 
