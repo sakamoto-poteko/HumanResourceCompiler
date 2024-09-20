@@ -28,12 +28,15 @@ concept UnaryIntOperation = requires(Func func, int a, int &out) {
 
 class ConstantFoldingAttribute : public ASTNodeAttribute, public GetSetAttribute<ConstantFoldingAttribute> {
 public:
-    ConstantFoldingAttribute(int value)
+    ConstantFoldingAttribute(int value, bool is_char)
         : _value(value)
+        , _is_char(is_char)
     {
     }
 
     int get_value() const { return _value; }
+
+    bool get_is_char() const { return _is_char; }
 
     void set_value(int value) { _value = value; }
 
@@ -43,6 +46,7 @@ public:
 
 private:
     int _value;
+    bool _is_char;
 };
 
 /**
@@ -100,7 +104,7 @@ public:
 
 protected:
 private:
-    void attach_constant(const ASTNodePtr &node, int value);
+    void attach_constant(const ASTNodePtr &node, int value, bool is_char);
 
     int fold_binary_expression(const AbstractBinaryExpressionASTNodePtr &node, BinaryIntOperation auto op_func);
     int fold_unary_expression(const AbstractUnaryExpressionASTNodePtr &node, UnaryIntOperation auto op_func);

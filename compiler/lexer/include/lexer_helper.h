@@ -1,10 +1,10 @@
 #ifndef LEXER_HELPER_H
 #define LEXER_HELPER_H
 
+#include <vector>
+
 #include "hrl_global.h"
 #include "lexer_global.h"
-#include <string>
-#include <vector>
 
 OPEN_LEXER_NAMESPACE
 
@@ -24,6 +24,7 @@ public:
     bool boolean;
     StringPtr identifier;
     std::vector<TokenMetadata> preceding_metadata;
+    bool is_char;
 
     void clear()
     {
@@ -31,6 +32,7 @@ public:
         boolean = false;
         identifier.reset();
         preceding_metadata.clear();
+        is_char = false;
     }
 };
 

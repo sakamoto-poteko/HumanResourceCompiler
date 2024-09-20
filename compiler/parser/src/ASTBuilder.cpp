@@ -35,7 +35,7 @@ void ASTBuilder::visit(IdentifierPTNodePtr node)
 
 void ASTBuilder::visit(IntegerLiteralPTNodePtr node)
 {
-    SET_RESULT(IntegerASTNode, node->get_value());
+    SET_RESULT(IntegerASTNode, node->get_value(), node->get_is_char());
 }
 
 void ASTBuilder::visit(BooleanLiteralPTNodePtr node)
