@@ -16,7 +16,8 @@
 
 OPEN_SEMANALYZER_NAMESPACE
 
-class SemanticAnalysisPass : public parser::ASTNodeVisitor {
+// Others don't need to know that this pass is a visitor
+class SemanticAnalysisPass : protected parser::ASTNodeVisitor {
 public:
     SemanticAnalysisPass(StringPtr filename, parser::CompilationUnitASTNodePtr root)
         : _filename(std::move(filename))
@@ -28,6 +29,7 @@ public:
 
     virtual int run() = 0;
 
+protected:
     // For all visit, the return value of 0 indicate success.
     int visit(const parser::IntegerASTNodePtr &node) override;
     int visit(const parser::BooleanASTNodePtr &node) override;
