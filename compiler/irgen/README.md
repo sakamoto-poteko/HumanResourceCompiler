@@ -41,18 +41,41 @@ Key aspects of LIR:
 #### 1. **Arithmetic Operations**
 These operations handle basic arithmetic, represented in the TAC format.
 
-| Operation | Description                         | Example          |
-|-----------|-------------------------------------|------------------|
-| `add`     | Adds `src1` and `src2`, stores in `dest` | `add a b, c`    |
+| Operation | Description                                 | Example          |
+|-----------|---------------------------------------------|------------------|
+| `add`     | Adds `src1` and `src2`, stores in `dest`    | `add a, b, c`    |
 | `sub`     | Subtracts `src2` from `src1`, stores in `dest` | `sub a, b, c`    |
 | `mul`     | Multiplies `src1` by `src2`, stores in `dest` | `mul a, b, c`    |
-| `div`     | Divides `src1` by `src2`, stores in `dest` | `div a, b, c`    |
+| `div`     | Divides `src1` by `src2`, stores in `dest`  | `div a, b, c`    |
 | `mod`     | Modulo operation, `src1 % src2`, stores in `dest` | `mod a, b, c`    |
+| `neg`     | Negates `src`, stores result in `dest`      | `neg a, b`       |
 
-*Note*: `mul`, `div`, and `mod` will be translated into appropriate LIR sequences during the lowering phase.
+*Note*: `mul`, `div`, and `mod` may involve more complex lowering to handle without native hardware support.
 
-#### 2. **Control Flow Operations**
-HIR includes a rich set of branching instructions, allowing for more expressive control flow.
+#### 2. **Data Movement Operations**
+Operations for moving data between registers or from immediate values.
+
+| Operation | Description                                     | Example           |
+|-----------|-------------------------------------------------|-------------------|
+| `mov`     | Copies the value from `src` to `dest`           | `mov a, b`        |
+| `load`    | Loads a value from memory at `[addr]` or from address in `src`  | `load a, [100]` or `load a, (r1)` |
+| `store`   | Stores a value to memory at `[addr]` or to address in `src`     | `store a, [100]` or `store a, (r1)` |
+| `loadi`   | Loads an immediate constant into `dest`                         | `loadi a, 10`          |
+
+
+*Note*: In an accumulator architecture, `mov` may be used to load values into the accumulator from memory.
+
+#### 3. **Logical Operations**
+These operations deal with boolean and bitwise logic, useful for conditions and low-level manipulation.
+
+| Operation  | Description                                   | Example            |
+|------------|-----------------------------------------------|--------------------|
+| `and`      | Bitwise AND between `src1` and `src2`         | `and a, b, c`      |
+| `or`       | Bitwise OR between `src1` and `src2`          | `or a, b, c`       |
+| `not`      | Bitwise NOT on `src`, stores in `dest`        | `not a, b`         |
+
+#### 4. **Control Flow Operations**
+Includes branching, jumps, and conditional branches, allowing for structured control flow in the program.
 
 | Operation  | Description                                                | Example               |
 |------------|------------------------------------------------------------|-----------------------|
@@ -62,15 +85,55 @@ HIR includes a rich set of branching instructions, allowing for more expressive 
 | `jlt`      | Jump if `src1 < src2`                                      | `jlt a, b, label`     |
 | `jge`      | Jump if `src1 >= src2`                                     | `jge a, b, label`     |
 | `jle`      | Jump if `src1 <= src2`                                     | `jle a, b, label`     |
+| `jmp`      | Unconditional jump to `label`                              | `jmp label`           |
+| `call`     | Call subroutine at `label` with param b, and saves to a    | `call label, b, a`    |
+| `ret`      | Return from subroutine                                     | `ret a`                 |
 
-*Note*: These high-level branching instructions are later lowered into simpler jumps supported by the architecture (e.g., `jumpz`, `jumpn`).
-
-#### 3. **Special Operation**
+#### 5. **Special Operations**
+These operations handle input/output and other specialized tasks, including system-level instructions.
 
 | Operation  | Description                                                | Example               |
 |------------|------------------------------------------------------------|-----------------------|
-| `input`    | `inbox()`                                                  | `input a`      |
-| `output`   | `outbox()`                                                 | `output a`     |
+| `input`    | Reads input into `dest`                                    | `input a`             |
+| `output`   | Writes the value of `src` to the output                    | `output a`            |
+| `nop`      | No operation, placeholder instruction                      | `nop`                 |
+| `halt`     | Halts the program                                          | `halt`                |
+
+### Example Usage
+
+```text
+; Example: Summing two numbers and outputting the result
+input a             ; Read input into a
+input b             ; Read input into b
+add c, a, b         ; c = a + b
+output c            ; Output result stored in c
+halt                ; End program
+```
+
+### Design Considerations
+
+- **Accumulator Usage**: Since this is an accumulator-based architecture, the actual machine code will likely involve frequent use of the accumulator to perform intermediate calculations. For example, `add` and `sub` will involve loading one operand into the accumulator, performing the operation, and storing the result.
+- **No Stack**: Without a stack, subroutine calls (`call`) will likely involve fixed memory locations for return addresses and parameters.
+- **Lowering Complexity**: Certain operations like `mul`, `div`, `mod`, and comparison instructions might require lowering to simpler instructions depending on what the hardware natively supports. 
+
+This expanded set gives your HIR the flexibility to handle a variety of operations while keeping the design simple and efficient for an accumulator-based architecture. Let me know if you'd like further refinements!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ### Low-Level IR (LIR) Instructions
