@@ -102,7 +102,7 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createArithmetic(HighLevelIR
     if (src1.get_type() != Operand::OperandType::Register || src2.get_type() != Operand::OperandType::Register || tgt.get_type() != Operand::OperandType::Register) {
         throw std::runtime_error("Arithmetic operation requires all operands to be registers");
     }
-    return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt, src1, src2));
+    return std::make_shared<ThreeAddressCode>(op, tgt, src1, src2);
 }
 
 std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createLogical(HighLevelIROps op, const Operand &tgt, const Operand &src1)
@@ -111,7 +111,7 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createLogical(HighLevelIROps
         if (src1.get_type() != Operand::OperandType::Register || tgt.get_type() != Operand::OperandType::Register) {
             throw std::runtime_error("Unary logical/arithmetic operation requires src1 and tgt to be registers");
         }
-        return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt, src1));
+        return std::make_shared<ThreeAddressCode>(op, tgt, src1);
     } else {
         throw std::invalid_argument("Invalid logical operation");
     }
@@ -123,7 +123,7 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createLogical(HighLevelIROps
         if (src1.get_type() != Operand::OperandType::Register || src2.get_type() != Operand::OperandType::Register || tgt.get_type() != Operand::OperandType::Register) {
             throw std::runtime_error("Binary logical operations require all operands to be registers");
         }
-        return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt, src1, src2));
+        return std::make_shared<ThreeAddressCode>(op, tgt, src1, src2);
     } else {
         throw std::invalid_argument("Invalid logical operation");
     }
@@ -138,12 +138,12 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createBranching(HighLevelIRO
         if (tgt.get_type() != Operand::OperandType::Label) {
             throw std::runtime_error("JMP operation requires tgt to be a label");
         }
-        return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt));
+        return std::make_shared<ThreeAddressCode>(op, tgt);
     } else {
         if (src1.get_type() != Operand::OperandType::Register || src2.get_type() != Operand::OperandType::Register || tgt.get_type() != Operand::OperandType::Label) {
             throw std::runtime_error("Branching operations require src1, src2 to be registers and tgt to be a label");
         }
-        return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt, src1, src2));
+        return std::make_shared<ThreeAddressCode>(op, tgt, src1, src2);
     }
 }
 
@@ -164,7 +164,7 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createDataMovement(HighLevel
     } else {
         throw std::invalid_argument("Invalid data movement operation");
     }
-    return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt, src1));
+    return std::make_shared<ThreeAddressCode>(op, tgt, src1);
 }
 
 std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createLoadImmediate(const Operand &tgt, const Operand &src1)
@@ -172,13 +172,13 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createLoadImmediate(const Op
     if (src1.get_type() != Operand::OperandType::Constant || tgt.get_type() != Operand::OperandType::Register) {
         throw std::runtime_error("LOADI operation requires src1 to be a constant and tgt to be a register");
     }
-    return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(HighLevelIROps::LOADI, tgt, src1));
+    return std::make_shared<ThreeAddressCode>(HighLevelIROps::LOADI, tgt, src1);
 }
 
 std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createSpecial(HighLevelIROps op)
 {
     if (op == HighLevelIROps::NOP || op == HighLevelIROps::HALT) {
-        return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op));
+        return std::make_shared<ThreeAddressCode>(op);
     } else {
         throw std::invalid_argument("Invalid special operation");
     }
@@ -190,12 +190,12 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createIO(HighLevelIROps op, 
         if (reg.get_type() != Operand::OperandType::Register) {
             throw std::runtime_error("IO operations require a register");
         }
-        return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, reg));
+        return std::make_shared<ThreeAddressCode>(op, reg);
     } else if (op == HighLevelIROps::OUTPUT) {
         if (reg.get_type() != Operand::OperandType::Register) {
             throw std::runtime_error("IO operations require a register");
         }
-        return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, Operand(), reg));
+        return std::make_shared<ThreeAddressCode>(op, Operand(), reg);
     } else {
         throw std::invalid_argument("Invalid IO operation");
     }
@@ -206,7 +206,7 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createCall(const Operand &la
     if (label.get_type() != Operand::OperandType::Label || param.get_type() != Operand::OperandType::Register || ret.get_type() != Operand::OperandType::Register) {
         throw std::runtime_error("CALL operation requires label to be a label, param and ret to be registers");
     }
-    return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(HighLevelIROps::CALL, ret, label, param));
+    return std::make_shared<ThreeAddressCode>(HighLevelIROps::CALL, ret, label, param);
 }
 
 std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createReturn(const Operand &ret)
@@ -214,12 +214,12 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createReturn(const Operand &
     if (ret.get_type() != Operand::OperandType::Register) {
         throw std::runtime_error("RET operation requires ret to be a register");
     }
-    return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(HighLevelIROps::RET, Operand(), ret));
+    return std::make_shared<ThreeAddressCode>(HighLevelIROps::RET, Operand(), ret);
 }
 
 std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createReturn()
 {
-    return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(HighLevelIROps::RET));
+    return std::make_shared<ThreeAddressCode>(HighLevelIROps::RET);
 }
 
 CLOSE_IRGEN_NAMESPACE

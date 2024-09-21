@@ -120,6 +120,9 @@ private:
     {
     }
 
+    template <typename T, typename... Args>
+    friend std::shared_ptr<T> std::make_shared(Args &&...args);
+    
     HighLevelIROps _op;
     Operand _src1;
     Operand _src2;
