@@ -55,7 +55,7 @@ TEST_P(InterpreterTests, InterpreterCorrectnessTests)
     hrl::interpreter::IOManager ioman;
     hrl::interpreter::Accumulator accumulator(memman, ioman);
 
-    hrl::interpreter::Interpreter interpreter(std::make_shared<std::string>(data.filename), _test.get_ast(), accumulator);
+    hrl::interpreter::Interpreter interpreter(std::make_shared<std::string>(data.filename), _test.get_ast(), accumulator, memman);
     interpreter.set_symbol_table(_test.get_symtbl());
 
     for (hrl::interpreter::HRMByte input : data.program_inputs) {
@@ -78,7 +78,7 @@ TEST_P(InterpreterTests, InterpreterCorrectnessTests)
     hrl::interpreter::IOManager opt_ioman;
     hrl::interpreter::Accumulator opt_accumulator(opt_memman, opt_ioman);
 
-    hrl::interpreter::Interpreter opt_interpreter(std::make_shared<std::string>(data.filename), _opt_test.get_ast(), opt_accumulator);
+    hrl::interpreter::Interpreter opt_interpreter(std::make_shared<std::string>(data.filename), _opt_test.get_ast(), opt_accumulator, opt_memman);
     opt_interpreter.set_symbol_table(_opt_test.get_symtbl());
 
     for (hrl::interpreter::HRMByte input : data.program_inputs) {
