@@ -36,23 +36,27 @@ std::vector<TestCaseData> read_interpreter_test_cases()
     return result;
 }
 
-class InterpreterTests : public ::testing::TestWithParam<TestCaseData>, public WithSemanticAnalyzed {
+class InterpreterTests : public ::testing::TestWithParam<TestCaseData>, private WithSemanticAnalyzed {
 protected:
+    WithSemanticAnalyzed _test;
+    WithSemanticAnalyzed _opt_test;
 };
 
 TEST_P(InterpreterTests, InterpreterCorrectnessTests)
 {
     const auto &data = GetParam();
     bool ok;
-    setup_semantic_analyze(false, data, ok);
+
+    // begin unoptimized
+    _test.setup_semantic_analyze(false, data, ok);
     ASSERT_TRUE(ok) << "Failed in semantic analysis stages";
 
     hrl::interpreter::MemoryManager memman;
     hrl::interpreter::IOManager ioman;
     hrl::interpreter::Accumulator accumulator(memman, ioman);
 
-    hrl::interpreter::Interpreter interpreter(std::make_shared<std::string>(data.filename), ast, accumulator, memman);
-    interpreter.set_symbol_table(symtbl);
+    hrl::interpreter::Interpreter interpreter(std::make_shared<std::string>(data.filename), _test.get_ast(), accumulator, memman);
+    interpreter.set_symbol_table(_test.get_symtbl());
 
     for (hrl::interpreter::HRMByte input : data.program_inputs) {
         ioman.push_input(input);
@@ -66,6 +70,30 @@ TEST_P(InterpreterTests, InterpreterCorrectnessTests)
         outputs.push_back(val);
     });
 
+    // begin optimized
+    _opt_test.setup_semantic_analyze(true, data, ok);
+    ASSERT_TRUE(ok) << "Failed in semantic analysis stages with opt";
+
+    hrl::interpreter::MemoryManager opt_memman;
+    hrl::interpreter::IOManager opt_ioman;
+    hrl::interpreter::Accumulator opt_accumulator(opt_memman, opt_ioman);
+
+    hrl::interpreter::Interpreter opt_interpreter(std::make_shared<std::string>(data.filename), _opt_test.get_ast(), opt_accumulator, opt_memman);
+    opt_interpreter.set_symbol_table(_opt_test.get_symtbl());
+
+    for (hrl::interpreter::HRMByte input : data.program_inputs) {
+        opt_ioman.push_input(input);
+    }
+
+    std::vector<hrl::interpreter::HRMByte> opt_inputs, opt_outputs;
+
+    opt_ioman.set_on_input_popped([&](hrl::interpreter::HRMByte val) {
+        opt_inputs.push_back(val);
+    });
+    opt_ioman.set_on_output_pushed([&](hrl::interpreter::HRMByte val) {
+        opt_outputs.push_back(val);
+    });
+
     int rc = 0;
     try {
         rc = interpreter.run();
@@ -75,8 +103,19 @@ TEST_P(InterpreterTests, InterpreterCorrectnessTests)
             << "Interpreter reported an error: " << ex.what();
     }
 
+    try {
+        rc = opt_interpreter.run();
+        ASSERT_EQ(rc, 0) << "Interpreter (opt) did not return a success code";
+    } catch (const hrl::interpreter::InterpreterException &ex) {
+        ASSERT_EQ(ex.get_error_type(), hrl::interpreter::InterpreterException::ErrorType::EndOfInput)
+            << "Interpreter (opt) reported an error: " << ex.what();
+    }
+
     EXPECT_EQ(outputs, data.expected_program_outputs)
         << "The program output is incorrect";
+
+    EXPECT_EQ(outputs, opt_outputs)
+        << "Optimized program yields different output than unoptimized";
 }
 
-INSTANTIATE_TEST_SUITE_P(InterpreterTests, InterpreterTests, ::testing::ValuesIn(read_interpreter_test_cases()));
+INSTANTIATE_TEST_SUITE_P(InterpreterOptTests, InterpreterTests, ::testing::ValuesIn(read_interpreter_test_cases()));

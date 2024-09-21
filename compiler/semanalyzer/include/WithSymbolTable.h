@@ -16,7 +16,7 @@ public:
      *
      * @param symbol_table  The existing table. This can be useful when the program has imports.
      */
-    void set_symbol_table(SymbolTablePtr &symbol_table) { _symbol_table = symbol_table; }
+    void set_symbol_table(const SymbolTablePtr &symbol_table) { _symbol_table = symbol_table; }
 
     const SymbolTablePtr &get_symbol_table() const { return _symbol_table; }
 
