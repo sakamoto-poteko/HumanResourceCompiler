@@ -15,15 +15,15 @@ void ThreeAddressCode::ensure_operand()
     case HighLevelIROps::MOD:
     case HighLevelIROps::AND:
     case HighLevelIROps::OR:
-        if (_src1.get_type() != Operand::OperandType::Register || _src2.get_type() != Operand::OperandType::Register || _tgt.get_type() != Operand::OperandType::Register) {
-            throw std::runtime_error("Binary arithmetic/logical IR requires src1, src2, tgt to be non-null register");
+        if (_src1.get_type() != Operand::OperandType::VariableId || _src2.get_type() != Operand::OperandType::VariableId || _tgt.get_type() != Operand::OperandType::VariableId) {
+            throw std::runtime_error("Binary arithmetic/logical IR requires src1, src2, tgt to be non-null variable");
         }
         break;
 
     case HighLevelIROps::NEG:
     case HighLevelIROps::NOT:
-        if (_src1.get_type() != Operand::OperandType::Register || _tgt.get_type() != Operand::OperandType::Register) {
-            throw std::runtime_error("Unary arithmetic/logical IR requires src1, tgt to be non-null register");
+        if (_src1.get_type() != Operand::OperandType::VariableId || _tgt.get_type() != Operand::OperandType::VariableId) {
+            throw std::runtime_error("Unary arithmetic/logical IR requires src1, tgt to be non-null variable");
         }
         break;
 
@@ -33,39 +33,39 @@ void ThreeAddressCode::ensure_operand()
     case HighLevelIROps::JLT:
     case HighLevelIROps::JGE:
     case HighLevelIROps::JLE:
-        if (_src1.get_type() != Operand::OperandType::Register || _src2.get_type() != Operand::OperandType::Register || _tgt.get_type() != Operand::OperandType::Label) {
-            throw std::runtime_error("Conditional branching IR requires src1, src2 to be non-null register, and tgt to be label");
+        if (_src1.get_type() != Operand::OperandType::VariableId || _src2.get_type() != Operand::OperandType::VariableId || _tgt.get_type() != Operand::OperandType::Label) {
+            throw std::runtime_error("Conditional branching IR requires src1, src2 to be non-null variable, and tgt to be label");
         }
         break;
 
     case HighLevelIROps::INPUT:
     case HighLevelIROps::OUTPUT:
-        if (_tgt.get_type() != Operand::OperandType::Register) {
-            throw std::runtime_error("IO IR requires tgt to be non-null register");
+        if (_tgt.get_type() != Operand::OperandType::VariableId) {
+            throw std::runtime_error("IO IR requires tgt to be non-null variable");
         }
         break;
 
     case HighLevelIROps::MOV:
-        if (_src1.get_type() != Operand::OperandType::Register || _tgt.get_type() != Operand::OperandType::Register) {
-            throw std::runtime_error("MOV IR requires src1 and tgt to be non-null register");
+        if (_src1.get_type() != Operand::OperandType::VariableId || _tgt.get_type() != Operand::OperandType::VariableId) {
+            throw std::runtime_error("MOV IR requires src1 and tgt to be non-null variable");
         }
         break;
 
     case HighLevelIROps::LOAD:
-        if (!(_src1.get_type() == Operand::OperandType::Constant || _src1.get_type() == Operand::OperandType::Register) || _tgt.get_type() != Operand::OperandType::Register) {
-            throw std::runtime_error("LOAD IR requires src1 to be either constant or register, and tgt to be register");
+        if (!(_src1.get_type() == Operand::OperandType::ImmediateValue || _src1.get_type() == Operand::OperandType::VariableId) || _tgt.get_type() != Operand::OperandType::VariableId) {
+            throw std::runtime_error("LOAD IR requires src1 to be either constant or variable, and tgt to be variable");
         }
         break;
 
     case HighLevelIROps::STORE:
-        if (!(_tgt.get_type() == Operand::OperandType::Constant || _tgt.get_type() == Operand::OperandType::Register) || _src1.get_type() != Operand::OperandType::Register) {
-            throw std::runtime_error("STORE IR requires tgt to be either constant or register, and src1 to be register");
+        if (!(_tgt.get_type() == Operand::OperandType::ImmediateValue || _tgt.get_type() == Operand::OperandType::VariableId) || _src1.get_type() != Operand::OperandType::VariableId) {
+            throw std::runtime_error("STORE IR requires tgt to be either constant or variable, and src1 to be variable");
         }
         break;
 
     case HighLevelIROps::LOADI:
-        if (_src1.get_type() != Operand::OperandType::Constant || _tgt.get_type() != Operand::OperandType::Register) {
-            throw std::runtime_error("LOADI IR requires src1 to be constant, and tgt to be register");
+        if (_src1.get_type() != Operand::OperandType::ImmediateValue || _tgt.get_type() != Operand::OperandType::VariableId) {
+            throw std::runtime_error("LOADI IR requires src1 to be constant, and tgt to be variable");
         }
         break;
 
@@ -99,19 +99,42 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createArithmetic(HighLevelIR
     if (op != HighLevelIROps::ADD && op != HighLevelIROps::SUB && op != HighLevelIROps::MUL && op != HighLevelIROps::DIV && op != HighLevelIROps::MOD) {
         throw std::invalid_argument("Invalid arithmetic operation");
     }
-    if (src1.get_type() != Operand::OperandType::Register || src2.get_type() != Operand::OperandType::Register || tgt.get_type() != Operand::OperandType::Register) {
-        throw std::runtime_error("Arithmetic operation requires all operands to be registers");
+    if (src1.get_type() != Operand::OperandType::VariableId || src2.get_type() != Operand::OperandType::VariableId || tgt.get_type() != Operand::OperandType::VariableId) {
+        throw std::runtime_error("Arithmetic operation requires all operands to be variables");
     }
-    return std::make_shared<ThreeAddressCode>(op, tgt, src1, src2);
+    return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt, src1, src2));
+}
+
+std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createArithmetic(HighLevelIROps op, const Operand &tgt, const Operand &src1)
+{
+    if (op == HighLevelIROps::NEG) {
+        if (src1.get_type() != Operand::OperandType::VariableId || tgt.get_type() != Operand::OperandType::VariableId) {
+            throw std::runtime_error("NEG operation requires src1 and tgt to be variables");
+        }
+        return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt, src1));
+    } else {
+        throw std::invalid_argument("Invalid logical operation");
+    }
+}
+
+std::shared_ptr<ThreeAddressCode> hrl::irgen::ThreeAddressCode::createComparison(HighLevelIROps op, const Operand &tgt, const Operand &src1, const Operand &src2)
+{
+    if (op != HighLevelIROps::EQ && op != HighLevelIROps::NE && op != HighLevelIROps::LT && op != HighLevelIROps::LE && op != HighLevelIROps::GT && op != HighLevelIROps::GE) {
+        throw std::invalid_argument("Invalid comparison operation");
+    }
+    if (src1.get_type() != Operand::OperandType::VariableId || src2.get_type() != Operand::OperandType::VariableId || tgt.get_type() != Operand::OperandType::VariableId) {
+        throw std::runtime_error("Comparison operation requires all operands to be variables");
+    }
+    return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt, src1, src2));
 }
 
 std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createLogical(HighLevelIROps op, const Operand &tgt, const Operand &src1)
 {
-    if (op == HighLevelIROps::NOT || op == HighLevelIROps::NEG) { // Unary operations (NOT, NEG)
-        if (src1.get_type() != Operand::OperandType::Register || tgt.get_type() != Operand::OperandType::Register) {
-            throw std::runtime_error("Unary logical/arithmetic operation requires src1 and tgt to be registers");
+    if (op == HighLevelIROps::NOT) { // Unary operations (NOT, NEG)
+        if (src1.get_type() != Operand::OperandType::VariableId || tgt.get_type() != Operand::OperandType::VariableId) {
+            throw std::runtime_error("NOT operation requires src1 and tgt to be variables");
         }
-        return std::make_shared<ThreeAddressCode>(op, tgt, src1);
+        return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt, src1));
     } else {
         throw std::invalid_argument("Invalid logical operation");
     }
@@ -120,10 +143,10 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createLogical(HighLevelIROps
 std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createLogical(HighLevelIROps op, const Operand &tgt, const Operand &src1, const Operand &src2)
 {
     if (op == HighLevelIROps::AND || op == HighLevelIROps::OR) { // Binary logical operations (AND, OR)
-        if (src1.get_type() != Operand::OperandType::Register || src2.get_type() != Operand::OperandType::Register || tgt.get_type() != Operand::OperandType::Register) {
-            throw std::runtime_error("Binary logical operations require all operands to be registers");
+        if (src1.get_type() != Operand::OperandType::VariableId || src2.get_type() != Operand::OperandType::VariableId || tgt.get_type() != Operand::OperandType::VariableId) {
+            throw std::runtime_error("Binary logical operations require all operands to be variables");
         }
-        return std::make_shared<ThreeAddressCode>(op, tgt, src1, src2);
+        return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt, src1, src2));
     } else {
         throw std::invalid_argument("Invalid logical operation");
     }
@@ -138,64 +161,64 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createBranching(HighLevelIRO
         if (tgt.get_type() != Operand::OperandType::Label) {
             throw std::runtime_error("JMP operation requires tgt to be a label");
         }
-        return std::make_shared<ThreeAddressCode>(op, tgt);
+        return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt));
     } else {
-        if (src1.get_type() != Operand::OperandType::Register || src2.get_type() != Operand::OperandType::Register || tgt.get_type() != Operand::OperandType::Label) {
-            throw std::runtime_error("Branching operations require src1, src2 to be registers and tgt to be a label");
+        if (src1.get_type() != Operand::OperandType::VariableId || src2.get_type() != Operand::OperandType::VariableId || tgt.get_type() != Operand::OperandType::Label) {
+            throw std::runtime_error("Branching operations require src1, src2 to be variables and tgt to be a label");
         }
-        return std::make_shared<ThreeAddressCode>(op, tgt, src1, src2);
+        return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt, src1, src2));
     }
 }
 
 std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createDataMovement(HighLevelIROps op, const Operand &tgt, const Operand &src1)
 {
-    if (op == HighLevelIROps::MOV) { // MOV requires both src1 and tgt to be registers
-        if (src1.get_type() != Operand::OperandType::Register || tgt.get_type() != Operand::OperandType::Register) {
-            throw std::runtime_error("MOV operation requires both src1 and tgt to be registers");
+    if (op == HighLevelIROps::MOV) { // MOV requires both src1 and tgt to be variables
+        if (src1.get_type() != Operand::OperandType::VariableId || tgt.get_type() != Operand::OperandType::VariableId) {
+            throw std::runtime_error("MOV operation requires both src1 and tgt to be variables");
         }
-    } else if (op == HighLevelIROps::LOAD) { // LOAD can load from a constant or register to a register
-        if ((src1.get_type() != Operand::OperandType::Constant && src1.get_type() != Operand::OperandType::Register) || tgt.get_type() != Operand::OperandType::Register) {
-            throw std::runtime_error("LOAD operation requires src1 to be a constant or register, and tgt to be a register");
+    } else if (op == HighLevelIROps::LOAD) { // LOAD can load from a constant or variable to a variable
+        if ((src1.get_type() != Operand::OperandType::ImmediateValue && src1.get_type() != Operand::OperandType::VariableId) || tgt.get_type() != Operand::OperandType::VariableId) {
+            throw std::runtime_error("LOAD operation requires src1 to be a constant or variable, and tgt to be a variable");
         }
-    } else if (op == HighLevelIROps::STORE) { // STORE can store from a register to a constant or register
-        if (src1.get_type() != Operand::OperandType::Register || (tgt.get_type() != Operand::OperandType::Constant && tgt.get_type() != Operand::OperandType::Register)) {
-            throw std::runtime_error("STORE operation requires src1 to be a register and tgt to be a constant or register");
+    } else if (op == HighLevelIROps::STORE) { // STORE can store from a variable to a constant or variable
+        if (src1.get_type() != Operand::OperandType::VariableId || (tgt.get_type() != Operand::OperandType::ImmediateValue && tgt.get_type() != Operand::OperandType::VariableId)) {
+            throw std::runtime_error("STORE operation requires src1 to be a variable and tgt to be a constant or variable");
         }
     } else {
         throw std::invalid_argument("Invalid data movement operation");
     }
-    return std::make_shared<ThreeAddressCode>(op, tgt, src1);
+    return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt, src1));
 }
 
-std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createLoadImmediate(const Operand &tgt, const Operand &src1)
+std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createLoadImmediate(const Operand &tgt, int src1)
 {
-    if (src1.get_type() != Operand::OperandType::Constant || tgt.get_type() != Operand::OperandType::Register) {
-        throw std::runtime_error("LOADI operation requires src1 to be a constant and tgt to be a register");
+    if (tgt.get_type() != Operand::OperandType::VariableId) {
+        throw std::runtime_error("LOADI operation requires tgt to be a variable");
     }
-    return std::make_shared<ThreeAddressCode>(HighLevelIROps::LOADI, tgt, src1);
+    return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(HighLevelIROps::LOADI, tgt, Operand(src1, true)));
 }
 
 std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createSpecial(HighLevelIROps op)
 {
     if (op == HighLevelIROps::NOP || op == HighLevelIROps::HALT) {
-        return std::make_shared<ThreeAddressCode>(op);
+        return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op));
     } else {
         throw std::invalid_argument("Invalid special operation");
     }
 }
 
-std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createIO(HighLevelIROps op, const Operand &reg)
+std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createIO(HighLevelIROps op, const Operand &val)
 {
     if (op == HighLevelIROps::INPUT) {
-        if (reg.get_type() != Operand::OperandType::Register) {
-            throw std::runtime_error("IO operations require a register");
+        if (val.get_type() != Operand::OperandType::VariableId) {
+            throw std::runtime_error("IO operations require a variable");
         }
-        return std::make_shared<ThreeAddressCode>(op, reg);
+        return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, val));
     } else if (op == HighLevelIROps::OUTPUT) {
-        if (reg.get_type() != Operand::OperandType::Register) {
-            throw std::runtime_error("IO operations require a register");
+        if (val.get_type() != Operand::OperandType::VariableId) {
+            throw std::runtime_error("IO operations require a variable");
         }
-        return std::make_shared<ThreeAddressCode>(op, Operand(), reg);
+        return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, Operand(), val));
     } else {
         throw std::invalid_argument("Invalid IO operation");
     }
@@ -203,23 +226,31 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createIO(HighLevelIROps op, 
 
 std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createCall(const Operand &label, const Operand &param, const Operand &ret)
 {
-    if (label.get_type() != Operand::OperandType::Label || param.get_type() != Operand::OperandType::Register || ret.get_type() != Operand::OperandType::Register) {
-        throw std::runtime_error("CALL operation requires label to be a label, param and ret to be registers");
+    if (label.get_type() != Operand::OperandType::Label || param.get_type() != Operand::OperandType::VariableId || ret.get_type() != Operand::OperandType::VariableId) {
+        throw std::runtime_error("CALL operation requires label to be a label, param and ret to be variables");
     }
-    return std::make_shared<ThreeAddressCode>(HighLevelIROps::CALL, ret, label, param);
+    return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(HighLevelIROps::CALL, ret, label, param));
+}
+
+std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createCall(const Operand &label, const Operand &ret)
+{
+    if (label.get_type() != Operand::OperandType::Label || ret.get_type() != Operand::OperandType::VariableId) {
+        throw std::runtime_error("CALL operation requires label to be a label, ret to be variables");
+    }
+    return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(HighLevelIROps::CALL, ret, label));
 }
 
 std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createReturn(const Operand &ret)
 {
-    if (ret.get_type() != Operand::OperandType::Register) {
-        throw std::runtime_error("RET operation requires ret to be a register");
+    if (ret.get_type() != Operand::OperandType::VariableId) {
+        throw std::runtime_error("RET operation requires ret to be a variable");
     }
-    return std::make_shared<ThreeAddressCode>(HighLevelIROps::RET, Operand(), ret);
+    return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(HighLevelIROps::RET, Operand(), ret));
 }
 
 std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createReturn()
 {
-    return std::make_shared<ThreeAddressCode>(HighLevelIROps::RET);
+    return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(HighLevelIROps::RET));
 }
 
 CLOSE_IRGEN_NAMESPACE

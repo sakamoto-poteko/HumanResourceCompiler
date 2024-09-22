@@ -1,10 +1,11 @@
 #ifndef THREEADDRESSCODE_H
 #define THREEADDRESSCODE_H
 
-#include "irgen_global.h"
 #include <memory>
 #include <string>
 #include <variant>
+
+#include "irgen_global.h"
 
 OPEN_IRGEN_NAMESPACE
 
@@ -28,6 +29,14 @@ enum class HighLevelIROps {
     OR, // or a, b, c
     NOT, // not a, b
 
+    // Comparison
+    EQ,
+    NE,
+    LT,
+    LE,
+    GT,
+    GE,
+
     // Control Flow Operations
     JE, // je a, b, label
     JNE, // jne a, b, label
@@ -50,10 +59,10 @@ enum class HighLevelIROps {
 class Operand {
 public:
     enum class OperandType {
-        Register,
-        Constant,
+        Null = 0,
+        VariableId,
+        ImmediateValue,
         Label,
-        Null,
     };
 
     Operand()
@@ -62,7 +71,7 @@ public:
     }
 
     Operand(int value, bool is_immediate = false)
-        : _type(is_immediate ? OperandType::Constant : OperandType::Register)
+        : _type(is_immediate ? OperandType::ImmediateValue : OperandType::VariableId)
         , _value(value)
     {
     }
@@ -71,6 +80,11 @@ public:
         : _type(OperandType::Label)
         , _value(label)
     {
+    }
+
+    operator bool()
+    {
+        return _type != OperandType::Null;
     }
 
     OperandType get_type() const { return _type; }
@@ -100,14 +114,17 @@ public:
     const Operand &get_tgt() const { return _tgt; }
 
     static std::shared_ptr<ThreeAddressCode> createArithmetic(HighLevelIROps op, const Operand &tgt, const Operand &src1, const Operand &src2);
+    static std::shared_ptr<ThreeAddressCode> createArithmetic(HighLevelIROps op, const Operand &tgt, const Operand &src1);
+    static std::shared_ptr<ThreeAddressCode> createComparison(HighLevelIROps op, const Operand &tgt, const Operand &src1, const Operand &src2);
     static std::shared_ptr<ThreeAddressCode> createLogical(HighLevelIROps op, const Operand &tgt, const Operand &src1);
     static std::shared_ptr<ThreeAddressCode> createLogical(HighLevelIROps op, const Operand &tgt, const Operand &src1, const Operand &src2);
     static std::shared_ptr<ThreeAddressCode> createBranching(HighLevelIROps op, const Operand &src1, const Operand &src2, const Operand &tgt);
     static std::shared_ptr<ThreeAddressCode> createDataMovement(HighLevelIROps op, const Operand &tgt, const Operand &src1);
-    static std::shared_ptr<ThreeAddressCode> createLoadImmediate(const Operand &tgt, const Operand &src1);
+    static std::shared_ptr<ThreeAddressCode> createLoadImmediate(const Operand &tgt, int src1);
     static std::shared_ptr<ThreeAddressCode> createSpecial(HighLevelIROps op);
-    static std::shared_ptr<ThreeAddressCode> createIO(HighLevelIROps op, const Operand &reg);
+    static std::shared_ptr<ThreeAddressCode> createIO(HighLevelIROps op, const Operand &val);
     static std::shared_ptr<ThreeAddressCode> createCall(const Operand &label, const Operand &param, const Operand &ret);
+    static std::shared_ptr<ThreeAddressCode> createCall(const Operand &label, const Operand &ret);
     static std::shared_ptr<ThreeAddressCode> createReturn();
     static std::shared_ptr<ThreeAddressCode> createReturn(const Operand &ret);
 
@@ -120,9 +137,6 @@ private:
     {
     }
 
-    template <typename T, typename... Args>
-    friend std::shared_ptr<T> std::make_shared(Args &&...args);
-    
     HighLevelIROps _op;
     Operand _src1;
     Operand _src2;
