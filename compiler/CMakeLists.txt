@@ -42,6 +42,7 @@ add_subdirectory(lexer)
 add_subdirectory(parser)
 add_subdirectory(semanalyzer)
 add_subdirectory(interpreter)
+add_subdirectory(irgen)
 add_subdirectory(hrc)
 add_subdirectory(hrint)
 

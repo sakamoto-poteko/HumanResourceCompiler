@@ -1,22 +1,28 @@
 #include <cstdlib>
+
 #include <spdlog/spdlog.h>
 
 #include "ASTBuilder.h"
 #include "ASTNodeGraphvizBuilder.h"
+#include "ClearSymbolTablePass.h"
 #include "CompilerOptions.h"
 #include "ConstantFoldingPass.h"
+#include "ControlFlowVerificationPass.h"
+#include "DeadCodeEliminationPass.h"
 #include "ErrorManager.h"
 #include "FileManager.h"
-#include "Formatter.h"
 #include "HRLLexer.h"
 #include "ParseTreeNodeForward.h"
 #include "ParseTreeNodeGraphvizBuilder.h"
 #include "RecursiveDescentParser.h"
 #include "SemanticAnalysisPassManager.h"
+#include "StripAttributePass.h"
 #include "SymbolAnalysisPass.h"
+#include "TACGen.h"
 #include "TerminalColor.h"
+#include "UnusedSymbolAnalysisPass.h"
+#include "UseBeforeInitializationCheckPass.h"
 #include "Utilities.h"
-#include "semanalyzer_global.h"
 
 using namespace hrl::lexer;
 using namespace hrl::hrc;
@@ -87,25 +93,26 @@ int main(int argc, char **argv)
     hrl::parser::ASTNodeGraphvizBuilder graphviz_ast(ast);
     graphviz_ast.generate_graphviz("build/ast.dot");
 
-    // Sem analysis stage
-    using SemaAttrId = hrl::semanalyzer::SemAnalzyerASTNodeAttributeId;
-
     hrl::semanalyzer::SemanticAnalysisPassManager sem_passmgr(ast, std::make_shared<std::string>(options.input_file));
 
-    auto symtbl_analyzer = sem_passmgr.add_pass<hrl::semanalyzer::SymbolAnalysisPass>(
-        "SymbolTableAnalyzer",
-        "build/symtbl.dot",
-        std::set<int> {
-            SemaAttrId::ATTR_SEMANALYZER_SYMBOL,
-            SemaAttrId::ATTR_SEMANALYZER_SCOPE_INFO,
-        });
+    // analyze, optimize and clean up
+    if (true) {
+        // won't mutate the node
+        auto pre_symtbl_analyzer = sem_passmgr.add_pass<hrl::semanalyzer::SymbolAnalysisPass>("PreliminarySymbolTableAnalyzer");
+        auto ubi_preliminary = sem_passmgr.add_pass<hrl::semanalyzer::UseBeforeInitializationCheckPass>("PreliminaryUseBeforeInitializationCheckPass");
+        // may mutate the node
+        auto constfolder = sem_passmgr.add_pass<hrl::semanalyzer::ConstantFoldingPass>("ConstantFoldingPass");
+        auto dce = sem_passmgr.add_pass<hrl::semanalyzer::DeadCodeEliminationPass>("DeadCodeElimination");
+        auto unused_var = sem_passmgr.add_pass<hrl::semanalyzer::UnusedSymbolAnalysisPass>("UnusedVariableElimination");
+        auto clear_symtbl = sem_passmgr.add_pass<hrl::semanalyzer::ClearSymbolTablePass>("ClearSymbolTablePass");
+        auto strip_sym_attr = sem_passmgr.add_pass<hrl::semanalyzer::StripAttributePass>("StripSymbolAttributesPass");
+    }
 
-    auto constfolder = sem_passmgr.add_pass<hrl::semanalyzer::ConstantFoldingPass>(
-        "ConstantFoldingPass",
-        "build/constfld.dot",
-        std::set<int> {
-            SemaAttrId::ATTR_SEMANALYZER_CONST_FOLDING_VALUE,
-        });
+    // reannotate the node with symbol and scope
+    auto post_symtbl_analyzer = sem_passmgr.add_pass<hrl::semanalyzer::SymbolAnalysisPass>("FinalSymbolTableAnalyzer");
+    auto ubi_final = sem_passmgr.add_pass<hrl::semanalyzer::UseBeforeInitializationCheckPass>("FinalUseBeforeInitializationCheckPass");
+    auto cfv = sem_passmgr.add_pass<hrl::semanalyzer::ControlFlowVerificationPass>("ControlFlowVerificationPass");
+    auto tacgen = sem_passmgr.add_pass<hrl::irgen::TACGen>("TACGen");
 
     if (sem_passmgr.run(true) != 0) {
         errmgr.print_all();
@@ -113,10 +120,10 @@ int main(int argc, char **argv)
         abort();
     }
 
-    errmgr.print_all();
+    tacgen->print();
 
     // Sem analysis finished. Collecting data
-    hrl::semanalyzer::SymbolTablePtr symbol_table = symtbl_analyzer->get_symbol_table();
+    hrl::semanalyzer::SymbolTablePtr symbol_table = sem_passmgr.get_symbol_table();
 
     return 0;
 }
