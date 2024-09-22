@@ -1,6 +1,8 @@
 #ifndef IRGEN_GLOBAL_H
 #define IRGEN_GLOBAL_H
 
+#include "hrl_global.h" // IWYU pragma: keep
+
 #define OPEN_IRGEN_NAMESPACE \
     namespace hrl {          \
     namespace irgen {

@@ -84,6 +84,9 @@ Operand::operator std::string() const
         }
     case OperandType::Label:
         return std::get<std::string>(_value);
+    default:
+        spdlog::critical("unknown operand type: {}. {}", static_cast<int>(_type), __PRETTY_FUNCTION__);
+        throw;
     }
 }
 
