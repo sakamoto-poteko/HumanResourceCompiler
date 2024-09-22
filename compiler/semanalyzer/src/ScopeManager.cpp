@@ -14,7 +14,7 @@ OPEN_SEMANALYZER_NAMESPACE
 
 ScopeManager::ScopeManager()
 {
-    enter_scope("glb", ScopeType::Global);
+    enter_scope(GLOBAL_SCOPE_ID, ScopeType::Global);
 }
 
 ScopeManager::~ScopeManager()

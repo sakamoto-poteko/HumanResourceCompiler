@@ -1,13 +1,16 @@
-// Input: 345
-// Output: 345
-// func can be defined later
+init floor_max = 2;
+
 sub start()
 {
-    defined_func();
+    while (true) {
+        let i1 = inbox();
+        let i2 = inbox();
+        if (i1 > i2) {
+            outbox(i1);
+        } else {
+            outbox(i2);
+        }
+    }
 }
-
-// functions can be defined later but called earlier
-sub defined_func()
-{
-    outbox(inbox());
-}
+// Input: 9,1,-7,-8,2,2,9,-7
+// Output: 9,-7,2,9

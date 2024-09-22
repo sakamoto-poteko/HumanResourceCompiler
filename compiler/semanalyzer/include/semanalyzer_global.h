@@ -25,6 +25,7 @@ enum SemAnalzyerASTNodeAttributeId : int {
 
 constexpr int MAX_INTEGER_VALUE = 999;
 constexpr int MIN_INTEGER_VALUE = -999;
+constexpr const char* GLOBAL_SCOPE_ID = "glb";
 
 CLOSE_SEMANALYZER_NAMESPACE
 
