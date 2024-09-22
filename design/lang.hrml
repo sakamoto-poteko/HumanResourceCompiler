@@ -1,16 +1,31 @@
 init floor_max = 2;
 
+let glbvar = 12;
+
 sub start()
 {
     while (true) {
         let i1 = inbox();
         let i2 = inbox();
+        let r;
         if (i1 > i2) {
-            outbox(i1);
+            r = mul2(i1);
+            outbox(r);
+            floor[1] = r;
         } else {
-            outbox(i2);
+            r = i2;
+            outbox(r);
+            floor[0] = r;
         }
+        outbox(r);
     }
 }
+
+function mul2(num)
+{
+    return num + num;
+}
+
+
 // Input: 9,1,-7,-8,2,2,9,-7
 // Output: 9,-7,2,9

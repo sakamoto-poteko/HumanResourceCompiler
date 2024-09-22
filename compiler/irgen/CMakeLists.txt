@@ -4,6 +4,8 @@ project(hrc_irgen)
 add_library(${PROJECT_NAME}
     src/ThreeAddressCode.cpp
     src/TACGen.cpp
+    src/Operand.cpp
+    src/IROps.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

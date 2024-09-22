@@ -72,36 +72,33 @@ protected:
     int visit(const parser::CompilationUnitASTNodePtr &node) override;
 
 private:
+    // [Group] used for building
     unsigned int _current_subroutine_var_id = 0;
     unsigned int _current_block_label_id = 0;
+    bool _in_global_var_decl = false;
     std::string _current_subroutine_name;
-
     std::list<TACPtr> _current_subroutine_tac;
-    std::list<TACPtr> _global_tacs;
-    // map<func name, IRs>
-    std::map<std::string, std::list<TACPtr>> _subroutine_tacs;
 
-    // map<label, IR iter>
-    struct tac_list_iter_comparator {
-        bool operator()(const std::list<TACPtr>::iterator &it1, const std::list<TACPtr>::iterator &it2) const
-        {
-            return &(*it1) < &(*it2); // Compare based on the memory address of the pointed-to objects
-        }
-    };
-
-    boost::bimap<std::string, boost::bimaps::set_of<std::list<TACPtr>::iterator, tac_list_iter_comparator>> _labels;
-    // map<AST Node, result Operand>
-    std::map<parser::ASTNodePtr, Operand> _node_var_id_result;
     // map<Symbol, Var Operand>
     std::map<semanalyzer::SymbolPtr, Operand> _symbol_to_var_map;
+    // map<AST Node, result Operand>
+    std::map<parser::ASTNodePtr, Operand> _node_var_id_result;
 
+    // the dest label for loop break
     std::stack<std::string> _loop_break_dest;
+    // the dest label for loop continue
     std::stack<std::string> _loop_continue_dest;
 
-    int take_var_id_numbering() { return _current_subroutine_var_id++; }
+    // [Group] program representatoin
+    // map<func name, IRs>
+    std::map<std::string, std::list<TACPtr>> _subroutine_tacs;
+    // map<label, IR iter>
+    boost::bimap<std::string, boost::bimaps::set_of<std::list<TACPtr>::iterator, tac_list_iter_comparator>> _labels;
 
+    int take_var_id_numbering();
     std::string take_block_label();
     std::string take_block_label(const std::string &msg);
+
     // Create the label, set the node to _labels
     std::list<TACPtr>::iterator create_noop();
     std::list<TACPtr>::iterator create_jmp(const std::string &label);
@@ -116,11 +113,11 @@ private:
     void create_binary_instr(const Operand &tgt, const Operand &src1, const Operand &src2)
     {
         if constexpr (op >= HighLevelIROps::ADD && op <= HighLevelIROps::MOD) {
-            create_instr(ThreeAddressCode::createArithmetic(op, tgt, src1, src2));
+            create_instr(ThreeAddressCode::create_arithmetic(op, tgt, src1, src2));
         } else if constexpr (op >= HighLevelIROps::EQ && op <= HighLevelIROps::GE) {
-            create_instr(ThreeAddressCode::createComparison(op, tgt, src1, src2));
+            create_instr(ThreeAddressCode::create_comparison(op, tgt, src1, src2));
         } else if constexpr (op == HighLevelIROps::AND || op == HighLevelIROps::OR) {
-            create_instr(ThreeAddressCode::createLogical(op, tgt, src1, src2));
+            create_instr(ThreeAddressCode::create_logical(op, tgt, src1, src2));
         } else {
             throw;
         }

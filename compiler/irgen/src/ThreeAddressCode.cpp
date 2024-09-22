@@ -1,4 +1,3 @@
-#include <cstring>
 #include <stdexcept>
 #include <string>
 
@@ -11,7 +10,7 @@
 
 OPEN_IRGEN_NAMESPACE
 
-std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createArithmetic(HighLevelIROps op, const Operand &tgt, const Operand &src1, const Operand &src2)
+std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_arithmetic(HighLevelIROps op, const Operand &tgt, const Operand &src1, const Operand &src2)
 {
     if (op != HighLevelIROps::ADD && op != HighLevelIROps::SUB && op != HighLevelIROps::MUL && op != HighLevelIROps::DIV && op != HighLevelIROps::MOD) {
         throw std::invalid_argument("Invalid arithmetic operation");
@@ -22,7 +21,7 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createArithmetic(HighLevelIR
     return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt, src1, src2));
 }
 
-std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createArithmetic(HighLevelIROps op, const Operand &tgt, const Operand &src1)
+std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_arithmetic(HighLevelIROps op, const Operand &tgt, const Operand &src1)
 {
     if (op == HighLevelIROps::NEG) {
         if (src1.get_type() != Operand::OperandType::VariableId || tgt.get_type() != Operand::OperandType::VariableId) {
@@ -34,7 +33,7 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createArithmetic(HighLevelIR
     }
 }
 
-std::shared_ptr<ThreeAddressCode> hrl::irgen::ThreeAddressCode::createComparison(HighLevelIROps op, const Operand &tgt, const Operand &src1, const Operand &src2)
+std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_comparison(HighLevelIROps op, const Operand &tgt, const Operand &src1, const Operand &src2)
 {
     if (op != HighLevelIROps::EQ && op != HighLevelIROps::NE && op != HighLevelIROps::LT && op != HighLevelIROps::LE && op != HighLevelIROps::GT && op != HighLevelIROps::GE) {
         throw std::invalid_argument("Invalid comparison operation");
@@ -45,7 +44,7 @@ std::shared_ptr<ThreeAddressCode> hrl::irgen::ThreeAddressCode::createComparison
     return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt, src1, src2));
 }
 
-std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createLogical(HighLevelIROps op, const Operand &tgt, const Operand &src1)
+std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_logical(HighLevelIROps op, const Operand &tgt, const Operand &src1)
 {
     if (op == HighLevelIROps::NOT) { // Unary operations (NOT, NEG)
         if (src1.get_type() != Operand::OperandType::VariableId || tgt.get_type() != Operand::OperandType::VariableId) {
@@ -57,7 +56,7 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createLogical(HighLevelIROps
     }
 }
 
-std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createLogical(HighLevelIROps op, const Operand &tgt, const Operand &src1, const Operand &src2)
+std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_logical(HighLevelIROps op, const Operand &tgt, const Operand &src1, const Operand &src2)
 {
     if (op == HighLevelIROps::AND || op == HighLevelIROps::OR) { // Binary logical operations (AND, OR)
         if (src1.get_type() != Operand::OperandType::VariableId || src2.get_type() != Operand::OperandType::VariableId || tgt.get_type() != Operand::OperandType::VariableId) {
@@ -69,7 +68,7 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createLogical(HighLevelIROps
     }
 }
 
-std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createBranching(HighLevelIROps op, const Operand &tgt, const Operand &src1, const Operand &src2)
+std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_branching(HighLevelIROps op, const Operand &tgt, const Operand &src1, const Operand &src2)
 {
     if (op != HighLevelIROps::JE && op != HighLevelIROps::JNE && op != HighLevelIROps::JGT && op != HighLevelIROps::JLT && op != HighLevelIROps::JGE && op != HighLevelIROps::JLE && op != HighLevelIROps::JMP) {
         throw std::invalid_argument("Invalid branching operation");
@@ -80,7 +79,7 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createBranching(HighLevelIRO
     return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt, src1, src2));
 }
 
-std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createBranching(HighLevelIROps op, const Operand &tgt, const Operand &src1)
+std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_branching(HighLevelIROps op, const Operand &tgt, const Operand &src1)
 {
     if (op != HighLevelIROps::JNZ && op != HighLevelIROps::JZ) {
         throw std::invalid_argument("Invalid branching operation");
@@ -91,7 +90,7 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createBranching(HighLevelIRO
     return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt, src1));
 }
 
-std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createBranching(const Operand &tgt)
+std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_branching(const Operand &tgt)
 {
     if (tgt.get_type() != Operand::OperandType::Label) {
         throw std::runtime_error("JMP operation requires tgt to be a label");
@@ -99,7 +98,7 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createBranching(const Operan
     return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(HighLevelIROps::JMP, tgt));
 }
 
-std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createDataMovement(HighLevelIROps op, const Operand &tgt, const Operand &src1)
+std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_data_movement(HighLevelIROps op, const Operand &tgt, const Operand &src1)
 {
     if (op == HighLevelIROps::MOV) { // MOV requires both src1 and tgt to be variables
         if (src1.get_type() != Operand::OperandType::VariableId || tgt.get_type() != Operand::OperandType::VariableId) {
@@ -119,15 +118,15 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createDataMovement(HighLevel
     return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt, src1));
 }
 
-std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createLoadImmediate(const Operand &tgt, int src1)
+std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_load_immediate(const Operand &tgt, int imm)
 {
     if (tgt.get_type() != Operand::OperandType::VariableId) {
         throw std::runtime_error("LOADI operation requires tgt to be a variable");
     }
-    return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(HighLevelIROps::LOADI, tgt, Operand(src1, true)));
+    return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(HighLevelIROps::LOADI, tgt, Operand(imm, true)));
 }
 
-std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createSpecial(HighLevelIROps op)
+std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_special(HighLevelIROps op)
 {
     if (op == HighLevelIROps::NOP || op == HighLevelIROps::HALT) {
         return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op));
@@ -136,7 +135,7 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createSpecial(HighLevelIROps
     }
 }
 
-std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createIO(HighLevelIROps op, const Operand &val)
+std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_io(HighLevelIROps op, const Operand &val)
 {
     if (op == HighLevelIROps::INPUT) {
         if (val.get_type() != Operand::OperandType::VariableId) {
@@ -153,7 +152,7 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createIO(HighLevelIROps op, 
     }
 }
 
-std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createCall(const Operand &label, const Operand &param, const Operand &ret)
+std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_call(const Operand &label, const Operand &param, const Operand &ret)
 {
     if (label.get_type() != Operand::OperandType::Label || param.get_type() != Operand::OperandType::VariableId || ret.get_type() != Operand::OperandType::VariableId) {
         throw std::runtime_error("CALL operation requires label to be a label, param and ret to be variables");
@@ -161,7 +160,7 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createCall(const Operand &la
     return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(HighLevelIROps::CALL, ret, label, param));
 }
 
-std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createCall(const Operand &label, const Operand &ret)
+std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_call(const Operand &label, const Operand &ret)
 {
     if (label.get_type() != Operand::OperandType::Label || ret.get_type() != Operand::OperandType::VariableId) {
         throw std::runtime_error("CALL operation requires label to be a label, ret to be variables");
@@ -169,7 +168,7 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createCall(const Operand &la
     return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(HighLevelIROps::CALL, ret, label));
 }
 
-std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createReturn(const Operand &ret)
+std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_return(const Operand &ret)
 {
     if (ret.get_type() != Operand::OperandType::VariableId) {
         throw std::runtime_error("RET operation requires ret to be a variable");
@@ -177,7 +176,7 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createReturn(const Operand &
     return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(HighLevelIROps::RET, Operand(), ret));
 }
 
-std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createEnter(const Operand &tgt)
+std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_enter(const Operand &tgt)
 {
     if (tgt.get_type() != Operand::OperandType::VariableId) {
         throw std::runtime_error("ENTER operation requires tgt to be a variable");
@@ -185,7 +184,7 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createEnter(const Operand &t
     return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(HighLevelIROps::ENTER, tgt));
 }
 
-std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createReturn()
+std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_return()
 {
     return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(HighLevelIROps::RET));
 }
@@ -193,11 +192,12 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::createReturn()
 std::string ThreeAddressCode::to_string() const
 {
     auto instr = hir_to_string(_op);
-    instr.resize(8, ' ');
+    instr.resize(7, ' ');
 
     std::ostringstream oss;
     bool first = true;
-    oss << __tc.C_LIGHT_GREEN << instr << __tc.C_RESET;
+    oss << __tc.C_DARK_CYAN << instr << __tc.C_RESET;
+
     if (_tgt) {
         if (!first) {
             oss << ", ";
@@ -223,95 +223,5 @@ std::string ThreeAddressCode::to_string() const
 }
 
 // end
-std::string hir_to_string(HighLevelIROps op)
-{
-    switch (op) {
-    // arithmetic operations
-    case HighLevelIROps::ADD:
-        return "add";
-    case HighLevelIROps::SUB:
-        return "sub";
-    case HighLevelIROps::MUL:
-        return "mul";
-    case HighLevelIROps::DIV:
-        return "div";
-    case HighLevelIROps::MOD:
-        return "mod";
-    case HighLevelIROps::NEG:
-        return "neg";
-
-    // data movement operations
-    case HighLevelIROps::MOV:
-        return "mov";
-    case HighLevelIROps::LOAD:
-        return "load";
-    case HighLevelIROps::STORE:
-        return "store";
-    case HighLevelIROps::LOADI:
-        return "loadi";
-
-    // logical operations
-    case HighLevelIROps::AND:
-        return "and";
-    case HighLevelIROps::OR:
-        return "or";
-    case HighLevelIROps::NOT:
-        return "not";
-
-    // comparison
-    case HighLevelIROps::EQ:
-        return "eq";
-    case HighLevelIROps::NE:
-        return "ne";
-    case HighLevelIROps::LT:
-        return "lt";
-    case HighLevelIROps::LE:
-        return "le";
-    case HighLevelIROps::GT:
-        return "gt";
-    case HighLevelIROps::GE:
-        return "ge";
-
-    // control flow operations
-    case HighLevelIROps::JE:
-        return "je";
-    case HighLevelIROps::JNE:
-        return "jne";
-    case HighLevelIROps::JGT:
-        return "jgt";
-    case HighLevelIROps::JLT:
-        return "jlt";
-    case HighLevelIROps::JGE:
-        return "jge";
-    case HighLevelIROps::JLE:
-        return "jle";
-    case HighLevelIROps::JZ:
-        return "jz";
-    case HighLevelIROps::JNZ:
-        return "jnz";
-    case HighLevelIROps::JMP:
-        return "jmp";
-    case HighLevelIROps::CALL:
-        return "call";
-    case HighLevelIROps::ENTER:
-        return "enter";
-    case HighLevelIROps::RET:
-        return "ret";
-
-    // special operations
-    case HighLevelIROps::INPUT:
-        return "input";
-    case HighLevelIROps::OUTPUT:
-        return "output";
-    case HighLevelIROps::NOP:
-        return "nop";
-    case HighLevelIROps::HALT:
-        return "halt";
-
-    default:
-        spdlog::critical("Unknown HighLevelIROps {}. {}", static_cast<int>(op), __PRETTY_FUNCTION__);
-        throw;
-    }
-}
 
 CLOSE_IRGEN_NAMESPACE

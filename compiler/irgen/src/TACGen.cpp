@@ -4,6 +4,7 @@
 #include <list>
 #include <string>
 
+#include "ASTNode.h"
 #include "Symbol.h"
 #include "TACGen.h"
 #include "TerminalColor.h"
@@ -39,9 +40,8 @@ int TACGen::visit(const parser::IntegerASTNodePtr &node)
 {
     BEGIN_VISIT();
 
-    Operand imm(node->get_value(), true);
     Operand result(take_var_id_numbering());
-    create_instr(ThreeAddressCode::createLoadImmediate(result, imm));
+    create_instr(ThreeAddressCode::create_load_immediate(result, node->get_value()));
     _node_var_id_result[node] = result;
     END_VISIT();
 }
@@ -50,9 +50,8 @@ int TACGen::visit(const parser::BooleanASTNodePtr &node)
 {
     BEGIN_VISIT();
 
-    Operand imm(node->get_value() ? 1 : 0, true);
     Operand result(take_var_id_numbering());
-    create_instr(ThreeAddressCode::createLoadImmediate(result, imm));
+    create_instr(ThreeAddressCode::create_load_immediate(result, node->get_value() ? 1 : 0));
     _node_var_id_result[node] = result;
     END_VISIT();
 }
@@ -63,27 +62,32 @@ int TACGen::visit(const parser::VariableDeclarationASTNodePtr &node)
 
     auto symbol = semanalyzer::Symbol::get_from(node);
 
+    int var_id = take_var_id_numbering();
+    if (_in_global_var_decl) {
+        // it could be 0. -0 doesn't help distinguish between local and global
+        // so we -1
+        var_id = -var_id - 1;
+    }
+    Operand var(var_id);
+    // add to the symbol map before traversing assignment
+    _symbol_to_var_map[symbol] = var;
+
     auto asgn = node->get_assignment();
     if (asgn) {
         rc = traverse(asgn);
         RETURN_IF_FAIL_IN_VISIT(rc);
 
-        auto result = _node_var_id_result[asgn];
-        assert(result);
+        // auto result = _node_var_id_result[asgn];
+        // assert(result);
 
-        _symbol_to_var_map[symbol] = result;
-        _node_var_id_result[node] = result;
+        // create_instr(ThreeAddressCode::create_data_movement(HighLevelIROps::MOV, var, result));
     } else {
         // it's a decl only
         // loadi v0, 0
-
-        Operand var(take_var_id_numbering());
-        create_instr(ThreeAddressCode::createLoadImmediate(var, 0));
-
-        _symbol_to_var_map[symbol] = var;
-        _node_var_id_result[node] = var;
+        create_instr(ThreeAddressCode::create_load_immediate(var, 0));
     }
 
+    _node_var_id_result[node] = var;
     END_VISIT();
 }
 
@@ -96,6 +100,15 @@ int TACGen::visit(const parser::VariableAssignmentASTNodePtr &node)
 
     rc = traverse(expr);
     RETURN_IF_FAIL_IN_VISIT(rc);
+
+    auto symbol = semanalyzer::Symbol::get_from(node);
+    auto decl_operand = _symbol_to_var_map[symbol]; // this is created in visiting declaration node
+    assert(decl_operand);
+
+    auto expr_result = _node_var_id_result[expr];
+    assert(expr_result);
+
+    create_instr(ThreeAddressCode::create_data_movement(HighLevelIROps::MOV, decl_operand, expr_result));
 
     _node_var_id_result[node] = _node_var_id_result[expr];
     END_VISIT();
@@ -147,7 +160,7 @@ int TACGen::visit(const parser::FloorAssignmentASTNodePtr &node)
     assert(index);
 
     Operand var(take_var_id_numbering());
-    create_instr(ThreeAddressCode::createDataMovement(HighLevelIROps::LOAD, var, index));
+    create_instr(ThreeAddressCode::create_data_movement(HighLevelIROps::STORE, index, value));
     _node_var_id_result[node] = var;
 
     END_VISIT();
@@ -165,7 +178,7 @@ int TACGen::visit(const parser::FloorAccessASTNodePtr &node)
     assert(index);
 
     Operand var(take_var_id_numbering());
-    create_instr(ThreeAddressCode::createDataMovement(HighLevelIROps::LOAD, var, index));
+    create_instr(ThreeAddressCode::create_data_movement(HighLevelIROps::LOAD, var, index));
     _node_var_id_result[node] = var;
 
     END_VISIT();
@@ -181,7 +194,7 @@ int TACGen::visit(const parser::NegativeExpressionASTNodePtr &node)
     assert(op);
 
     Operand var(take_var_id_numbering());
-    create_instr(ThreeAddressCode::createArithmetic(HighLevelIROps::NEG, var, op));
+    create_instr(ThreeAddressCode::create_arithmetic(HighLevelIROps::NEG, var, op));
     _node_var_id_result[node] = var;
 
     END_VISIT();
@@ -197,7 +210,7 @@ int TACGen::visit(const parser::NotExpressionASTNodePtr &node)
     assert(op);
 
     Operand var(take_var_id_numbering());
-    create_instr(ThreeAddressCode::createLogical(HighLevelIROps::NOT, var, op));
+    create_instr(ThreeAddressCode::create_logical(HighLevelIROps::NOT, var, op));
     _node_var_id_result[node] = var;
 
     END_VISIT();
@@ -213,7 +226,7 @@ int TACGen::visit(const parser::IncrementExpressionASTNodePtr &node)
     assert(original);
 
     Operand var(take_var_id_numbering());
-    create_instr(ThreeAddressCode::createArithmetic(HighLevelIROps::ADD, var, original, Operand(1, true)));
+    create_instr(ThreeAddressCode::create_arithmetic(HighLevelIROps::ADD, var, original, Operand(1, true)));
     _node_var_id_result[node] = var;
     _symbol_to_var_map[symbol] = var;
 
@@ -230,7 +243,7 @@ int TACGen::visit(const parser::DecrementExpressionASTNodePtr &node)
     assert(original);
 
     Operand var(take_var_id_numbering());
-    create_instr(ThreeAddressCode::createArithmetic(HighLevelIROps::SUB, var, original, Operand(1, true)));
+    create_instr(ThreeAddressCode::create_arithmetic(HighLevelIROps::SUB, var, original, Operand(1, true)));
     _node_var_id_result[node] = var;
     _symbol_to_var_map[symbol] = var;
 
@@ -331,17 +344,31 @@ int TACGen::visit(const parser::InvocationExpressionASTNodePtr &node)
 {
     BEGIN_VISIT();
 
+    const std::string &func_name = *node->get_func_name();
+
     Operand result(take_var_id_numbering());
     auto param_node = node->get_argument();
     if (param_node) {
         rc = traverse(param_node);
         RETURN_IF_FAIL_IN_VISIT(rc);
         Operand param = _node_var_id_result[param_node];
-        ThreeAddressCode::createCall(*node->get_func_name(), param, result);
+
+        if (func_name == "outbox") {
+            create_instr(ThreeAddressCode::create_io(HighLevelIROps::OUTPUT, param));
+            _node_var_id_result[node] = Operand(0, true);
+        } else {
+            create_instr(ThreeAddressCode::create_call(func_name, param, result));
+            _node_var_id_result[node] = result;
+        }
     } else {
-        ThreeAddressCode::createCall(*node->get_func_name(), result);
+        if (func_name == "inbox") {
+            create_instr(ThreeAddressCode::create_io(HighLevelIROps::INPUT, result));
+            _node_var_id_result[node] = result;
+        } else {
+            create_instr(ThreeAddressCode::create_call(func_name, result));
+            _node_var_id_result[node] = result;
+        }
     }
-    _node_var_id_result[node] = result;
 
     END_VISIT();
 }
@@ -509,9 +536,9 @@ int TACGen::visit(const parser::ReturnStatementASTNodePtr &node)
         rc = traverse(expr_node);
         RETURN_IF_FAIL_IN_VISIT(rc);
         auto expr = _node_var_id_result[expr_node];
-        create_instr(ThreeAddressCode::createReturn(expr));
+        create_instr(ThreeAddressCode::create_return(expr));
     } else {
-        create_instr(ThreeAddressCode::createReturn());
+        create_instr(ThreeAddressCode::create_return());
     }
 
     END_VISIT();
@@ -567,7 +594,7 @@ int TACGen::visit_subroutine(const parser::AbstractSubroutineASTNodePtr &node)
 
     auto param_node = node->get_parameter();
     Operand param(take_var_id_numbering());
-    auto func_start = create_instr(ThreeAddressCode::createEnter(param));
+    auto func_start = create_instr(ThreeAddressCode::create_enter(param));
     if (param_node) {
         auto symbol = semanalyzer::Symbol::get_from(param_node);
         assert(symbol);
@@ -578,10 +605,19 @@ int TACGen::visit_subroutine(const parser::AbstractSubroutineASTNodePtr &node)
     RETURN_IF_FAIL_IN_VISIT(rc);
 
     // it's ensured that all path returned
-    auto func_end = create_instr(ThreeAddressCode::createSpecial(HighLevelIROps::HALT));
+    std::list<TACPtr>::iterator func_end;
+
+    if (node->get_node_type() == parser::ASTNodeType::FunctionDefinition) {
+        Operand var(take_var_id_numbering());
+        func_end = create_instr(ThreeAddressCode::create_load_immediate(var, 0));
+        create_instr(ThreeAddressCode::create_return(var));
+    } else {
+        // it's a subproc
+        func_end = create_instr(ThreeAddressCode::create_return());
+    }
 
     _labels.insert({ *node->get_name(), func_start });
-    _labels.insert({ *node->get_name() + ".end_no_return", func_end });
+    _labels.insert({ *node->get_name() + ".end", func_end });
 
     auto &list = _subroutine_tacs[*node->get_name()];
     list.swap(_current_subroutine_tac);
@@ -598,8 +634,13 @@ int TACGen::visit(const parser::CompilationUnitASTNodePtr &node)
     _current_block_label_id = 0;
     _current_subroutine_name = semanalyzer::GLOBAL_SCOPE_ID;
 
-    rc = traverse_multiple(node->get_floor_inits(), node->get_var_decls());
+    rc = traverse(node->get_floor_inits());
     RETURN_IF_FAIL_IN_VISIT(rc);
+
+    _in_global_var_decl = true;
+    rc = traverse(node->get_var_decls());
+    RETURN_IF_FAIL_IN_VISIT(rc);
+    _in_global_var_decl = false;
 
     create_jmp("start");
 
@@ -613,6 +654,11 @@ int TACGen::visit(const parser::CompilationUnitASTNodePtr &node)
     RETURN_IF_FAIL_IN_VISIT(rc);
 
     END_VISIT();
+}
+
+int TACGen::take_var_id_numbering()
+{
+    return _current_subroutine_var_id++;
 }
 
 std::string TACGen::take_block_label()
@@ -631,25 +677,25 @@ std::string TACGen::take_block_label(const std::string &msg)
 
 std::list<TACPtr>::iterator TACGen::create_noop()
 {
-    _current_subroutine_tac.emplace_back(ThreeAddressCode::createSpecial(HighLevelIROps::NOP));
+    _current_subroutine_tac.emplace_back(ThreeAddressCode::create_special(HighLevelIROps::NOP));
     return std::prev(_current_subroutine_tac.end());
 }
 
 std::list<TACPtr>::iterator TACGen::create_jmp(const std::string &label)
 {
-    _current_subroutine_tac.emplace_back(ThreeAddressCode::createBranching(Operand(label)));
+    _current_subroutine_tac.emplace_back(ThreeAddressCode::create_branching(Operand(label)));
     return std::prev(_current_subroutine_tac.end());
 }
 
 std::list<TACPtr>::iterator TACGen::create_jnz(const Operand &operand, const std::string &label)
 {
-    _current_subroutine_tac.emplace_back(ThreeAddressCode::createBranching(HighLevelIROps::JNZ, Operand(label), operand));
+    _current_subroutine_tac.emplace_back(ThreeAddressCode::create_branching(HighLevelIROps::JNZ, Operand(label), operand));
     return std::prev(_current_subroutine_tac.end());
 }
 
 std::list<TACPtr>::iterator TACGen::create_jz(const Operand &operand, const std::string &label)
 {
-    _current_subroutine_tac.emplace_back(ThreeAddressCode::createBranching(HighLevelIROps::JZ, Operand(label), operand));
+    _current_subroutine_tac.emplace_back(ThreeAddressCode::create_branching(HighLevelIROps::JZ, Operand(label), operand));
     return std::prev(_current_subroutine_tac.end());
 }
 
@@ -674,7 +720,7 @@ void TACGen::print()
 
 void TACGen::print_subroutine(const std::string &name, std::list<TACPtr> &tacs)
 {
-    std::cout << __tc.C_HIGHLIGHT << "def " << name << ":" << __tc.C_RESET << std::endl;
+    std::cout << __tc.C_DARK_PINK << "def " << name << ":" << __tc.C_RESET << std::endl;
 
     for (std::list<TACPtr>::iterator it = tacs.begin(); it != tacs.end(); ++it) {
         auto lbl_it = _labels.right.find(it);
@@ -684,8 +730,7 @@ void TACGen::print_subroutine(const std::string &name, std::list<TACPtr> &tacs)
         std::cout << "    " << (*it)->to_string() << std::endl;
     }
 
-    std::cout << std::endl
-              << std::endl;
+    std::cout << std::endl;
 }
 
 int TACGen::get_max_floor()
