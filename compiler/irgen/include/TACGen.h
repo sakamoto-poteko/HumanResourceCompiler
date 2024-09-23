@@ -100,24 +100,24 @@ private:
     std::string take_block_label(const std::string &msg);
 
     // Create the label, set the node to _labels
-    std::list<TACPtr>::iterator create_noop();
-    std::list<TACPtr>::iterator create_jmp(const std::string &label);
-    std::list<TACPtr>::iterator create_jnz(const Operand &operand, const std::string &label);
-    std::list<TACPtr>::iterator create_jz(const Operand &operand, const std::string &label);
+    std::list<TACPtr>::iterator create_noop(const parser::ASTNodePtr &node);
+    std::list<TACPtr>::iterator create_jmp(const std::string &label, const parser::ASTNodePtr &node);
+    std::list<TACPtr>::iterator create_jnz(const Operand &operand, const std::string &label, const parser::ASTNodePtr &node);
+    std::list<TACPtr>::iterator create_jz(const Operand &operand, const std::string &label, const parser::ASTNodePtr &node);
     std::list<TACPtr>::iterator create_instr(const TACPtr &instr);
 
     template <HighLevelIROps op>
     int visit_binary_expression(const parser::AbstractBinaryExpressionASTNodePtr &node);
 
     template <HighLevelIROps op>
-    void create_binary_instr(const Operand &tgt, const Operand &src1, const Operand &src2)
+    void create_binary_instr(const Operand &tgt, const Operand &src1, const Operand &src2, const parser::ASTNodePtr &node)
     {
         if constexpr (op >= HighLevelIROps::ADD && op <= HighLevelIROps::MOD) {
-            create_instr(ThreeAddressCode::create_arithmetic(op, tgt, src1, src2));
+            create_instr(ThreeAddressCode::create_arithmetic(op, tgt, src1, src2, node));
         } else if constexpr (op >= HighLevelIROps::EQ && op <= HighLevelIROps::GE) {
-            create_instr(ThreeAddressCode::create_comparison(op, tgt, src1, src2));
+            create_instr(ThreeAddressCode::create_comparison(op, tgt, src1, src2, node));
         } else if constexpr (op == HighLevelIROps::AND || op == HighLevelIROps::OR) {
-            create_instr(ThreeAddressCode::create_logical(op, tgt, src1, src2));
+            create_instr(ThreeAddressCode::create_logical(op, tgt, src1, src2, node));
         } else {
             throw;
         }
