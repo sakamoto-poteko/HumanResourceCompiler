@@ -3,6 +3,8 @@
 
 #include <list>
 #include <map>
+#include <string>
+#include <vector>
 
 #include <boost/bimap.hpp>
 
@@ -20,7 +22,14 @@ public:
     ~HighIRProgram();
 
     std::list<TACPtr> &get_subroutine(const std::string &subroutine_name);
+    // set the label map. replace old pointed with new iter
     void set_label(const std::string &label, const instr_iter &iter);
+    // get the instr with label.
+    bool get_instr(const std::string &label, instr_iter &iters);
+    // get the label with instr
+    bool get_label(const instr_iter &iter, std::vector<std::string> &labels);
+    // remove the instr. if there's a label associated with, point the label to next instr. if it's the end, the label points to a new noop. return next instr
+    instr_iter remove_instr(const instr_iter &iter);
 
 private:
     // map<func name, IRs>
