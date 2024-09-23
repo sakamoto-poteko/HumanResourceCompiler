@@ -3,7 +3,7 @@
 
 OPEN_IRGEN_NAMESPACE
 
-HighIRProgram::HighIRProgram(
+Program::Program(
     const std::map<std::string, std::list<TACPtr>> &subroutine_ir,
     const label_instr_iter_bimap &label_map)
     : _subroutine_tacs(subroutine_ir)
@@ -11,7 +11,7 @@ HighIRProgram::HighIRProgram(
 {
 }
 
-HighIRProgram::~HighIRProgram()
+Program::~Program()
 {
 }
 

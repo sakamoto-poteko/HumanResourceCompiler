@@ -3,10 +3,12 @@
 
 #include <list>
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
 #include <boost/bimap.hpp>
+#include <boost/graph/directed_graph.hpp>
 
 #include "ThreeAddressCode.h"
 #include "irgen_global.h"
@@ -15,35 +17,81 @@ OPEN_IRGEN_NAMESPACE
 
 using tac_list_iter = std::list<TACPtr>::iterator;
 
-class BasicBlock {
+class BasicBlock : public std::enable_shared_from_this<BasicBlock> {
 public:
+    BasicBlock(std::string label, const std::list<TACPtr> &instructions)
+        : _label(label)
+        , _instructions(instructions)
+    {
+    }
+
+    ~BasicBlock() = default;
+
+    std::list<TACPtr> &get_instructions() { return _instructions; }
+
+    const std::list<TACPtr> &get_instructions() const { return _instructions; }
+
+    const std::string &get_label() const { return _label; }
+
 private:
-    std::list<TACPtr> _instructions;
     std::string _label;
+    std::list<TACPtr> _instructions;
 };
 
-class HighIRProgram {
+using BasicBlockPtr = std::shared_ptr<BasicBlock>;
+using ControlFlowGraph = boost::directed_graph<BasicBlockPtr>;
+using ControlFlowVertex = ControlFlowGraph::vertex_descriptor;
+using ControlFlowEdge = ControlFlowGraph::edge_descriptor;
+
+class Subroutine : public std::enable_shared_from_this<Subroutine> {
 public:
-    using label_instr_iter_bimap = boost::bimap<std::string, boost::bimaps::set_of<std::list<TACPtr>::iterator, tac_list_iter_comparator>>;
+    Subroutine(const std::string &func_name, bool has_param, bool has_return, const std::list<BasicBlockPtr> &basic_blocks, const ControlFlowGraph &cfg)
+        : _func_name(func_name)
+        , _basic_blocks(basic_blocks)
+        , _has_param(has_param)
+        , _has_return(has_return)
+        , _cfg(cfg)
+    {
+    }
 
-    HighIRProgram(const std::map<std::string, std::list<TACPtr>> &subroutine_ir, const label_instr_iter_bimap &label_map);
-    ~HighIRProgram();
+    const std::string &get_func_name() const { return _func_name; }
 
-    std::list<TACPtr> &get_subroutine(const std::string &subroutine_name);
-    // set the label map. replace old pointed with new iter
-    void set_label(const std::string &label, const tac_list_iter &iter);
-    // get the instr with label.
-    bool get_instr(const std::string &label, tac_list_iter &iters);
-    // get the label with instr
-    bool get_label(const tac_list_iter &iter, std::vector<std::string> &labels);
-    // remove the instr. if there's a label associated with, point the label to next instr. if it's the end, the label points to a new noop. return next instr
-    tac_list_iter remove_instr(const tac_list_iter &iter);
+    std::list<BasicBlockPtr> &get_basic_blocks() { return _basic_blocks; }
+
+    const std::list<BasicBlockPtr> &get_basic_blocks() const { return _basic_blocks; }
+
+    ControlFlowGraph &get_cfg() { return _cfg; }
+
+    const ControlFlowGraph &get_cfg() const { return _cfg; }
+
+    bool has_param() const { return _has_param; }
+
+    bool has_return() const { return _has_return; }
 
 private:
-    // map<func name, IRs>
-    std::map<std::string, std::list<TACPtr>> _subroutine_tacs;
-    // map<label, IR iter>
-    label_instr_iter_bimap _labels;
+    std::string _func_name;
+    std::list<BasicBlockPtr> _basic_blocks;
+    ControlFlowGraph _cfg;
+
+    bool _has_param;
+    bool _has_return;
+};
+
+using SubroutinePtr = std::shared_ptr<Subroutine>;
+
+class Program {
+public:
+    Program(const std::list<SubroutinePtr> &subroutines)
+        : _subroutines(subroutines)
+    {
+    }
+
+    std::list<SubroutinePtr> &get_subroutines() { return _subroutines; }
+
+    const std::list<SubroutinePtr> &get_subroutines() const { return _subroutines; }
+
+private:
+    std::list<SubroutinePtr> _subroutines;
 };
 
 CLOSE_IRGEN_NAMESPACE
