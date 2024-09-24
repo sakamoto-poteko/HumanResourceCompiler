@@ -62,6 +62,7 @@ enum class HighLevelIROps : std::uint8_t {
 };
 
 std::string hir_to_string(HighLevelIROps op);
+bool is_control_flow_op(HighLevelIROps op);
 
 CLOSE_IRGEN_NAMESPACE
 #endif

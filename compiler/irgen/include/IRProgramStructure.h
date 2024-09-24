@@ -1,11 +1,11 @@
-#ifndef HIGHIRPROGRAM_H
-#define HIGHIRPROGRAM_H
+#ifndef IRPROGRAMSTRUCTURE_H
+#define IRPROGRAMSTRUCTURE_H
 
+#include <algorithm>
 #include <list>
 #include <map>
 #include <memory>
 #include <string>
-#include <vector>
 
 #include <boost/bimap.hpp>
 #include <boost/graph/directed_graph.hpp>
@@ -15,13 +15,17 @@
 
 OPEN_IRGEN_NAMESPACE
 
-using tac_list_iter = std::list<TACPtr>::iterator;
-
 class BasicBlock : public std::enable_shared_from_this<BasicBlock> {
 public:
     BasicBlock(std::string label, const std::list<TACPtr> &instructions)
         : _label(label)
         , _instructions(instructions)
+    {
+    }
+
+    BasicBlock(std::string &&label, std::list<TACPtr> &&instructions)
+        : _label(std::move(label))
+        , _instructions(std::move(instructions))
     {
     }
 
@@ -54,6 +58,15 @@ public:
     {
     }
 
+    Subroutine(std::string &&func_name, bool has_param, bool has_return, std::list<BasicBlockPtr> &&basic_blocks, ControlFlowGraph &&cfg)
+        : _func_name(std::move(func_name))
+        , _basic_blocks(std::move(basic_blocks))
+        , _has_param(has_param)
+        , _has_return(has_return)
+        , _cfg(std::move(cfg))
+    {
+    }
+
     const std::string &get_func_name() const { return _func_name; }
 
     std::list<BasicBlockPtr> &get_basic_blocks() { return _basic_blocks; }
@@ -79,10 +92,20 @@ private:
 
 using SubroutinePtr = std::shared_ptr<Subroutine>;
 
+class ProgramMetadata {
+public:
+    void set_label_alias(const std::string &src, const std::string &tgt);
+    bool get_label_alias(const std::string &src, std::string &tgt);
+
+private:
+    std::map<std::string, std::string> _label_aliases;
+};
+
 class Program {
 public:
-    Program(const std::list<SubroutinePtr> &subroutines)
+    Program(const std::list<SubroutinePtr> &subroutines, const ProgramMetadata &metadata)
         : _subroutines(subroutines)
+        , _metadata(metadata)
     {
     }
 
@@ -92,6 +115,7 @@ public:
 
 private:
     std::list<SubroutinePtr> _subroutines;
+    ProgramMetadata _metadata;
 };
 
 CLOSE_IRGEN_NAMESPACE

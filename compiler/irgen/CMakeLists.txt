@@ -6,6 +6,7 @@ add_library(${PROJECT_NAME}
     src/TACGen.cpp
     src/Operand.cpp
     src/IROps.cpp
+    src/IRProgramStructure.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

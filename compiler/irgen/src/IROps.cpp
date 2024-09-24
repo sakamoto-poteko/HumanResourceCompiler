@@ -96,5 +96,49 @@ std::string hir_to_string(HighLevelIROps op)
     }
 }
 
+bool is_control_flow_op(HighLevelIROps op)
+{
+    switch (op) {
+    case HighLevelIROps::MOV:
+    case HighLevelIROps::LOAD:
+    case HighLevelIROps::STORE:
+    case HighLevelIROps::LOADI:
+    case HighLevelIROps::ADD:
+    case HighLevelIROps::SUB:
+    case HighLevelIROps::MUL:
+    case HighLevelIROps::DIV:
+    case HighLevelIROps::MOD:
+    case HighLevelIROps::NEG:
+    case HighLevelIROps::AND:
+    case HighLevelIROps::OR:
+    case HighLevelIROps::NOT:
+    case HighLevelIROps::EQ:
+    case HighLevelIROps::NE:
+    case HighLevelIROps::LT:
+    case HighLevelIROps::LE:
+    case HighLevelIROps::GT:
+    case HighLevelIROps::GE:
+    case HighLevelIROps::INPUT:
+    case HighLevelIROps::OUTPUT:
+    case HighLevelIROps::NOP:
+        return false;
+
+    case HighLevelIROps::JE:
+    case HighLevelIROps::JNE:
+    case HighLevelIROps::JGT:
+    case HighLevelIROps::JLT:
+    case HighLevelIROps::JGE:
+    case HighLevelIROps::JLE:
+    case HighLevelIROps::JZ:
+    case HighLevelIROps::JNZ:
+    case HighLevelIROps::JMP:
+    case HighLevelIROps::CALL:
+    case HighLevelIROps::ENTER:
+    case HighLevelIROps::RET:
+    case HighLevelIROps::HALT:
+        return true;
+    }
+}
+
 CLOSE_IRGEN_NAMESPACE
 // end
