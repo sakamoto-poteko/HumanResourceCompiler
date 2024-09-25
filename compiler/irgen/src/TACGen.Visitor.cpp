@@ -1,6 +1,4 @@
 #include <cassert>
-#include <iostream>
-#include <iterator>
 #include <list>
 #include <memory>
 #include <ranges>
@@ -13,7 +11,6 @@
 #include "IRProgramStructure.h"
 #include "Symbol.h"
 #include "TACGen.h"
-#include "TerminalColor.h"
 #include "ThreeAddressCode.h"
 #include "hrl_global.h"
 #include "irgen_global.h"
@@ -35,12 +32,6 @@ OPEN_IRGEN_NAMESPACE
         leave_node();               \
         return rc;                  \
     }
-
-int TACGen::run()
-{
-    int rc = visit(_root);
-    return rc;
-}
 
 int TACGen::visit(const parser::IntegerASTNodePtr &node)
 {
@@ -659,167 +650,6 @@ int TACGen::visit(const parser::CompilationUnitASTNodePtr &node)
     RETURN_IF_FAIL_IN_VISIT(rc);
 
     END_VISIT();
-}
-
-int TACGen::take_var_id_numbering()
-{
-    return _current_subroutine_var_id++;
-}
-
-std::string TACGen::take_block_label()
-{
-    std::string result(_current_subroutine_name + ".B" + std::to_string(_current_block_label_id));
-    ++_current_block_label_id;
-    return result;
-}
-
-std::string TACGen::take_block_label(const std::string &msg)
-{
-    std::string result(_current_subroutine_name + ".B" + std::to_string(_current_block_label_id) + "_" + msg);
-    ++_current_block_label_id;
-    return result;
-}
-
-std::list<TACPtr>::iterator TACGen::create_noop(const parser::ASTNodePtr &node)
-{
-    _current_subroutine_tac.emplace_back(ThreeAddressCode::create_special(HighLevelIROps::NOP, node));
-    return std::prev(_current_subroutine_tac.end());
-}
-
-std::list<TACPtr>::iterator TACGen::create_jmp(const std::string &label, const parser::ASTNodePtr &node)
-{
-    _current_subroutine_tac.emplace_back(ThreeAddressCode::create_branching(Operand(label), node));
-    return std::prev(_current_subroutine_tac.end());
-}
-
-std::list<TACPtr>::iterator TACGen::create_jnz(const Operand &operand, const std::string &label, const parser::ASTNodePtr &node)
-{
-    _current_subroutine_tac.emplace_back(ThreeAddressCode::create_branching(HighLevelIROps::JNZ, Operand(label), operand, node));
-    return std::prev(_current_subroutine_tac.end());
-}
-
-std::list<TACPtr>::iterator TACGen::create_jz(const Operand &operand, const std::string &label, const parser::ASTNodePtr &node)
-{
-    _current_subroutine_tac.emplace_back(ThreeAddressCode::create_branching(HighLevelIROps::JZ, Operand(label), operand, node));
-    return std::prev(_current_subroutine_tac.end());
-}
-
-std::list<TACPtr>::iterator TACGen::create_instr(const TACPtr &instr)
-{
-    _current_subroutine_tac.push_back(instr);
-    return std::prev(_current_subroutine_tac.end());
-}
-
-void TACGen::print()
-{
-    std::cout << "@floor_max = " << get_max_floor() << std::endl;
-
-    print_subroutine(semanalyzer::GLOBAL_SCOPE_ID, _subroutine_tacs[semanalyzer::GLOBAL_SCOPE_ID]);
-
-    for (auto &[name, tacs] : _subroutine_tacs) {
-        if (name != semanalyzer::GLOBAL_SCOPE_ID) {
-            print_subroutine(name, tacs);
-        }
-    }
-}
-
-void TACGen::print_subroutine(const std::string &name, std::list<TACPtr> &tacs)
-{
-    std::cout << __tc.C_DARK_PINK << "def " << name << ":" << __tc.C_RESET << std::endl;
-
-    for (std::list<TACPtr>::iterator it = tacs.begin(); it != tacs.end(); ++it) {
-        auto lbl_it = _labels.right.find(it);
-        if (lbl_it != _labels.right.end()) {
-            std::cout << __tc.C_DARK_BLUE << lbl_it->second << ":" << __tc.C_RESET << std::endl;
-        }
-        std::cout << "    " << (*it)->to_string() << std::endl;
-    }
-
-    std::cout << std::endl;
-}
-
-int TACGen::get_max_floor()
-{
-    return _root->get_floor_max().value_or(DEFAULT_FLOOR_MAX);
-}
-
-std::list<BasicBlockPtr> TACGen::build_subroutine_split_tacs_to_basic_blocks(const std::string &subroutine_name, std::list<TACPtr> &tacs)
-{
-    int subroutine_block_id = 0;
-    std::list<BasicBlockPtr> basic_blocks;
-
-    std::list<TACPtr> current_basic_block;
-    std::string current_label;
-    bool seen_control_flow = false;
-
-    // build basic blocks first
-    for (std::list<TACPtr>::iterator tac_it = tacs.begin(); tac_it != tacs.end(); ++tac_it) {
-        auto label_it = _labels.right.find(tac_it);
-        // is there a label for this tac? or is there a control flow instr seen?
-        // if yes, we need to start a new block
-        bool instr_has_lbl = label_it != _labels.right.end();
-        if (instr_has_lbl || seen_control_flow) {
-            // push the old block into the list
-            basic_blocks.push_back(std::make_shared<BasicBlock>(std::move(current_label), std::move(current_basic_block)));
-            current_basic_block.clear();
-            // set the new label. either there's a label, or we need to make a new
-            if (instr_has_lbl) {
-                current_label = label_it->second;
-            } else {
-                // XB is a random name. I just found it's easier to see
-                current_label = subroutine_name + ".XB" + std::to_string(subroutine_block_id);
-                subroutine_block_id++;
-            }
-            seen_control_flow = false;
-        }
-
-        // add the instr
-        current_basic_block.push_back(*tac_it);
-
-        // mark if this one is control flow
-        if (is_control_flow_op((*tac_it)->get_op())) {
-            seen_control_flow = true;
-        }
-    }
-
-    if (!current_basic_block.empty()) {
-        basic_blocks.push_back(std::make_shared<BasicBlock>(std::move(current_label), std::move(current_basic_block)));
-    }
-
-// correctness check:
-#ifndef NDEBUG
-    int count = 0;
-    for (const auto &bb : basic_blocks) {
-        count += bb->get_instructions().size();
-    }
-    assert(count == tacs.size());
-#endif // !NDEBUG
-
-    return basic_blocks;
-}
-
-int TACGen::build_ir_program()
-{
-    ProgramMetadata metadata;
-
-    std::list<SubroutinePtr> subroutines;
-
-    for (auto &[subroutine_name, tacs] : _subroutine_tacs) {
-        // 1. get all BB
-        std::list<BasicBlockPtr> basic_blocks = build_subroutine_split_tacs_to_basic_blocks(subroutine_name, tacs);
-        // 2. link BB
-        ControlFlowGraph cfg = build_subroutine_link_cfg_from_basic_blocks(basic_blocks);
-        semanalyzer::SymbolPtr function_symbol;
-        std::string defined_scope;
-        bool ok = _symbol_table->lookup_symbol(semanalyzer::GLOBAL_SCOPE_ID, subroutine_name, false, function_symbol, defined_scope);
-        SubroutinePtr subroutine = std::make_shared<Subroutine>(
-            subroutine_name,
-            function_symbol->has_param(),
-            function_symbol->has_return(),
-            basic_blocks,
-            cfg);
-        subroutines.push_back(subroutine);
-    }
 }
 
 CLOSE_IRGEN_NAMESPACE

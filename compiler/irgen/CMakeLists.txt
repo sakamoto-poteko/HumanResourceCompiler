@@ -3,7 +3,9 @@ project(hrc_irgen)
 
 add_library(${PROJECT_NAME}
     src/ThreeAddressCode.cpp
-    src/TACGen.cpp
+    src/TACGen.Visitor.cpp
+    src/TACGen.Utils.cpp
+    src/TACGen.ProgramBuilder.cpp
     src/Operand.cpp
     src/IROps.cpp
     src/IRProgramStructure.cpp

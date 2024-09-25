@@ -96,7 +96,7 @@ std::string hir_to_string(HighLevelIROps op)
     }
 }
 
-bool is_control_flow_op(HighLevelIROps op)
+bool is_control_transfer_operation(HighLevelIROps op)
 {
     switch (op) {
     case HighLevelIROps::MOV:
