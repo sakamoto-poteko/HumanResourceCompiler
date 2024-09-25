@@ -20,6 +20,13 @@ OPEN_IRGEN_NAMESPACE
 int TACGen::run()
 {
     int rc = visit(_root);
+    if (rc != 0) {
+        return rc;
+    }
+    rc = build_ir_program();
+    if (rc != 0) {
+        return rc;
+    }
     return rc;
 }
 
@@ -94,7 +101,7 @@ void TACGen::print_subroutine(const std::string &name, std::list<TACPtr> &tacs)
         if (lbl_it != _labels.right.end()) {
             std::cout << __tc.C_DARK_BLUE << lbl_it->second << ":" << __tc.C_RESET << std::endl;
         }
-        std::cout << "    " << (*it)->to_string() << std::endl;
+        std::cout << "    " << (*it)->to_string(true) << std::endl;
     }
 
     std::cout << std::endl;

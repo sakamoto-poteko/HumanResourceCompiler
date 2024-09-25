@@ -30,7 +30,7 @@ public:
 
     const std::shared_ptr<parser::ASTNode> &get_ast_node() const { return _ast; }
 
-    std::string to_string() const;
+    std::string to_string(bool with_color = false) const;
 
     static std::shared_ptr<ThreeAddressCode> create_arithmetic(HighLevelIROps op, const Operand &tgt, const Operand &src1, const Operand &src2, std::shared_ptr<parser::ASTNode> ast = nullptr);
     static std::shared_ptr<ThreeAddressCode> create_arithmetic(HighLevelIROps op, const Operand &tgt, const Operand &src1, std::shared_ptr<parser::ASTNode> ast = nullptr);

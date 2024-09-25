@@ -189,14 +189,18 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_return(std::shared_pt
     return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(HighLevelIROps::RET, Operand(), Operand(), Operand(), ast));
 }
 
-std::string ThreeAddressCode::to_string() const
+std::string ThreeAddressCode::to_string(bool with_color) const
 {
     auto instr = hir_to_string(_op);
     instr.resize(7, ' ');
 
     std::ostringstream oss;
     bool first = true;
-    oss << __tc.C_DARK_CYAN << instr << __tc.C_RESET;
+    if (with_color) {
+        oss << __tc.C_DARK_CYAN << instr << __tc.C_RESET;
+    } else {
+        oss << instr;
+    }
 
     if (_tgt) {
         if (!first) {

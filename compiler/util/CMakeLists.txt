@@ -11,6 +11,7 @@ add_library(${PROJECT_NAME}
     src/ErrorManager.cpp
     src/ErrorFilters.cpp
     src/Versioning.cpp
+    src/EscapeGraphviz.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

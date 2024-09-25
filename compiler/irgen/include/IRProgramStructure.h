@@ -81,6 +81,8 @@ public:
 
     bool has_return() const { return _has_return; }
 
+    std::string generate_graphviz_cfg();
+
 private:
     std::string _func_name;
     std::list<BasicBlockPtr> _basic_blocks;
@@ -117,6 +119,8 @@ private:
     std::list<SubroutinePtr> _subroutines;
     ProgramMetadata _metadata;
 };
+
+using ProgramPtr = std::shared_ptr<Program>;
 
 CLOSE_IRGEN_NAMESPACE
 #endif

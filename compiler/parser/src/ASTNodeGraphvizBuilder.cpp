@@ -15,6 +15,7 @@
 #include "ASTNodeAttribute.h"
 #include "ASTNodeForward.h"
 #include "ASTNodeGraphvizBuilder.h"
+#include "EscapeGraphviz.h"
 #include "hrl_global.h"
 #include "parser_global.h"
 
@@ -83,58 +84,6 @@ ASTNodeGraphvizBuilder::Vertex ASTNodeGraphvizBuilder::enter_and_create_vertex(c
 
     _ancestors.push(vertex);
     return vertex;
-}
-
-std::string ASTNodeGraphvizBuilder::escape_graphviz_html(const std::string &text)
-{
-    std::string escaped;
-    for (char ch : text) {
-        switch (ch) {
-        case '&':
-            escaped += "&amp;";
-            break;
-        case '<':
-            escaped += "&lt;";
-            break;
-        case '>':
-            escaped += "&gt;";
-            break;
-        case '"':
-            escaped += "&quot;";
-            break;
-        case '\'':
-            escaped += "&#39;";
-            break;
-        default:
-            escaped += ch;
-            break;
-        }
-    }
-    return escaped;
-}
-
-std::string ASTNodeGraphvizBuilder::escape_graphviz(const std::string &text)
-{
-    std::string escaped;
-
-    for (char it : text) {
-        switch (it) {
-        case '\\':
-            escaped.append("\\\\");
-            break;
-        case '\n':
-            escaped.append("\\n");
-            break;
-        case '"':
-            escaped.append("\\\"");
-            break;
-        default:
-            escaped.push_back(it);
-            break;
-        }
-    }
-
-    return escaped;
 }
 
 std::string ASTNodeGraphvizBuilder::generate_graphviz(const std::string &filepath, const std::set<int> enabled_attributes)

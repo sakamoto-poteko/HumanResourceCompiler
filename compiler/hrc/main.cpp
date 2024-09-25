@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <iostream>
 
 #include <spdlog/spdlog.h>
 
@@ -121,6 +122,12 @@ int main(int argc, char **argv)
     }
 
     tacgen->print();
+    auto prog = tacgen->get_built_program();
+    for (const auto &subroutine : prog->get_subroutines()) {
+        std::cout << "===========SUBROUTINE=============" << std::endl;
+        std::cout << subroutine->generate_graphviz_cfg() << std::endl;
+        std::cout << std::endl;
+    }
 
     // Sem analysis finished. Collecting data
     hrl::semanalyzer::SymbolTablePtr symbol_table = sem_passmgr.get_symbol_table();

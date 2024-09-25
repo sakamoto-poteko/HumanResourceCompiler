@@ -9,6 +9,7 @@
 #include "ASTNode.h"
 #include "IROps.h"
 #include "IRProgramStructure.h"
+#include "Operand.h"
 #include "Symbol.h"
 #include "TACGen.h"
 #include "ThreeAddressCode.h"
@@ -638,7 +639,8 @@ int TACGen::visit(const parser::CompilationUnitASTNodePtr &node)
     RETURN_IF_FAIL_IN_VISIT(rc);
     _in_global_var_decl = false;
 
-    create_jmp("start", node);
+    Operand start_result(take_var_id_numbering());
+    create_instr(ThreeAddressCode::create_call(Operand("start"), start_result, node));
 
     auto &list = _subroutine_tacs[semanalyzer::GLOBAL_SCOPE_ID];
     list.swap(_current_subroutine_tac);

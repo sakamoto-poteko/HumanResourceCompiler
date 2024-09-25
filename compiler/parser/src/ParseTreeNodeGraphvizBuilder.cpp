@@ -1,10 +1,11 @@
 #include <fstream>
 #include <ostream>
 #include <string>
-
-#include <boost/graph/graphviz.hpp>
 #include <utility>
 
+#include <boost/graph/graphviz.hpp>
+
+#include "EscapeGraphviz.h"
 #include "ParseTreeNode.h"
 #include "ParseTreeNodeGraphvizBuilder.h"
 #include "parser_global.h"
@@ -36,30 +37,6 @@ ParseTreeNodeGraphvizBuilder::Vertex ParseTreeNodeGraphvizBuilder::enter_and_cre
 void ParseTreeNodeGraphvizBuilder::leave()
 {
     _ancestors.pop();
-}
-
-std::string ParseTreeNodeGraphvizBuilder::escape_graphviz(const std::string &text)
-{
-    std::string escaped;
-
-    for (char it : text) {
-        switch (it) {
-        case '\\':
-            escaped.append("\\\\");
-            break;
-        case '\n':
-            escaped.append("\\n");
-            break;
-        case '"':
-            escaped.append("\\\"");
-            break;
-        default:
-            escaped.push_back(it);
-            break;
-        }
-    }
-
-    return escaped;
 }
 
 std::string ParseTreeNodeGraphvizBuilder::generate_graphviz(const std::string &path)

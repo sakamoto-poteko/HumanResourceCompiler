@@ -31,6 +31,8 @@ public:
 
     int get_max_floor();
 
+    ProgramPtr get_built_program() { return _built_program; }
+
     void print();
 
 protected:
@@ -131,6 +133,7 @@ private:
     std::list<BasicBlockPtr> build_subroutine_split_tacs_to_basic_blocks(const std::string &subroutine_name, std::list<TACPtr> &tacs);
     ControlFlowGraph build_subroutine_link_cfg_from_basic_blocks(std::list<BasicBlockPtr> &basic_blocks);
     int build_ir_program();
+    ProgramPtr _built_program;
 };
 
 CLOSE_IRGEN_NAMESPACE
