@@ -72,7 +72,7 @@ int UseBeforeInitializationCheckPass::visit(const parser::IfStatementASTNodePtr 
 {
     enter_node(node);
 
-    auto pre_if_result = get_var_init_at_current_scope();
+    NodeResult pre_if_result = get_var_init_at_current_scope();
 
     NodeResult then_result, else_result, merged_result;
     auto &then_branch = node->get_then_branch();
@@ -133,8 +133,7 @@ int UseBeforeInitializationCheckPass::visit(const parser::WhileStatementASTNodeP
     rc = traverse(node->get_condition());
     RETURN_IF_FAIL_IN_VISIT(rc);
 
-    NodeResult preloop_result; // assume the loop isn't executed
-    get_var_init_result(node, preloop_result);
+    NodeResult preloop_result = get_var_init_at_current_scope(); // assume the loop isn't executed
 
     rc = traverse(node->get_body());
     RETURN_IF_FAIL_IN_VISIT(rc);
@@ -148,8 +147,7 @@ int UseBeforeInitializationCheckPass::visit(const parser::ForStatementASTNodePtr
 {
     BEGIN_VISIT();
 
-    NodeResult preloop_result; // assume the loop isn't executed
-    get_var_init_result(node, preloop_result);
+    NodeResult preloop_result = get_var_init_at_current_scope(); // assume the loop isn't executed
 
     NodeResult for_stage_results = preloop_result; // we collect the result after each for stage, and pass it through to the loop
 
@@ -270,8 +268,7 @@ int UseBeforeInitializationCheckPass::visit_subroutine(parser::AbstractSubroutin
 {
     BEGIN_VISIT();
 
-    NodeResult prefunc_result; // assume the function isn't executed
-    get_var_init_result(node, prefunc_result);
+    NodeResult prefunc_result = get_var_init_at_current_scope(); // assume the function isn't executed
 
     track_scope_enter_manually(node, ScopeInfoAttribute::get_scope(node->get_body())->get_scope_id());
     auto &parameter = node->get_parameter();
