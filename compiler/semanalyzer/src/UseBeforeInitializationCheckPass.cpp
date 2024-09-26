@@ -72,6 +72,8 @@ int UseBeforeInitializationCheckPass::visit(const parser::IfStatementASTNodePtr 
 {
     enter_node(node);
 
+    NodeResult pre_if_result = get_var_init_at_current_scope();
+
     NodeResult then_result, else_result, merged_result;
     auto &then_branch = node->get_then_branch();
     if (then_branch) {
@@ -105,9 +107,19 @@ int UseBeforeInitializationCheckPass::visit(const parser::IfStatementASTNodePtr 
             value = 1;
         }
     }
-
     strip_symbols_beyond_scope(merged_result, get_current_scope_id());
-    set_var_init_at_current_scope(merged_result);
+
+    for (auto &[symbol, value] : pre_if_result) {
+        auto if_initialized_it = merged_result.find(symbol);
+
+        // if the if-block initialized this var, it's initialized anyway
+        // if it's not (either it's not seen in if-block -> not found, or it's 0), keep it as-is
+        if (if_initialized_it != merged_result.end() && if_initialized_it->second == 1) {
+            value = 1;
+        }
+    }
+
+    set_var_init_at_current_scope(pre_if_result);
 
     leave_node();
     return 0;
@@ -121,8 +133,7 @@ int UseBeforeInitializationCheckPass::visit(const parser::WhileStatementASTNodeP
     rc = traverse(node->get_condition());
     RETURN_IF_FAIL_IN_VISIT(rc);
 
-    NodeResult preloop_result; // assume the loop isn't executed
-    get_var_init_result(node, preloop_result);
+    NodeResult preloop_result = get_var_init_at_current_scope(); // assume the loop isn't executed
 
     rc = traverse(node->get_body());
     RETURN_IF_FAIL_IN_VISIT(rc);
@@ -136,8 +147,7 @@ int UseBeforeInitializationCheckPass::visit(const parser::ForStatementASTNodePtr
 {
     BEGIN_VISIT();
 
-    NodeResult preloop_result; // assume the loop isn't executed
-    get_var_init_result(node, preloop_result);
+    NodeResult preloop_result = get_var_init_at_current_scope(); // assume the loop isn't executed
 
     NodeResult for_stage_results = preloop_result; // we collect the result after each for stage, and pass it through to the loop
 
@@ -258,8 +268,7 @@ int UseBeforeInitializationCheckPass::visit_subroutine(parser::AbstractSubroutin
 {
     BEGIN_VISIT();
 
-    NodeResult prefunc_result; // assume the function isn't executed
-    get_var_init_result(node, prefunc_result);
+    NodeResult prefunc_result = get_var_init_at_current_scope(); // assume the function isn't executed
 
     track_scope_enter_manually(node, ScopeInfoAttribute::get_scope(node->get_body())->get_scope_id());
     auto &parameter = node->get_parameter();
@@ -378,6 +387,19 @@ int UseBeforeInitializationCheckPass::get_var_init_at_current_scope(const Symbol
     auto &stack = _varinit_record_stacks[symbol];
     assert(!stack.empty());
     return stack.top();
+}
+
+UseBeforeInitializationCheckPass::NodeResult UseBeforeInitializationCheckPass::get_var_init_at_current_scope()
+{
+    const auto &current_scope = get_current_scope_id();
+    NodeResult result;
+    for (const auto &[sym, stack] : _varinit_record_stacks) {
+        if (_symbol_table->is_symbol_in_scope(sym, current_scope)) {
+            assert(!stack.empty());
+            result[sym] = stack.top();
+        }
+    }
+    return result;
 }
 
 void UseBeforeInitializationCheckPass::strip_symbols_beyond_scope(NodeResult &results, const std::string &scope_id)
