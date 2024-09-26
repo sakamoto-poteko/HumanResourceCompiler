@@ -6,6 +6,7 @@
 
 #include <boost/range.hpp>
 #include <spdlog/spdlog.h>
+#include <tuple>
 
 #include "IROps.h"
 #include "IRProgramStructure.h"
@@ -79,17 +80,29 @@ std::list<BasicBlockPtr> TACGen::build_subroutine_split_tacs_to_basic_blocks(con
     assert(count == tacs.size());
 #endif // !NDEBUG
 
+    if (basic_blocks.empty()) {
+        basic_blocks.push_back(std::make_shared<BasicBlock>(subroutine_name, std::list<TACPtr>()));
+    }
+
     return basic_blocks;
 }
 
-ControlFlowGraph TACGen::build_subroutine_link_cfg_from_basic_blocks(std::list<BasicBlockPtr> &basic_blocks)
+std::tuple<ControlFlowGraph, ControlFlowVertex> TACGen::build_subroutine_link_cfg_from_basic_blocks(std::list<BasicBlockPtr> &basic_blocks)
 {
     ControlFlowGraph cfg;
     std::map<std::string, ControlFlowVertex> label_to_block;
+    ControlFlowVertex start_block = ControlFlowGraph::null_vertex();
+    bool start_block_assigned = false;
+
+    // baisc_blocks won't be null
     // 1st pass: map label to bb vert
     // 2nd pass: build cfg
     for (auto bb_it = basic_blocks.begin(); bb_it != basic_blocks.end(); ++bb_it) {
         auto vert = cfg.add_vertex(*bb_it);
+        if (!start_block_assigned) {
+            start_block = vert;
+            start_block_assigned = true;
+        }
         label_to_block[(*bb_it)->get_label()] = vert;
     }
 
@@ -162,7 +175,7 @@ ControlFlowGraph TACGen::build_subroutine_link_cfg_from_basic_blocks(std::list<B
         }
     }
 
-    return cfg;
+    return std::make_tuple(cfg, start_block);
 }
 
 int TACGen::build_ir_program()
@@ -174,7 +187,7 @@ int TACGen::build_ir_program()
         // 1. get all BB
         std::list<BasicBlockPtr> basic_blocks = build_subroutine_split_tacs_to_basic_blocks(subroutine_name, tacs);
         // 2. link BB
-        ControlFlowGraph cfg = build_subroutine_link_cfg_from_basic_blocks(basic_blocks);
+        auto [cfg, start_blk] = build_subroutine_link_cfg_from_basic_blocks(basic_blocks);
         bool has_param = false;
         bool has_return = false;
 
@@ -197,7 +210,8 @@ int TACGen::build_ir_program()
             has_param,
             has_return,
             basic_blocks,
-            cfg);
+            cfg,
+            start_blk);
         subroutines.push_back(subroutine);
     }
 

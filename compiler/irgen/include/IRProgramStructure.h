@@ -49,21 +49,23 @@ using ControlFlowEdge = ControlFlowGraph::edge_descriptor;
 
 class Subroutine : public std::enable_shared_from_this<Subroutine> {
 public:
-    Subroutine(const std::string &func_name, bool has_param, bool has_return, const std::list<BasicBlockPtr> &basic_blocks, const ControlFlowGraph &cfg)
+    Subroutine(const std::string &func_name, bool has_param, bool has_return, const std::list<BasicBlockPtr> &basic_blocks, const ControlFlowGraph &cfg, ControlFlowVertex start)
         : _func_name(func_name)
         , _basic_blocks(basic_blocks)
         , _has_param(has_param)
         , _has_return(has_return)
         , _cfg(cfg)
+        , _start_block(start)
     {
     }
 
-    Subroutine(std::string &&func_name, bool has_param, bool has_return, std::list<BasicBlockPtr> &&basic_blocks, ControlFlowGraph &&cfg)
+    Subroutine(std::string &&func_name, bool has_param, bool has_return, std::list<BasicBlockPtr> &&basic_blocks, ControlFlowGraph &&cfg, ControlFlowVertex start_block)
         : _func_name(std::move(func_name))
         , _basic_blocks(std::move(basic_blocks))
         , _has_param(has_param)
         , _has_return(has_return)
         , _cfg(std::move(cfg))
+        , _start_block(start_block)
     {
     }
 
@@ -87,6 +89,7 @@ private:
     std::string _func_name;
     std::list<BasicBlockPtr> _basic_blocks;
     ControlFlowGraph _cfg;
+    ControlFlowVertex _start_block;
 
     bool _has_param;
     bool _has_return;
@@ -114,6 +117,10 @@ public:
     std::list<SubroutinePtr> &get_subroutines() { return _subroutines; }
 
     const std::list<SubroutinePtr> &get_subroutines() const { return _subroutines; }
+
+    const ProgramMetadata &get_metadata() const { return _metadata; }
+
+    ProgramMetadata &get_metadata() { return _metadata; }
 
 private:
     std::list<SubroutinePtr> _subroutines;

@@ -9,10 +9,13 @@ sub start()
     while (true) {
         let i1 = inbox();
         let i2 = inbox();
-        let r;
-        if (i1 > i2) {
+        let r = 0;
+        if (i1 > i2 && i1 > 0) {
             r = mul2(i1);
             outbox(r);
+            if (i1 > 0) {
+                outbox(r);
+            }
             floor[1] = r;
         } else {
             r = i2;
