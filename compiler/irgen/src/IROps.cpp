@@ -140,5 +140,10 @@ bool is_control_transfer_operation(IROperation op)
     }
 }
 
+bool is_comparison_operation(IROperation op)
+{
+    return op >= IROperation::EQ && op <= IROperation::GE;
+}
+
 CLOSE_IRGEN_NAMESPACE
 // end
