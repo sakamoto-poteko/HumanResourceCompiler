@@ -55,6 +55,7 @@ private:
     void set_var_init_at_current_scope(const SymbolPtr &symbol, int initialized);
     void set_var_init_at_current_scope(const NodeResult &result);
     int get_var_init_at_current_scope(const SymbolPtr &symbol);
+    NodeResult get_var_init_at_current_scope();
     void get_var_init_result(const parser::ASTNodePtr &node_to_get_result, NodeResult &result);
 
     void strip_symbols_beyond_scope(NodeResult &results, const std::string &scope_id);
