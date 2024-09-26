@@ -1,7 +1,6 @@
 #include <cassert>
 #include <list>
 #include <memory>
-#include <ranges>
 #include <string>
 
 #include <boost/range.hpp>
@@ -106,7 +105,7 @@ int TACGen::visit(const parser::VariableAssignmentASTNodePtr &node)
     auto expr_result = _node_var_id_result[expr];
     assert(expr_result);
 
-    create_instr(ThreeAddressCode::create_data_movement(HighLevelIROps::MOV, decl_operand, expr_result, node));
+    create_instr(ThreeAddressCode::create_data_movement(IROperation::MOV, decl_operand, expr_result, node));
 
     _node_var_id_result[node] = _node_var_id_result[expr];
     END_VISIT();
@@ -128,12 +127,24 @@ int TACGen::visit(const parser::FloorBoxInitStatementASTNodePtr &node)
 {
     BEGIN_VISIT();
 
+    // floor_box_init_statement = INIT, FLOOR, OPEN_BRACKET, INTEGER, CLOSE_BRACKET, EQ, INTEGER, T;
+    // floor init statement always has a non-null assignment part, and the assignment is always an integer
     auto asgn = node->get_assignment();
     assert(asgn);
-    rc = traverse(asgn);
-    RETURN_IF_FAIL_IN_VISIT(rc);
-    // setting no result
+    auto flr_id_node = asgn->get_floor_number();
+    assert(flr_id_node);
+    auto flr_value_node = asgn->get_value();
+    assert(flr_value_node);
 
+    assert(flr_id_node->get_node_type() == parser::ASTNodeType::Integer);
+    assert(flr_value_node->get_node_type() == parser::ASTNodeType::Integer);
+
+    auto flr_id = std::static_pointer_cast<parser::IntegerASTNode>(flr_id_node);
+    auto flr_value = std::static_pointer_cast<parser::IntegerASTNode>(flr_value_node);
+
+    _floor_inits[flr_id->get_value()] = flr_value->get_value();
+
+    // setting no result
     END_VISIT();
 }
 
@@ -157,7 +168,7 @@ int TACGen::visit(const parser::FloorAssignmentASTNodePtr &node)
     assert(index);
 
     Operand var(take_var_id_numbering());
-    create_instr(ThreeAddressCode::create_data_movement(HighLevelIROps::STORE, index, value, node));
+    create_instr(ThreeAddressCode::create_data_movement(IROperation::STORE, index, value, node));
     _node_var_id_result[node] = var;
 
     END_VISIT();
@@ -175,7 +186,7 @@ int TACGen::visit(const parser::FloorAccessASTNodePtr &node)
     assert(index);
 
     Operand var(take_var_id_numbering());
-    create_instr(ThreeAddressCode::create_data_movement(HighLevelIROps::LOAD, var, index, node));
+    create_instr(ThreeAddressCode::create_data_movement(IROperation::LOAD, var, index, node));
     _node_var_id_result[node] = var;
 
     END_VISIT();
@@ -191,7 +202,7 @@ int TACGen::visit(const parser::NegativeExpressionASTNodePtr &node)
     assert(op);
 
     Operand var(take_var_id_numbering());
-    create_instr(ThreeAddressCode::create_arithmetic(HighLevelIROps::NEG, var, op, node));
+    create_instr(ThreeAddressCode::create_arithmetic(IROperation::NEG, var, op, node));
     _node_var_id_result[node] = var;
 
     END_VISIT();
@@ -207,7 +218,7 @@ int TACGen::visit(const parser::NotExpressionASTNodePtr &node)
     assert(op);
 
     Operand var(take_var_id_numbering());
-    create_instr(ThreeAddressCode::create_logical(HighLevelIROps::NOT, var, op, node));
+    create_instr(ThreeAddressCode::create_logical(IROperation::NOT, var, op, node));
     _node_var_id_result[node] = var;
 
     END_VISIT();
@@ -223,7 +234,7 @@ int TACGen::visit(const parser::IncrementExpressionASTNodePtr &node)
     assert(original);
 
     Operand var(take_var_id_numbering());
-    create_instr(ThreeAddressCode::create_arithmetic(HighLevelIROps::ADD, var, original, Operand(1, true), node));
+    create_instr(ThreeAddressCode::create_arithmetic(IROperation::ADD, var, original, Operand(1, true), node));
     _node_var_id_result[node] = var;
     _symbol_to_var_map[symbol] = var;
 
@@ -240,14 +251,14 @@ int TACGen::visit(const parser::DecrementExpressionASTNodePtr &node)
     assert(original);
 
     Operand var(take_var_id_numbering());
-    create_instr(ThreeAddressCode::create_arithmetic(HighLevelIROps::SUB, var, original, Operand(1, true), node));
+    create_instr(ThreeAddressCode::create_arithmetic(IROperation::SUB, var, original, Operand(1, true), node));
     _node_var_id_result[node] = var;
     _symbol_to_var_map[symbol] = var;
 
     END_VISIT();
 }
 
-template <HighLevelIROps op>
+template <IROperation op>
 int TACGen::visit_binary_expression(const parser::AbstractBinaryExpressionASTNodePtr &node)
 {
     BEGIN_VISIT();
@@ -274,67 +285,67 @@ int TACGen::visit_binary_expression(const parser::AbstractBinaryExpressionASTNod
 
 int TACGen::visit(const parser::AddExpressionASTNodePtr &node)
 {
-    return visit_binary_expression<HighLevelIROps::ADD>(node);
+    return visit_binary_expression<IROperation::ADD>(node);
 }
 
 int TACGen::visit(const parser::SubExpressionASTNodePtr &node)
 {
-    return visit_binary_expression<HighLevelIROps::SUB>(node);
+    return visit_binary_expression<IROperation::SUB>(node);
 }
 
 int TACGen::visit(const parser::MulExpressionASTNodePtr &node)
 {
-    return visit_binary_expression<HighLevelIROps::MUL>(node);
+    return visit_binary_expression<IROperation::MUL>(node);
 }
 
 int TACGen::visit(const parser::DivExpressionASTNodePtr &node)
 {
-    return visit_binary_expression<HighLevelIROps::DIV>(node);
+    return visit_binary_expression<IROperation::DIV>(node);
 }
 
 int TACGen::visit(const parser::ModExpressionASTNodePtr &node)
 {
-    return visit_binary_expression<HighLevelIROps::MOD>(node);
+    return visit_binary_expression<IROperation::MOD>(node);
 }
 
 int TACGen::visit(const parser::EqualExpressionASTNodePtr &node)
 {
-    return visit_binary_expression<HighLevelIROps::EQ>(node);
+    return visit_binary_expression<IROperation::EQ>(node);
 }
 
 int TACGen::visit(const parser::NotEqualExpressionASTNodePtr &node)
 {
-    return visit_binary_expression<HighLevelIROps::NE>(node);
+    return visit_binary_expression<IROperation::NE>(node);
 }
 
 int TACGen::visit(const parser::GreaterThanExpressionASTNodePtr &node)
 {
-    return visit_binary_expression<HighLevelIROps::GT>(node);
+    return visit_binary_expression<IROperation::GT>(node);
 }
 
 int TACGen::visit(const parser::GreaterEqualExpressionASTNodePtr &node)
 {
-    return visit_binary_expression<HighLevelIROps::GE>(node);
+    return visit_binary_expression<IROperation::GE>(node);
 }
 
 int TACGen::visit(const parser::LessThanExpressionASTNodePtr &node)
 {
-    return visit_binary_expression<HighLevelIROps::LT>(node);
+    return visit_binary_expression<IROperation::LT>(node);
 }
 
 int TACGen::visit(const parser::LessEqualExpressionASTNodePtr &node)
 {
-    return visit_binary_expression<HighLevelIROps::LE>(node);
+    return visit_binary_expression<IROperation::LE>(node);
 }
 
 int TACGen::visit(const parser::AndExpressionASTNodePtr &node)
 {
-    return visit_binary_expression<HighLevelIROps::AND>(node);
+    return visit_binary_expression<IROperation::AND>(node);
 }
 
 int TACGen::visit(const parser::OrExpressionASTNodePtr &node)
 {
-    return visit_binary_expression<HighLevelIROps::OR>(node);
+    return visit_binary_expression<IROperation::OR>(node);
 }
 
 int TACGen::visit(const parser::InvocationExpressionASTNodePtr &node)
@@ -351,7 +362,7 @@ int TACGen::visit(const parser::InvocationExpressionASTNodePtr &node)
         Operand param = _node_var_id_result[param_node];
 
         if (func_name == "outbox") {
-            create_instr(ThreeAddressCode::create_io(HighLevelIROps::OUTPUT, param, node));
+            create_instr(ThreeAddressCode::create_io(IROperation::OUTPUT, param, node));
             _node_var_id_result[node] = Operand(0, true);
         } else {
             create_instr(ThreeAddressCode::create_call(func_name, param, result, node));
@@ -359,7 +370,7 @@ int TACGen::visit(const parser::InvocationExpressionASTNodePtr &node)
         }
     } else {
         if (func_name == "inbox") {
-            create_instr(ThreeAddressCode::create_io(HighLevelIROps::INPUT, result, node));
+            create_instr(ThreeAddressCode::create_io(IROperation::INPUT, result, node));
             _node_var_id_result[node] = result;
         } else {
             create_instr(ThreeAddressCode::create_call(func_name, result, node));

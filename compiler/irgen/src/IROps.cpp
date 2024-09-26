@@ -5,90 +5,90 @@
 
 OPEN_IRGEN_NAMESPACE
 
-std::string hir_to_string(HighLevelIROps op)
+std::string hir_to_string(IROperation op)
 {
     switch (op) {
     // arithmetic operations
-    case HighLevelIROps::ADD:
+    case IROperation::ADD:
         return "add";
-    case HighLevelIROps::SUB:
+    case IROperation::SUB:
         return "sub";
-    case HighLevelIROps::MUL:
+    case IROperation::MUL:
         return "mul";
-    case HighLevelIROps::DIV:
+    case IROperation::DIV:
         return "div";
-    case HighLevelIROps::MOD:
+    case IROperation::MOD:
         return "mod";
-    case HighLevelIROps::NEG:
+    case IROperation::NEG:
         return "neg";
 
     // data movement operations
-    case HighLevelIROps::MOV:
+    case IROperation::MOV:
         return "mov";
-    case HighLevelIROps::LOAD:
-        return "load";
-    case HighLevelIROps::STORE:
-        return "store";
-    case HighLevelIROps::LOADI:
-        return "loadi";
+    case IROperation::LOAD:
+        return "ld";
+    case IROperation::STORE:
+        return "st";
+    case IROperation::LOADI:
+        return "ldi";
 
     // logical operations
-    case HighLevelIROps::AND:
+    case IROperation::AND:
         return "and";
-    case HighLevelIROps::OR:
+    case IROperation::OR:
         return "or";
-    case HighLevelIROps::NOT:
+    case IROperation::NOT:
         return "not";
 
     // comparison
-    case HighLevelIROps::EQ:
+    case IROperation::EQ:
         return "eq";
-    case HighLevelIROps::NE:
+    case IROperation::NE:
         return "ne";
-    case HighLevelIROps::LT:
+    case IROperation::LT:
         return "lt";
-    case HighLevelIROps::LE:
+    case IROperation::LE:
         return "le";
-    case HighLevelIROps::GT:
+    case IROperation::GT:
         return "gt";
-    case HighLevelIROps::GE:
+    case IROperation::GE:
         return "ge";
 
     // control flow operations
-    case HighLevelIROps::JE:
+    case IROperation::JE:
         return "je";
-    case HighLevelIROps::JNE:
+    case IROperation::JNE:
         return "jne";
-    case HighLevelIROps::JGT:
+    case IROperation::JGT:
         return "jgt";
-    case HighLevelIROps::JLT:
+    case IROperation::JLT:
         return "jlt";
-    case HighLevelIROps::JGE:
+    case IROperation::JGE:
         return "jge";
-    case HighLevelIROps::JLE:
+    case IROperation::JLE:
         return "jle";
-    case HighLevelIROps::JZ:
+    case IROperation::JZ:
         return "jz";
-    case HighLevelIROps::JNZ:
+    case IROperation::JNZ:
         return "jnz";
-    case HighLevelIROps::JMP:
+    case IROperation::JMP:
         return "jmp";
-    case HighLevelIROps::CALL:
-        return "call";
-    case HighLevelIROps::ENTER:
-        return "enter";
-    case HighLevelIROps::RET:
+    case IROperation::CALL:
+        return "cl";
+    case IROperation::ENTER:
+        return "ent";
+    case IROperation::RET:
         return "ret";
 
     // special operations
-    case HighLevelIROps::INPUT:
-        return "input";
-    case HighLevelIROps::OUTPUT:
-        return "output";
-    case HighLevelIROps::NOP:
+    case IROperation::INPUT:
+        return "in";
+    case IROperation::OUTPUT:
+        return "out";
+    case IROperation::NOP:
         return "nop";
-    case HighLevelIROps::HALT:
-        return "halt";
+    case IROperation::HALT:
+        return "hlt";
 
     default:
         spdlog::critical("Unknown HighLevelIROps {}. {}", static_cast<int>(op), __PRETTY_FUNCTION__);
@@ -96,46 +96,46 @@ std::string hir_to_string(HighLevelIROps op)
     }
 }
 
-bool is_control_transfer_operation(HighLevelIROps op)
+bool is_control_transfer_operation(IROperation op)
 {
     switch (op) {
-    case HighLevelIROps::MOV:
-    case HighLevelIROps::LOAD:
-    case HighLevelIROps::STORE:
-    case HighLevelIROps::LOADI:
-    case HighLevelIROps::ADD:
-    case HighLevelIROps::SUB:
-    case HighLevelIROps::MUL:
-    case HighLevelIROps::DIV:
-    case HighLevelIROps::MOD:
-    case HighLevelIROps::NEG:
-    case HighLevelIROps::AND:
-    case HighLevelIROps::OR:
-    case HighLevelIROps::NOT:
-    case HighLevelIROps::EQ:
-    case HighLevelIROps::NE:
-    case HighLevelIROps::LT:
-    case HighLevelIROps::LE:
-    case HighLevelIROps::GT:
-    case HighLevelIROps::GE:
-    case HighLevelIROps::INPUT:
-    case HighLevelIROps::OUTPUT:
-    case HighLevelIROps::NOP:
+    case IROperation::MOV:
+    case IROperation::LOAD:
+    case IROperation::STORE:
+    case IROperation::LOADI:
+    case IROperation::ADD:
+    case IROperation::SUB:
+    case IROperation::MUL:
+    case IROperation::DIV:
+    case IROperation::MOD:
+    case IROperation::NEG:
+    case IROperation::AND:
+    case IROperation::OR:
+    case IROperation::NOT:
+    case IROperation::EQ:
+    case IROperation::NE:
+    case IROperation::LT:
+    case IROperation::LE:
+    case IROperation::GT:
+    case IROperation::GE:
+    case IROperation::INPUT:
+    case IROperation::OUTPUT:
+    case IROperation::NOP:
         return false;
 
-    case HighLevelIROps::JE:
-    case HighLevelIROps::JNE:
-    case HighLevelIROps::JGT:
-    case HighLevelIROps::JLT:
-    case HighLevelIROps::JGE:
-    case HighLevelIROps::JLE:
-    case HighLevelIROps::JZ:
-    case HighLevelIROps::JNZ:
-    case HighLevelIROps::JMP:
-    case HighLevelIROps::CALL:
-    case HighLevelIROps::ENTER:
-    case HighLevelIROps::RET:
-    case HighLevelIROps::HALT:
+    case IROperation::JE:
+    case IROperation::JNE:
+    case IROperation::JGT:
+    case IROperation::JLT:
+    case IROperation::JGE:
+    case IROperation::JLE:
+    case IROperation::JZ:
+    case IROperation::JNZ:
+    case IROperation::JMP:
+    case IROperation::CALL:
+    case IROperation::ENTER:
+    case IROperation::RET:
+    case IROperation::HALT:
         return true;
     }
 }

@@ -29,7 +29,9 @@ public:
 
     virtual int run() override;
 
-    int get_max_floor();
+    int get_floor_max();
+    const std::map<int, int> &get_floor_inits() const;
+    std::map<int, int> get_floor_inits();
 
     ProgramPtr get_built_program() { return _built_program; }
 
@@ -98,6 +100,8 @@ private:
     std::map<std::string, std::list<TACPtr>> _subroutine_tacs;
     // map<label, IR iter>
     boost::bimap<std::string, boost::bimaps::set_of<std::list<TACPtr>::iterator, tac_list_iter_comparator>> _labels;
+    // map<floor id, value>
+    std::map<int, int> _floor_inits;
 
     int take_var_id_numbering();
     std::string take_block_label();
@@ -110,17 +114,17 @@ private:
     std::list<TACPtr>::iterator create_jz(const Operand &operand, const std::string &label, const parser::ASTNodePtr &node);
     std::list<TACPtr>::iterator create_instr(const TACPtr &instr);
 
-    template <HighLevelIROps op>
+    template <IROperation op>
     int visit_binary_expression(const parser::AbstractBinaryExpressionASTNodePtr &node);
 
-    template <HighLevelIROps op>
+    template <IROperation op>
     void create_binary_instr(const Operand &tgt, const Operand &src1, const Operand &src2, const parser::ASTNodePtr &node)
     {
-        if constexpr (op >= HighLevelIROps::ADD && op <= HighLevelIROps::MOD) {
+        if constexpr (op >= IROperation::ADD && op <= IROperation::MOD) {
             create_instr(ThreeAddressCode::create_arithmetic(op, tgt, src1, src2, node));
-        } else if constexpr (op >= HighLevelIROps::EQ && op <= HighLevelIROps::GE) {
+        } else if constexpr (op >= IROperation::EQ && op <= IROperation::GE) {
             create_instr(ThreeAddressCode::create_comparison(op, tgt, src1, src2, node));
-        } else if constexpr (op == HighLevelIROps::AND || op == HighLevelIROps::OR) {
+        } else if constexpr (op == IROperation::AND || op == IROperation::OR) {
             create_instr(ThreeAddressCode::create_logical(op, tgt, src1, src2, node));
         } else {
             throw;

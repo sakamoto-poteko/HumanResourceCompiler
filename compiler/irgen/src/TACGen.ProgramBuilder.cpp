@@ -32,11 +32,15 @@ std::list<BasicBlockPtr> TACGen::build_subroutine_split_tacs_to_basic_blocks(con
         // is there a label for this tac? or is there a control flow instr seen?
         // if yes, we need to start a new block
         bool instr_has_lbl = label_it != _labels.right.end();
-        if ((instr_has_lbl) || seen_control_flow) {
+        if (instr_has_lbl || seen_control_flow) {
+            // first instr has label. it's function's name
             // if we're not the first instr, push the old block into the list
-            if (!current_basic_block.empty()) {
+            if (current_basic_block.empty()) {
+                assert(instr_has_lbl);
+            } else {
                 basic_blocks.push_back(std::make_shared<BasicBlock>(std::move(current_label), std::move(current_basic_block)));
             }
+
             current_basic_block.clear();
             current_label.clear();
             seen_control_flow = false;
@@ -106,34 +110,34 @@ ControlFlowGraph TACGen::build_subroutine_link_cfg_from_basic_blocks(std::list<B
             TACPtr flow_xfer_instr = *std::prev(bb->get_instructions().end());
             switch (flow_xfer_instr->get_op()) {
                 // conditional branch
-            case HighLevelIROps::JE:
-            case HighLevelIROps::JNE:
-            case HighLevelIROps::JGT:
-            case HighLevelIROps::JLT:
-            case HighLevelIROps::JGE:
-            case HighLevelIROps::JLE:
-            case HighLevelIROps::JZ:
-            case HighLevelIROps::JNZ:
+            case IROperation::JE:
+            case IROperation::JNE:
+            case IROperation::JGT:
+            case IROperation::JLT:
+            case IROperation::JGE:
+            case IROperation::JLE:
+            case IROperation::JZ:
+            case IROperation::JNZ:
                 connect_next = true;
                 connect_target = true;
                 target = flow_xfer_instr->get_tgt().get_label();
                 break;
 
                 // branch
-            case HighLevelIROps::JMP:
+            case IROperation::JMP:
                 connect_next = false;
                 connect_target = true;
                 target = flow_xfer_instr->get_tgt().get_label();
                 break;
 
-            case HighLevelIROps::RET:
-            case HighLevelIROps::HALT:
+            case IROperation::RET:
+            case IROperation::HALT:
                 connect_next = false;
                 connect_target = false;
                 break;
 
                 // nothing yet. not drawing func graph yet.
-            case HighLevelIROps::CALL:
+            case IROperation::CALL:
             default:
                 connect_next = true;
                 connect_target = false;

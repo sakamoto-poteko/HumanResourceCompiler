@@ -45,7 +45,7 @@ std::string Subroutine::generate_graphviz_cfg()
                 "");
 
             boost::format xlabel;
-            xlabel = boost::format(R"([shape=rect label=<<TABLE BORDER="0" CELLBORDER="0" CELLPADDING="0"><TR><TD ALIGN="LEFT"><FONT COLOR="#8B4513">%1%:</FONT></TD></TR>%2%</TABLE>> fontname=Courier])")
+            xlabel = boost::format(R"([shape=rect label=<<TABLE BORDER="0" CELLBORDER="0"><TR><TD ALIGN="LEFT"><FONT COLOR="#8B4513">%1%:</FONT></TD></TR>%2%</TABLE>> fontname=Courier])")
                 % escape_graphviz_html(node->get_label())
                 % instrs;
             out << xlabel;

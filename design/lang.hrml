@@ -1,3 +1,5 @@
+init floor[0] = 0;
+init floor[1] = 1;
 init floor_max = 2;
 
 let glbvar = 12;

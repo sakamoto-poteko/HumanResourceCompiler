@@ -8,7 +8,7 @@
 
 OPEN_IRGEN_NAMESPACE
 
-enum class HighLevelIROps : std::uint8_t {
+enum class IROperation : std::uint8_t {
     // Data Movement Operations (0x00 - 0x03)
     MOV = 0x00, // mov a, b
     LOAD = 0x01, // load a, [100] or load a, (r1)
@@ -61,8 +61,8 @@ enum class HighLevelIROps : std::uint8_t {
     HALT = 0x71, // halt
 };
 
-std::string hir_to_string(HighLevelIROps op);
-bool is_control_transfer_operation(HighLevelIROps op);
+std::string hir_to_string(IROperation op);
+bool is_control_transfer_operation(IROperation op);
 
 CLOSE_IRGEN_NAMESPACE
 #endif

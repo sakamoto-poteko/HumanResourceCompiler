@@ -1,4 +1,3 @@
-#include <cassert>
 #include <iostream>
 #include <iterator>
 #include <list>
@@ -51,7 +50,7 @@ std::string TACGen::take_block_label(const std::string &msg)
 
 std::list<TACPtr>::iterator TACGen::create_noop(const parser::ASTNodePtr &node)
 {
-    _current_subroutine_tac.emplace_back(ThreeAddressCode::create_special(HighLevelIROps::NOP, node));
+    _current_subroutine_tac.emplace_back(ThreeAddressCode::create_special(IROperation::NOP, node));
     return std::prev(_current_subroutine_tac.end());
 }
 
@@ -63,13 +62,13 @@ std::list<TACPtr>::iterator TACGen::create_jmp(const std::string &label, const p
 
 std::list<TACPtr>::iterator TACGen::create_jnz(const Operand &operand, const std::string &label, const parser::ASTNodePtr &node)
 {
-    _current_subroutine_tac.emplace_back(ThreeAddressCode::create_branching(HighLevelIROps::JNZ, Operand(label), operand, node));
+    _current_subroutine_tac.emplace_back(ThreeAddressCode::create_branching(IROperation::JNZ, Operand(label), operand, node));
     return std::prev(_current_subroutine_tac.end());
 }
 
 std::list<TACPtr>::iterator TACGen::create_jz(const Operand &operand, const std::string &label, const parser::ASTNodePtr &node)
 {
-    _current_subroutine_tac.emplace_back(ThreeAddressCode::create_branching(HighLevelIROps::JZ, Operand(label), operand, node));
+    _current_subroutine_tac.emplace_back(ThreeAddressCode::create_branching(IROperation::JZ, Operand(label), operand, node));
     return std::prev(_current_subroutine_tac.end());
 }
 
@@ -81,7 +80,10 @@ std::list<TACPtr>::iterator TACGen::create_instr(const TACPtr &instr)
 
 void TACGen::print()
 {
-    std::cout << "@floor_max = " << get_max_floor() << std::endl;
+    std::cout << "@floor_max = " << get_floor_max() << std::endl;
+    for (const auto [id, value] : _floor_inits) {
+        std::cout << "@floor[" << id << "] = " << value << std::endl;
+    }
 
     print_subroutine(semanalyzer::GLOBAL_SCOPE_ID, _subroutine_tacs[semanalyzer::GLOBAL_SCOPE_ID]);
 
@@ -107,9 +109,19 @@ void TACGen::print_subroutine(const std::string &name, std::list<TACPtr> &tacs)
     std::cout << std::endl;
 }
 
-int TACGen::get_max_floor()
+int TACGen::get_floor_max()
 {
     return _root->get_floor_max().value_or(DEFAULT_FLOOR_MAX);
+}
+
+const std::map<int, int> &TACGen::get_floor_inits() const
+{
+    return _floor_inits;
+}
+
+std::map<int, int> TACGen::get_floor_inits()
+{
+    return _floor_inits;
 }
 
 CLOSE_IRGEN_NAMESPACE
