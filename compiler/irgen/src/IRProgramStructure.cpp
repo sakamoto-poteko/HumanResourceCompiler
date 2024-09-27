@@ -2,6 +2,8 @@
 #include <boost/format.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <boost/range/adaptors.hpp>
+#include <string>
+#include <vector>
 
 #include "EscapeGraphviz.h"
 #include "IRProgramStructure.h"
@@ -64,5 +66,18 @@ std::string Subroutine::generate_graphviz_cfg()
     return dotfile.str();
 }
 
+std::string Program::generaet_graphviz()
+{
+    std::vector<std::string> subroutine_cfgs;
+    for (const auto &subroutine : _subroutines) {
+        auto graphviz_str = subroutine->generate_graphviz_cfg();
+        boost::replace_head(graphviz_str, sizeof("digraph G"), "subgraph " + subroutine->get_func_name());
+        subroutine_cfgs.push_back(graphviz_str);
+    }
+
+    return "digraph G {\n" + boost::join(subroutine_cfgs, "\n") + "\n}";
+}
+
 CLOSE_IRGEN_NAMESPACE
+
 // end

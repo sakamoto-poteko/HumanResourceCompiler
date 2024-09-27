@@ -9,6 +9,10 @@ add_library(${PROJECT_NAME}
     src/Operand.cpp
     src/IROps.cpp
     src/IRProgramStructure.cpp
+    src/IROptimizationPass.cpp
+    src/IROptimizationPassManager.cpp
+    src/MergeConditionalBranchPass.cpp
+    src/StripNopPass.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

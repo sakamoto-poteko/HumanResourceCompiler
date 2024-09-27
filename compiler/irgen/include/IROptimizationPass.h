@@ -1,6 +1,8 @@
 #ifndef IROPTIMIZATIONPASS_H
 #define IROPTIMIZATIONPASS_H
 
+#include <memory>
+
 #include "IRProgramStructure.h"
 #include "irgen_global.h"
 
@@ -24,6 +26,8 @@ protected:
 
 private:
 };
+
+using IROptimizationPassPtr = std::shared_ptr<IROptimizationPass>;
 
 CLOSE_IRGEN_NAMESPACE
 

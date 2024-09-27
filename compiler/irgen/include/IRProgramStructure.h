@@ -1,7 +1,6 @@
 #ifndef IRPROGRAMSTRUCTURE_H
 #define IRPROGRAMSTRUCTURE_H
 
-#include <algorithm>
 #include <list>
 #include <map>
 #include <memory>
@@ -121,6 +120,8 @@ public:
     const ProgramMetadata &get_metadata() const { return _metadata; }
 
     ProgramMetadata &get_metadata() { return _metadata; }
+
+    std::string generaet_graphviz();
 
 private:
     std::list<SubroutinePtr> _subroutines;
