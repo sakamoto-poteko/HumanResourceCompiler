@@ -68,7 +68,7 @@ std::string Subroutine::generate_graphviz_cfg()
         }
     }));
 
-    dp.property("shape", boost::make_function_property_map<ControlFlowVertex>([this](const ControlFlowVertex &v) {
+    dp.property("shape", boost::make_function_property_map<ControlFlowVertex>([](const ControlFlowVertex &v) {
         UNUSED(v);
         return "rect";
     }));
@@ -79,12 +79,12 @@ std::string Subroutine::generate_graphviz_cfg()
         return v == _start_block ? "lightyellow" : "white";
     }));
 
-    dp.property("style", boost::make_function_property_map<ControlFlowVertex>([this](const ControlFlowVertex &v) {
+    dp.property("style", boost::make_function_property_map<ControlFlowVertex>([](const ControlFlowVertex &v) {
         UNUSED(v);
         return "filled";
     }));
 
-    dp.property("fontname", boost::make_function_property_map<ControlFlowVertex>([this](const ControlFlowVertex &v) {
+    dp.property("fontname", boost::make_function_property_map<ControlFlowVertex>([](const ControlFlowVertex &v) {
         UNUSED(v);
         return "Courier";
     }));
