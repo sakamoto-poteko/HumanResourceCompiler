@@ -29,7 +29,7 @@ int IROptimizationPassManager::run(bool fail_fast)
 
         if (!pass_graph_path.empty()) {
             std::string graphviz_str(_program->generaet_graphviz());
-            std::ofstream out(pass_asm_path);
+            std::ofstream out(pass_graph_path);
             out << graphviz_str;
             out.close();
         }

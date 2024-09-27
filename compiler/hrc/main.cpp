@@ -133,12 +133,12 @@ int main(int argc, char **argv)
     hrl::irgen::IROptimizationPassManager irop_passmgr(prog);
     irop_passmgr.add_pass<hrl::irgen::StripUselessInstructionPass>(
         "StripNoOpPass",
-        "-strnop.hrasm",
-        "-strnop.dot");
+        "build/strnop.hrasm",
+        "build/strnop.dot");
     irop_passmgr.add_pass<hrl::irgen::MergeConditionalBranchPass>(
         "MergeCondBrPass",
-        "-mgcondbr.hrasm",
-        "-mgcondbr.dot");
+        "build/mgcondbr.hrasm",
+        "build/mgcondbr.dot");
 
     if (irop_passmgr.run(true) != 0) {
         errmgr.print_all();

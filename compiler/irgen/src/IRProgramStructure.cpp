@@ -106,6 +106,7 @@ std::string Program::to_string(bool color)
     for (const auto [id, value] : _metadata.get_floor_inits()) {
         os << (color ? __tc.C_DARK_YELLOW : "") << "@floor[" << id << "]" << (color ? __tc.C_RESET : "") << " = " << value << std::endl;
     }
+    os << std::endl;
 
     for (const SubroutinePtr &subroutine : _subroutines) {
         os << (color ? __tc.C_DARK_PINK : "")
@@ -122,6 +123,7 @@ std::string Program::to_string(bool color)
 
             os << std::endl;
         }
+        os << std::endl;
     }
 
     return os.str();
