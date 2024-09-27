@@ -29,10 +29,6 @@ public:
 
     virtual int run() override;
 
-    int get_floor_max();
-    const std::map<int, int> &get_floor_inits() const;
-    std::map<int, int> get_floor_inits();
-
     ProgramPtr get_built_program() { return _built_program; }
 
     void print();

@@ -74,7 +74,7 @@ std::string hir_to_string(IROperation op)
     case IROperation::JMP:
         return "jmp";
     case IROperation::CALL:
-        return "cl";
+        return "c";
     case IROperation::ENTER:
         return "ent";
     case IROperation::RET:

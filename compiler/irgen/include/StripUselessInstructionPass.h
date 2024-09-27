@@ -6,10 +6,10 @@
 
 OPEN_IRGEN_NAMESPACE
 
-class StripNopPass : public IROptimizationPass {
+class StripUselessInstructionPass : public IROptimizationPass {
 public:
-    StripNopPass(const ProgramPtr &program) : IROptimizationPass(program) {}
-    ~StripNopPass();
+    StripUselessInstructionPass(const ProgramPtr &program) : IROptimizationPass(program) {}
+    ~StripUselessInstructionPass();
 
 protected:
     int run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program) override;

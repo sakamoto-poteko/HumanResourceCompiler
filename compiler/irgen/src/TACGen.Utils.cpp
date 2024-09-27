@@ -78,51 +78,5 @@ std::list<TACPtr>::iterator TACGen::create_instr(const TACPtr &instr)
     return std::prev(_current_subroutine_tac.end());
 }
 
-void TACGen::print()
-{
-    std::cout << "@floor_max = " << get_floor_max() << std::endl;
-    for (const auto [id, value] : _floor_inits) {
-        std::cout << "@floor[" << id << "] = " << value << std::endl;
-    }
-
-    print_subroutine(semanalyzer::GLOBAL_SCOPE_ID, _subroutine_tacs[semanalyzer::GLOBAL_SCOPE_ID]);
-
-    for (auto &[name, tacs] : _subroutine_tacs) {
-        if (name != semanalyzer::GLOBAL_SCOPE_ID) {
-            print_subroutine(name, tacs);
-        }
-    }
-}
-
-void TACGen::print_subroutine(const std::string &name, std::list<TACPtr> &tacs)
-{
-    std::cout << __tc.C_DARK_PINK << "def " << name << ":" << __tc.C_RESET << std::endl;
-
-    for (std::list<TACPtr>::iterator it = tacs.begin(); it != tacs.end(); ++it) {
-        auto lbl_it = _labels.right.find(it);
-        if (lbl_it != _labels.right.end()) {
-            std::cout << __tc.C_DARK_BLUE << lbl_it->second << ":" << __tc.C_RESET << std::endl;
-        }
-        std::cout << "    " << (*it)->to_string(true) << std::endl;
-    }
-
-    std::cout << std::endl;
-}
-
-int TACGen::get_floor_max()
-{
-    return _root->get_floor_max().value_or(DEFAULT_FLOOR_MAX);
-}
-
-const std::map<int, int> &TACGen::get_floor_inits() const
-{
-    return _floor_inits;
-}
-
-std::map<int, int> TACGen::get_floor_inits()
-{
-    return _floor_inits;
-}
-
 CLOSE_IRGEN_NAMESPACE
 // end

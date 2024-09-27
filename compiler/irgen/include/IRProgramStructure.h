@@ -98,11 +98,25 @@ using SubroutinePtr = std::shared_ptr<Subroutine>;
 
 class ProgramMetadata {
 public:
+    ProgramMetadata(int max_floor, const std::map<int, int> &floor_inits)
+        : _floor_max(max_floor)
+        , _floor_inits(floor_inits)
+    {
+    }
+
     void set_label_alias(const std::string &src, const std::string &tgt);
     bool get_label_alias(const std::string &src, std::string &tgt);
 
+    const std::map<int, int> &get_floor_inits() const { return _floor_inits; }
+
+    std::map<int, int> get_floor_inits() { return _floor_inits; }
+
+    int get_floor_max() const { return _floor_max; };
+
 private:
     std::map<std::string, std::string> _label_aliases;
+    int _floor_max;
+    std::map<int, int> _floor_inits;
 };
 
 class Program {
@@ -122,6 +136,7 @@ public:
     ProgramMetadata &get_metadata() { return _metadata; }
 
     std::string generaet_graphviz();
+    std::string to_string(bool color = false);
 
 private:
     std::list<SubroutinePtr> _subroutines;

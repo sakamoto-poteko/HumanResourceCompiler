@@ -28,7 +28,7 @@ int MergeConditionalBranchPass::run_subroutine(const SubroutinePtr &subroutine, 
 
 int MergeConditionalBranchPass::run_basic_block(const BasicBlockPtr &basic_block)
 {
-    std::list<TACPtr> instrs = basic_block->get_instructions();
+    std::list<TACPtr> &instrs = basic_block->get_instructions();
     auto current = instrs.begin();
     auto next = std::next(current);
 
@@ -40,7 +40,7 @@ int MergeConditionalBranchPass::run_basic_block(const BasicBlockPtr &basic_block
 
         auto next_op = next_instr->get_op();
         bool is_jz = false, is_jnz = false;
-        if (next_op == IROperation::JNZ) {
+        if (next_op == IROperation::JZ) {
             is_jz = true;
         } else if (next_op == IROperation::JNZ) {
             is_jnz = true;

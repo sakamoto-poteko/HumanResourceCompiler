@@ -12,7 +12,7 @@ add_library(${PROJECT_NAME}
     src/IROptimizationPass.cpp
     src/IROptimizationPassManager.cpp
     src/MergeConditionalBranchPass.cpp
-    src/StripNopPass.cpp
+    src/StripUselessInstructionPass.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

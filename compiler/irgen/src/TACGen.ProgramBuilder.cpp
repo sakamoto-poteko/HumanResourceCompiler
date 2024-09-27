@@ -180,7 +180,6 @@ std::tuple<ControlFlowGraph, ControlFlowVertex> TACGen::build_subroutine_link_cf
 
 int TACGen::build_ir_program()
 {
-    ProgramMetadata metadata;
     std::list<SubroutinePtr> subroutines;
 
     for (auto &[subroutine_name, tacs] : _subroutine_tacs) {
@@ -215,6 +214,7 @@ int TACGen::build_ir_program()
         subroutines.push_back(subroutine);
     }
 
+    ProgramMetadata metadata(_root->get_floor_max().value_or(DEFAULT_FLOOR_MAX), _floor_inits);
     _built_program = std::make_shared<Program>(subroutines, metadata);
     return 0;
 }
