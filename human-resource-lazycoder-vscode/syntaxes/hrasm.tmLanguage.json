@@ -1,0 +1,93 @@
+{
+  "scopeName": "source.hrasm",
+  "name": "Human Resource Machine IR Assembly (HRASM)",
+  "patterns": [
+    {
+      "name": "comment.line.double-slash.hrml",
+      "match": "//.*$"
+    },
+    {
+      "name": "keyword.arithmetic.asm",
+      "match": "\\b(add|sub|mul|div|mod|neg)\\b"
+    },
+    {
+      "name": "keyword.data-movement.asm",
+      "match": "\\b(mov|ld|st|ldi)\\b"
+    },
+    {
+      "name": "keyword.logical.asm",
+      "match": "\\b(and|or|not)\\b"
+    },
+    {
+      "name": "keyword.comparison.asm",
+      "match": "\\b(eq|ne|lt|le|gt|ge)\\b"
+    },
+    {
+      "name": "keyword.control-flow.asm",
+      "match": "\\b(je|jne|jgt|jlt|jge|jle|jz|jnz|jmp|c|ent|ret)\\b"
+    },
+    {
+      "name": "keyword.special.asm",
+      "match": "\\b(in|out|nop|hlt)\\b"
+    },
+    {
+      "name": "constant.numeric.register.asm",
+      "match": "%[0-9]+"
+    },
+    {
+      "name": "constant.numeric.register.global.asm",
+      "match": "\\bglb%[0-9]+\\b"
+    },
+    {
+      "name": "constant.numeric.immediate.asm",
+      "match": "#[0-9]+"
+    },
+    {
+      "name": "variable.temp.asm",
+      "match": "\\b[a-z]{1,2}\\b"
+    },
+    {
+      "name": "variable.temp.underscore.asm",
+      "match": "\\b_[a-z]{1,2}\\b"
+    },
+    {
+      "name": "meta.function.header.asm",
+      "match": "\\bdef\\s+([a-zA-Z0-9_]+)\\((param)?\\)\\s*->\\s*(void|value):",
+      "captures": {
+        "1": {
+          "name": "entity.name.function"
+        },
+        "2": {
+          "name": "variable.parameter"
+        },
+        "3": {
+          "name": "entity.name.type"
+        },
+        "0": {
+          "name": "keyword.control"
+        }
+      }
+    },
+    {
+      "name": "variable.attribute.assignment.asm",
+      "match": "\\@([a-zA-Z0-9_]+(\\[[0-9]+\\])?)\\s*=\\s*([0-9]+)",
+      "captures": {
+        "1": {
+          "name": "variable.attribute.name.asm"
+        },
+        "3": {
+          "name": "constant.numeric.value.asm"
+        }
+      }
+    },
+    {
+      "name": "entity.name.label.asm",
+      "match": "([A-Za-z0-9\\._]+)"
+    },
+    {
+      "name": "comment.line.semicolon.asm",
+      "match": ";.*$"
+    }
+  ],
+  "repository": {}
+}
