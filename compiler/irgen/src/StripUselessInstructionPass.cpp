@@ -7,6 +7,9 @@ OPEN_IRGEN_NAMESPACE
 
 int StripUselessInstructionPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program)
 {
+    UNUSED(metadata);
+    UNUSED(program);
+
     const auto &bbs = subroutine->get_basic_blocks();
     for (const auto &bb : bbs) {
         auto &instrs = bb->get_instructions();

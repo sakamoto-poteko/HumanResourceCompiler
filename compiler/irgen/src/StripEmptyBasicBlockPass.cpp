@@ -11,6 +11,9 @@ OPEN_IRGEN_NAMESPACE
 
 int StripEmptyBasicBlockPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program)
 {
+    UNUSED(metadata);
+    UNUSED(program);
+
     // map<erased label, next valid label>
     std::map<std::string, std::string> label_map;
     std::string last_valid_label;

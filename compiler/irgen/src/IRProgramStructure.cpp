@@ -12,6 +12,7 @@
 #include "IRProgramStructure.h"
 #include "TerminalColor.h"
 #include "ThreeAddressCode.h"
+#include "hrl_global.h"
 #include "irgen_global.h"
 
 OPEN_IRGEN_NAMESPACE
@@ -68,19 +69,23 @@ std::string Subroutine::generate_graphviz_cfg()
     }));
 
     dp.property("shape", boost::make_function_property_map<ControlFlowVertex>([this](const ControlFlowVertex &v) {
+        UNUSED(v);
         return "rect";
     }));
 
     dp.property("fillcolor", boost::make_function_property_map<ControlFlowVertex>([this](const ControlFlowVertex &v) {
+        UNUSED(v);
         assert(_start_block != _cfg->null_vertex());
         return v == _start_block ? "lightyellow" : "white";
     }));
 
     dp.property("style", boost::make_function_property_map<ControlFlowVertex>([this](const ControlFlowVertex &v) {
+        UNUSED(v);
         return "filled";
     }));
 
     dp.property("fontname", boost::make_function_property_map<ControlFlowVertex>([this](const ControlFlowVertex &v) {
+        UNUSED(v);
         return "Courier";
     }));
 
@@ -114,7 +119,7 @@ std::string Program::to_string(bool color)
     const TerminalColor &tc = color ? __tc : __empty_tc;
 
     os << tc.C_DARK_YELLOW << "@floor_max" << tc.C_RESET << " = " << _metadata.get_floor_max() << std::endl;
-    for (const auto [id, value] : _metadata.get_floor_inits()) {
+    for (const auto &[id, value] : _metadata.get_floor_inits()) {
         os << tc.C_DARK_YELLOW << "@floor[" << id << "]" << tc.C_RESET << " = " << value << std::endl;
     }
     os << std::endl

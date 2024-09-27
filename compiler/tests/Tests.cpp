@@ -65,8 +65,9 @@ static bool parse_io_line(const std::string &input_part, std::vector<hrl::interp
         boost::algorithm::trim(token); // Trim whitespace
         int value;
 
-        if (token.size() == 1 && std::isalpha(token[0])) {
-            char ch = std::toupper(static_cast<char>(token[0]));
+        char first_char = token[0];
+        if (token.size() == 1 && std::isalpha(first_char)) {
+            char ch = std::toupper(first_char);
             result.push_back(hrl::interpreter::HRMByte(ch));
         } else if (std::from_chars(token.data(), token.data() + token.size(), value).ec == std::errc()) {
             result.push_back(hrl::interpreter::HRMByte(value));

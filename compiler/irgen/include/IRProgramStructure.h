@@ -92,11 +92,10 @@ public:
 private:
     std::string _func_name;
     std::list<BasicBlockPtr> _basic_blocks;
-    ControlFlowGraphPtr _cfg;
-    ControlFlowVertex _start_block;
-
     bool _has_param;
     bool _has_return;
+    ControlFlowGraphPtr _cfg;
+    ControlFlowVertex _start_block;
 };
 
 using SubroutinePtr = std::shared_ptr<Subroutine>;

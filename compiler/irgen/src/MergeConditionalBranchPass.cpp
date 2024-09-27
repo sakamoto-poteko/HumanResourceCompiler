@@ -7,12 +7,16 @@
 #include "MergeConditionalBranchPass.h"
 #include "Operand.h"
 #include "ThreeAddressCode.h"
+#include "hrl_global.h"
 #include "irgen_global.h"
 
 OPEN_IRGEN_NAMESPACE
 
 int MergeConditionalBranchPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program)
 {
+    UNUSED(metadata);
+    UNUSED(program);
+
     for (const auto &bb : subroutine->get_basic_blocks()) {
         int rc = run_basic_block(bb);
         if (rc != 0) {
@@ -46,7 +50,7 @@ int MergeConditionalBranchPass::run_basic_block(const BasicBlockPtr &basic_block
         auto cur_op = cur_instr->get_op();
 
         if (is_comparison_operation(cur_op)) {
-            IROperation merged_op;
+            IROperation merged_op = IROperation::HALT;
 
             if (is_jz) {
                 // jz is jump the invert of condition

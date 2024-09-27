@@ -11,6 +11,7 @@
 #include "Symbol.h"
 #include "TACGen.h"
 #include "ThreeAddressCode.h"
+#include "hrl_global.h"
 #include "irgen_global.h"
 #include "semanalyzer_global.h"
 
@@ -104,6 +105,7 @@ int TACGen::build_ir_program()
             semanalyzer::SymbolPtr function_symbol;
             std::string defined_scope;
             bool ok = _symbol_table->lookup_symbol(semanalyzer::GLOBAL_SCOPE_ID, subroutine_name, false, function_symbol, defined_scope);
+            UNUSED(ok);
             assert(ok);
             assert(function_symbol);
             has_param = function_symbol->has_param();

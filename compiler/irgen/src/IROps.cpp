@@ -137,6 +137,10 @@ bool is_branch_operation(IROperation op)
     case IROperation::JNZ:
     case IROperation::JMP:
         return true;
+
+    default:
+        spdlog::critical("Unknown HighLevelIROps {}. {}", static_cast<int>(op), __PRETTY_FUNCTION__);
+        throw;
     }
 }
 
@@ -181,6 +185,10 @@ bool is_control_transfer_operation(IROperation op)
     case IROperation::RET:
     case IROperation::HALT:
         return true;
+
+    default:
+        spdlog::critical("Unknown HighLevelIROps {}. {}", static_cast<int>(op), __PRETTY_FUNCTION__);
+        throw;
     }
 }
 

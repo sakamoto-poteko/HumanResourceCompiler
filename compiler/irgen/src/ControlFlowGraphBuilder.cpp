@@ -14,6 +14,9 @@ ControlFlowGraphBuilder::~ControlFlowGraphBuilder()
 
 int hrl::irgen::ControlFlowGraphBuilder::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program)
 {
+    UNUSED(metadata);
+    UNUSED(program);
+
     const std::list<BasicBlockPtr> &basic_blocks = subroutine->get_basic_blocks();
 
     ControlFlowGraphPtr cfgptr = std::make_shared<ControlFlowGraph>();
