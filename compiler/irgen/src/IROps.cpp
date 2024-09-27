@@ -96,6 +96,50 @@ std::string hir_to_string(IROperation op)
     }
 }
 
+bool is_branch_operation(IROperation op)
+{
+    switch (op) {
+    case IROperation::MOV:
+    case IROperation::LOAD:
+    case IROperation::STORE:
+    case IROperation::LOADI:
+    case IROperation::ADD:
+    case IROperation::SUB:
+    case IROperation::MUL:
+    case IROperation::DIV:
+    case IROperation::MOD:
+    case IROperation::NEG:
+    case IROperation::AND:
+    case IROperation::OR:
+    case IROperation::NOT:
+    case IROperation::EQ:
+    case IROperation::NE:
+    case IROperation::LT:
+    case IROperation::LE:
+    case IROperation::GT:
+    case IROperation::GE:
+    case IROperation::INPUT:
+    case IROperation::OUTPUT:
+    case IROperation::NOP:
+    case IROperation::CALL:
+    case IROperation::ENTER:
+    case IROperation::RET:
+    case IROperation::HALT:
+        return false;
+
+    case IROperation::JE:
+    case IROperation::JNE:
+    case IROperation::JGT:
+    case IROperation::JLT:
+    case IROperation::JGE:
+    case IROperation::JLE:
+    case IROperation::JZ:
+    case IROperation::JNZ:
+    case IROperation::JMP:
+        return true;
+    }
+}
+
 bool is_control_transfer_operation(IROperation op)
 {
     switch (op) {

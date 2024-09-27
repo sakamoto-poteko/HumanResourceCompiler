@@ -1,4 +1,3 @@
-#include <iostream>
 #include <iterator>
 #include <list>
 #include <memory>
@@ -7,12 +6,9 @@
 #include <boost/range.hpp>
 
 #include "IROps.h"
-#include "IRProgramStructure.h"
 #include "TACGen.h"
-#include "TerminalColor.h"
 #include "ThreeAddressCode.h"
 #include "irgen_global.h"
-#include "semanalyzer_global.h"
 
 OPEN_IRGEN_NAMESPACE
 

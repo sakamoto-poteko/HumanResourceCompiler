@@ -131,7 +131,6 @@ private:
     void print_subroutine(const std::string &name, std::list<TACPtr> &tacs);
 
     std::list<BasicBlockPtr> build_subroutine_split_tacs_to_basic_blocks(const std::string &subroutine_name, std::list<TACPtr> &tacs);
-    std::tuple<ControlFlowGraph, ControlFlowVertex> build_subroutine_link_cfg_from_basic_blocks(std::list<BasicBlockPtr> &basic_blocks);
     int build_ir_program();
     ProgramPtr _built_program;
 };

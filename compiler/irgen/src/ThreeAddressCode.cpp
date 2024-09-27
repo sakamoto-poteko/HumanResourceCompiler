@@ -1,3 +1,4 @@
+#include <memory>
 #include <stdexcept>
 #include <string>
 
@@ -70,7 +71,7 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_logical(IROperation o
 
 std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_branching(IROperation op, const Operand &tgt, const Operand &src1, const Operand &src2, std::shared_ptr<parser::ASTNode> ast)
 {
-    if (op != IROperation::JE && op != IROperation::JNE && op != IROperation::JGT && op != IROperation::JLT && op != IROperation::JGE && op != IROperation::JLE && op != IROperation::JMP) {
+    if (op != IROperation::JE && op != IROperation::JNE && op != IROperation::JGT && op != IROperation::JLT && op != IROperation::JGE && op != IROperation::JLE) {
         throw std::invalid_argument("Invalid branching operation");
     }
     if (src1.get_type() != Operand::OperandType::VariableId || src2.get_type() != Operand::OperandType::VariableId || tgt.get_type() != Operand::OperandType::Label) {
@@ -187,6 +188,11 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_enter(const Operand &
 std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_return(std::shared_ptr<parser::ASTNode> ast)
 {
     return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(IROperation::RET, Operand(), Operand(), Operand(), ast));
+}
+
+std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create(IROperation op, const Operand &tgt, const Operand &src1, const Operand &src2, std::shared_ptr<parser::ASTNode> ast)
+{
+    return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt, src1, src2, ast));
 }
 
 std::string ThreeAddressCode::to_string(bool with_color) const

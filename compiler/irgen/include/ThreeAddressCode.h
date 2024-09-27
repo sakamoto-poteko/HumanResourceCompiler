@@ -50,6 +50,18 @@ public:
     static std::shared_ptr<ThreeAddressCode> create_return(std::shared_ptr<parser::ASTNode> ast = nullptr);
     static std::shared_ptr<ThreeAddressCode> create_return(const Operand &ret, std::shared_ptr<parser::ASTNode> ast = nullptr);
 
+    /**
+     * @brief Create an instruction without any check
+     *
+     * @param op
+     * @param tgt
+     * @param src1
+     * @param src2
+     * @param ast
+     * @return std::shared_ptr<ThreeAddressCode>
+     */
+    static std::shared_ptr<ThreeAddressCode> create(IROperation op, const Operand &tgt, const Operand &src1, const Operand &src2, std::shared_ptr<parser::ASTNode> ast = nullptr);
+
 private:
     ThreeAddressCode(IROperation op, const Operand &tgt = Operand(), const Operand &src1 = Operand(), const Operand &src2 = Operand(), std::shared_ptr<parser::ASTNode> ast = nullptr)
         : _op(op)

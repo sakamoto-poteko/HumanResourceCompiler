@@ -66,6 +66,7 @@ enum class IROperation : std::uint8_t {
 
 std::string hir_to_string(IROperation op);
 bool is_control_transfer_operation(IROperation op);
+bool is_branch_operation(IROperation op);
 bool is_comparison_operation(IROperation op);
 
 CLOSE_IRGEN_NAMESPACE

@@ -1,12 +1,10 @@
 #include <cassert>
-#include <iterator>
 #include <list>
 #include <memory>
 #include <string>
 
 #include <boost/range.hpp>
 #include <spdlog/spdlog.h>
-#include <tuple>
 
 #include "IROps.h"
 #include "IRProgramStructure.h"
@@ -87,97 +85,6 @@ std::list<BasicBlockPtr> TACGen::build_subroutine_split_tacs_to_basic_blocks(con
     return basic_blocks;
 }
 
-std::tuple<ControlFlowGraph, ControlFlowVertex> TACGen::build_subroutine_link_cfg_from_basic_blocks(std::list<BasicBlockPtr> &basic_blocks)
-{
-    ControlFlowGraph cfg;
-    std::map<std::string, ControlFlowVertex> label_to_block;
-    ControlFlowVertex start_block = ControlFlowGraph::null_vertex();
-    bool start_block_assigned = false;
-
-    // baisc_blocks won't be null
-    // 1st pass: map label to bb vert
-    // 2nd pass: build cfg
-    for (auto bb_it = basic_blocks.begin(); bb_it != basic_blocks.end(); ++bb_it) {
-        auto vert = cfg.add_vertex(*bb_it);
-        if (!start_block_assigned) {
-            start_block = vert;
-            start_block_assigned = true;
-        }
-        label_to_block[(*bb_it)->get_label()] = vert;
-    }
-
-    for (auto bb_it = basic_blocks.begin(); bb_it != basic_blocks.end(); ++bb_it) {
-        const auto &bb = *bb_it;
-        ControlFlowVertex bb_vert = label_to_block[bb->get_label()];
-
-        bool connect_next = false;
-        bool connect_target = false;
-        std::string target;
-
-        // is the bb empty? if it is, we're connecting to next bb.
-        if (bb->get_instructions().empty()) {
-            connect_next = true;
-            connect_target = false;
-        } else {
-            // bb is not empty. we'll need to check the final instr
-            TACPtr flow_xfer_instr = *std::prev(bb->get_instructions().end());
-            switch (flow_xfer_instr->get_op()) {
-                // conditional branch
-            case IROperation::JE:
-            case IROperation::JNE:
-            case IROperation::JGT:
-            case IROperation::JLT:
-            case IROperation::JGE:
-            case IROperation::JLE:
-            case IROperation::JZ:
-            case IROperation::JNZ:
-                connect_next = true;
-                connect_target = true;
-                target = flow_xfer_instr->get_tgt().get_label();
-                break;
-
-                // branch
-            case IROperation::JMP:
-                connect_next = false;
-                connect_target = true;
-                target = flow_xfer_instr->get_tgt().get_label();
-                break;
-
-            case IROperation::RET:
-            case IROperation::HALT:
-                connect_next = false;
-                connect_target = false;
-                break;
-
-                // nothing yet. not drawing func graph yet.
-            case IROperation::CALL:
-            default:
-                connect_next = true;
-                connect_target = false;
-                break;
-            }
-        }
-
-        if (connect_next) {
-            auto next_bb_it = std::next(bb_it);
-            if (next_bb_it != basic_blocks.end()) {
-                cfg.add_edge(bb_vert, label_to_block[(*next_bb_it)->get_label()]);
-            }
-        }
-
-        if (connect_target) {
-            auto tgt_it = label_to_block.find(target);
-            if (tgt_it == label_to_block.end()) {
-                spdlog::critical("BUG: target label '{}' does not exist in this block. {}", target, __PRETTY_FUNCTION__);
-                throw;
-            }
-            cfg.add_edge(bb_vert, tgt_it->second);
-        }
-    }
-
-    return std::make_tuple(cfg, start_block);
-}
-
 int TACGen::build_ir_program()
 {
     std::list<SubroutinePtr> subroutines;
@@ -186,7 +93,6 @@ int TACGen::build_ir_program()
         // 1. get all BB
         std::list<BasicBlockPtr> basic_blocks = build_subroutine_split_tacs_to_basic_blocks(subroutine_name, tacs);
         // 2. link BB
-        auto [cfg, start_blk] = build_subroutine_link_cfg_from_basic_blocks(basic_blocks);
         bool has_param = false;
         bool has_return = false;
 
@@ -204,13 +110,8 @@ int TACGen::build_ir_program()
             has_return = function_symbol->has_return();
         }
 
-        SubroutinePtr subroutine = std::make_shared<Subroutine>(
-            subroutine_name,
-            has_param,
-            has_return,
-            basic_blocks,
-            cfg,
-            start_blk);
+        ControlFlowGraph empty;
+        SubroutinePtr subroutine = std::make_shared<Subroutine>(subroutine_name, has_param, has_return, basic_blocks);
         subroutines.push_back(subroutine);
     }
 

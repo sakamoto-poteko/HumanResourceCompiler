@@ -8,6 +8,7 @@
 #include "ClearSymbolTablePass.h"
 #include "CompilerOptions.h"
 #include "ConstantFoldingPass.h"
+#include "ControlFlowGraphBuilder.h"
 #include "ControlFlowVerificationPass.h"
 #include "DeadCodeEliminationPass.h"
 #include "ErrorManager.h"
@@ -21,6 +22,7 @@
 #include "RecursiveDescentParser.h"
 #include "SemanticAnalysisPassManager.h"
 #include "StripAttributePass.h"
+#include "StripEmptyBasicBlockPass.h"
 #include "StripUselessInstructionPass.h"
 #include "SymbolAnalysisPass.h"
 #include "TACGen.h"
@@ -135,6 +137,14 @@ int main(int argc, char **argv)
         "StripNoOpPass",
         "build/strnop.hrasm",
         "build/strnop.dot");
+    irop_passmgr.add_pass<hrl::irgen::StripEmptyBasicBlockPass>(
+        "StripEmptyBasicBlockPass",
+        "build/strebb.hrasm",
+        "build/strebb.dot");
+    irop_passmgr.add_pass<hrl::irgen::ControlFlowGraphBuilder>(
+        "ControlFlowGraphBuilderPass",
+        "build/cfgbuilder.hrasm",
+        "build/cfgbuilder.dot");
     irop_passmgr.add_pass<hrl::irgen::MergeConditionalBranchPass>(
         "MergeCondBrPass",
         "build/mgcondbr.hrasm",

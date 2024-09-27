@@ -68,7 +68,7 @@ std::string Subroutine::generate_graphviz_cfg()
     }));
 
     dp.property("shape", boost::make_function_property_map<ControlFlowVertex>([this](const ControlFlowVertex &v) {
-        return "rect";
+        return _cfg[v]->get_label() == _cfg[_start_block]->get_label() ? "diamond" : "rect";
     }));
 
     dp.property("fontname", boost::make_function_property_map<ControlFlowVertex>([this](const ControlFlowVertex &v) {
@@ -106,12 +106,13 @@ std::string Program::to_string(bool color)
     for (const auto [id, value] : _metadata.get_floor_inits()) {
         os << (color ? __tc.C_DARK_YELLOW : "") << "@floor[" << id << "]" << (color ? __tc.C_RESET : "") << " = " << value << std::endl;
     }
-    os << std::endl;
+    os << std::endl
+       << std::endl;
 
     for (const SubroutinePtr &subroutine : _subroutines) {
         os << (color ? __tc.C_DARK_PINK : "")
            << "def " << subroutine->get_func_name() << (subroutine->has_param() ? "(param)" : "()")
-           << "->" << (subroutine->has_return() ? "value" : "void") << ":"
+           << " -> " << (subroutine->has_return() ? "value" : "void") << ":"
            << (color ? __tc.C_RESET : "") << std::endl;
 
         for (const BasicBlockPtr &basic_block : subroutine->get_basic_blocks()) {
