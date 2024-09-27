@@ -14,10 +14,11 @@ sub start()
             r = mul2(i1);
             outbox(r);
             if (i1 > 0) {
-                outbox(r);
+                outbox(r + glbvar);
             }
             floor[1] = r;
         } else {
+            glbvar = glbvar + i2;
             r = i2;
             outbox(r);
             floor[0] = r;

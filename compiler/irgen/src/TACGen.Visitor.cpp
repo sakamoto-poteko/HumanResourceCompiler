@@ -105,7 +105,12 @@ int TACGen::visit(const parser::VariableAssignmentASTNodePtr &node)
     auto expr_result = _node_var_id_result[expr];
     assert(expr_result);
 
-    create_instr(ThreeAddressCode::create_data_movement(IROperation::MOV, decl_operand, expr_result, node));
+    if (decl_operand.get_register_id() < 0) {
+        // it's a global. for global, we store instead of mov
+        create_instr(ThreeAddressCode::create_data_movement(IROperation::STORE, decl_operand, expr_result, node));
+    } else {
+        create_instr(ThreeAddressCode::create_data_movement(IROperation::MOV, decl_operand, expr_result, node));
+    }
 
     _node_var_id_result[node] = _node_var_id_result[expr];
     END_VISIT();
@@ -118,6 +123,13 @@ int TACGen::visit(const parser::VariableAccessASTNodePtr &node)
     auto symbol = semanalyzer::Symbol::get_from(node);
     auto result = _symbol_to_var_map[symbol];
     assert(result);
+
+    // it's a global. we need to load first
+    if (result.get_register_id() < 0) {
+        Operand src(result);
+        result = Operand(take_var_id_numbering());
+        create_instr(ThreeAddressCode::create_data_movement(IROperation::LOAD, result, src));
+    }
 
     _node_var_id_result[node] = result;
     END_VISIT();
