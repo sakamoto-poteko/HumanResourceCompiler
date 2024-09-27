@@ -22,9 +22,8 @@ static std::vector<hrl::interpreter::HRMByte> parse_data(const std::string &data
         boost::algorithm::trim(token); // Trim whitespace
         int value;
 
-        char first_char = token[0];
-        if (token.size() == 1 && std::isalpha(first_char)) {
-            char ch = std::toupper(first_char);
+        if (token.size() == 1 && std::isalpha(token[0])) {
+            char ch = static_cast<char>(std::toupper(token[0]));
             data.push_back(hrl::interpreter::HRMByte(ch));
         } else if (std::from_chars(token.data(), token.data() + token.size(), value).ec == std::errc()) {
             data.push_back(hrl::interpreter::HRMByte(value));
