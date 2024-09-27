@@ -5,10 +5,6 @@
 
 OPEN_IRGEN_NAMESPACE
 
-StripUselessInstructionPass::~StripUselessInstructionPass()
-{
-}
-
 int StripUselessInstructionPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program)
 {
     const auto &bbs = subroutine->get_basic_blocks();

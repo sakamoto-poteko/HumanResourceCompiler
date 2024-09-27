@@ -1,5 +1,7 @@
 # IR Generator
 
+*This is the design doc by GPT. Our design is largely based on it but differs in some details.*
+
 ## Overview
 
 This module handles the **Intermediate Representation (IR) Generation** phase of the compiler, which includes:

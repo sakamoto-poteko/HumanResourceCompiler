@@ -1,6 +1,7 @@
 #include <memory>
-#include <spdlog/spdlog.h>
 #include <vector>
+
+#include <spdlog/spdlog.h>
 
 #include "IROps.h"
 #include "MergeConditionalBranchPass.h"
@@ -9,10 +10,6 @@
 #include "irgen_global.h"
 
 OPEN_IRGEN_NAMESPACE
-
-MergeConditionalBranchPass::~MergeConditionalBranchPass()
-{
-}
 
 int MergeConditionalBranchPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program)
 {

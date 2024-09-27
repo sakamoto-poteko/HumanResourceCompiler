@@ -141,7 +141,7 @@ public:
     ProgramMetadata &get_metadata() { return _metadata; }
 
     std::string generaet_graphviz();
-    std::string to_string(bool color = false);
+    std::string to_string(bool with_color = false);
 
 private:
     std::list<SubroutinePtr> _subroutines;

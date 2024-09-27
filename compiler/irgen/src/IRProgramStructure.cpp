@@ -111,21 +111,23 @@ std::string Program::to_string(bool color)
 {
     std::ostringstream os;
 
-    os << (color ? __tc.C_DARK_YELLOW : "") << "@floor_max" << (color ? __tc.C_RESET : "") << " = " << _metadata.get_floor_max() << std::endl;
+    const TerminalColor &tc = color ? __tc : __empty_tc;
+
+    os << tc.C_DARK_YELLOW << "@floor_max" << tc.C_RESET << " = " << _metadata.get_floor_max() << std::endl;
     for (const auto [id, value] : _metadata.get_floor_inits()) {
-        os << (color ? __tc.C_DARK_YELLOW : "") << "@floor[" << id << "]" << (color ? __tc.C_RESET : "") << " = " << value << std::endl;
+        os << tc.C_DARK_YELLOW << "@floor[" << id << "]" << tc.C_RESET << " = " << value << std::endl;
     }
     os << std::endl
        << std::endl;
 
     for (const SubroutinePtr &subroutine : _subroutines) {
-        os << (color ? __tc.C_DARK_PINK : "")
+        os << tc.C_DARK_PINK
            << "def " << subroutine->get_func_name() << (subroutine->has_param() ? "(param)" : "()")
            << " -> " << (subroutine->has_return() ? "value" : "void") << ":"
-           << (color ? __tc.C_RESET : "") << std::endl;
+           << tc.C_RESET << std::endl;
 
         for (const BasicBlockPtr &basic_block : subroutine->get_basic_blocks()) {
-            os << (color ? __tc.C_DARK_BLUE : "") << basic_block->get_label() << ":" << (color ? __tc.C_RESET : "") << std::endl;
+            os << tc.C_DARK_BLUE << basic_block->get_label() << ":" << tc.C_RESET << std::endl;
 
             for (const TACPtr &instr : basic_block->get_instructions()) {
                 os << "    " << instr->to_string(color) << std::endl;

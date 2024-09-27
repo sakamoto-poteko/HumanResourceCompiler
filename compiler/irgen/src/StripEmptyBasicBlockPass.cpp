@@ -9,10 +9,6 @@
 
 OPEN_IRGEN_NAMESPACE
 
-StripEmptyBasicBlockPass::~StripEmptyBasicBlockPass()
-{
-}
-
 int StripEmptyBasicBlockPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program)
 {
     // map<erased label, next valid label>
