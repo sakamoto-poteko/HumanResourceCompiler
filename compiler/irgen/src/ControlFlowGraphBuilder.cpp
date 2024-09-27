@@ -1,3 +1,4 @@
+#include <memory>
 #include <spdlog/spdlog.h>
 
 #include "ControlFlowGraphBuilder.h"
@@ -15,7 +16,8 @@ int hrl::irgen::ControlFlowGraphBuilder::run_subroutine(const SubroutinePtr &sub
 {
     const std::list<BasicBlockPtr> &basic_blocks = subroutine->get_basic_blocks();
 
-    ControlFlowGraph cfg;
+    ControlFlowGraphPtr cfgptr = std::make_shared<ControlFlowGraph>();
+    ControlFlowGraph &cfg = *cfgptr;
     std::map<std::string, ControlFlowVertex> label_to_block;
     ControlFlowVertex start_block = ControlFlowGraph::null_vertex();
 
@@ -100,7 +102,7 @@ int hrl::irgen::ControlFlowGraphBuilder::run_subroutine(const SubroutinePtr &sub
         assert(cfg[start_block]);
     }
 
-    subroutine->set_cfg(cfg);
+    subroutine->set_cfg(cfgptr);
     subroutine->set_start_block(start_block);
     return 0;
 }

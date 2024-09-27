@@ -43,6 +43,7 @@ private:
 
 using BasicBlockPtr = std::shared_ptr<BasicBlock>;
 using ControlFlowGraph = boost::directed_graph<BasicBlockPtr>;
+using ControlFlowGraphPtr = std::shared_ptr<ControlFlowGraph>;
 using ControlFlowVertex = ControlFlowGraph::vertex_descriptor;
 using ControlFlowEdge = ControlFlowGraph::edge_descriptor;
 
@@ -53,8 +54,8 @@ public:
         , _basic_blocks(basic_blocks)
         , _has_param(has_param)
         , _has_return(has_return)
-        , _cfg()
-        , _start_block(_cfg.null_vertex())
+        , _cfg(std::make_shared<ControlFlowGraph>())
+        , _start_block(_cfg->null_vertex())
     {
     }
 
@@ -63,8 +64,8 @@ public:
         , _basic_blocks(std::move(basic_blocks))
         , _has_param(has_param)
         , _has_return(has_return)
-        , _cfg()
-        , _start_block(_cfg.null_vertex())
+        , _cfg(std::make_shared<ControlFlowGraph>())
+        , _start_block(_cfg->null_vertex())
     {
     }
 
@@ -74,19 +75,13 @@ public:
 
     const std::list<BasicBlockPtr> &get_basic_blocks() const { return _basic_blocks; }
 
-    ControlFlowGraph &get_cfg() { return _cfg; }
+    void set_cfg(const ControlFlowGraphPtr &cfg) { _cfg = cfg; }
 
-    void set_cfg(ControlFlowGraph &&cfg) { _cfg = std::move(cfg); }
-
-    void set_cfg(const ControlFlowGraph &cfg) { _cfg = cfg; }
-
-    const ControlFlowGraph &get_cfg() const { return _cfg; }
-
-    ControlFlowVertex &get_start_block() { return _start_block; }
-
-    const ControlFlowVertex &get_start_block() const { return _start_block; }
+    const ControlFlowGraphPtr &get_cfg() const { return _cfg; }
 
     void set_start_block(const ControlFlowVertex &start_block) { _start_block = start_block; }
+
+    const ControlFlowVertex &get_start_block() const { return _start_block; }
 
     bool has_param() const { return _has_param; }
 
@@ -97,7 +92,7 @@ public:
 private:
     std::string _func_name;
     std::list<BasicBlockPtr> _basic_blocks;
-    ControlFlowGraph _cfg;
+    ControlFlowGraphPtr _cfg;
     ControlFlowVertex _start_block;
 
     bool _has_param;

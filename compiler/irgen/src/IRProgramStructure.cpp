@@ -37,7 +37,7 @@ std::string Subroutine::generate_graphviz_cfg()
     boost::dynamic_properties dp;
 
     dp.property("label", boost::make_function_property_map<ControlFlowVertex>([this](const ControlFlowVertex &v) {
-        const BasicBlockPtr &node = _cfg[v];
+        const BasicBlockPtr &node = _cfg->operator[](v);
 
         auto instrs = boost::join(
             node->get_instructions() | boost::adaptors::transformed([](const TACPtr &instr) {
@@ -68,7 +68,16 @@ std::string Subroutine::generate_graphviz_cfg()
     }));
 
     dp.property("shape", boost::make_function_property_map<ControlFlowVertex>([this](const ControlFlowVertex &v) {
-        return _cfg[v]->get_label() == _cfg[_start_block]->get_label() ? "diamond" : "rect";
+        return "rect";
+    }));
+
+    dp.property("fillcolor", boost::make_function_property_map<ControlFlowVertex>([this](const ControlFlowVertex &v) {
+        assert(_start_block != _cfg->null_vertex());
+        return v == _start_block ? "lightyellow" : "white";
+    }));
+
+    dp.property("style", boost::make_function_property_map<ControlFlowVertex>([this](const ControlFlowVertex &v) {
+        return "filled";
     }));
 
     dp.property("fontname", boost::make_function_property_map<ControlFlowVertex>([this](const ControlFlowVertex &v) {
@@ -76,7 +85,7 @@ std::string Subroutine::generate_graphviz_cfg()
     }));
 
     std::stringstream dotfile;
-    boost::write_graphviz_dp(dotfile, _cfg, dp);
+    boost::write_graphviz_dp(dotfile, *_cfg, dp);
     std::string str = dotfile.str();
     boost::replace_all(str, "\"<<", "<<");
     boost::replace_all(str, ">>\"", ">>");
