@@ -3,9 +3,18 @@ project(hrc_irgen)
 
 add_library(${PROJECT_NAME}
     src/ThreeAddressCode.cpp
-    src/TACGen.cpp
+    src/TACGen.Visitor.cpp
+    src/TACGen.Utils.cpp
+    src/TACGen.ProgramBuilder.cpp
     src/Operand.cpp
     src/IROps.cpp
+    src/IRProgramStructure.cpp
+    src/IROptimizationPass.cpp
+    src/IROptimizationPassManager.cpp
+    src/MergeConditionalBranchPass.cpp
+    src/StripUselessInstructionPass.cpp
+    src/StripEmptyBasicBlockPass.cpp
+    src/ControlFlowGraphBuilder.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

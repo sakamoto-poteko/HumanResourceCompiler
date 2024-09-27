@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <iostream>
 
 #include <spdlog/spdlog.h>
 
@@ -7,16 +8,22 @@
 #include "ClearSymbolTablePass.h"
 #include "CompilerOptions.h"
 #include "ConstantFoldingPass.h"
+#include "ControlFlowGraphBuilder.h"
 #include "ControlFlowVerificationPass.h"
 #include "DeadCodeEliminationPass.h"
 #include "ErrorManager.h"
 #include "FileManager.h"
 #include "HRLLexer.h"
+#include "IROptimizationPassManager.h"
+#include "IRProgramStructure.h"
+#include "MergeConditionalBranchPass.h"
 #include "ParseTreeNodeForward.h"
 #include "ParseTreeNodeGraphvizBuilder.h"
 #include "RecursiveDescentParser.h"
 #include "SemanticAnalysisPassManager.h"
 #include "StripAttributePass.h"
+#include "StripEmptyBasicBlockPass.h"
+#include "StripUselessInstructionPass.h"
 #include "SymbolAnalysisPass.h"
 #include "TACGen.h"
 #include "TerminalColor.h"
@@ -119,11 +126,38 @@ int main(int argc, char **argv)
         spdlog::error("Error occured running semantic analysis passes");
         abort();
     }
-
-    tacgen->print();
-
     // Sem analysis finished. Collecting data
     hrl::semanalyzer::SymbolTablePtr symbol_table = sem_passmgr.get_symbol_table();
+
+    hrl::irgen::ProgramPtr prog = tacgen->get_built_program();
+    std::cout << prog->to_string(true);
+
+    hrl::irgen::IROptimizationPassManager irop_passmgr(prog);
+    irop_passmgr.add_pass<hrl::irgen::StripUselessInstructionPass>(
+        "StripNoOpPass",
+        "build/strnop.hrasm",
+        "build/strnop.dot");
+    irop_passmgr.add_pass<hrl::irgen::StripEmptyBasicBlockPass>(
+        "StripEmptyBasicBlockPass",
+        "build/strebb.hrasm",
+        "build/strebb.dot");
+    irop_passmgr.add_pass<hrl::irgen::ControlFlowGraphBuilder>(
+        "ControlFlowGraphBuilderPass",
+        "build/cfgbuilder.hrasm",
+        "build/cfgbuilder.dot");
+    irop_passmgr.add_pass<hrl::irgen::MergeConditionalBranchPass>(
+        "MergeCondBrPass",
+        "build/mgcondbr.hrasm",
+        "build/mgcondbr.dot");
+
+    if (irop_passmgr.run(true) != 0) {
+        errmgr.print_all();
+        spdlog::error("Error occured running ir optimization passes");
+        abort();
+    }
+
+    std::cout << prog->generaet_graphviz() << std::endl;
+    std::cout << prog->to_string(true);
 
     return 0;
 }

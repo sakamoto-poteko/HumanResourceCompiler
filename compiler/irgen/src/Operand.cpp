@@ -7,7 +7,7 @@
 
 OPEN_IRGEN_NAMESPACE
 
-static std::string get_named_variable(int id)
+std::string operand_name_get_named_variable(int id)
 {
     bool global = false;
     if (id < 0) {
@@ -36,7 +36,7 @@ static std::string get_named_variable(int id)
     return result;
 }
 
-static std::string get_ssa(int id)
+std::string operand_name_get_ssa(int id)
 {
     bool global = false;
     if (id < 0) {
@@ -47,7 +47,7 @@ static std::string get_ssa(int id)
     return (global ? "glb%" : "%") + std::to_string(id);
 }
 
-static std::string get_virtual_reg(int id)
+std::string operand_name_get_virtual_reg(int id)
 {
     bool global = false;
     if (id < 0) {
@@ -64,11 +64,11 @@ Operand::operator std::string() const
         return "(null)";
     case OperandType::VariableId:
         if constexpr (OPERAND_FORMAT == OperandFormat::NamedVariables) {
-            return get_named_variable(std::get<int>(_value));
+            return operand_name_get_named_variable(std::get<int>(_value));
         } else if constexpr (OPERAND_FORMAT == OperandFormat::SSA) {
-            return get_ssa(std::get<int>(_value));
+            return operand_name_get_ssa(std::get<int>(_value));
         } else if constexpr (OPERAND_FORMAT == OperandFormat::VirtualRegisters) {
-            return get_virtual_reg(std::get<int>(_value));
+            return operand_name_get_virtual_reg(std::get<int>(_value));
         } else {
             spdlog::critical("unimplemented Operand to string. {}", __PRETTY_FUNCTION__);
             throw;

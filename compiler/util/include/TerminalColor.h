@@ -49,5 +49,6 @@ private:
 };
 
 extern TerminalColor __tc;
+extern TerminalColor __empty_tc;
 
 #endif

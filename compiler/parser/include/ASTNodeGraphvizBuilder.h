@@ -106,9 +106,6 @@ protected:
         }
     }
 
-    static std::string escape_graphviz(const std::string &text);
-    static std::string escape_graphviz_html(const std::string &text);
-
 private:
 };
 

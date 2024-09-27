@@ -98,3 +98,4 @@ void TerminalColor::reset()
 }
 
 TerminalColor __tc;
+TerminalColor __empty_tc;

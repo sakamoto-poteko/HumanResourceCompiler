@@ -73,8 +73,6 @@ protected:
     Vertex enter_and_create_vertex(const std::string &name, const std::string &value, bool terminal = false);
     virtual void leave();
 
-    static std::string escape_graphviz(const std::string &text);
-
     template <typename Container>
         requires std::ranges::range<Container> && ConvertibleToParseTreeNodePtr<std::ranges::range_value_t<Container>>
     void traverse(const Container &nodes)

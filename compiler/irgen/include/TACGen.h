@@ -9,14 +9,16 @@
 #include <boost/bimap.hpp>
 
 #include "ASTNodeForward.h"
+#include "IRProgramStructure.h"
 #include "SemanticAnalysisPass.h"
 #include "Symbol.h"
 #include "ThreeAddressCode.h"
+#include "WithSymbolTable.h"
 #include "irgen_global.h"
 
 OPEN_IRGEN_NAMESPACE
 
-class TACGen : public semanalyzer::SemanticAnalysisPass {
+class TACGen : public semanalyzer::SemanticAnalysisPass, public semanalyzer::WithSymbolTable {
 public:
     ~TACGen() = default;
 
@@ -27,7 +29,7 @@ public:
 
     virtual int run() override;
 
-    int get_max_floor();
+    ProgramPtr get_built_program() { return _built_program; }
 
     void print();
 
@@ -94,30 +96,32 @@ private:
     std::map<std::string, std::list<TACPtr>> _subroutine_tacs;
     // map<label, IR iter>
     boost::bimap<std::string, boost::bimaps::set_of<std::list<TACPtr>::iterator, tac_list_iter_comparator>> _labels;
+    // map<floor id, value>
+    std::map<int, int> _floor_inits;
 
     int take_var_id_numbering();
     std::string take_block_label();
     std::string take_block_label(const std::string &msg);
 
     // Create the label, set the node to _labels
-    std::list<TACPtr>::iterator create_noop();
-    std::list<TACPtr>::iterator create_jmp(const std::string &label);
-    std::list<TACPtr>::iterator create_jnz(const Operand &operand, const std::string &label);
-    std::list<TACPtr>::iterator create_jz(const Operand &operand, const std::string &label);
+    std::list<TACPtr>::iterator create_noop(const parser::ASTNodePtr &node);
+    std::list<TACPtr>::iterator create_jmp(const std::string &label, const parser::ASTNodePtr &node);
+    std::list<TACPtr>::iterator create_jnz(const Operand &operand, const std::string &label, const parser::ASTNodePtr &node);
+    std::list<TACPtr>::iterator create_jz(const Operand &operand, const std::string &label, const parser::ASTNodePtr &node);
     std::list<TACPtr>::iterator create_instr(const TACPtr &instr);
 
-    template <HighLevelIROps op>
+    template <IROperation op>
     int visit_binary_expression(const parser::AbstractBinaryExpressionASTNodePtr &node);
 
-    template <HighLevelIROps op>
-    void create_binary_instr(const Operand &tgt, const Operand &src1, const Operand &src2)
+    template <IROperation op>
+    void create_binary_instr(const Operand &tgt, const Operand &src1, const Operand &src2, const parser::ASTNodePtr &node)
     {
-        if constexpr (op >= HighLevelIROps::ADD && op <= HighLevelIROps::MOD) {
-            create_instr(ThreeAddressCode::create_arithmetic(op, tgt, src1, src2));
-        } else if constexpr (op >= HighLevelIROps::EQ && op <= HighLevelIROps::GE) {
-            create_instr(ThreeAddressCode::create_comparison(op, tgt, src1, src2));
-        } else if constexpr (op == HighLevelIROps::AND || op == HighLevelIROps::OR) {
-            create_instr(ThreeAddressCode::create_logical(op, tgt, src1, src2));
+        if constexpr (op >= IROperation::ADD && op <= IROperation::MOD) {
+            create_instr(ThreeAddressCode::create_arithmetic(op, tgt, src1, src2, node));
+        } else if constexpr (op >= IROperation::EQ && op <= IROperation::GE) {
+            create_instr(ThreeAddressCode::create_comparison(op, tgt, src1, src2, node));
+        } else if constexpr (op == IROperation::AND || op == IROperation::OR) {
+            create_instr(ThreeAddressCode::create_logical(op, tgt, src1, src2, node));
         } else {
             throw;
         }
@@ -125,6 +129,10 @@ private:
 
     int visit_subroutine(const parser::AbstractSubroutineASTNodePtr &node);
     void print_subroutine(const std::string &name, std::list<TACPtr> &tacs);
+
+    std::list<BasicBlockPtr> build_subroutine_split_tacs_to_basic_blocks(const std::string &subroutine_name, std::list<TACPtr> &tacs);
+    int build_ir_program();
+    ProgramPtr _built_program;
 };
 
 CLOSE_IRGEN_NAMESPACE
