@@ -75,10 +75,8 @@ Dominance relations are a **partial order**, meaning they have the following pro
 
 1. **Reflexive**: A node always dominates itself.
    
-   $$\forall A, \text{ dom}(A, A)$$
+   $$\forall A, \text{dom}(A, A)$$
    
-   This means every node $A$ trivially dominates itself.
-
 2. **Antisymmetric**: If node $A$ dominates node $B$, and $B$ dominates $A$, then $A$ and $B$ must be the same node.
    
 $$\text{dom}(A, B) \land \text{dom}(B, A) \implies A = B$$

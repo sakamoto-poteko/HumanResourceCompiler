@@ -5,6 +5,7 @@
 
 #include "ASTBuilder.h"
 #include "ASTNodeGraphvizBuilder.h"
+#include "BuildSSAPass.h"
 #include "ClearSymbolTablePass.h"
 #include "CompilerOptions.h"
 #include "ConstantFoldingPass.h"
@@ -130,7 +131,6 @@ int main(int argc, char **argv)
     hrl::semanalyzer::SymbolTablePtr symbol_table = sem_passmgr.get_symbol_table();
 
     hrl::irgen::ProgramPtr prog = tacgen->get_built_program();
-    std::cout << prog->to_string(true);
 
     hrl::irgen::IROptimizationPassManager irop_passmgr(prog);
     irop_passmgr.add_pass<hrl::irgen::StripUselessInstructionPass>(
@@ -149,6 +149,10 @@ int main(int argc, char **argv)
         "MergeCondBrPass",
         "build/mgcondbr.hrasm",
         "build/mgcondbr.dot");
+    irop_passmgr.add_pass<hrl::irgen::BuildSSAPass>(
+        "BuildSSAPass",
+        "build/ssa.hrasm",
+        "build/ssa.dot");
 
     if (irop_passmgr.run(true) != 0) {
         errmgr.print_all();
@@ -156,7 +160,6 @@ int main(int argc, char **argv)
         abort();
     }
 
-    std::cout << prog->generaet_graphviz() << std::endl;
     std::cout << prog->to_string(true);
 
     return 0;
