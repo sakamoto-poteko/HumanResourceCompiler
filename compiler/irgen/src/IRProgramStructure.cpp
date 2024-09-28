@@ -102,9 +102,12 @@ std::string Program::generaet_graphviz()
     std::vector<std::string> subroutine_cfgs;
     for (const auto &subroutine : _subroutines) {
         auto graphviz_str = subroutine->generate_graphviz_cfg();
+        auto fmt = boost::format("subgraph %1% {\nlabel=\"%1%\";")
+            % subroutine->get_func_name();
         boost::replace_head(
             graphviz_str,
             sizeof("digraph G{"),
+
             "subgraph " + subroutine->get_func_name() + "{\nlabel=\"" + subroutine->get_func_name() + "\";");
         subroutine_cfgs.push_back(graphviz_str);
     }
