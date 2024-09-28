@@ -30,6 +30,7 @@ Before converting to SSA, ensure you have:
 ### **3. Compute Dominators and Dominance Frontiers**
 
 **Dominators:**
+
 - A node **A** **dominates** node **B** if every path from the entry node to **B** must go through **A**.
 - The **immediate dominator** of a node is the closest dominator of that node. Mathematically, we can express this as:
 
@@ -37,9 +38,7 @@ Before converting to SSA, ensure you have:
 A \text{ dominates } B \iff \forall \text{ path } P \text{ from Entry to } B, \, A \in P
 ```
 
-
-
-#### **Strict Dominance ($\text{strict-dom}(A, B)$)**
+**Strict Dominance**
 
 Node $A$ **strictly dominates** node $B$ if:
 
@@ -53,7 +52,7 @@ In other words, strict dominance means $A$ dominates $B$, but $A$ and $B$ are no
 \text{strict-dom}(A, B) \iff \text{dom}(A, B) \land A \neq B
 ```
 
-#### **Immediate Dominator (\(\text{idom}(B)\))**
+**Immediate Dominator**
 
 The **immediate dominator** of a node $B$, denoted as $\text{idom}(B)$, is the closest dominator of $B$. It is the last dominator encountered on every path to $B$ before $B$ itself.
 
@@ -70,7 +69,7 @@ A = \text{idom}(B) \iff \text{dom}(A, B) \land (\nexists C \text{ such that } \t
 
 The immediate dominator helps construct the **dominator tree**, where each node points to its immediate dominator.
 
-#### **Dominance Properties**
+**Dominance Properties**
 
 Dominance relations are a **partial order**, meaning they have the following properties:
 
@@ -92,7 +91,7 @@ Dominance relations are a **partial order**, meaning they have the following pro
 
 These properties make dominance a **partial order** on the nodes of the control flow graph.
 
-#### **Dominator Tree**
+**Dominator Tree**
 
 Using the immediate dominator relationship, we can form a **dominator tree**:
 
@@ -103,8 +102,8 @@ If we have a CFG, the dominator tree helps understand the flow of control and ca
 
 
 **Dominance Frontiers:**
-- The **dominance frontier** of a node **A** consists of all nodes **B** where **A** dominates a predecessor of **B**, but **A** does not strictly dominate **B**.
 
+- The **dominance frontier** of a node **A** consists of all nodes **B** where **A** dominates a predecessor of **B**, but **A** does not strictly dominate **B**.
 
 Formally:
 
@@ -117,13 +116,13 @@ Where:
 
 
 **Why This Matters:**
+
 - Dominance frontiers help determine where to place φ-functions by identifying where different definitions of a variable can converge.
 
 **How to Compute:**
+
 - Use algorithms like the **Lengauer-Tarjan** algorithm to efficiently compute dominators and dominance frontiers.
 - Many compiler frameworks provide built-in functions to compute these, so leveraging existing tools is recommended if available.
-
-
 
 
 ### **4. Identify Variable Definitions and Uses**
