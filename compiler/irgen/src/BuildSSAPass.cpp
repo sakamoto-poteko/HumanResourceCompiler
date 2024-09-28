@@ -1,5 +1,11 @@
+#include <cassert>
+
+#include <boost/algorithm/string.hpp>
 #include <boost/graph/dominator_tree.hpp>
+#include <boost/range/adaptor/transformed.hpp>
+#include <boost/range/adaptors.hpp>
 #include <spdlog/spdlog.h>
+#include <string>
 
 #include "BuildSSAPass.h"
 #include "IRProgramStructure.h"
@@ -11,61 +17,182 @@ BuildSSAPass::~BuildSSAPass()
 {
 }
 
-std::vector<std::vector<ControlFlowVertex>> hrl::irgen::BuildSSAPass::build_dominance_frontiers(const ControlFlowGraphPtr &graph, const ControlFlowVertex &start_block)
+bool BuildSSAPass::verify_dominance_frontiers(
+    const ControlFlowGraph &cfg,
+    const std::map<ControlFlowVertex, ControlFlowVertex> &dom_tree_map,
+    const std::map<ControlFlowVertex, std::set<ControlFlowVertex>> &dominance_frontiers)
 {
-    ControlFlowGraph &cfg = *graph;
-    auto index_map = get(boost::vertex_index, cfg);
-    std::vector<ControlFlowVertex> dom_tree(cfg.num_vertices(), cfg.null_vertex());
+    bool valid = true;
 
-    auto [vert_begin_it, vert_end_it] = boost::vertices(cfg);
+    // Iterate over all nodes and their Dominator Frontiers
+    for (const auto &[b, df_set] : dominance_frontiers) {
+        for (const auto &v : df_set) {
+            // 1. Check that b dominates at least one predecessor of v
+            bool dominates_predecessor = false;
+            const auto [in_begin_it, in_end_it] = boost::in_edges(v, cfg);
 
-    int idx_i = 0;
-    for (auto it = vert_begin_it; it != vert_end_it; ++it, ++idx_i) {
-        boost::put(index_map, *it, idx_i);
-    }
-    auto dom_tree_map = make_iterator_property_map(dom_tree.begin(), index_map);
+            for (auto in_it = in_begin_it; in_it != in_end_it; ++in_it) {
+                ControlFlowVertex pred = boost::source(*in_it, cfg);
+                // Check if b dominates pred
+                ControlFlowVertex current = pred;
+                while (current != dom_tree_map.at(current)) { // Traverse up the dominator tree
+                    if (current == b) {
+                        dominates_predecessor = true;
+                        break;
+                    }
+                    current = dom_tree_map.at(current);
+                }
+                if (current == b) {
+                    dominates_predecessor = true;
+                    break;
+                }
+            }
 
-    boost::lengauer_tarjan_dominator_tree(cfg, boost::vertex(0, cfg), dom_tree_map);
+            if (!dominates_predecessor) {
+                spdlog::error(
+                    "Property Violation: Node {} does not dominate any predecessor of node {} but is in DF({}).",
+                    cfg[b]->get_label(),
+                    cfg[v]->get_label(),
+                    cfg[b]->get_label());
+                valid = false;
+            }
 
-    for (std::size_t i = 0; i < dom_tree.size(); ++i) {
-        const auto &node_lbl = cfg[boost::vertex(i, cfg)]->get_label();
-        if (dom_tree[i] == cfg.null_vertex()) {
-            spdlog::debug("BB '{}' is not imm dominated", node_lbl);
-        } else {
-            spdlog::debug("BB '{}' is imm dominated by '{}'", node_lbl, cfg[dom_tree[i]]->get_label());
+            // 2. Check that b does not strictly dominate v
+            auto it = dom_tree_map.find(v);
+            if (it != dom_tree_map.end()) {
+                ControlFlowVertex idom = it->second;
+                if (idom == b) {
+                    spdlog::error(
+                        "Property Violation: Node {} strictly dominates node {} but is in DF({}).",
+                        cfg[b]->get_label(),
+                        cfg[v]->get_label(),
+                        cfg[b]->get_label());
+                    valid = false;
+                }
+            }
+        }
+
+        // 3. Ensure no node has itself in its DF
+        if (dominance_frontiers.at(b).find(b) != dominance_frontiers.at(b).end()) {
+            spdlog::error("Property Violation: Node {} has itself in its DF.", cfg[b]->get_label());
+            valid = false;
         }
     }
 
-    // Compute the dominance frontier
-    std::vector<std::vector<ControlFlowVertex>> dom_frontier(cfg.num_vertices());
+    return valid;
+}
 
-    // auto [vert_begin, vert_end] = boost::vertices(cfg);
-    // for (auto vert_it = vert_begin; vert_it != vert_end; ++vert_it) {
-    //     auto [in_edge_begin, in_edge_end] = boost::in_edges(*vert_it, cfg);
-    //     for (auto in_edge_it = in_edge_begin; in_edge_it != in_edge_end; ++in_edge_it) {
-    //         ControlFlowVertex pred = boost::source(*in_edge_it, cfg);
-    //         ControlFlowVertex runner = pred;
-    //         while (runner != dom_tree[b]) {
-    //             dom_frontier[runner].push_back(b);
-    //             runner = dom_tree[runner];
-    //         }
-    //     }
-    // }
+std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dominance_frontiers(const ControlFlowGraphPtr &graph, const ControlFlowVertex &start_block)
+{
+    ControlFlowGraph &cfg = *graph;
+    const auto [vert_begin_it, vert_end_it] = boost::vertices(cfg);
 
-    // // Print the dominance frontier for each node
-    // for (std::size_t i = 0; i < dom_frontier.size(); ++i) {
-    //     std::cout << "Dominance frontier of node " << i << ": ";
-    //     for (Vertex v : dom_frontier[i]) {
-    //         std::cout << v << " ";
-    //     }
-    //     std::cout << std::endl;
-    // }
-    return dom_frontier;
+    // Step 1: Compute Dominator Tree
+
+    // map <vert, imm dom of vert>
+    std::map<ControlFlowVertex, ControlFlowVertex> dom_tree_map;
+    boost::associative_property_map<std::map<ControlFlowVertex, ControlFlowVertex>> dom_tree_pmap(dom_tree_map);
+    boost::lengauer_tarjan_dominator_tree(cfg, start_block, dom_tree_pmap);
+
+    for (const auto &[vert, idom] : dom_tree_map) {
+        const auto &node = cfg[vert];
+        spdlog::debug("BB '{}' is imm dominated by '{}'", node->get_label(), cfg[idom]->get_label());
+    }
+
+    // Step 2: Build Dominator Tree Adjacency List
+    // Map each node to its children in the dominator tree
+    std::map<ControlFlowVertex, std::vector<ControlFlowVertex>> dom_tree_children;
+
+    // Iterate over all vertices to populate dom_tree_children
+    for (auto vert_it = vert_begin_it; vert_it != vert_end_it; ++vert_it) {
+        ControlFlowVertex v = *vert_it;
+        // Skip the start node which has no immediate dominator
+        if (v == start_block)
+            continue;
+
+        // Find the immediate dominator of v
+        auto it = dom_tree_map.find(v);
+        if (it != dom_tree_map.end()) {
+            ControlFlowVertex idom = it->second;
+            // Avoid self-loop in dominator tree
+            if (idom != v) {
+                dom_tree_children[idom].push_back(v);
+            }
+        }
+    }
+
+    // Step 3: Initialize Dominator Frontiers
+    std::map<ControlFlowVertex, std::set<ControlFlowVertex>> dominator_frontiers;
+    for (auto vert_it = vert_begin_it; vert_it != vert_end_it; ++vert_it) {
+        dominator_frontiers[*vert_it] = std::set<ControlFlowVertex>();
+    }
+
+    // Step 4: Implement the Dominator Frontier Algorithm
+
+    /*
+    DFS dominator tree, starting with entry block.
+    For each node `b`:
+      - Iterate over its successors. If a successor `s` is not immediately dominated by `b` (map[s] != b),
+        then `s` is added to the dominator frontier of `b`.
+      - Recursively compute the dominator frontiers for its children in the dominator tree.
+      - Merge the dominator frontiers of its children into its own,
+        adding nodes that are not immediately dominated by `b`.
+    */
+
+    // We'll use a depth-first traversal of the dominator tree
+    std::function<void(ControlFlowVertex)> compute_df = [&](ControlFlowVertex b) {
+        // Step 4a: For each successor s of b
+        const auto [out_begin_it, out_end_it] = boost::out_edges(b, cfg);
+        for (auto out_it = out_begin_it; out_it != out_begin_it; ++out_it) {
+            ControlFlowVertex s = boost::target(*out_it, cfg);
+            // If b does not strictly dominate s, then s is in DF[b]
+            auto idom_it = dom_tree_map.find(s);
+            if (idom_it != dom_tree_map.end() && idom_it->second != b) {
+                dominator_frontiers[b].insert(s);
+            }
+        }
+
+        // Step 4b: For each child c of b in the dominator tree
+        auto children_it = dom_tree_children.find(b);
+        if (children_it != dom_tree_children.end()) {
+            for (ControlFlowVertex c : children_it->second) {
+                compute_df(c); // Recursive call
+
+                // Step 4c: For each w in DF[c]
+                for (ControlFlowVertex w : dominator_frontiers[c]) {
+                    // Check if b does not strictly dominate w
+                    auto idom_w_it = dom_tree_map.find(w);
+                    if (idom_w_it != dom_tree_map.end() && idom_w_it->second != b) {
+                        dominator_frontiers[b].insert(w);
+                    }
+                    // Else, do not add to DF[b] (according to the algorithm)
+                }
+            }
+        }
+    };
+
+    // Start the computation from the start node
+    compute_df(start_block);
+
+    for (const auto &[vert, df] : dominator_frontiers) {
+        std::string df_lbls = boost::join(
+            df
+                | boost::adaptors::transformed([&cfg](const ControlFlowVertex &vert) {
+                      return cfg[vert]->get_label();
+                  }),
+            ", ");
+
+        spdlog::debug("BB '{}' has DF: {}", cfg[vert]->get_label(), df_lbls);
+    }
+
+    assert(verify_dominance_frontiers(cfg, dom_tree_map, dominator_frontiers));
+
+    return dominator_frontiers;
 }
 
 int BuildSSAPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program)
 {
-    build_dominance_frontiers(subroutine->get_cfg(), subroutine->get_start_block());
+    auto dom_frontiers = build_dominance_frontiers(subroutine->get_cfg(), subroutine->get_start_block());
     return 0;
 }
 
