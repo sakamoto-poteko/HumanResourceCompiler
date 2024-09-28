@@ -29,10 +29,9 @@ bool BuildSSAPass::verify_dominance_frontiers(
         for (const auto &v : df_set) {
             // 1. Check that b dominates at least one predecessor of v
             bool dominates_predecessor = false;
-            const auto [in_begin_it, in_end_it] = boost::in_edges(v, cfg);
 
-            for (auto in_it = in_begin_it; in_it != in_end_it; ++in_it) {
-                ControlFlowVertex pred = boost::source(*in_it, cfg);
+            for (const auto &in_edge : boost::make_iterator_range(boost::in_edges(v, cfg))) {
+                ControlFlowVertex pred = boost::source(in_edge, cfg);
                 // Check if b dominates pred
                 ControlFlowVertex current = pred;
                 while (current != dom_tree_map.at(current)) { // Traverse up the dominator tree
@@ -85,7 +84,6 @@ bool BuildSSAPass::verify_dominance_frontiers(
 std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dominance_frontiers(const ControlFlowGraphPtr &graph, const ControlFlowVertex &start_block)
 {
     ControlFlowGraph &cfg = *graph;
-    const auto [vert_begin_it, vert_end_it] = boost::vertices(cfg);
 
     // Step 1: Compute Dominator Tree
 
@@ -104,27 +102,26 @@ std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dom
     std::map<ControlFlowVertex, std::vector<ControlFlowVertex>> dom_tree_children;
 
     // Iterate over all vertices to populate dom_tree_children
-    for (auto vert_it = vert_begin_it; vert_it != vert_end_it; ++vert_it) {
-        ControlFlowVertex v = *vert_it;
+    for (const ControlFlowVertex &vertex : boost::make_iterator_range(boost::vertices(cfg))) {
         // Skip the start node which has no immediate dominator
-        if (v == start_block)
+        if (vertex == start_block)
             continue;
 
         // Find the immediate dominator of v
-        auto it = dom_tree_map.find(v);
+        auto it = dom_tree_map.find(vertex);
         if (it != dom_tree_map.end()) {
             ControlFlowVertex idom = it->second;
             // Avoid self-loop in dominator tree
-            if (idom != v) {
-                dom_tree_children[idom].push_back(v);
+            if (idom != vertex) {
+                dom_tree_children[idom].push_back(vertex);
             }
         }
     }
 
     // Step 3: Initialize Dominator Frontiers
     std::map<ControlFlowVertex, std::set<ControlFlowVertex>> dominator_frontiers;
-    for (auto vert_it = vert_begin_it; vert_it != vert_end_it; ++vert_it) {
-        dominator_frontiers[*vert_it] = std::set<ControlFlowVertex>();
+    for (const ControlFlowVertex &vertex : boost::make_iterator_range(boost::vertices(cfg))) {
+        dominator_frontiers[vertex] = std::set<ControlFlowVertex>();
     }
 
     // Step 4: Implement the Dominator Frontier Algorithm
@@ -142,6 +139,7 @@ std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dom
     // We'll use a depth-first traversal of the dominator tree
     std::function<void(ControlFlowVertex)> compute_df = [&](ControlFlowVertex b) {
         // Step 4a: For each successor s of b
+        // keep this way of iteration. it's recursive.
         const auto [out_begin_it, out_end_it] = boost::out_edges(b, cfg);
         for (auto out_it = out_begin_it; out_it != out_begin_it; ++out_it) {
             ControlFlowVertex s = boost::target(*out_it, cfg);
