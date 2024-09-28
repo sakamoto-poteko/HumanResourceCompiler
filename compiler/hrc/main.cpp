@@ -12,6 +12,7 @@
 #include "ControlFlowGraphBuilder.h"
 #include "ControlFlowVerificationPass.h"
 #include "DeadCodeEliminationPass.h"
+#include "EliminateDeadBasicBlockPass.h"
 #include "ErrorManager.h"
 #include "FileManager.h"
 #include "HRLLexer.h"
@@ -149,6 +150,10 @@ int main(int argc, char **argv)
         "MergeCondBrPass",
         "build/mgcondbr.hrasm",
         "build/mgcondbr.dot");
+    irop_passmgr.add_pass<hrl::irgen::EliminateDeadBasicBlockPass>(
+        "EliminateDeadBasicBlockPass",
+        "build/edbb.hrasm",
+        "build/edbb.dot");
     irop_passmgr.add_pass<hrl::irgen::BuildSSAPass>(
         "BuildSSAPass",
         "build/ssa.hrasm",

@@ -7,6 +7,7 @@
 #include <boost/graph/graphviz.hpp>
 #include <boost/property_map/function_property_map.hpp>
 #include <boost/range/adaptors.hpp>
+#include <spdlog/spdlog.h>
 
 #include "EscapeGraphviz.h"
 #include "IRProgramStructure.h"
@@ -147,6 +148,11 @@ std::string Program::to_string(bool color)
     }
 
     return os.str();
+}
+
+BasicBlock::~BasicBlock()
+{
+    spdlog::debug("BB '{}' is destructed", get_label());
 }
 
 CLOSE_IRGEN_NAMESPACE

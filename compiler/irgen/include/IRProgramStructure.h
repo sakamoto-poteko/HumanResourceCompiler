@@ -28,7 +28,7 @@ public:
     {
     }
 
-    ~BasicBlock() = default;
+    ~BasicBlock();
 
     std::list<TACPtr> &get_instructions() { return _instructions; }
 

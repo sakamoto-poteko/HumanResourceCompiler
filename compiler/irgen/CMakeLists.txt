@@ -16,6 +16,7 @@ add_library(${PROJECT_NAME}
     src/StripEmptyBasicBlockPass.cpp
     src/ControlFlowGraphBuilder.cpp
     src/BuildSSAPass.cpp
+    src/EliminateDeadBasicBlockPass.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
