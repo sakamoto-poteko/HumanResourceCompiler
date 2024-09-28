@@ -74,23 +74,23 @@ The immediate dominator helps construct the **dominator tree**, where each node 
 Dominance relations are a **partial order**, meaning they have the following properties:
 
 1. **Reflexive**: A node always dominates itself.
-   
-   ```math
+   $$
    \forall A, \text{ dom}(A, A)
-   ```
+   $$
+
    This means every node $A$ trivially dominates itself.
 
 2. **Antisymmetric**: If node $A$ dominates node $B$, and $B$ dominates $A$, then $A$ and $B$ must be the same node.
    
-   ```math
-   \text{dom}(A, B) \land \text{dom}(B, A) \implies A = B
-   ```
+```math
+\text{dom}(A, B) \land \text{dom}(B, A) \implies A = B
+```
 
 3. **Transitive**: If $A$ dominates $B$ and $B$ dominates $C$, then $A$ also dominates $C$.
    
-   ```math
-   \text{dom}(A, B) \land \text{dom}(B, C) \implies \text{dom}(A, C)
-   ```
+```math
+\text{dom}(A, B) \land \text{dom}(B, C) \implies \text{dom}(A, C)
+```
 
 These properties make dominance a **partial order** on the nodes of the control flow graph.
 
