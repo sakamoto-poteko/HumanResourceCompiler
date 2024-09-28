@@ -1,6 +1,6 @@
 # How to build the SSA from Linear TAC and CFG?
 
-_Part written by ChatGPT_
+_Partly written by ChatGPT_
 
 Building Static Single Assignment (SSA) form is a powerful step in compiler design that simplifies optimization and analysis by ensuring each variable is assigned exactly once. Since you're already familiar with Linear Three-Address Code (TAC) and Control Flow Graphs (CFGs), we'll build upon that foundation. Here's a step-by-step guide to converting your existing TAC and CFG into SSA form:
 
@@ -33,40 +33,40 @@ Before converting to SSA, ensure you have:
 - A node **A** **dominates** node **B** if every path from the entry node to **B** must go through **A**.
 - The **immediate dominator** of a node is the closest dominator of that node. Mathematically, we can express this as:
 
-\[
+```math
 A \text{ dominates } B \iff \forall \text{ path } P \text{ from Entry to } B, \, A \in P
-\]
+```
 
 
 
-#### **Strict Dominance (\(\text{strict-dom}(A, B)\))**
+#### **Strict Dominance ($\text{strict-dom}(A, B)$)**
 
-Node \( A \) **strictly dominates** node \( B \) if:
+Node $A$ **strictly dominates** node $B$ if:
 
-\[
+```math
 A \text{ strictly dominates } B \iff A \text{ dominates } B \text{ and } A \neq B
-\]
+```
 
-In other words, strict dominance means \( A \) dominates \( B \), but \( A \) and \( B \) are not the same node. This is denoted as:
+In other words, strict dominance means $A$ dominates $B$, but $A$ and $B$ are not the same node. This is denoted as:
 
-\[
+```math
 \text{strict-dom}(A, B) \iff \text{dom}(A, B) \land A \neq B
-\]
+```
 
 #### **Immediate Dominator (\(\text{idom}(B)\))**
 
-The **immediate dominator** of a node \( B \), denoted as \( \text{idom}(B) \), is the closest dominator of \( B \). It is the last dominator encountered on every path to \( B \) before \( B \) itself.
+The **immediate dominator** of a node $B$, denoted as $\text{idom}(B)$, is the closest dominator of $B$. It is the last dominator encountered on every path to $B$ before $B$ itself.
 
-Formally, \( A = \text{idom}(B) \) if:
+Formally, $A = \text{idom}(B)$ if:
 
-1. \( A \text{ dominates } B \), i.e., \( \text{dom}(A, B) \).
-2. \( A \) is the closest dominator of \( B \), i.e., there is no node \( C \) such that \( \text{dom}(C, B) \) and \( \text{dom}(A, C) \).
+1. $A \text{ dominates } B$, i.e., $\text{dom}(A, B)$.
+2. $A$ is the closest dominator of $B$, i.e., there is no node $C$ such that $\text{dom}(C, B)$ and $\text{dom}(A, C)$.
 
 Mathematically, this can be written as:
 
-\[
+```math
 A = \text{idom}(B) \iff \text{dom}(A, B) \land (\nexists C \text{ such that } \text{dom}(A, C) \land \text{dom}(C, B))
-\]
+```
 
 The immediate dominator helps construct the **dominator tree**, where each node points to its immediate dominator.
 
@@ -75,20 +75,20 @@ The immediate dominator helps construct the **dominator tree**, where each node 
 Dominance relations are a **partial order**, meaning they have the following properties:
 
 1. **Reflexive**: A node always dominates itself.
-   \[
+   ```math
    \forall A, \text{ dom}(A, A)
-   \]
-   This means every node \( A \) trivially dominates itself.
+   ```
+   This means every node $A$ trivially dominates itself.
 
-2. **Antisymmetric**: If node \( A \) dominates node \( B \), and \( B \) dominates \( A \), then \( A \) and \( B \) must be the same node.
-   \[
+2. **Antisymmetric**: If node $A$ dominates node $B$, and $B$ dominates $A$, then $A$ and $B$ must be the same node.
+   ```math
    \text{dom}(A, B) \land \text{dom}(B, A) \implies A = B
-   \]
+   ```
 
-3. **Transitive**: If \( A \) dominates \( B \) and \( B \) dominates \( C \), then \( A \) also dominates \( C \).
-   \[
+3. **Transitive**: If $A$ dominates $B$ and $B$ dominates $C$, then $A$ also dominates $C$.
+   ```math
    \text{dom}(A, B) \land \text{dom}(B, C) \implies \text{dom}(A, C)
-   \]
+   ```
 
 These properties make dominance a **partial order** on the nodes of the control flow graph.
 
@@ -96,7 +96,7 @@ These properties make dominance a **partial order** on the nodes of the control 
 
 Using the immediate dominator relationship, we can form a **dominator tree**:
 
-- Each node \( B \) is connected to its immediate dominator \( \text{idom}(B) \).
+- Each node $B$ is connected to its immediate dominator $\text{idom}(B)$.
 - The entry node (start node) is the root of the tree, as it has no dominators other than itself.
 
 If we have a CFG, the dominator tree helps understand the flow of control and can be used to optimize the program by placing **φ-functions** for SSA form where necessary.
@@ -108,12 +108,12 @@ If we have a CFG, the dominator tree helps understand the flow of control and ca
 
 Formally:
 
-\[
+```math
 DF(A) = \{ B \mid \exists P \in \text{preds}(B), \text{ dom}(A, P) \land \neg \text{dom}(A, B) \}
-\]
+```
 
 Where:
-- \( \text{preds}(B) \) represents the set of predecessors of \( B \) in the CFG.
+- $\text{preds}(B)$ represents the set of predecessors of $B$ in the CFG.
 
 
 **Why This Matters:**
