@@ -3,6 +3,8 @@
 
 #include <list>
 #include <memory>
+#include <optional>
+#include <set>
 #include <string>
 
 #include "IROps.h"
@@ -29,6 +31,11 @@ public:
     const Operand &get_tgt() const { return _tgt; }
 
     const std::shared_ptr<parser::ASTNode> &get_ast_node() const { return _ast; }
+
+    // get the variable(reg) use, which is useful in SSA
+    std::set<Operand> get_variable_uses() const;
+    // get the variable(reg) def, which is useful in SSA
+    std::optional<Operand> get_variable_def() const;
 
     std::string to_string(bool with_color = false) const;
 
@@ -80,13 +87,9 @@ private:
 };
 
 using TACPtr = std::shared_ptr<ThreeAddressCode>;
+using InstructionListIter = std::list<TACPtr>::iterator;
 
-struct tac_list_iter_comparator {
-    bool operator()(const std::list<TACPtr>::iterator &it1, const std::list<TACPtr>::iterator &it2) const
-    {
-        return &(*it1) < &(*it2); // Compare based on the memory address of the pointed-to objects
-    }
-};
+bool operator<(const InstructionListIter &it1, const InstructionListIter &it2);
 
 CLOSE_IRGEN_NAMESPACE
 

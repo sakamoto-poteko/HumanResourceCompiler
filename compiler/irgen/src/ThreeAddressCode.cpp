@@ -1,10 +1,12 @@
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <string>
 
 #include <boost/format.hpp>
 #include <spdlog/spdlog.h>
 
+#include "Operand.h"
 #include "TerminalColor.h"
 #include "ThreeAddressCode.h"
 #include "irgen_global.h"
@@ -197,7 +199,7 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create(IROperation op, const
 
 std::string ThreeAddressCode::to_string(bool with_color) const
 {
-    auto instr = hir_to_string(_op);
+    auto instr = irop_to_string(_op);
     instr.resize(4, ' ');
 
     std::ostringstream oss;
@@ -232,6 +234,31 @@ std::string ThreeAddressCode::to_string(bool with_color) const
     return oss.str();
 }
 
-// end
+std::set<Operand> ThreeAddressCode::get_variable_uses() const
+{
+    std::set<Operand> result;
+    if (_src1.get_type() == Operand::OperandType::VariableId) {
+        result.insert(_src1);
+    }
+    if (_src2.get_type() == Operand::OperandType::VariableId) {
+        result.insert(_src2);
+    }
+    return result;
+}
+
+std::optional<Operand> ThreeAddressCode::get_variable_def() const
+{
+    if (_tgt.get_type() == Operand::OperandType::VariableId) {
+        return _tgt;
+    } else {
+        return std::nullopt;
+    }
+}
+
+bool operator<(const InstructionListIter &it1, const InstructionListIter &it2)
+{
+    return &(*it1) < &(*it2); // Compare based on the memory address of the pointed-to objects
+}
 
 CLOSE_IRGEN_NAMESPACE
+// end

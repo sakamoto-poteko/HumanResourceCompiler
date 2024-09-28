@@ -1,4 +1,5 @@
 #include <cassert>
+#include <map>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/graph/dominator_tree.hpp>
@@ -6,9 +7,14 @@
 #include <boost/range/adaptors.hpp>
 #include <spdlog/spdlog.h>
 #include <string>
+#include <tuple>
+#include <type_traits>
+#include <unordered_set>
+#include <utility>
 
 #include "BuildSSAPass.h"
 #include "IRProgramStructure.h"
+#include "ThreeAddressCode.h"
 #include "irgen_global.h"
 
 OPEN_IRGEN_NAMESPACE
@@ -191,6 +197,27 @@ std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dom
 int BuildSSAPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program)
 {
     auto dom_frontiers = build_dominance_frontiers(subroutine->get_cfg(), subroutine->get_start_block());
+
+    // build def-use chain
+    std::map<int, std::set<std::tuple<InstructionListIter, BasicBlockPtr>>> def_map;
+    std::map<int, std::set<std::tuple<InstructionListIter, BasicBlockPtr>>> use_map;
+    const auto &bbs = subroutine->get_basic_blocks();
+    for (const auto &bb : bbs) {
+        auto &instrs = bb->get_instructions();
+        for (auto instr_it = instrs.begin(); instr_it != instrs.end(); ++instr_it) {
+            const auto &instr = *instr_it;
+            auto def = instr->get_variable_def();
+            auto use = instr->get_variable_uses();
+            if (def) {
+                // static_assert(std::is_same_v<InstructionListIter, decltype(instr_it)>, "not same type");
+                def_map[def->get_register_id()].insert({ instr_it, bb });
+            }
+            for (const auto &operand : use) {
+                use_map[operand.get_register_id()].insert({ instr_it, bb });
+            }
+        }
+    }
+
     return 0;
 }
 

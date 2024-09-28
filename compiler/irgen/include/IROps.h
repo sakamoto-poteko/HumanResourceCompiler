@@ -64,7 +64,7 @@ enum class IROperation : std::uint8_t {
     // Low IR
 };
 
-std::string hir_to_string(IROperation op);
+std::string irop_to_string(IROperation op);
 bool is_control_transfer_operation(IROperation op);
 bool is_branch_operation(IROperation op);
 bool is_comparison_operation(IROperation op);
