@@ -12,6 +12,7 @@
 
 OPEN_IRGEN_NAMESPACE
 
+// Prereq: eliminate dead bb
 class BuildSSAPass : public IROptimizationPass {
 public:
     BuildSSAPass(const ProgramPtr &program)
@@ -35,9 +36,10 @@ private:
         const std::map<ControlFlowVertex, std::set<ControlFlowVertex>> &dominance_frontiers);
 
     void insert_phi_functions(
-        const SubroutinePtr &subroutine,
         const std::map<int, std::set<std::tuple<InstructionListIter, BasicBlockPtr>>> &def_map,
         const std::map<BasicBlockPtr, std::set<BasicBlockPtr>> &dominance_frontiers);
+
+    void remove_single_branch_phi(const std::list<BasicBlockPtr> &basic_blocks);
 };
 
 CLOSE_IRGEN_NAMESPACE

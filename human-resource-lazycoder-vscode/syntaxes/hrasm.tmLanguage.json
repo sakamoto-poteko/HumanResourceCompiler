@@ -28,7 +28,7 @@
     },
     {
       "name": "keyword.special.asm",
-      "match": "\\b(in|out|nop|hlt)\\b"
+      "match": "\\b(in|out|nop|hlt|phi)\\b"
     },
     {
       "name": "constant.numeric.register.asm",

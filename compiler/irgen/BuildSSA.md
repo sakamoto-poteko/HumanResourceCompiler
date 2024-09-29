@@ -157,6 +157,8 @@ _Step 4: Insert Phi Functions_
 
 For each variable, place phi functions in the dominance frontiers of its definition blocks, ensuring that every possible merge point where multiple definitions could reach is handled.
 
+This may insert phis in out-of-scope basic blocks. Either perform liveliness analysis, or simply remove all phis that has only one incoming branch.
+
 ---
 
 ### **6. Rename Variables to Ensure Single Assignment**

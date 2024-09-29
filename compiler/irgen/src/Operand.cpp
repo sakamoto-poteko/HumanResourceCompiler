@@ -7,6 +7,21 @@
 
 OPEN_IRGEN_NAMESPACE
 
+void Operand::rename_register(unsigned int id)
+{
+    if (_type != OperandType::VariableId) {
+        spdlog::critical("operand is not variable id, but '{}' {}", operator std::string(), __PRETTY_FUNCTION__);
+        throw;
+    }
+
+    if (std::get<int>(_value) < 0) {
+        spdlog::critical("operand is a global which cannot be renamed: '{}'. {}", operator std::string(), __PRETTY_FUNCTION__);
+        throw;
+    }
+
+    std::get<int>(_value) = id;
+}
+
 std::string operand_name_get_named_variable(int id)
 {
     bool global = false;

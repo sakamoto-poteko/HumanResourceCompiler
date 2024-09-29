@@ -49,6 +49,8 @@ public:
 
     std::string get_label() const { return std::get<std::string>(_value); }
 
+    void rename_register(unsigned int id);
+
 private:
     OperandType _type;
 

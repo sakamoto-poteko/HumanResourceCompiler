@@ -11,6 +11,7 @@
 #include <spdlog/spdlog.h>
 
 #include "BuildSSAPass.h"
+#include "IROps.h"
 #include "IRProgramStructure.h"
 #include "Operand.h"
 #include "ThreeAddressCode.h"
@@ -243,13 +244,13 @@ int BuildSSAPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadat
         bb_vert_map[cfg[vert]] = vert;
     }
 
-    insert_phi_functions(subroutine, def_map, dom_frontiers);
+    insert_phi_functions(def_map, dom_frontiers);
+    remove_single_branch_phi(subroutine->get_basic_blocks());
 
     return 0;
 }
 
 void BuildSSAPass::insert_phi_functions(
-    const SubroutinePtr &subroutine,
     const std::map<int, std::set<std::tuple<InstructionListIter, BasicBlockPtr>>> &def_map,
     const std::map<BasicBlockPtr, std::set<BasicBlockPtr>> &dominance_frontiers_map)
 {
@@ -320,6 +321,21 @@ void BuildSSAPass::insert_phi_functions(
                 (*phi_instr_it->second)->set_phi_incoming(x_basic_block, v_id);
             }
         }
+    }
+}
+
+void BuildSSAPass::remove_single_branch_phi(const std::list<BasicBlockPtr> &basic_blocks)
+{
+    for (const BasicBlockPtr &basic_block : basic_blocks) {
+        std::list<TACPtr> &instructions = basic_block->get_instructions();
+        instructions.remove_if([](const TACPtr &instr) {
+            if (instr->get_op() == IROperation::PHI) {
+                std::size_t incoming_count = instr->get_phi_incomings().size();
+                assert(incoming_count != 0); // report zero branch
+                return incoming_count == 1; // remove single branch
+            }
+            return false;
+        });
     }
 }
 

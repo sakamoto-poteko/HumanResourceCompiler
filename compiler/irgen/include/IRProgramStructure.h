@@ -36,6 +36,8 @@ public:
 
     const std::string &get_label() const { return _label; }
 
+    unsigned int get_max_reg_id() const;
+
 private:
     std::string _label;
     std::list<TACPtr> _instructions;
@@ -86,6 +88,8 @@ public:
     bool has_param() const { return _has_param; }
 
     bool has_return() const { return _has_return; }
+
+    unsigned int get_max_reg_id() const;
 
     std::string generate_graphviz_cfg();
 

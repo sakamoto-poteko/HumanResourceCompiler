@@ -9,7 +9,7 @@
 #include <spdlog/spdlog.h>
 
 #include "IROps.h"
-#include "IRProgramStructure.h"
+#include "IRProgramStructure.h" // IWYU pragma: keep
 #include "Operand.h"
 #include "TerminalColor.h"
 #include "ThreeAddressCode.h"
@@ -212,15 +212,13 @@ std::string ThreeAddressCode::to_string(bool with_color) const
     instr.resize(4, ' ');
 
     std::ostringstream oss;
+
+    auto tc = with_color ? __tc : __empty_tc;
+
+    oss << tc.C_DARK_CYAN << instr << tc.C_RESET;
+
     if (_op != IROperation::PHI) {
-
         bool first = true;
-        if (with_color) {
-            oss << __tc.C_DARK_CYAN << instr << __tc.C_RESET;
-        } else {
-            oss << instr;
-        }
-
         if (_tgt) {
             if (!first) {
                 oss << ", ";
@@ -243,11 +241,15 @@ std::string ThreeAddressCode::to_string(bool with_color) const
             oss << std::string(_src2);
         }
     } else {
-        auto incoming_strs = _phi_incoming | boost::adaptors::transformed([](const auto &bb_varid_pair) {
-            auto fmt = boost::format("%1% @%2%") % std::string(Operand(bb_varid_pair.second)) % bb_varid_pair.first->get_label();
+        auto incoming_strs = _phi_incoming | boost::adaptors::transformed([&tc](const auto &bb_varid_pair) {
+            auto fmt = boost::format("%1% %3%@%2%%4%")
+                % std::string(Operand(bb_varid_pair.second))
+                % bb_varid_pair.first->get_label()
+                % tc.C_DARK_BLUE
+                % tc.C_RESET;
             return fmt.str();
         });
-        oss << "[" << boost::join(incoming_strs, ", ") << "]";
+        oss << std::string(_tgt) << ", " << "[" << boost::join(incoming_strs, ", ") << "]";
     }
     return oss.str();
 }
