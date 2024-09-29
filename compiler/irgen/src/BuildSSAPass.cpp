@@ -1,19 +1,21 @@
 #include <cassert>
 #include <map>
-
-#include <boost/algorithm/string.hpp>
-#include <boost/graph/dominator_tree.hpp>
-#include <boost/range/adaptor/transformed.hpp>
-#include <boost/range/adaptors.hpp>
-#include <spdlog/spdlog.h>
 #include <string>
 #include <tuple>
 #include <type_traits>
 #include <unordered_set>
 #include <utility>
 
+#include <boost/algorithm/string.hpp>
+#include <boost/graph/dominator_tree.hpp>
+#include <boost/range/adaptor/transformed.hpp>
+#include <boost/range/adaptors.hpp>
+#include <spdlog/spdlog.h>
+
 #include "BuildSSAPass.h"
+#include "IROps.h"
 #include "IRProgramStructure.h"
+#include "Operand.h"
 #include "ThreeAddressCode.h"
 #include "irgen_global.h"
 
@@ -87,10 +89,8 @@ bool BuildSSAPass::verify_dominance_frontiers(
     return valid;
 }
 
-std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dominance_frontiers(const ControlFlowGraphPtr &graph, const ControlFlowVertex &start_block)
+std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dominance_frontiers(const ControlFlowGraph &cfg, const ControlFlowVertex &start_block)
 {
-    ControlFlowGraph &cfg = *graph;
-
     // Step 1: Compute Dominator Tree
 
     // map <vert, imm dom of vert>
@@ -196,7 +196,16 @@ std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dom
 
 int BuildSSAPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program)
 {
-    auto dom_frontiers = build_dominance_frontiers(subroutine->get_cfg(), subroutine->get_start_block());
+    const ControlFlowGraph &cfg = *subroutine->get_cfg();
+    auto dom_frontiers_vert = build_dominance_frontiers(cfg, subroutine->get_start_block());
+    std::map<BasicBlockPtr, std::set<BasicBlockPtr>> dom_frontiers;
+    for (const auto &[vert, df_set_vert] : dom_frontiers_vert) {
+        assert(!dom_frontiers.contains(cfg[vert]));
+        std::set<BasicBlockPtr> &df_set = dom_frontiers[cfg[vert]];
+        for (const auto &v : df_set_vert) {
+            df_set.insert(cfg[v]);
+        }
+    }
 
     // build def-use chain
     std::map<int, std::set<std::tuple<InstructionListIter, BasicBlockPtr>>> def_map;
@@ -218,7 +227,75 @@ int BuildSSAPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadat
         }
     }
 
+    // build BBPtr to Vertex map
+    std::map<BasicBlockPtr, ControlFlowVertex> bb_vert_map;
+    for (ControlFlowVertex vert : boost::make_iterator_range(boost::vertices(cfg))) {
+        bb_vert_map[cfg[vert]] = vert;
+    }
+
     return 0;
+}
+
+void BuildSSAPass::insert_phi_functions(
+    const SubroutinePtr &subroutine,
+    const std::map<int, std::set<std::tuple<InstructionListIter, BasicBlockPtr>>> &def_map,
+    const std::map<BasicBlockPtr, std::set<BasicBlockPtr>> &dominance_frontiers_map)
+{
+    /*
+    1. **For each variable `v`:**
+        - Let `Def(v)` be the set of basic blocks where `v` is defined.
+        - Initialize `Work(v)` as a copy of `Def(v)`.
+        - Initialize `Phi(v)` as empty.
+
+    2. **Iterate until `Work(v)` is empty:**
+        - Remove a block `X` from `Work(v)`.
+        - For each block `Y` in DF(X):
+            - If `v` does not already have a phi function in `Y`:
+                - Insert a phi function for `v` in `Y`.
+                - Add `Y` to `Phi(v)`.
+                - If `v` is not already in `Def(v)` for `Y`, add `Y` to `Work(v)`.
+
+    3. **Repeat for all variables.**
+    */
+    using VariableDefSet = std::set<std::tuple<InstructionListIter, BasicBlockPtr>>;
+
+    std::map<std::tuple<int, BasicBlockPtr>, bool> sss;
+    // Repeat for all variables
+    for (const auto &[v_id, v_def] : def_map) {
+        // Let `Def(v)` be the set of basic blocks where `v` is defined.
+        VariableDefSet work(v_def);
+        // Initialize `Work(v)` as a copy of `Def(v)`.
+        VariableDefSet phi;
+
+        // Iterate until `Work(v)` is empty
+        while (!work.empty()) {
+            auto [x_instr_iter, x_basic_block] = *work.begin();
+            // Remove a block `X` from `Work(v)`
+            work.erase(work.begin());
+
+            // For each block `Y` in DF(X)
+            auto dominance_frontiers = dominance_frontiers_map.find(x_basic_block);
+            assert(dominance_frontiers != dominance_frontiers_map.end()); // may not contains. let's assert for now
+            // for (const BasicBlockPtr &y_basic_block : dominance_frontiers->second) {
+            //     const auto &instr_list_bb_y = y_basic_block->get_instructions();
+            //     InstructionListIter first_def_of_v_in_bb_y_it = get_first_def_of_var(instr_list_bb_y, v_id);
+            //     assert(first_def_of_v_in_bb_y_it != instr_list_bb_y.end()); // ?? will it?
+            //     TACPtr &instr = *first_def_of_v_in_bb_y_it;
+            //     // If `v` does not already have a phi function in `Y`
+            //     // Operand operand()
+            //     if (instr->get_op() != IROperation::PHI) {
+            //         // create a phi node
+            //     }
+
+            //     if (!instr->phi_has_incoming(y_basic_block)) {
+            //         instr->add_phi_incoming();
+            //         // Insert a phi function for `v` in `Y`.
+            //         // Add `Y` to `Phi(v)`.
+            //         // If `v` is not already in `Def(v)` for `Y`, add `Y` to `Work(v)`.
+            //     }
+            // }
+        }
+    }
 }
 
 CLOSE_IRGEN_NAMESPACE

@@ -61,6 +61,9 @@ enum class IROperation : std::uint8_t {
     NOP = 0x70, // nop
     HALT = 0x71, // halt
 
+    // Pseudo Operation
+    PHI = 0x80,
+
     // Low IR
 };
 

@@ -138,16 +138,24 @@ Where:
 - When a variable can have multiple incoming definitions due to branching, φ-functions merge these definitions into a single SSA variable.
 
 **Placement Strategy:**
-1. **For Each Variable:**
-   - Determine all blocks where the variable is defined.
-   - For each defining block, find the dominance frontier blocks.
-2. **Insert a Φ Function** for the variable in each dominance frontier block identified.
-   - **Example:** If a variable `x` is defined in multiple branches that merge, a φ-function will select the appropriate version of `x` based on the incoming path.
 
-**Action Steps:**
-1. **Iterate through all variables** in your CFG.
-2. **For each variable**, identify the blocks needing φ-functions using dominance frontiers.
-3. **Insert φ-functions** in these blocks, effectively creating new variable definitions.
+We will follow the **Cytron et al. algorithm** for inserting phi functions, which efficiently determines where to place them using dominance frontiers.
+
+_Step 1: Identify All Variables_
+
+List all the variables used in your TAC.
+
+_Step 2: Determine Definition Sites_
+
+For each variable, identify all the basic blocks where it is defined (i.e., assigned a value).
+
+_Step 3: Compute Dominance Frontiers_
+
+Use the dominance frontiers of your CFG to identify potential join points where different definitions of a variable might converge.
+
+_Step 4: Insert Phi Functions_
+
+For each variable, place phi functions in the dominance frontiers of its definition blocks, ensuring that every possible merge point where multiple definitions could reach is handled.
 
 ---
 
