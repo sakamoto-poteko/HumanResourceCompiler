@@ -14,6 +14,7 @@
 #include "IRProgramStructure.h"
 #include "Operand.h"
 #include "ThreeAddressCode.h"
+#include "hrl_global.h"
 #include "irgen_global.h"
 
 OPEN_IRGEN_NAMESPACE
@@ -203,6 +204,9 @@ std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dom
 
 int BuildSSAPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program)
 {
+    UNUSED(metadata);
+    UNUSED(program);
+
     const ControlFlowGraph &cfg = *subroutine->get_cfg();
     auto dom_frontiers_vert = build_dominance_frontiers(cfg, subroutine->get_start_block());
     std::map<BasicBlockPtr, std::set<BasicBlockPtr>> dom_frontiers;
@@ -268,7 +272,6 @@ void BuildSSAPass::insert_phi_functions(
 
         3. Repeat for all variables.
     */
-    using VariableDefSet = std::set<std::tuple<InstructionListIter, BasicBlockPtr>>;
 
     // Repeat for all variables
     for (const auto &[v_id, v_def_raw] : def_map) {
