@@ -9,6 +9,7 @@
 #include <spdlog/spdlog.h>
 
 #include "IROps.h"
+#include "IRProgramStructure.h"
 #include "Operand.h"
 #include "TerminalColor.h"
 #include "ThreeAddressCode.h"
@@ -243,7 +244,7 @@ std::string ThreeAddressCode::to_string(bool with_color) const
         }
     } else {
         auto incoming_strs = _phi_incoming | boost::adaptors::transformed([](const auto &bb_varid_pair) {
-            auto fmt = boost::format("%1% @%2%") % std::string(Operand(bb_varid_pair.second)) % bb_varid_pair.first;
+            auto fmt = boost::format("%1% @%2%") % std::string(Operand(bb_varid_pair.second)) % bb_varid_pair.first->get_label();
             return fmt.str();
         });
         oss << "[" << boost::join(incoming_strs, ", ") << "]";
@@ -265,7 +266,7 @@ std::set<Operand> ThreeAddressCode::get_variable_uses() const
 
 std::optional<Operand> ThreeAddressCode::get_variable_def() const
 {
-    if (_tgt.get_type() == Operand::OperandType::VariableId) {
+    if (_tgt.get_type() == Operand::OperandType::VariableId && _tgt.get_register_id() >= 0) {
         return _tgt;
     } else {
         return std::nullopt;

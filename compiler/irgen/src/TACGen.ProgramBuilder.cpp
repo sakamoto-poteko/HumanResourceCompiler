@@ -72,7 +72,7 @@ std::list<BasicBlockPtr> TACGen::build_subroutine_split_tacs_to_basic_blocks(con
 
 // correctness check:
 #ifndef NDEBUG
-    int count = 0;
+    size_t count = 0;
     for (const auto &bb : basic_blocks) {
         count += bb->get_instructions().size();
     }
