@@ -2,8 +2,6 @@
 #include <map>
 #include <string>
 #include <tuple>
-#include <type_traits>
-#include <unordered_set>
 #include <utility>
 
 #include <boost/algorithm/string.hpp>
@@ -13,7 +11,6 @@
 #include <spdlog/spdlog.h>
 
 #include "BuildSSAPass.h"
-#include "IROps.h"
 #include "IRProgramStructure.h"
 #include "Operand.h"
 #include "ThreeAddressCode.h"
@@ -42,7 +39,7 @@ bool BuildSSAPass::verify_dominance_frontiers(
                 ControlFlowVertex pred = boost::source(in_edge, cfg);
                 // Check if b dominates pred
                 ControlFlowVertex current = pred;
-                while (current != dom_tree_map.at(current)) { // Traverse up the dominator tree
+                while (dom_tree_map.contains(current) && current != dom_tree_map.at(current)) { // Traverse up the dominator tree
                     if (current == b) {
                         dominates_predecessor = true;
                         break;
@@ -94,34 +91,45 @@ std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dom
     // Step 1: Compute Dominator Tree
 
     // map <vert, imm dom of vert>
-    std::map<ControlFlowVertex, ControlFlowVertex> dom_tree_map;
-    boost::associative_property_map<std::map<ControlFlowVertex, ControlFlowVertex>> dom_tree_pmap(dom_tree_map);
+    std::map<ControlFlowVertex, ControlFlowVertex> immediate_dom_tree_map;
+    boost::associative_property_map<std::map<ControlFlowVertex, ControlFlowVertex>> dom_tree_pmap(immediate_dom_tree_map);
     boost::lengauer_tarjan_dominator_tree(cfg, start_block, dom_tree_pmap);
 
-    for (const auto &[vert, idom] : dom_tree_map) {
+    for (const auto &[vert, idom] : immediate_dom_tree_map) {
         const auto &node = cfg[vert];
-        spdlog::debug("BB '{}' is imm dominated by '{}'", node->get_label(), cfg[idom]->get_label());
+        spdlog::debug("[IDOM] '{}': by '{}'", node->get_label(), cfg[idom]->get_label());
     }
 
     // Step 2: Build Dominator Tree Adjacency List
-    // Map each node to its children in the dominator tree
-    std::map<ControlFlowVertex, std::vector<ControlFlowVertex>> dom_tree_children;
+    // Map each node to its children in the dominator tree.
+    // The set doesn't include the vert itself so it's strict dom
+    std::map<ControlFlowVertex, std::set<ControlFlowVertex>> strict_dom_tree_children;
 
-    // Iterate over all vertices to populate dom_tree_children
     for (const ControlFlowVertex &vertex : boost::make_iterator_range(boost::vertices(cfg))) {
         // Skip the start node which has no immediate dominator
         if (vertex == start_block)
             continue;
 
         // Find the immediate dominator of v
-        auto it = dom_tree_map.find(vertex);
-        if (it != dom_tree_map.end()) {
+        auto it = immediate_dom_tree_map.find(vertex);
+        if (it != immediate_dom_tree_map.end()) {
             ControlFlowVertex idom = it->second;
             // Avoid self-loop in dominator tree
             if (idom != vertex) {
-                dom_tree_children[idom].push_back(vertex);
+                strict_dom_tree_children[idom].insert(vertex);
             }
         }
+    }
+
+    for (const auto &[vertex, vertex_children] : strict_dom_tree_children) {
+        spdlog::debug(
+            "[DOM] '{}': {}",
+            cfg[vertex]->get_label(),
+            boost::join(
+                vertex_children | boost::adaptors::transformed([&cfg](const ControlFlowVertex &v) {
+                    return "'" + cfg[v]->get_label() + "'";
+                }),
+                ", "));
     }
 
     // Step 3: Initialize Dominator Frontiers
@@ -135,7 +143,7 @@ std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dom
     /*
     DFS dominator tree, starting with entry block.
     For each node `b`:
-      - Iterate over its successors. If a successor `s` is not immediately dominated by `b` (map[s] != b),
+      - Iterate over its successors. If a successor `s` is not immediately dominated by `b`,
         then `s` is added to the dominator frontier of `b`.
       - Recursively compute the dominator frontiers for its children in the dominator tree.
       - Merge the dominator frontiers of its children into its own,
@@ -146,27 +154,26 @@ std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dom
     std::function<void(ControlFlowVertex)> compute_df = [&](ControlFlowVertex b) {
         // Step 4a: For each successor s of b
         // keep this way of iteration. it's recursive.
-        const auto [out_begin_it, out_end_it] = boost::out_edges(b, cfg);
-        for (auto out_it = out_begin_it; out_it != out_begin_it; ++out_it) {
-            ControlFlowVertex s = boost::target(*out_it, cfg);
-            // If b does not strictly dominate s, then s is in DF[b]
-            auto idom_it = dom_tree_map.find(s);
-            if (idom_it != dom_tree_map.end() && idom_it->second != b) {
+        for (const auto &out_edge : boost::make_iterator_range(boost::out_edges(b, cfg))) {
+            ControlFlowVertex s = boost::target(out_edge, cfg);
+            // If b does not strictly dominate s (s is b's successor so it's not immediate neither), then s is in DF[b]
+            auto idom_it = immediate_dom_tree_map.find(s);
+            if (idom_it != immediate_dom_tree_map.end() && idom_it->second != b) {
                 dominator_frontiers[b].insert(s);
             }
         }
 
         // Step 4b: For each child c of b in the dominator tree
-        auto children_it = dom_tree_children.find(b);
-        if (children_it != dom_tree_children.end()) {
+        auto children_it = strict_dom_tree_children.find(b);
+        if (children_it != strict_dom_tree_children.end()) {
             for (ControlFlowVertex c : children_it->second) {
                 compute_df(c); // Recursive call
 
                 // Step 4c: For each w in DF[c]
                 for (ControlFlowVertex w : dominator_frontiers[c]) {
                     // Check if b does not strictly dominate w
-                    auto idom_w_it = dom_tree_map.find(w);
-                    if (idom_w_it != dom_tree_map.end() && idom_w_it->second != b) {
+                    auto idom_w_it = immediate_dom_tree_map.find(w);
+                    if (idom_w_it != immediate_dom_tree_map.end() && idom_w_it->second != b) {
                         dominator_frontiers[b].insert(w);
                     }
                     // Else, do not add to DF[b] (according to the algorithm)
@@ -186,10 +193,10 @@ std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dom
                   }),
             ", ");
 
-        spdlog::debug("BB '{}' has DF: {}", cfg[vert]->get_label(), df_lbls);
+        spdlog::debug("[DF] '{}': {}", cfg[vert]->get_label(), df_lbls);
     }
 
-    assert(verify_dominance_frontiers(cfg, dom_tree_map, dominator_frontiers));
+    assert(verify_dominance_frontiers(cfg, immediate_dom_tree_map, dominator_frontiers));
 
     return dominator_frontiers;
 }
@@ -233,6 +240,8 @@ int BuildSSAPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadat
         bb_vert_map[cfg[vert]] = vert;
     }
 
+    insert_phi_functions(subroutine, def_map, dom_frontiers);
+
     return 0;
 }
 
@@ -242,58 +251,72 @@ void BuildSSAPass::insert_phi_functions(
     const std::map<BasicBlockPtr, std::set<BasicBlockPtr>> &dominance_frontiers_map)
 {
     /*
-    1. **For each variable `v`:**
-        - Let `Def(v)` be the set of basic blocks where `v` is defined.
-        - Initialize `Work(v)` as a copy of `Def(v)`.
-        - Initialize `Phi(v)` as empty.
+        Cytron et al. algorithm for inserting phi functions:
 
-    2. **Iterate until `Work(v)` is empty:**
-        - Remove a block `X` from `Work(v)`.
-        - For each block `Y` in DF(X):
-            - If `v` does not already have a phi function in `Y`:
-                - Insert a phi function for `v` in `Y`.
-                - Add `Y` to `Phi(v)`.
-                - If `v` is not already in `Def(v)` for `Y`, add `Y` to `Work(v)`.
+        1. For each variable `v`:
+            - Let `Def(v)` be the set of basic blocks where `v` is defined.
+            - Initialize `Work(v)` as a copy of `Def(v)`.
+            - Initialize `Phi(v)` as empty.
 
-    3. **Repeat for all variables.**
+        2. Iterate until `Work(v)` is empty:
+            - Remove a block `X` from `Work(v)`.
+            - For each block `Y` in DF(X):
+                - If `v` does not already have a phi function in `Y`:
+                    - Insert a phi function for `v` in `Y`.
+                    - Add `Y` to `Phi(v)`.
+                    - If `v` is not already in `Def(v)` for `Y`, add `Y` to `Work(v)`.
+
+        3. Repeat for all variables.
     */
     using VariableDefSet = std::set<std::tuple<InstructionListIter, BasicBlockPtr>>;
 
-    std::map<std::tuple<int, BasicBlockPtr>, bool> sss;
     // Repeat for all variables
-    for (const auto &[v_id, v_def] : def_map) {
+    for (const auto &[v_id, v_def_raw] : def_map) {
+        // v_id < 0 is global. it's not supposed to be defined nor accessed
+        assert(v_id >= 0);
+        auto v_def_info = v_def_raw | boost::adaptors::transformed([](const std::tuple<InstructionListIter, BasicBlockPtr> &def_info) {
+            return std::get<1>(def_info);
+        });
+
         // Let `Def(v)` be the set of basic blocks where `v` is defined.
-        VariableDefSet work(v_def);
+        std::set<BasicBlockPtr> def(v_def_info.begin(), v_def_info.end());
         // Initialize `Work(v)` as a copy of `Def(v)`.
-        VariableDefSet phi;
+        std::set<BasicBlockPtr> work(def);
+        // Initialize `Phi(v)` as empty.
+        // map<bb, phi instr iter>
+        std::map<BasicBlockPtr, InstructionListIter> phi;
 
         // Iterate until `Work(v)` is empty
         while (!work.empty()) {
-            auto [x_instr_iter, x_basic_block] = *work.begin();
+            BasicBlockPtr x_basic_block = *work.begin();
             // Remove a block `X` from `Work(v)`
             work.erase(work.begin());
 
             // For each block `Y` in DF(X)
             auto dominance_frontiers = dominance_frontiers_map.find(x_basic_block);
             assert(dominance_frontiers != dominance_frontiers_map.end()); // may not contains. let's assert for now
-            // for (const BasicBlockPtr &y_basic_block : dominance_frontiers->second) {
-            //     const auto &instr_list_bb_y = y_basic_block->get_instructions();
-            //     InstructionListIter first_def_of_v_in_bb_y_it = get_first_def_of_var(instr_list_bb_y, v_id);
-            //     assert(first_def_of_v_in_bb_y_it != instr_list_bb_y.end()); // ?? will it?
-            //     TACPtr &instr = *first_def_of_v_in_bb_y_it;
-            //     // If `v` does not already have a phi function in `Y`
-            //     // Operand operand()
-            //     if (instr->get_op() != IROperation::PHI) {
-            //         // create a phi node
-            //     }
+            for (const BasicBlockPtr &y_basic_block : dominance_frontiers->second) {
+                std::list<TACPtr> &instr_list_bb_y = y_basic_block->get_instructions();
 
-            //     if (!instr->phi_has_incoming(y_basic_block)) {
-            //         instr->add_phi_incoming();
-            //         // Insert a phi function for `v` in `Y`.
-            //         // Add `Y` to `Phi(v)`.
-            //         // If `v` is not already in `Def(v)` for `Y`, add `Y` to `Work(v)`.
-            //     }
-            // }
+                auto phi_instr_it = phi.find(y_basic_block);
+                // If `v` does not already have a phi function in `Y`
+                if (phi_instr_it == phi.end()) {
+                    // Insert a phi function for `v` in `Y`.
+                    TACPtr phi_instr = ThreeAddressCode::create_phi(v_id);
+                    instr_list_bb_y.push_front(phi_instr);
+
+                    // Add `Y` to `Phi(v)`.
+                    auto [inserted_it, _] = phi.insert({ y_basic_block, instr_list_bb_y.begin() });
+                    phi_instr_it = inserted_it;
+
+                    // If `v` is not already in `Def(v)` for `Y`, add `Y` to `Work(v)`.
+                    if (!def.contains(y_basic_block)) {
+                        work.insert(y_basic_block);
+                    }
+                }
+
+                (*phi_instr_it->second)->set_phi_incoming(x_basic_block, v_id);
+            }
         }
     }
 }

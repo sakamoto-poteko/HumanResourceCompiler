@@ -2,6 +2,7 @@
 #define THREEADDRESSCODE_H
 
 #include <list>
+#include <map>
 #include <memory>
 #include <optional>
 #include <set>
@@ -18,6 +19,9 @@ CLOSE_PARSER_NAMESPACE
 
 OPEN_IRGEN_NAMESPACE
 
+class BasicBlock;
+using BasicBlockPtr = std::shared_ptr<BasicBlock>;
+
 class ThreeAddressCode : public std::enable_shared_from_this<ThreeAddressCode> {
 public:
     ~ThreeAddressCode() = default;
@@ -31,6 +35,12 @@ public:
     const Operand &get_tgt() const { return _tgt; }
 
     const std::shared_ptr<parser::ASTNode> &get_ast_node() const { return _ast; }
+
+    void set_phi_incoming(const BasicBlockPtr incoming, unsigned int var_id) { _phi_incoming[incoming] = var_id; }
+
+    unsigned int &get_phi_incoming(const BasicBlockPtr incoming) { return _phi_incoming.at(incoming); }
+
+    std::map<BasicBlockPtr, unsigned int> &get_phi_incomings() { return _phi_incoming; }
 
     // get the variable(reg) use, which is useful in SSA
     std::set<Operand> get_variable_uses() const;
@@ -56,6 +66,7 @@ public:
     static std::shared_ptr<ThreeAddressCode> create_enter(const Operand &tgt, std::shared_ptr<parser::ASTNode> ast = nullptr);
     static std::shared_ptr<ThreeAddressCode> create_return(std::shared_ptr<parser::ASTNode> ast = nullptr);
     static std::shared_ptr<ThreeAddressCode> create_return(const Operand &ret, std::shared_ptr<parser::ASTNode> ast = nullptr);
+    static std::shared_ptr<ThreeAddressCode> create_phi(int var_id, std::shared_ptr<parser::ASTNode> ast = nullptr);
 
     /**
      * @brief Create an instruction without any check
@@ -83,6 +94,8 @@ private:
     Operand _src1;
     Operand _src2;
     Operand _tgt;
+    // map<incoming block, var id in incoming block>
+    std::map<BasicBlockPtr, unsigned int> _phi_incoming;
     std::shared_ptr<parser::ASTNode> _ast;
 };
 

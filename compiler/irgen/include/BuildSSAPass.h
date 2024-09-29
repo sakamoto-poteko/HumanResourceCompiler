@@ -38,8 +38,6 @@ private:
         const SubroutinePtr &subroutine,
         const std::map<int, std::set<std::tuple<InstructionListIter, BasicBlockPtr>>> &def_map,
         const std::map<BasicBlockPtr, std::set<BasicBlockPtr>> &dominance_frontiers);
-
-    InstructionListIter get_first_def_of_var(const std::list<TACPtr> &instructions, int var_id);
 };
 
 CLOSE_IRGEN_NAMESPACE

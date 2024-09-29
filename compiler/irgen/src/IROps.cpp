@@ -89,6 +89,9 @@ std::string irop_to_string(IROperation op)
         return "nop";
     case IROperation::HALT:
         return "hlt";
+
+    case IROperation::PHI:
+        return "phi";
     }
 
     spdlog::critical("Unknown IR Op {}. {}", static_cast<int>(op), __PRETTY_FUNCTION__);
@@ -124,6 +127,7 @@ bool is_branch_operation(IROperation op)
     case IROperation::ENTER:
     case IROperation::RET:
     case IROperation::HALT:
+    case IROperation::PHI:
         return false;
 
     case IROperation::JE:
@@ -167,6 +171,7 @@ bool is_control_transfer_operation(IROperation op)
     case IROperation::INPUT:
     case IROperation::OUTPUT:
     case IROperation::NOP:
+    case IROperation::PHI:
         return false;
 
     case IROperation::JE:
