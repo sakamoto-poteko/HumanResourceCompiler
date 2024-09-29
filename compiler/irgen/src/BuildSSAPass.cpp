@@ -229,7 +229,6 @@ int BuildSSAPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadat
             auto def = instr->get_variable_def();
             auto use = instr->get_variable_uses();
             if (def) {
-                // static_assert(std::is_same_v<InstructionListIter, decltype(instr_it)>, "not same type");
                 def_map[def->get_register_id()].insert({ instr_it, bb });
             }
             for (const auto &operand : use) {
