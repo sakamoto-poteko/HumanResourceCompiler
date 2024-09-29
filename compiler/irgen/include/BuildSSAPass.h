@@ -26,9 +26,17 @@ protected:
     int run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program) override;
 
 private:
-    std::map<ControlFlowVertex, std::set<ControlFlowVertex>> build_dominance_frontiers(
+    // [Group] These are SSA-building steps
+    // pair<imm_dom_tree, strict_dom_map>
+    std::pair<std::map<ControlFlowVertex, ControlFlowVertex>, std::map<ControlFlowVertex, std::set<ControlFlowVertex>>> build_dominance_tree(
         const ControlFlowGraph &cfg,
         const ControlFlowVertex &start_block);
+
+    std::map<ControlFlowVertex, std::set<ControlFlowVertex>> build_dominance_frontiers(
+        const ControlFlowGraph &cfg,
+        const ControlFlowVertex &start_block,
+        std::map<ControlFlowVertex, ControlFlowVertex> immediate_dom_tree_map,
+        std::map<ControlFlowVertex, std::set<ControlFlowVertex>> strict_dom_tree_children);
 
     bool verify_dominance_frontiers(
         const ControlFlowGraph &cfg,
@@ -40,6 +48,9 @@ private:
         const std::map<BasicBlockPtr, std::set<BasicBlockPtr>> &dominance_frontiers);
 
     void remove_single_branch_phi(const std::list<BasicBlockPtr> &basic_blocks);
+
+    void rename_registers(const SubroutinePtr &subroutine, const std::map<ControlFlowVertex, ControlFlowVertex> &dom_tree_map);
+    // [End Group]
 };
 
 CLOSE_IRGEN_NAMESPACE

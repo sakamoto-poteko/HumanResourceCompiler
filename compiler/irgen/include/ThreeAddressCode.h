@@ -36,11 +36,13 @@ public:
 
     const std::shared_ptr<parser::ASTNode> &get_ast_node() const { return _ast; }
 
-    void set_phi_incoming(const BasicBlockPtr incoming, unsigned int var_id) { _phi_incoming[incoming] = var_id; }
+    void set_phi_incoming(const BasicBlockPtr &incoming, unsigned int var_id) { _phi_incoming[incoming] = var_id; }
 
     unsigned int &get_phi_incoming(const BasicBlockPtr incoming) { return _phi_incoming.at(incoming); }
 
     std::map<BasicBlockPtr, unsigned int> &get_phi_incomings() { return _phi_incoming; }
+
+    void set_phi_incomings(const std::map<BasicBlockPtr, unsigned int> &incomings) { _phi_incoming = incomings; }
 
     // get the variable(reg) use, which is useful in SSA
     std::set<Operand> get_variable_uses() const;

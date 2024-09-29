@@ -1,5 +1,7 @@
 #include <cassert>
+#include <list>
 #include <map>
+#include <stack>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -88,16 +90,16 @@ bool BuildSSAPass::verify_dominance_frontiers(
     return valid;
 }
 
-std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dominance_frontiers(const ControlFlowGraph &cfg, const ControlFlowVertex &start_block)
+std::pair<std::map<ControlFlowVertex, ControlFlowVertex>, std::map<ControlFlowVertex, std::set<ControlFlowVertex>>> BuildSSAPass::build_dominance_tree(const ControlFlowGraph &cfg, const ControlFlowVertex &start_block)
 {
     // Step 1: Compute Dominator Tree
 
     // map <vert, imm dom of vert>
-    std::map<ControlFlowVertex, ControlFlowVertex> immediate_dom_tree_map;
-    boost::associative_property_map<std::map<ControlFlowVertex, ControlFlowVertex>> dom_tree_pmap(immediate_dom_tree_map);
+    std::map<ControlFlowVertex, ControlFlowVertex> immediate_dom_by_tree_map;
+    boost::associative_property_map<std::map<ControlFlowVertex, ControlFlowVertex>> dom_tree_pmap(immediate_dom_by_tree_map);
     boost::lengauer_tarjan_dominator_tree(cfg, start_block, dom_tree_pmap);
 
-    for (const auto &[vert, idom] : immediate_dom_tree_map) {
+    for (const auto &[vert, idom] : immediate_dom_by_tree_map) {
         const auto &node = cfg[vert];
         spdlog::debug("[IDOM] '{}': by '{}'", node->get_label(), cfg[idom]->get_label());
     }
@@ -113,8 +115,8 @@ std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dom
             continue;
 
         // Find the immediate dominator of v
-        auto it = immediate_dom_tree_map.find(vertex);
-        if (it != immediate_dom_tree_map.end()) {
+        auto it = immediate_dom_by_tree_map.find(vertex);
+        if (it != immediate_dom_by_tree_map.end()) {
             ControlFlowVertex idom = it->second;
             // Avoid self-loop in dominator tree
             if (idom != vertex) {
@@ -134,6 +136,15 @@ std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dom
                 ", "));
     }
 
+    return std::make_pair(immediate_dom_by_tree_map, strict_dom_tree_children);
+}
+
+std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dominance_frontiers(
+    const ControlFlowGraph &cfg,
+    const ControlFlowVertex &start_block,
+    std::map<ControlFlowVertex, ControlFlowVertex> immediate_dom_by_tree_map,
+    std::map<ControlFlowVertex, std::set<ControlFlowVertex>> strict_dom_tree_children)
+{
     // Step 3: Initialize Dominator Frontiers
     std::map<ControlFlowVertex, std::set<ControlFlowVertex>> dominator_frontiers;
     for (const ControlFlowVertex &vertex : boost::make_iterator_range(boost::vertices(cfg))) {
@@ -159,8 +170,8 @@ std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dom
         for (const auto &out_edge : boost::make_iterator_range(boost::out_edges(b, cfg))) {
             ControlFlowVertex s = boost::target(out_edge, cfg);
             // If b does not strictly dominate s (s is b's successor so it's not immediate neither), then s is in DF[b]
-            auto idom_it = immediate_dom_tree_map.find(s);
-            if (idom_it != immediate_dom_tree_map.end() && idom_it->second != b) {
+            auto idom_it = immediate_dom_by_tree_map.find(s);
+            if (idom_it != immediate_dom_by_tree_map.end() && idom_it->second != b) {
                 dominator_frontiers[b].insert(s);
             }
         }
@@ -174,8 +185,8 @@ std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dom
                 // Step 4c: For each w in DF[c]
                 for (ControlFlowVertex w : dominator_frontiers[c]) {
                     // Check if b does not strictly dominate w
-                    auto idom_w_it = immediate_dom_tree_map.find(w);
-                    if (idom_w_it != immediate_dom_tree_map.end() && idom_w_it->second != b) {
+                    auto idom_w_it = immediate_dom_by_tree_map.find(w);
+                    if (idom_w_it != immediate_dom_by_tree_map.end() && idom_w_it->second != b) {
                         dominator_frontiers[b].insert(w);
                     }
                     // Else, do not add to DF[b] (according to the algorithm)
@@ -198,7 +209,7 @@ std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dom
         spdlog::debug("[DF] '{}': {}", cfg[vert]->get_label(), df_lbls);
     }
 
-    assert(verify_dominance_frontiers(cfg, immediate_dom_tree_map, dominator_frontiers));
+    assert(verify_dominance_frontiers(cfg, immediate_dom_by_tree_map, dominator_frontiers));
 
     return dominator_frontiers;
 }
@@ -209,15 +220,6 @@ int BuildSSAPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadat
     UNUSED(program);
 
     const ControlFlowGraph &cfg = *subroutine->get_cfg();
-    auto dom_frontiers_vert = build_dominance_frontiers(cfg, subroutine->get_start_block());
-    std::map<BasicBlockPtr, std::set<BasicBlockPtr>> dom_frontiers;
-    for (const auto &[vert, df_set_vert] : dom_frontiers_vert) {
-        assert(!dom_frontiers.contains(cfg[vert]));
-        std::set<BasicBlockPtr> &df_set = dom_frontiers[cfg[vert]];
-        for (const auto &v : df_set_vert) {
-            df_set.insert(cfg[v]);
-        }
-    }
 
     // build def-use chain
     std::map<int, std::set<std::tuple<InstructionListIter, BasicBlockPtr>>> def_map;
@@ -238,6 +240,18 @@ int BuildSSAPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadat
         }
     }
 
+    auto [immediate_dom_tree_map, strict_dom_tree_children] = build_dominance_tree(cfg, subroutine->get_start_block());
+    auto dom_frontiers_vert = build_dominance_frontiers(cfg, subroutine->get_start_block(), immediate_dom_tree_map, strict_dom_tree_children);
+    // convert Vertex to BBPtr
+    std::map<BasicBlockPtr, std::set<BasicBlockPtr>> dom_frontiers;
+    for (const auto &[vert, df_set_vert] : dom_frontiers_vert) {
+        assert(!dom_frontiers.contains(cfg[vert]));
+        std::set<BasicBlockPtr> &df_set = dom_frontiers[cfg[vert]];
+        for (const auto &v : df_set_vert) {
+            df_set.insert(cfg[v]);
+        }
+    }
+
     // build BBPtr to Vertex map
     std::map<BasicBlockPtr, ControlFlowVertex> bb_vert_map;
     for (ControlFlowVertex vert : boost::make_iterator_range(boost::vertices(cfg))) {
@@ -246,7 +260,7 @@ int BuildSSAPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadat
 
     insert_phi_functions(def_map, dom_frontiers);
     remove_single_branch_phi(subroutine->get_basic_blocks());
-
+    rename_registers(subroutine, immediate_dom_tree_map);
     return 0;
 }
 
@@ -339,6 +353,133 @@ void BuildSSAPass::remove_single_branch_phi(const std::list<BasicBlockPtr> &basi
     }
 }
 
-CLOSE_IRGEN_NAMESPACE
+void hrl::irgen::BuildSSAPass::rename_registers(const SubroutinePtr &subroutine, const std::map<ControlFlowVertex, ControlFlowVertex> &imm_dom_by_tree_map)
+{
+    const ControlFlowGraph &cfg = *subroutine->get_cfg();
+    const ControlFlowVertex &start_block = subroutine->get_start_block();
 
+    const unsigned int max_used = subroutine->get_max_reg_id();
+    unsigned int current_number = max_used + 1;
+
+    std::map<unsigned int, std::stack<unsigned int>> name_stacks;
+    // map<new id, old id>
+    std::map<unsigned int, unsigned int> original_id_map;
+    for (unsigned i = 0; i <= max_used; ++i) {
+        name_stacks[i].push(i);
+        original_id_map[i] = i;
+    }
+
+    // map<old id, map<bb, new id in bb>
+    std::map<unsigned int, std::map<BasicBlockPtr, unsigned int>> basic_block_renamed_id;
+
+    // map<node, node imm doms>
+    std::map<ControlFlowVertex, std::set<ControlFlowVertex>> imm_doms;
+    for (const auto &[vert, dom_by_vert] : imm_dom_by_tree_map) {
+        imm_doms[dom_by_vert].insert(vert);
+    }
+
+    std::function<void(ControlFlowVertex)> rename_block = [&](const ControlFlowVertex &block_vertex) {
+        // map<reg id, push count>
+        std::map<unsigned int, unsigned int> push_count;
+        const BasicBlockPtr current_basic_block = cfg[block_vertex];
+        std::list<TACPtr> &instructions = current_basic_block->get_instructions();
+
+        for (TACPtr &instr : instructions) {
+            Operand tgt = instr->get_tgt();
+            Operand src1 = instr->get_src1();
+            Operand src2 = instr->get_src2();
+            bool mutated = false;
+
+            // if assert fails, consider skip phi nodes here
+            if (src1.get_type() == Operand::OperandType::VariableId && src1.get_register_id() >= 0) {
+                assert(original_id_map.contains(src1.get_register_id()));
+                unsigned original_id = original_id_map[src1.get_register_id()];
+                assert(name_stacks.contains(original_id));
+                src1 = Operand(name_stacks[original_id].top());
+                mutated = true;
+            }
+
+            if (src2.get_type() == Operand::OperandType::VariableId && src2.get_register_id() >= 0) {
+                assert(original_id_map.contains(src2.get_register_id()));
+                unsigned original_id = original_id_map[src2.get_register_id()];
+                assert(name_stacks.contains(original_id));
+                src2 = Operand(name_stacks[original_id].top());
+                mutated = true;
+            }
+
+            if (tgt.get_type() == Operand::OperandType::VariableId && tgt.get_register_id() >= 0) {
+                unsigned cur_tgt_id = tgt.get_register_id();
+                assert(original_id_map.contains(cur_tgt_id));
+                unsigned original_tgt_id = original_id_map[cur_tgt_id]; // get the old name
+
+                unsigned int new_tgt_id = current_number++;
+                tgt = Operand(new_tgt_id);
+                assert(name_stacks.contains(original_tgt_id));
+                name_stacks[original_tgt_id].push(new_tgt_id);
+                push_count[original_tgt_id]++;
+                original_id_map[new_tgt_id] = original_tgt_id;
+
+                basic_block_renamed_id[original_tgt_id].insert({ current_basic_block, new_tgt_id });
+
+                mutated = true;
+            }
+
+            if (mutated) {
+                TACPtr new_instr = ThreeAddressCode::create(instr->get_op(), tgt, src1, src2, instr->get_ast_node());
+                if (instr->get_op() == IROperation::PHI) {
+                    new_instr->set_phi_incomings(instr->get_phi_incomings());
+                }
+
+                instr = new_instr;
+            }
+        }
+
+        for (auto out_edge : boost::make_iterator_range(boost::out_edges(block_vertex, cfg))) {
+            ControlFlowVertex successor_vertex = boost::target(out_edge, cfg);
+            const BasicBlockPtr &successor_block = cfg[successor_vertex];
+
+            for (TACPtr &instruction : successor_block->get_instructions()) {
+                if (instruction->get_op() == IROperation::PHI) {
+                    Operand tgt = instruction->get_tgt();
+                    assert(tgt.get_type() == Operand::OperandType::VariableId);
+                    assert(original_id_map.contains(tgt.get_register_id()));
+                    unsigned original_id = original_id_map[tgt.get_register_id()];
+                    assert(name_stacks.contains(original_id));
+
+                    TACPtr new_phi = ThreeAddressCode::create_phi(name_stacks[original_id].top(), instruction->get_ast_node());
+                    for (const auto &[incoming_bb, incoming_var_id] : instruction->get_phi_incomings()) {
+                        assert(original_id_map.contains(incoming_var_id));
+                        unsigned original_var_id = original_id_map[incoming_var_id];
+                        assert(basic_block_renamed_id.contains(original_var_id));
+                        // assert(basic_block_renamed_id[original_var_id].contains(incoming_bb));
+                        if (basic_block_renamed_id[original_var_id].contains(incoming_bb)) {
+                            unsigned renamed_var_id_in_bb = basic_block_renamed_id[original_var_id][incoming_bb];
+                            new_phi->set_phi_incoming(incoming_bb, renamed_var_id_in_bb);
+                        } else {
+                            new_phi->set_phi_incoming(incoming_bb, incoming_var_id);
+                        }
+                    }
+                    instruction = new_phi;
+                }
+            }
+        }
+
+        for (const ControlFlowVertex &imm_dominated : imm_doms[block_vertex]) {
+            rename_block(imm_dominated);
+        }
+
+        for (auto &[var_id, count] : push_count) {
+            assert(name_stacks.contains(var_id));
+            for (int i = 0; i < count; ++i) {
+                name_stacks[var_id].pop();
+            }
+            count = 0;
+            assert(!name_stacks[var_id].empty());
+        }
+    };
+
+    rename_block(start_block);
+}
+
+CLOSE_IRGEN_NAMESPACE
 // end
