@@ -50,6 +50,7 @@ private:
     void remove_single_branch_phi(const std::list<BasicBlockPtr> &basic_blocks);
 
     void rename_registers(const SubroutinePtr &subroutine, const std::map<ControlFlowVertex, ControlFlowVertex> &dom_tree_map);
+    void renumber_registers(const SubroutinePtr &subroutine);
     // [End Group]
 };
 

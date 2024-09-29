@@ -261,6 +261,7 @@ int BuildSSAPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadat
     insert_phi_functions(def_map, dom_frontiers);
     remove_single_branch_phi(subroutine->get_basic_blocks());
     rename_registers(subroutine, immediate_dom_tree_map);
+    renumber_registers(subroutine);
     return 0;
 }
 
@@ -353,7 +354,7 @@ void BuildSSAPass::remove_single_branch_phi(const std::list<BasicBlockPtr> &basi
     }
 }
 
-void hrl::irgen::BuildSSAPass::rename_registers(const SubroutinePtr &subroutine, const std::map<ControlFlowVertex, ControlFlowVertex> &imm_dom_by_tree_map)
+void BuildSSAPass::rename_registers(const SubroutinePtr &subroutine, const std::map<ControlFlowVertex, ControlFlowVertex> &imm_dom_by_tree_map)
 {
     const ControlFlowGraph &cfg = *subroutine->get_cfg();
     const ControlFlowVertex &start_block = subroutine->get_start_block();
@@ -418,8 +419,8 @@ void hrl::irgen::BuildSSAPass::rename_registers(const SubroutinePtr &subroutine,
                 name_stacks[original_tgt_id].push(new_tgt_id);
                 push_count[original_tgt_id]++;
                 original_id_map[new_tgt_id] = original_tgt_id;
-
-                basic_block_renamed_id[original_tgt_id].insert({ current_basic_block, new_tgt_id });
+                // the map always has the latest definition of var
+                basic_block_renamed_id[original_tgt_id][current_basic_block] = new_tgt_id;
 
                 mutated = true;
             }
@@ -451,7 +452,6 @@ void hrl::irgen::BuildSSAPass::rename_registers(const SubroutinePtr &subroutine,
                         assert(original_id_map.contains(incoming_var_id));
                         unsigned original_var_id = original_id_map[incoming_var_id];
                         assert(basic_block_renamed_id.contains(original_var_id));
-                        // assert(basic_block_renamed_id[original_var_id].contains(incoming_bb));
                         if (basic_block_renamed_id[original_var_id].contains(incoming_bb)) {
                             unsigned renamed_var_id_in_bb = basic_block_renamed_id[original_var_id][incoming_bb];
                             new_phi->set_phi_incoming(incoming_bb, renamed_var_id_in_bb);
@@ -479,6 +479,60 @@ void hrl::irgen::BuildSSAPass::rename_registers(const SubroutinePtr &subroutine,
     };
 
     rename_block(start_block);
+}
+
+void BuildSSAPass::renumber_registers(const SubroutinePtr &subroutine)
+{
+    const std::list<BasicBlockPtr> &basic_blocks = subroutine->get_basic_blocks();
+    unsigned int current_number = 0;
+    std::map<unsigned int, unsigned int> old_to_new_id_map;
+
+    auto get_new_reg_id = [&current_number, &old_to_new_id_map](unsigned int old_id) {
+        auto it = old_to_new_id_map.find(old_id);
+        if (it == old_to_new_id_map.end()) {
+            unsigned int new_id = current_number++;
+            old_to_new_id_map[old_id] = new_id;
+            return new_id;
+        } else {
+            return it->second;
+        }
+    };
+
+    for (const BasicBlockPtr &basic_block : basic_blocks) {
+        for (TACPtr &instr : basic_block->get_instructions()) {
+            Operand tgt = instr->get_tgt();
+            Operand src1 = instr->get_src1();
+            Operand src2 = instr->get_src2();
+            bool mutated = false;
+
+            // if assert fails, consider skip phi nodes here
+            if (src1.get_type() == Operand::OperandType::VariableId && src1.get_register_id() >= 0) {
+                src1 = Operand(get_new_reg_id(src1.get_register_id()));
+                mutated = true;
+            }
+
+            if (src2.get_type() == Operand::OperandType::VariableId && src2.get_register_id() >= 0) {
+                src2 = Operand(get_new_reg_id(src2.get_register_id()));
+                mutated = true;
+            }
+
+            if (tgt.get_type() == Operand::OperandType::VariableId && tgt.get_register_id() >= 0) {
+                tgt = Operand(get_new_reg_id(tgt.get_register_id()));
+                mutated = true;
+            }
+
+            if (mutated) {
+                TACPtr new_instr = ThreeAddressCode::create(instr->get_op(), tgt, src1, src2, instr->get_ast_node());
+                if (instr->get_op() == IROperation::PHI) {
+                    for (const auto &[income_basic_block, var_id] : instr->get_phi_incomings()) {
+                        new_instr->set_phi_incoming(income_basic_block, get_new_reg_id(var_id));
+                    }
+                }
+
+                instr = new_instr;
+            }
+        }
+    }
 }
 
 CLOSE_IRGEN_NAMESPACE
