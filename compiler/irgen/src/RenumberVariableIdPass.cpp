@@ -59,13 +59,19 @@ void RenumberVariableIdPass::renumber_registers(const SubroutinePtr &subroutine)
 
             if (mutated) {
                 TACPtr new_instr = ThreeAddressCode::create(instr->get_op(), tgt, src1, src2, instr->get_ast_node());
+                new_instr->set_phi_incomings(instr->get_phi_incomings());
+                instr = new_instr;
+            }
+        }
+
+        // process phi name lastly
+        for (const BasicBlockPtr &basic_block : basic_blocks) {
+            for (TACPtr &instr : basic_block->get_instructions()) {
                 if (instr->get_op() == IROperation::PHI) {
                     for (const auto &[income_basic_block, var_id] : instr->get_phi_incomings()) {
-                        new_instr->set_phi_incoming(income_basic_block, get_new_reg_id(var_id));
+                        instr->set_phi_incoming(income_basic_block, get_new_reg_id(var_id));
                     }
                 }
-
-                instr = new_instr;
             }
         }
     }
