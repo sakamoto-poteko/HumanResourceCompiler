@@ -34,15 +34,3 @@ function mul2(num)
 {
     return num + num;
 }
-
-// sub start()
-// {
-//     let out_of_loop_var = 99;
-//     while (true) {
-//         out_of_loop_var = out_of_loop_var + 1;
-//     }
-// }
-
-// // sub breaker()
-// // {
-// // }

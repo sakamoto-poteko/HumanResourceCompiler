@@ -383,12 +383,12 @@ void BuildSSAPass::populate_phi_function(
         for (const BasicBlockPtr &def_block : v_def_basic_blocks) {
             ControlFlowVertex def_vert = basic_block_to_vertex.at(def_block);
 
-            std::set<ControlFlowVertex> dfs_populate_phi_incoming_visited;
-            std::function<void(ControlFlowVertex)> dfs_populate_phi_incoming = [&](ControlFlowVertex v) {
-                if (dfs_populate_phi_incoming_visited.contains(v)) {
+            std::set<ControlFlowVertex> populate_phi_in_block_visited;
+            std::function<void(ControlFlowVertex)> populate_phi_in_block = [&](ControlFlowVertex v) {
+                if (populate_phi_in_block_visited.contains(v)) {
                     return;
                 }
-                dfs_populate_phi_incoming_visited.insert(v);
+                populate_phi_in_block_visited.insert(v);
 
                 // if there is another def of v_id on the way, return.
                 // phi branch should be added by that def's traversal
@@ -414,11 +414,11 @@ void BuildSSAPass::populate_phi_function(
 
                 for (ControlFlowEdge edge : boost::make_iterator_range(boost::out_edges(v, cfg))) {
                     ControlFlowVertex child = boost::target(edge, cfg);
-                    dfs_populate_phi_incoming(child);
+                    populate_phi_in_block(child);
                 }
             };
 
-            dfs_populate_phi_incoming(def_vert);
+            populate_phi_in_block(def_vert);
         }
     }
 }
@@ -559,7 +559,7 @@ void BuildSSAPass::rename_registers(const SubroutinePtr &subroutine, const std::
                     instruction->set_phi_incoming(incoming_bb, renamed_var_id_in_bb);
                 } else {
                     // If the incoming block hasn't renamed the variable yet, use the current top
-                    spdlog::debug("[SSA Rename] Not found a renamed id for '%{}'. Current BB is '{}'.", original_var_id, current_basic_block->get_label());
+                    spdlog::warn("[SSA Rename] Renamed id for '%{}' was not found. Current BB is '{}'.", original_var_id, current_basic_block->get_label());
                     instruction->set_phi_incoming(incoming_bb, name_stacks[original_var_id].top());
                 }
             }
