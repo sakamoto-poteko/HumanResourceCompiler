@@ -95,7 +95,7 @@ private:
     // map<func name, IRs>
     std::map<std::string, std::list<TACPtr>> _subroutine_tacs;
     // map<label, IR iter>
-    boost::bimap<std::string, boost::bimaps::set_of<std::list<TACPtr>::iterator, tac_list_iter_comparator>> _labels;
+    boost::bimap<std::string, boost::bimaps::set_of<InstructionListIter>> _labels;
     // map<floor id, value>
     std::map<int, int> _floor_inits;
 
@@ -104,11 +104,11 @@ private:
     std::string take_block_label(const std::string &msg);
 
     // Create the label, set the node to _labels
-    std::list<TACPtr>::iterator create_noop(const parser::ASTNodePtr &node);
-    std::list<TACPtr>::iterator create_jmp(const std::string &label, const parser::ASTNodePtr &node);
-    std::list<TACPtr>::iterator create_jnz(const Operand &operand, const std::string &label, const parser::ASTNodePtr &node);
-    std::list<TACPtr>::iterator create_jz(const Operand &operand, const std::string &label, const parser::ASTNodePtr &node);
-    std::list<TACPtr>::iterator create_instr(const TACPtr &instr);
+    InstructionListIter create_noop(const parser::ASTNodePtr &node);
+    InstructionListIter create_jmp(const std::string &label, const parser::ASTNodePtr &node);
+    InstructionListIter create_jnz(const Operand &operand, const std::string &label, const parser::ASTNodePtr &node);
+    InstructionListIter create_jz(const Operand &operand, const std::string &label, const parser::ASTNodePtr &node);
+    InstructionListIter create_instr(const TACPtr &instr);
 
     template <IROperation op>
     int visit_binary_expression(const parser::AbstractBinaryExpressionASTNodePtr &node);

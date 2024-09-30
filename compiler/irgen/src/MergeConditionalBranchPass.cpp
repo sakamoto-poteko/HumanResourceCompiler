@@ -33,7 +33,7 @@ int MergeConditionalBranchPass::run_basic_block(const BasicBlockPtr &basic_block
     auto current = instrs.begin();
     auto next = std::next(current);
 
-    std::vector<std::list<TACPtr>::iterator> comparison_instr; // the comparison instr after merging
+    std::vector<InstructionListIter> comparison_instr; // the comparison instr after merging
     while (next != instrs.end()) {
         auto cur_instr = *current;
         auto next_instr = *next;

@@ -12,6 +12,7 @@ sub start()
         let r = 0;
         if (i1 > i2 && i1 > 0) {
             r = mul2(i1);
+            r = r + 1;
             outbox(r);
             if (i1 > 0) {
                 outbox(r + glbvar);

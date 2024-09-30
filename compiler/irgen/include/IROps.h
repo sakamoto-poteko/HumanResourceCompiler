@@ -61,10 +61,13 @@ enum class IROperation : std::uint8_t {
     NOP = 0x70, // nop
     HALT = 0x71, // halt
 
+    // Pseudo Operation
+    PHI = 0x80,
+
     // Low IR
 };
 
-std::string hir_to_string(IROperation op);
+std::string irop_to_string(IROperation op);
 bool is_control_transfer_operation(IROperation op);
 bool is_branch_operation(IROperation op);
 bool is_comparison_operation(IROperation op);

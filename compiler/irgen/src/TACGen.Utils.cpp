@@ -44,31 +44,31 @@ std::string TACGen::take_block_label(const std::string &msg)
     return result;
 }
 
-std::list<TACPtr>::iterator TACGen::create_noop(const parser::ASTNodePtr &node)
+InstructionListIter TACGen::create_noop(const parser::ASTNodePtr &node)
 {
     _current_subroutine_tac.emplace_back(ThreeAddressCode::create_special(IROperation::NOP, node));
     return std::prev(_current_subroutine_tac.end());
 }
 
-std::list<TACPtr>::iterator TACGen::create_jmp(const std::string &label, const parser::ASTNodePtr &node)
+InstructionListIter TACGen::create_jmp(const std::string &label, const parser::ASTNodePtr &node)
 {
     _current_subroutine_tac.emplace_back(ThreeAddressCode::create_branching(Operand(label), node));
     return std::prev(_current_subroutine_tac.end());
 }
 
-std::list<TACPtr>::iterator TACGen::create_jnz(const Operand &operand, const std::string &label, const parser::ASTNodePtr &node)
+InstructionListIter TACGen::create_jnz(const Operand &operand, const std::string &label, const parser::ASTNodePtr &node)
 {
     _current_subroutine_tac.emplace_back(ThreeAddressCode::create_branching(IROperation::JNZ, Operand(label), operand, node));
     return std::prev(_current_subroutine_tac.end());
 }
 
-std::list<TACPtr>::iterator TACGen::create_jz(const Operand &operand, const std::string &label, const parser::ASTNodePtr &node)
+InstructionListIter TACGen::create_jz(const Operand &operand, const std::string &label, const parser::ASTNodePtr &node)
 {
     _current_subroutine_tac.emplace_back(ThreeAddressCode::create_branching(IROperation::JZ, Operand(label), operand, node));
     return std::prev(_current_subroutine_tac.end());
 }
 
-std::list<TACPtr>::iterator TACGen::create_instr(const TACPtr &instr)
+InstructionListIter TACGen::create_instr(const TACPtr &instr)
 {
     _current_subroutine_tac.push_back(instr);
     return std::prev(_current_subroutine_tac.end());

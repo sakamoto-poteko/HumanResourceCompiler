@@ -5,7 +5,7 @@
 
 OPEN_IRGEN_NAMESPACE
 
-std::string hir_to_string(IROperation op)
+std::string irop_to_string(IROperation op)
 {
     switch (op) {
     // arithmetic operations
@@ -90,10 +90,12 @@ std::string hir_to_string(IROperation op)
     case IROperation::HALT:
         return "hlt";
 
-    default:
-        spdlog::critical("Unknown HighLevelIROps {}. {}", static_cast<int>(op), __PRETTY_FUNCTION__);
-        throw;
+    case IROperation::PHI:
+        return "phi";
     }
+
+    spdlog::critical("Unknown IR Op {}. {}", static_cast<int>(op), __PRETTY_FUNCTION__);
+    throw;
 }
 
 bool is_branch_operation(IROperation op)
@@ -125,6 +127,7 @@ bool is_branch_operation(IROperation op)
     case IROperation::ENTER:
     case IROperation::RET:
     case IROperation::HALT:
+    case IROperation::PHI:
         return false;
 
     case IROperation::JE:
@@ -137,11 +140,10 @@ bool is_branch_operation(IROperation op)
     case IROperation::JNZ:
     case IROperation::JMP:
         return true;
-
-    default:
-        spdlog::critical("Unknown HighLevelIROps {}. {}", static_cast<int>(op), __PRETTY_FUNCTION__);
-        throw;
     }
+
+    spdlog::critical("Unknown IR Op {}. {}", static_cast<int>(op), __PRETTY_FUNCTION__);
+    throw;
 }
 
 bool is_control_transfer_operation(IROperation op)
@@ -169,6 +171,7 @@ bool is_control_transfer_operation(IROperation op)
     case IROperation::INPUT:
     case IROperation::OUTPUT:
     case IROperation::NOP:
+    case IROperation::PHI:
         return false;
 
     case IROperation::JE:
@@ -185,11 +188,10 @@ bool is_control_transfer_operation(IROperation op)
     case IROperation::RET:
     case IROperation::HALT:
         return true;
-
-    default:
-        spdlog::critical("Unknown HighLevelIROps {}. {}", static_cast<int>(op), __PRETTY_FUNCTION__);
-        throw;
     }
+
+    spdlog::critical("Unknown IR Op {}. {}", static_cast<int>(op), __PRETTY_FUNCTION__);
+    throw;
 }
 
 bool is_comparison_operation(IROperation op)

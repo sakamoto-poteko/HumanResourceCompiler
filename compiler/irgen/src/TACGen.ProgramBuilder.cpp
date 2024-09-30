@@ -27,7 +27,7 @@ std::list<BasicBlockPtr> TACGen::build_subroutine_split_tacs_to_basic_blocks(con
     bool seen_control_flow = false;
 
     // build basic blocks first
-    for (std::list<TACPtr>::iterator tac_it = tacs.begin(); tac_it != tacs.end(); ++tac_it) {
+    for (InstructionListIter tac_it = tacs.begin(); tac_it != tacs.end(); ++tac_it) {
         auto label_it = _labels.right.find(tac_it);
         // is there a label for this tac? or is there a control flow instr seen?
         // if yes, we need to start a new block
@@ -72,7 +72,7 @@ std::list<BasicBlockPtr> TACGen::build_subroutine_split_tacs_to_basic_blocks(con
 
 // correctness check:
 #ifndef NDEBUG
-    int count = 0;
+    size_t count = 0;
     for (const auto &bb : basic_blocks) {
         count += bb->get_instructions().size();
     }

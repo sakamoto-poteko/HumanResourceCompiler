@@ -1,10 +1,16 @@
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <string>
 
+#include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
+#include <boost/range/adaptors.hpp>
 #include <spdlog/spdlog.h>
 
+#include "IROps.h"
+#include "IRProgramStructure.h" // IWYU pragma: keep
+#include "Operand.h"
 #include "TerminalColor.h"
 #include "ThreeAddressCode.h"
 #include "irgen_global.h"
@@ -195,43 +201,84 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create(IROperation op, const
     return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt, src1, src2, ast));
 }
 
+std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_phi(int var_id, std::shared_ptr<parser::ASTNode> ast)
+{
+    return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(IROperation::PHI, Operand(var_id), Operand(), Operand(), ast));
+}
+
 std::string ThreeAddressCode::to_string(bool with_color) const
 {
-    auto instr = hir_to_string(_op);
+    auto instr = irop_to_string(_op);
     instr.resize(4, ' ');
 
     std::ostringstream oss;
-    bool first = true;
-    if (with_color) {
-        oss << __tc.C_DARK_CYAN << instr << __tc.C_RESET;
-    } else {
-        oss << instr;
-    }
 
-    if (_tgt) {
-        if (!first) {
-            oss << ", ";
+    auto tc = with_color ? __tc : __empty_tc;
+
+    oss << tc.C_DARK_CYAN << instr << tc.C_RESET;
+
+    if (_op != IROperation::PHI) {
+        bool first = true;
+        if (_tgt) {
+            if (!first) {
+                oss << ", ";
+            }
+            first = false;
+            oss << std::string(_tgt);
         }
-        first = false;
-        oss << std::string(_tgt);
-    }
-    if (_src1) {
-        if (!first) {
-            oss << ", ";
+        if (_src1) {
+            if (!first) {
+                oss << ", ";
+            }
+            first = false;
+            oss << std::string(_src1);
         }
-        first = false;
-        oss << std::string(_src1);
-    }
-    if (_src2) {
-        if (!first) {
-            oss << ", ";
+        if (_src2) {
+            if (!first) {
+                oss << ", ";
+            }
+            first = false;
+            oss << std::string(_src2);
         }
-        first = false;
-        oss << std::string(_src2);
+    } else {
+        auto incoming_strs = _phi_incoming | boost::adaptors::transformed([&tc](const auto &bb_varid_pair) {
+            auto fmt = boost::format("%1% %3%@%2%%4%")
+                % std::string(Operand(bb_varid_pair.second))
+                % bb_varid_pair.first->get_label()
+                % tc.C_DARK_BLUE
+                % tc.C_RESET;
+            return fmt.str();
+        });
+        oss << std::string(_tgt) << ", " << "[" << boost::join(incoming_strs, ", ") << "]";
     }
     return oss.str();
 }
 
-// end
+std::set<Operand> ThreeAddressCode::get_variable_uses() const
+{
+    std::set<Operand> result;
+    if (_src1.get_type() == Operand::OperandType::VariableId) {
+        result.insert(_src1);
+    }
+    if (_src2.get_type() == Operand::OperandType::VariableId) {
+        result.insert(_src2);
+    }
+    return result;
+}
+
+std::optional<Operand> ThreeAddressCode::get_variable_def() const
+{
+    if (_tgt.get_type() == Operand::OperandType::VariableId && _tgt.get_register_id() >= 0) {
+        return _tgt;
+    } else {
+        return std::nullopt;
+    }
+}
+
+bool operator<(const InstructionListIter &it1, const InstructionListIter &it2)
+{
+    return &(*it1) < &(*it2); // Compare based on the memory address of the pointed-to objects
+}
 
 CLOSE_IRGEN_NAMESPACE
+// end

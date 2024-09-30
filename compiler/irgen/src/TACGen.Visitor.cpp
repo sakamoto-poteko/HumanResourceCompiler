@@ -625,7 +625,7 @@ int TACGen::visit_subroutine(const parser::AbstractSubroutineASTNodePtr &node)
     RETURN_IF_FAIL_IN_VISIT(rc);
 
     // it's ensured that all path returned
-    std::list<TACPtr>::iterator func_end;
+    InstructionListIter func_end;
 
     if (node->get_node_type() == parser::ASTNodeType::FunctionDefinition) {
         Operand var(take_var_id_numbering());
