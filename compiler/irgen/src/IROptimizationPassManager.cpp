@@ -19,6 +19,7 @@ int IROptimizationPassManager::run(bool fail_fast)
         const auto &pass_asm_path = _pass_asm_filepaths.at(i);
         const auto &pass_graph_path = _pass_graph_filepaths.at(i);
 
+        spdlog::info("Running IR opt pass {}...", pass_name);
         int rc = pass->run();
         if (!pass_asm_path.empty()) {
             std::string asm_str(_program->to_string(false));
