@@ -470,7 +470,7 @@ void BuildSSAPass::rename_registers(const SubroutinePtr &subroutine, const std::
 
         for (auto &[var_id, count] : push_count) {
             assert(name_stacks.contains(var_id));
-            for (int i = 0; i < count; ++i) {
+            for (unsigned int i = 0; i < count; ++i) {
                 name_stacks[var_id].pop();
             }
             count = 0;

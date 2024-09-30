@@ -4,6 +4,7 @@
 
 #include "EliminateDeadBasicBlockPass.h"
 #include "IRProgramStructure.h"
+#include "hrl_global.h"
 #include "irgen_global.h"
 
 OPEN_IRGEN_NAMESPACE
@@ -14,6 +15,9 @@ EliminateDeadBasicBlockPass::~EliminateDeadBasicBlockPass()
 
 int EliminateDeadBasicBlockPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program)
 {
+    UNUSED(metadata);
+    UNUSED(program);
+
     ControlFlowGraph &cfg = *subroutine->get_cfg();
 
     std::vector<boost::default_color_type> color_map(cfg.num_vertices());
