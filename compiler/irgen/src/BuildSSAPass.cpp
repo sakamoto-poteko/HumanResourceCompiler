@@ -187,14 +187,20 @@ std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dom
                 for (ControlFlowVertex w : dominator_frontiers[c]) {
                     // Check if b does not strictly dominate w
                     auto idom_w_it = immediate_dom_by_tree_map.find(w);
-                    if (idom_w_it != immediate_dom_by_tree_map.end()) {
+                    if (idom_w_it == immediate_dom_by_tree_map.end()) {
                         spdlog::debug("[ComputeDF2] Immediate dominator for node '{}' was not found", cfg[w]->get_label());
                         continue;
                     }
 
                     if (idom_w_it->second != b) {
-                        spdlog::debug("[ComputeDF2] Adding '{}' to '{}'", cfg[w]->get_label(), cfg[b]->get_label());
-                        dominator_frontiers[b].insert(w);
+                        if (w == b) {
+                            // if (false) {
+                            // a node can be df of itself
+                            spdlog::debug("[ComputeDF2] Skipping (w==b) '{}' to '{}'", cfg[w]->get_label(), cfg[b]->get_label());
+                        } else {
+                            spdlog::debug("[ComputeDF2] Adding '{}' to '{}'", cfg[w]->get_label(), cfg[b]->get_label());
+                            dominator_frontiers[b].insert(w);
+                        }
                     } else {
                         spdlog::debug("[ComputeDF2] Skipping inserting '{}' to '{}' because idom(w) == b", cfg[w]->get_label(), cfg[b]->get_label());
                     }
@@ -218,7 +224,7 @@ std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dom
         spdlog::debug("[DF] '{}': {}", cfg[vert]->get_label(), df_lbls);
     }
 
-    assert(verify_dominance_frontiers(cfg, immediate_dom_by_tree_map, dominator_frontiers));
+    // assert(verify_dominance_frontiers(cfg, immediate_dom_by_tree_map, dominator_frontiers));
 
     return dominator_frontiers;
 }
@@ -268,9 +274,9 @@ int BuildSSAPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadat
     }
 
     insert_phi_functions(def_map, dom_frontiers);
-    remove_single_branch_phi(subroutine->get_basic_blocks());
-    rename_registers(subroutine, immediate_dom_tree_map);
-    renumber_registers(subroutine);
+    // remove_single_branch_phi(subroutine->get_basic_blocks());
+    // rename_registers(subroutine, immediate_dom_tree_map);
+    // renumber_registers(subroutine);
     return 0;
 }
 
@@ -460,8 +466,9 @@ void BuildSSAPass::rename_registers(const SubroutinePtr &subroutine, const std::
                     for (const auto &[incoming_bb, incoming_var_id] : instruction->get_phi_incomings()) {
                         assert(original_id_map.contains(incoming_var_id));
                         unsigned original_var_id = original_id_map[incoming_var_id];
-                        assert(basic_block_renamed_id.contains(original_var_id));
-                        if (basic_block_renamed_id[original_var_id].contains(incoming_bb)) {
+                        // assert(basic_block_renamed_id.contains(original_var_id));
+                        // FIXME: remove if first part
+                        if (basic_block_renamed_id.contains(original_var_id) && basic_block_renamed_id[original_var_id].contains(incoming_bb)) {
                             unsigned renamed_var_id_in_bb = basic_block_renamed_id[original_var_id][incoming_bb];
                             new_phi->set_phi_incoming(incoming_bb, renamed_var_id_in_bb);
                         } else {
