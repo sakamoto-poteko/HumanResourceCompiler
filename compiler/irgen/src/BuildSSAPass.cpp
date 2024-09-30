@@ -174,7 +174,7 @@ std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dom
             // If b does not strictly dominate s (s is b's successor so it's not immediate neither), then s is in DF[b]
             auto idom_it = immediate_dom_by_tree_map.find(s);
             if (idom_it != immediate_dom_by_tree_map.end() && idom_it->second != b) {
-                spdlog::debug("[ComputeDF1] Adding '{}' to '{}'", cfg[s]->get_label(), cfg[b]->get_label());
+                spdlog::trace("[ComputeDF1] Adding '{}' to '{}'", cfg[s]->get_label(), cfg[b]->get_label());
                 dominator_frontiers[b].insert(s);
             }
         }
@@ -190,21 +190,15 @@ std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dom
                     // Check if b does not strictly dominate w
                     auto idom_w_it = immediate_dom_by_tree_map.find(w);
                     if (idom_w_it == immediate_dom_by_tree_map.end()) {
-                        spdlog::debug("[ComputeDF2] Immediate dominator for node '{}' was not found", cfg[w]->get_label());
+                        spdlog::trace("[ComputeDF2] Immediate dominator for node '{}' was not found", cfg[w]->get_label());
                         continue;
                     }
 
                     if (idom_w_it->second != b) {
-                        // if (w == b) {
-                        if (false) {
-                            // a node can be df of itself
-                            spdlog::debug("[ComputeDF2] Skipping (w==b) '{}' to '{}'", cfg[w]->get_label(), cfg[b]->get_label());
-                        } else {
-                            spdlog::debug("[ComputeDF2] Adding '{}' to '{}'", cfg[w]->get_label(), cfg[b]->get_label());
-                            dominator_frontiers[b].insert(w);
-                        }
+                        spdlog::trace("[ComputeDF2] Adding '{}' to '{}'", cfg[w]->get_label(), cfg[b]->get_label());
+                        dominator_frontiers[b].insert(w);
                     } else {
-                        spdlog::debug("[ComputeDF2] Skipping inserting '{}' to '{}' because idom(w) == b", cfg[w]->get_label(), cfg[b]->get_label());
+                        spdlog::trace("[ComputeDF2] Skipping inserting '{}' to '{}' because idom(w) == b", cfg[w]->get_label(), cfg[b]->get_label());
                     }
                     // Else, do not add to DF[b] (according to the algorithm)
                 }
@@ -279,7 +273,7 @@ int BuildSSAPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadat
     populate_phi_function(def_map, cfg, subroutine->get_start_block());
     remove_redundant_phi(subroutine->get_basic_blocks());
     rename_registers(subroutine, immediate_dom_tree_map);
-    renumber_registers(subroutine);
+    // renumber_registers(subroutine);
     return 0;
 }
 
