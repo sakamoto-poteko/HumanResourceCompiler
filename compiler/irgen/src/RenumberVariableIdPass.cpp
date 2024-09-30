@@ -63,14 +63,15 @@ void RenumberVariableIdPass::renumber_registers(const SubroutinePtr &subroutine)
                 instr = new_instr;
             }
         }
+    }
 
-        // process phi name lastly
-        for (const BasicBlockPtr &basic_block : basic_blocks) {
-            for (TACPtr &instr : basic_block->get_instructions()) {
-                if (instr->get_op() == IROperation::PHI) {
-                    for (const auto &[income_basic_block, var_id] : instr->get_phi_incomings()) {
-                        instr->set_phi_incoming(income_basic_block, get_new_reg_id(var_id));
-                    }
+    // process phi name lastly
+    for (const BasicBlockPtr &basic_block : basic_blocks) {
+        for (TACPtr &instr : basic_block->get_instructions()) {
+            if (instr->get_op() == IROperation::PHI) {
+                for (const auto &[income_basic_block, var_id] : instr->get_phi_incomings()) {
+                    unsigned int new_id = get_new_reg_id(var_id);
+                    instr->set_phi_incoming(income_basic_block, new_id);
                 }
             }
         }
