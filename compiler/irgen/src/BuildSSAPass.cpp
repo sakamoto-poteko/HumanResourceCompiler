@@ -270,7 +270,7 @@ int BuildSSAPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadat
     }
 
     insert_phi_functions(def_map, dom_frontiers);
-    populate_phi_function(def_map, cfg, subroutine->get_start_block());
+    populate_phi_function(def_map, cfg);
     remove_redundant_phi(subroutine->get_basic_blocks());
     rename_registers(subroutine, immediate_dom_tree_map);
     renumber_registers(subroutine);
@@ -335,7 +335,7 @@ void BuildSSAPass::insert_phi_functions(
                     instr_list_bb_y.push_front(phi_instr);
 
                     // Add `Y` to `Phi(v)`.
-                    auto [inserted_it, _] = phi.insert({ y_basic_block, instr_list_bb_y.begin() });
+                    phi[y_basic_block] = instr_list_bb_y.begin();
 
                     // If `v` is not already in `Def(v)` for `Y`, add `Y` to `Work(v)`.
                     if (!def.contains(y_basic_block)) {
@@ -364,8 +364,7 @@ void BuildSSAPass::remove_redundant_phi(const std::list<BasicBlockPtr> &basic_bl
 
 void BuildSSAPass::populate_phi_function(
     const std::map<int, std::set<std::tuple<InstructionListIter, BasicBlockPtr>>> &def_map,
-    const ControlFlowGraph &cfg,
-    const ControlFlowVertex &start_block)
+    const ControlFlowGraph &cfg)
 {
     std::map<BasicBlockPtr, ControlFlowVertex> basic_block_to_vertex;
     for (const auto &vert : boost::make_iterator_range(boost::vertices(cfg))) {
@@ -530,11 +529,6 @@ void BuildSSAPass::rename_registers(const SubroutinePtr &subroutine, const std::
             }
         }
 
-        for (auto out_edge : boost::make_iterator_range(boost::out_edges(block_vertex, cfg))) {
-            ControlFlowVertex successor_vertex = boost::target(out_edge, cfg);
-            const BasicBlockPtr &successor_block = cfg[successor_vertex];
-        }
-
         for (const ControlFlowVertex &imm_dominated : imm_doms[block_vertex]) {
             rename_block(imm_dominated);
         }
@@ -546,9 +540,6 @@ void BuildSSAPass::rename_registers(const SubroutinePtr &subroutine, const std::
             // phi is already renamed here. let's take care of incoming branches
             Operand tgt = instruction->get_tgt();
             assert(tgt.get_type() == Operand::OperandType::VariableId);
-            assert(original_id_map.contains(tgt.get_register_id()));
-            unsigned original_id = original_id_map[tgt.get_register_id()];
-            assert(name_stacks.contains(original_id));
 
             for (const auto &[incoming_bb, incoming_var_id] : instruction->get_phi_incomings()) {
                 assert(original_id_map.contains(incoming_var_id));

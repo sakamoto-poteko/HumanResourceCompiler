@@ -51,8 +51,7 @@ private:
 
     void populate_phi_function(
         const std::map<int, std::set<std::tuple<InstructionListIter, BasicBlockPtr>>> &def_map,
-        const ControlFlowGraph &cfg,
-        const ControlFlowVertex &start_block);
+        const ControlFlowGraph &cfg);
 
     void remove_redundant_phi(const std::list<BasicBlockPtr> &basic_blocks);
 
