@@ -59,7 +59,9 @@ void RenumberVariableIdPass::renumber_registers(const SubroutinePtr &subroutine)
 
             if (mutated) {
                 TACPtr new_instr = ThreeAddressCode::create(instr->get_op(), tgt, src1, src2, instr->get_ast_node());
-                new_instr->set_phi_incomings(instr->get_phi_incomings());
+                if (instr->get_op() == IROperation::PHI) {
+                    new_instr->set_phi_incomings(instr->get_phi_incomings());
+                }
                 instr = new_instr;
             }
         }
