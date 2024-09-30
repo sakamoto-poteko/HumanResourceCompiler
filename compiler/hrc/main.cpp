@@ -22,6 +22,7 @@
 #include "ParseTreeNodeForward.h"
 #include "ParseTreeNodeGraphvizBuilder.h"
 #include "RecursiveDescentParser.h"
+#include "RenumberVariableIdPass.h"
 #include "SemanticAnalysisPassManager.h"
 #include "StripAttributePass.h"
 #include "StripEmptyBasicBlockPass.h"
@@ -158,6 +159,10 @@ int main(int argc, char **argv)
         "BuildSSAPass",
         "build/ssa.hrasm",
         "build/ssa.dot");
+    irop_passmgr.add_pass<hrl::irgen::RenumberVariableIdPass>(
+        "SSARenumberVariableId",
+        "build/ssa-renum.hrasm",
+        "build/ssa-renum.dot");
 
     if (irop_passmgr.run(true) != 0) {
         errmgr.print_all();
