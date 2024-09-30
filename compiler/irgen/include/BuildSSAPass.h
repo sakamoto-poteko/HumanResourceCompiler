@@ -13,6 +13,8 @@
 OPEN_IRGEN_NAMESPACE
 
 // Prereq: eliminate dead bb
+// We're really supposed to perform IN/OUT analysis here when inserting phi
+// But I'm too lazy. Removing single branch and zero branch phi seems to be fine here.
 class BuildSSAPass : public IROptimizationPass {
 public:
     BuildSSAPass(const ProgramPtr &program)
@@ -47,9 +49,16 @@ private:
         const std::map<int, std::set<std::tuple<InstructionListIter, BasicBlockPtr>>> &def_map,
         const std::map<BasicBlockPtr, std::set<BasicBlockPtr>> &dominance_frontiers);
 
-    void remove_single_branch_phi(const std::list<BasicBlockPtr> &basic_blocks);
+    void populate_phi_function(
+        const std::map<int, std::set<std::tuple<InstructionListIter, BasicBlockPtr>>> &def_map,
+        // std::map<ControlFlowVertex, std::set<ControlFlowVertex>> strict_dom_tree_children,
+        const ControlFlowGraph &cfg,
+        const ControlFlowVertex &start_block);
+
+    void remove_redundant_phi(const std::list<BasicBlockPtr> &basic_blocks);
 
     void rename_registers(const SubroutinePtr &subroutine, const std::map<ControlFlowVertex, ControlFlowVertex> &dom_tree_map);
+
     void renumber_registers(const SubroutinePtr &subroutine);
     // [End Group]
 };

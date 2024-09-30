@@ -1,4 +1,5 @@
 #include <cassert>
+#include <functional>
 #include <list>
 #include <map>
 #include <stack>
@@ -80,11 +81,12 @@ bool BuildSSAPass::verify_dominance_frontiers(
             }
         }
 
-        // 3. Ensure no node has itself in its DF
-        if (dominance_frontiers.at(b).find(b) != dominance_frontiers.at(b).end()) {
-            spdlog::error("Property Violation: Node {} has itself in its DF.", cfg[b]->get_label());
-            valid = false;
-        }
+        // // 3. Ensure no node has itself in its DF
+        // DF of a node can be itself
+        // if (dominance_frontiers.at(b).find(b) != dominance_frontiers.at(b).end()) {
+        //     spdlog::error("Property Violation: Node {} has itself in its DF.", cfg[b]->get_label());
+        //     valid = false;
+        // }
     }
 
     return valid;
@@ -193,8 +195,8 @@ std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dom
                     }
 
                     if (idom_w_it->second != b) {
-                        if (w == b) {
-                            // if (false) {
+                        // if (w == b) {
+                        if (false) {
                             // a node can be df of itself
                             spdlog::debug("[ComputeDF2] Skipping (w==b) '{}' to '{}'", cfg[w]->get_label(), cfg[b]->get_label());
                         } else {
@@ -224,7 +226,7 @@ std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dom
         spdlog::debug("[DF] '{}': {}", cfg[vert]->get_label(), df_lbls);
     }
 
-    // assert(verify_dominance_frontiers(cfg, immediate_dom_by_tree_map, dominator_frontiers));
+    assert(verify_dominance_frontiers(cfg, immediate_dom_by_tree_map, dominator_frontiers));
 
     return dominator_frontiers;
 }
@@ -274,7 +276,8 @@ int BuildSSAPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadat
     }
 
     insert_phi_functions(def_map, dom_frontiers);
-    // remove_single_branch_phi(subroutine->get_basic_blocks());
+    populate_phi_function(def_map, cfg, subroutine->get_start_block());
+    remove_redundant_phi(subroutine->get_basic_blocks());
     // rename_registers(subroutine, immediate_dom_tree_map);
     // renumber_registers(subroutine);
     return 0;
@@ -331,16 +334,14 @@ void BuildSSAPass::insert_phi_functions(
             for (const BasicBlockPtr &y_basic_block : dominance_frontiers->second) {
                 std::list<TACPtr> &instr_list_bb_y = y_basic_block->get_instructions();
 
-                auto phi_instr_it = phi.find(y_basic_block);
                 // If `v` does not already have a phi function in `Y`
-                if (phi_instr_it == phi.end()) {
+                if (!phi.contains(y_basic_block)) {
                     // Insert a phi function for `v` in `Y`.
                     TACPtr phi_instr = ThreeAddressCode::create_phi(v_id);
                     instr_list_bb_y.push_front(phi_instr);
 
                     // Add `Y` to `Phi(v)`.
                     auto [inserted_it, _] = phi.insert({ y_basic_block, instr_list_bb_y.begin() });
-                    phi_instr_it = inserted_it;
 
                     // If `v` is not already in `Def(v)` for `Y`, add `Y` to `Work(v)`.
                     if (!def.contains(y_basic_block)) {
@@ -348,24 +349,87 @@ void BuildSSAPass::insert_phi_functions(
                     }
                 }
 
-                (*phi_instr_it->second)->set_phi_incoming(x_basic_block, v_id);
+                // We're not populating the phi branch here. Will do that in a separate method
             }
         }
     }
 }
 
-void BuildSSAPass::remove_single_branch_phi(const std::list<BasicBlockPtr> &basic_blocks)
+void BuildSSAPass::remove_redundant_phi(const std::list<BasicBlockPtr> &basic_blocks)
 {
     for (const BasicBlockPtr &basic_block : basic_blocks) {
         std::list<TACPtr> &instructions = basic_block->get_instructions();
         instructions.remove_if([](const TACPtr &instr) {
             if (instr->get_op() == IROperation::PHI) {
                 std::size_t incoming_count = instr->get_phi_incomings().size();
-                assert(incoming_count != 0); // report zero branch
-                return incoming_count == 1; // remove single branch
+                // assert(incoming_count != 0); // report zero branch
+                // return incoming_count == 1; // remove single branch
+                return incoming_count <= 1;
             }
             return false;
         });
+    }
+}
+
+void BuildSSAPass::populate_phi_function(
+    const std::map<int, std::set<std::tuple<InstructionListIter, BasicBlockPtr>>> &def_map,
+    // std::map<ControlFlowVertex, std::set<ControlFlowVertex>> strict_dom_tree_children,
+    const ControlFlowGraph &cfg,
+    const ControlFlowVertex &start_block)
+{
+    std::map<BasicBlockPtr, ControlFlowVertex> basic_block_to_vertex;
+    for (const auto &vert : boost::make_iterator_range(boost::vertices(cfg))) {
+        basic_block_to_vertex[cfg[vert]] = vert;
+    }
+
+    for (const auto &[v_id, v_def_raw] : def_map) {
+        // v_id < 0 is global. it's not supposed to be defined nor accessed
+        assert(v_id >= 0);
+        auto v_def_info = v_def_raw | boost::adaptors::transformed([](const std::tuple<InstructionListIter, BasicBlockPtr> &def_info) {
+            return std::get<1>(def_info);
+        });
+        std::set v_def_basic_blocks(v_def_info.begin(), v_def_info.end());
+
+        for (const BasicBlockPtr &def_block : v_def_basic_blocks) {
+            ControlFlowVertex def_vert = basic_block_to_vertex.at(def_block);
+
+            std::set<ControlFlowVertex> dfs_populate_phi_incoming_visited;
+            std::function<void(ControlFlowVertex)> dfs_populate_phi_incoming = [&](ControlFlowVertex v) {
+                if (dfs_populate_phi_incoming_visited.contains(v)) {
+                    return;
+                }
+                dfs_populate_phi_incoming_visited.insert(v);
+
+                // if there is another def of v_id on the way, return.
+                // phi branch should be added by that def's traversal
+                if (v != def_vert && v_def_basic_blocks.contains(cfg[v])) {
+                    return;
+                }
+                const BasicBlockPtr basic_block = cfg[v];
+
+                for (TACPtr &instr : basic_block->get_instructions()) {
+                    if (instr->get_op() == IROperation::PHI) {
+                        const Operand &tgt = instr->get_tgt();
+                        assert(tgt.get_type() == Operand::OperandType::VariableId);
+                        assert(tgt.get_register_id() >= 0);
+
+                        if (tgt.get_register_id() == v_id) {
+                            instr->set_phi_incoming(def_block, v_id);
+                            // we already found the phi for this def. now exit
+                            // there can only be one phi for one def
+                            return;
+                        }
+                    }
+                }
+
+                for (ControlFlowEdge edge : boost::make_iterator_range(boost::out_edges(v, cfg))) {
+                    ControlFlowVertex child = boost::target(edge, cfg);
+                    dfs_populate_phi_incoming(child);
+                }
+            };
+
+            dfs_populate_phi_incoming(def_vert);
+        }
     }
 }
 

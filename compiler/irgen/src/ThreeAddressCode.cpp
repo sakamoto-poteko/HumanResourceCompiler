@@ -242,14 +242,14 @@ std::string ThreeAddressCode::to_string(bool with_color) const
         }
     } else {
         auto incoming_strs = _phi_incoming | boost::adaptors::transformed([&tc](const auto &bb_varid_pair) {
-            auto fmt = boost::format("%1% %3%@%2%%4%")
+            auto fmt = boost::format("[%1% %3%@%2%%4%]")
                 % std::string(Operand(bb_varid_pair.second))
                 % bb_varid_pair.first->get_label()
                 % tc.C_DARK_BLUE
                 % tc.C_RESET;
             return fmt.str();
         });
-        oss << std::string(_tgt) << ", " << "[" << boost::join(incoming_strs, ", ") << "]";
+        oss << std::string(_tgt) << ", " << boost::join(incoming_strs, ", ");
     }
     return oss.str();
 }
