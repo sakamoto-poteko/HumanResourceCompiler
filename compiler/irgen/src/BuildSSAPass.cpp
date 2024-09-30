@@ -364,7 +364,6 @@ void BuildSSAPass::remove_redundant_phi(const std::list<BasicBlockPtr> &basic_bl
 
 void BuildSSAPass::populate_phi_function(
     const std::map<int, std::set<std::tuple<InstructionListIter, BasicBlockPtr>>> &def_map,
-    // std::map<ControlFlowVertex, std::set<ControlFlowVertex>> strict_dom_tree_children,
     const ControlFlowGraph &cfg,
     const ControlFlowVertex &start_block)
 {
