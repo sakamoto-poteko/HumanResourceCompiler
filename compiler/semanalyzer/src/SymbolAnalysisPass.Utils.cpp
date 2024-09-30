@@ -1,9 +1,6 @@
 #include <cassert>
 #include <memory>
 #include <string>
-#include <typeinfo>
-#include <utility>
-#include <vector>
 
 #include <boost/format.hpp>
 #include <spdlog/spdlog.h>
@@ -15,7 +12,6 @@
 #include "SemanticAnalysisErrors.h"
 #include "Symbol.h"
 #include "SymbolAnalysisPass.h"
-#include "SymbolTable.h"
 #include "hrl_global.h"
 #include "semanalyzer_global.h"
 

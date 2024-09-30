@@ -253,9 +253,9 @@ void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent)
                 return rule_idx_pair.first->id == current_production->id;
             });
         bool all_have_index_of_0 = std::all_of(
-                first_prod_occurrence,
-                _state->descent_path_edge_indices.cend(),
-                [](auto &rule_idx_pair) {
+            first_prod_occurrence,
+            _state->descent_path_edge_indices.cend(),
+            [](auto &rule_idx_pair) {
                 return rule_idx_pair.second == 0;
             });
 
@@ -263,7 +263,7 @@ void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent)
     };
 
     if (auto literal = std::dynamic_pointer_cast<LiteralNode>(current_node)) {
-            _state->first_set[current_production->id].insert(FirstSetElement(literal->value, FirstSetElement::Literal));
+        _state->first_set[current_production->id].insert(FirstSetElement(literal->value, FirstSetElement::Literal));
         if (determine_is_first_set_element()) {
         }
     } else if (auto identifier = std::dynamic_pointer_cast<IdentifierNode>(current_node)) {
@@ -280,12 +280,9 @@ void DependencyGraphAnalyzer::soft_dfs(Vertex current, Vertex parent)
         }
     }
 
-    auto out_edges_pair = boost::out_edges(current, _graph);
-    int count = 0;
-
     // NOTE: it's assumed that BGL guarantee the order of edge traversal - in the order we added them
-    for (auto it = out_edges_pair.first; it != out_edges_pair.second; ++it, ++count) {
-        Vertex target = boost::target(*it, _graph);
+    for (auto out_edge : boost::make_iterator_range(boost::out_edges(current, _graph))) {
+        Vertex target = boost::target(out_edge, _graph);
 
         // Term node is responsible to hold first, second, third... elements in an alternative
         soft_dfs(target, current);
