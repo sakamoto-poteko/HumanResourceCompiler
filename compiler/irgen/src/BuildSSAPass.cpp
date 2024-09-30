@@ -81,8 +81,8 @@ bool BuildSSAPass::verify_dominance_frontiers(
             }
         }
 
-        // // 3. Ensure no node has itself in its DF
-        // DF of a node can be itself
+        // 3. Ensure no node has itself in its DF
+        // GPT made a mistake here. DF(x) can be x.
         // if (dominance_frontiers.at(b).find(b) != dominance_frontiers.at(b).end()) {
         //     spdlog::error("Property Violation: Node {} has itself in its DF.", cfg[b]->get_label());
         //     valid = false;
@@ -278,8 +278,8 @@ int BuildSSAPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadat
     insert_phi_functions(def_map, dom_frontiers);
     populate_phi_function(def_map, cfg, subroutine->get_start_block());
     remove_redundant_phi(subroutine->get_basic_blocks());
-    // rename_registers(subroutine, immediate_dom_tree_map);
-    // renumber_registers(subroutine);
+    rename_registers(subroutine, immediate_dom_tree_map);
+    renumber_registers(subroutine);
     return 0;
 }
 
@@ -361,10 +361,7 @@ void BuildSSAPass::remove_redundant_phi(const std::list<BasicBlockPtr> &basic_bl
         std::list<TACPtr> &instructions = basic_block->get_instructions();
         instructions.remove_if([](const TACPtr &instr) {
             if (instr->get_op() == IROperation::PHI) {
-                std::size_t incoming_count = instr->get_phi_incomings().size();
-                // assert(incoming_count != 0); // report zero branch
-                // return incoming_count == 1; // remove single branch
-                return incoming_count <= 1;
+                return instr->get_phi_incomings().size() <= 1;
             }
             return false;
         });
@@ -530,9 +527,8 @@ void BuildSSAPass::rename_registers(const SubroutinePtr &subroutine, const std::
                     for (const auto &[incoming_bb, incoming_var_id] : instruction->get_phi_incomings()) {
                         assert(original_id_map.contains(incoming_var_id));
                         unsigned original_var_id = original_id_map[incoming_var_id];
-                        // assert(basic_block_renamed_id.contains(original_var_id));
-                        // FIXME: remove if first part
-                        if (basic_block_renamed_id.contains(original_var_id) && basic_block_renamed_id[original_var_id].contains(incoming_bb)) {
+                        assert(basic_block_renamed_id.contains(original_var_id));
+                        if (basic_block_renamed_id[original_var_id].contains(incoming_bb)) {
                             unsigned renamed_var_id_in_bb = basic_block_renamed_id[original_var_id][incoming_bb];
                             new_phi->set_phi_incoming(incoming_bb, renamed_var_id_in_bb);
                         } else {
