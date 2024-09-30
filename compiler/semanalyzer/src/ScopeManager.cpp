@@ -1,9 +1,8 @@
-#include <iterator>
-#include <ranges>
 #include <string>
 
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/range/adaptors.hpp>
 #include <spdlog/spdlog.h>
 
 #include "ScopeManager.h"
@@ -24,20 +23,11 @@ ScopeManager::~ScopeManager()
 std::string ScopeManager::get_current_scope_id() const
 {
     static const char delimiter[] = { DELIMITER, 0 };
-    std::string result;
-
-    for (auto it = _current_scopes.begin(); it != _current_scopes.end(); ++it) {
-        if (std::next(it) == _current_scopes.end()) {
-            break;
-        }
-
-        result += it->first;
-        result += delimiter;
-    }
-
-    result += _current_scopes.back().first;
-
-    return result;
+    return boost::join(
+        _current_scopes | boost::adaptors::transformed([](const std::pair<std::string, ScopeType> scope_pair) {
+            return scope_pair.first;
+        }),
+        delimiter);
 }
 
 bool ScopeManager::enter_scope(const std::string &name, ScopeType scope_type)

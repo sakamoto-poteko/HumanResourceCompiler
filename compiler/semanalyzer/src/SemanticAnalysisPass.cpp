@@ -18,7 +18,6 @@ void SemanticAnalysisPass::leave_node()
 
 int SemanticAnalysisPass::visit(const parser::IntegerASTNodePtr &node)
 {
-
     enter_node(node);
     leave_node();
     return 0;
@@ -26,7 +25,6 @@ int SemanticAnalysisPass::visit(const parser::IntegerASTNodePtr &node)
 
 int SemanticAnalysisPass::visit(const parser::BooleanASTNodePtr &node)
 {
-
     enter_node(node);
     leave_node();
     return 0;
@@ -50,7 +48,6 @@ int SemanticAnalysisPass::visit(const parser::VariableAssignmentASTNodePtr &node
 
 int SemanticAnalysisPass::visit(const parser::VariableAccessASTNodePtr &node)
 {
-
     enter_node(node);
     leave_node();
     return 0;

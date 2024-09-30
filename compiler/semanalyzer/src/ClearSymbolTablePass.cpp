@@ -1,5 +1,3 @@
-#include <algorithm>
-
 #include "ClearSymbolTablePass.h"
 #include "SemanticAnalysisPass.h"
 #include "semanalyzer_global.h"
@@ -18,3 +16,4 @@ int ClearSymbolTablePass::run()
 }
 
 CLOSE_SEMANALYZER_NAMESPACE
+// end

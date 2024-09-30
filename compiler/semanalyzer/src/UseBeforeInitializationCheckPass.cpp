@@ -450,5 +450,4 @@ void UseBeforeInitializationCheckPass::leave_node()
 }
 
 CLOSE_SEMANALYZER_NAMESPACE
-
 // end

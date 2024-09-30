@@ -14,7 +14,6 @@
 #include "SemanticAnalysisPass.h"
 #include "Symbol.h"
 #include "SymbolAnalysisPass.h"
-#include "SymbolTable.h"
 #include "hrl_global.h"
 #include "semanalyzer_global.h"
 
