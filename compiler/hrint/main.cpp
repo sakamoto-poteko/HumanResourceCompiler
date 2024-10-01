@@ -40,10 +40,8 @@ int main(int argc, char **argv)
 
     MemoryManager memman;
     IOManager ioman;
-    Accumulator accumulator(memman, ioman);
 
-    Interpreter interpreter(std::make_shared<std::string>(options.input_file), ast, accumulator, memman);
-    interpreter.set_symbol_table(symtbl);
+    ASTInterpreter interpreter(std::make_shared<std::string>(options.input_file), ast, symtbl, ioman, memman);
 
     ioman.set_on_input_popped([](HRMByte val) {
         spdlog::info("<< {}", val);
@@ -57,7 +55,7 @@ int main(int argc, char **argv)
     }
 
     try {
-        rc = interpreter.run();
+        rc = interpreter.exec();
         if (rc != 0) {
             spdlog::error("The interpreter returned a non-success code: {}", rc);
             exit(EXIT_FAILURE);

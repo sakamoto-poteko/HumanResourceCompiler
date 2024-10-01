@@ -3,7 +3,8 @@ project(hrc_interpreter)
 
 add_library(${PROJECT_NAME}
     src/Accumulator.cpp
-    src/Interpreter.cpp
+    src/ASTInterpreter.cpp
+    src/AbstractInterpreter.cpp
     src/IOManager.cpp
     src/MemoryManager.cpp
     src/InterpreterExceptions.cpp

@@ -53,10 +53,13 @@ TEST_P(InterpreterTests, InterpreterCorrectnessTests)
 
     hrl::interpreter::MemoryManager memman;
     hrl::interpreter::IOManager ioman;
-    hrl::interpreter::Accumulator accumulator(memman, ioman);
 
-    hrl::interpreter::Interpreter interpreter(std::make_shared<std::string>(data.filename), _test.get_ast(), accumulator, memman);
-    interpreter.set_symbol_table(_test.get_symtbl());
+    hrl::interpreter::ASTInterpreter interpreter(
+        std::make_shared<std::string>(data.filename),
+        _test.get_ast(),
+        _test.get_symtbl(),
+        ioman,
+        memman);
 
     for (hrl::interpreter::HRMByte input : data.program_inputs) {
         ioman.push_input(input);
@@ -76,10 +79,13 @@ TEST_P(InterpreterTests, InterpreterCorrectnessTests)
 
     hrl::interpreter::MemoryManager opt_memman;
     hrl::interpreter::IOManager opt_ioman;
-    hrl::interpreter::Accumulator opt_accumulator(opt_memman, opt_ioman);
 
-    hrl::interpreter::Interpreter opt_interpreter(std::make_shared<std::string>(data.filename), _opt_test.get_ast(), opt_accumulator, opt_memman);
-    opt_interpreter.set_symbol_table(_opt_test.get_symtbl());
+    hrl::interpreter::ASTInterpreter opt_interpreter(
+        std::make_shared<std::string>(data.filename),
+        _opt_test.get_ast(),
+        _opt_test.get_symtbl(),
+        opt_ioman,
+        opt_memman);
 
     for (hrl::interpreter::HRMByte input : data.program_inputs) {
         opt_ioman.push_input(input);
@@ -96,7 +102,7 @@ TEST_P(InterpreterTests, InterpreterCorrectnessTests)
 
     int rc = 0;
     try {
-        rc = interpreter.run();
+        rc = interpreter.exec();
         ASSERT_EQ(rc, 0) << "Interpreter did not return a success code";
     } catch (const hrl::interpreter::InterpreterException &ex) {
         ASSERT_EQ(ex.get_error_type(), hrl::interpreter::InterpreterException::ErrorType::EndOfInput)
@@ -104,7 +110,7 @@ TEST_P(InterpreterTests, InterpreterCorrectnessTests)
     }
 
     try {
-        rc = opt_interpreter.run();
+        rc = opt_interpreter.exec();
         ASSERT_EQ(rc, 0) << "Interpreter (opt) did not return a success code";
     } catch (const hrl::interpreter::InterpreterException &ex) {
         ASSERT_EQ(ex.get_error_type(), hrl::interpreter::InterpreterException::ErrorType::EndOfInput)
