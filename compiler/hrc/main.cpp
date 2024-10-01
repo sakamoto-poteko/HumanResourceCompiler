@@ -33,6 +33,7 @@
 #include "UnusedSymbolAnalysisPass.h"
 #include "UseBeforeInitializationCheckPass.h"
 #include "Utilities.h"
+#include "VerifySSAPass.h"
 
 using namespace hrl::lexer;
 using namespace hrl::hrc;
@@ -163,6 +164,7 @@ int main(int argc, char **argv)
         "SSARenumberVariableId",
         "build/ssa-renum.hrasm",
         "build/ssa-renum.dot");
+    irop_passmgr.add_pass<hrl::irgen::VerifySSAPass>("VerifySSA");
 
     if (irop_passmgr.run(true) != 0) {
         errmgr.print_all();
