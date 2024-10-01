@@ -12,6 +12,7 @@
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/range/adaptors.hpp>
 #include <spdlog/spdlog.h>
+#include <vector>
 
 #include "BuildSSAPass.h"
 #include "IROps.h"
@@ -382,6 +383,7 @@ void BuildSSAPass::populate_phi_function(
             ControlFlowVertex def_vert = basic_block_to_vertex.at(def_block);
 
             std::set<ControlFlowVertex> populate_phi_in_block_visited;
+            std::vector<ControlFlowVertex> visit_history;
             std::function<void(ControlFlowVertex)> populate_phi_in_block = [&](ControlFlowVertex v) {
                 if (populate_phi_in_block_visited.contains(v)) {
                     return;
@@ -402,7 +404,8 @@ void BuildSSAPass::populate_phi_function(
                         assert(tgt.get_register_id() >= 0);
 
                         if (tgt.get_register_id() == v_id) {
-                            instr->set_phi_incoming(def_block, v_id);
+                            BasicBlockPtr predecessor = cfg[visit_history.back()];
+                            instr->set_phi_incoming(predecessor, v_id);
                             // we already found the phi for this def. now exit
                             // there can only be one phi for one def
                             return;
@@ -412,11 +415,16 @@ void BuildSSAPass::populate_phi_function(
 
                 for (ControlFlowEdge edge : boost::make_iterator_range(boost::out_edges(v, cfg))) {
                     ControlFlowVertex child = boost::target(edge, cfg);
+                    visit_history.push_back(v);
                     populate_phi_in_block(child);
+                    visit_history.pop_back();
                 }
             };
 
+            visit_history.push_back(def_vert);
             populate_phi_in_block(def_vert);
+            visit_history.pop_back();
+            assert(visit_history.empty());
         }
     }
 }
