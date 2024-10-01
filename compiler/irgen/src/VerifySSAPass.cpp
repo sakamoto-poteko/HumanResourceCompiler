@@ -72,9 +72,9 @@ void VerifySSAPass::verify_basic_block_phi_incoming_branches(const BasicBlockPtr
 {
     for (const TACPtr &instruction : basic_block->get_instructions()) {
         if (instruction->get_op() == IROperation::PHI) {
-            for (const auto &[basic_block, var_id] : instruction->get_phi_incomings()) {
+            for (const auto &[incoming_basic_block, var_id] : instruction->get_phi_incomings()) {
                 if (!variable_assigned.contains(var_id)) {
-                    spdlog::error("Variable '%{}' in phi incoming of block '{}' is used before assignment. This is likely the bug of SSA generator. Report this bug.", var_id, basic_block->get_label());
+                    spdlog::error("Variable '%{}' in phi incoming of block '{}' is used before assignment. This is likely the bug of SSA generator. Report this bug.", var_id, incoming_basic_block->get_label());
                     throw;
                 }
             }
