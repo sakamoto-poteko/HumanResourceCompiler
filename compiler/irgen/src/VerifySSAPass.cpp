@@ -5,12 +5,16 @@
 #include "Operand.h"
 #include "ThreeAddressCode.h"
 #include "VerifySSAPass.h"
+#include "hrl_global.h"
 #include "irgen_global.h"
 
 OPEN_IRGEN_NAMESPACE
 
 int VerifySSAPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program)
 {
+    UNUSED(metadata);
+    UNUSED(program);
+
     std::set<unsigned int> variable_assigned;
     std::set<ControlFlowVertex> pass1, pass2;
 
@@ -31,7 +35,7 @@ void VerifySSAPass::verify_basic_block_assignments_and_uses(const BasicBlockPtr 
         // 1. it's assigned to a new variable
         const Operand &tgt = instruction->get_tgt();
         if (tgt.get_type() == Operand::OperandType::VariableId) {
-            unsigned int tgt_var_id = tgt.get_register_id();
+            int tgt_var_id = tgt.get_register_id();
             if (tgt_var_id >= 0) {
                 auto _var_asgn_it = variable_assigned.find(tgt_var_id);
                 if (_var_asgn_it != variable_assigned.end()) {
