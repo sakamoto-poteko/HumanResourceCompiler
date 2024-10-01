@@ -6,13 +6,13 @@
 #include <string>
 #include <tuple>
 #include <utility>
+#include <vector>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/graph/dominator_tree.hpp>
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/range/adaptors.hpp>
 #include <spdlog/spdlog.h>
-#include <vector>
 
 #include "BuildSSAPass.h"
 #include "IROps.h"
@@ -404,7 +404,7 @@ void BuildSSAPass::populate_phi_function(
                         assert(tgt.get_register_id() >= 0);
 
                         if (tgt.get_register_id() == v_id) {
-                            BasicBlockPtr predecessor = cfg[visit_history.back()];
+                            const BasicBlockPtr &predecessor = cfg[visit_history.back()];
                             instr->set_phi_incoming(predecessor, v_id);
                             // we already found the phi for this def. now exit
                             // there can only be one phi for one def
