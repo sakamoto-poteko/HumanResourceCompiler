@@ -15,7 +15,7 @@ public:
     {
     }
 
-    ~VerifySSAPass();
+    ~VerifySSAPass() = default;
 
 protected:
     int run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program) override;

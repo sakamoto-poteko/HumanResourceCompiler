@@ -9,10 +9,6 @@
 
 OPEN_IRGEN_NAMESPACE
 
-VerifySSAPass::~VerifySSAPass()
-{
-}
-
 int VerifySSAPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program)
 {
     std::set<unsigned int> variable_assigned;
