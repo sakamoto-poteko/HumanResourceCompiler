@@ -9,6 +9,7 @@
 #include <boost/bimap.hpp>
 
 #include "ASTNodeForward.h"
+#include "HRBox.h"
 #include "IRProgramStructure.h"
 #include "SemanticAnalysisPass.h"
 #include "Symbol.h"
@@ -97,7 +98,7 @@ private:
     // map<label, IR iter>
     boost::bimap<std::string, boost::bimaps::set_of<InstructionListIter>> _labels;
     // map<floor id, value>
-    std::map<int, int> _floor_inits;
+    std::map<int, HRBox> _floor_inits;
 
     int take_var_id_numbering();
     std::string take_block_label();

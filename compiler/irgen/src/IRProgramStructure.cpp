@@ -127,7 +127,7 @@ std::string Program::to_string(bool color)
 
     os << tc.C_DARK_YELLOW << "@floor_max" << tc.C_RESET << " = " << _metadata.get_floor_max() << std::endl;
     for (const auto &[id, value] : _metadata.get_floor_inits()) {
-        os << tc.C_DARK_YELLOW << "@floor[" << id << "]" << tc.C_RESET << " = " << value << std::endl;
+        os << tc.C_DARK_YELLOW << "@floor[" << id << "]" << tc.C_RESET << " = " << std::string(value) << std::endl;
     }
     os << std::endl
        << std::endl;

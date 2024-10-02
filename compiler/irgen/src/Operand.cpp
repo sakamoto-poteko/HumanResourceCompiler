@@ -2,6 +2,7 @@
 
 #include <spdlog/spdlog.h>
 
+#include "HRBox.h"
 #include "Operand.h"
 #include "irgen_global.h"
 
@@ -90,9 +91,9 @@ Operand::operator std::string() const
         }
     case OperandType::ImmediateValue:
         if constexpr (OPERAND_FORMAT == OperandFormat::NamedVariables) {
-            return std::to_string(std::get<int>(_value));
+            return std::string(std::get<HRBox>(_value));
         } else if constexpr (OPERAND_FORMAT == OperandFormat::SSA || OPERAND_FORMAT == OperandFormat::VirtualRegisters) {
-            return "#" + std::to_string(std::get<int>(_value));
+            return "#" + std::string(std::get<HRBox>(_value));
         } else {
             spdlog::critical("unimplemented Operand to string. {}", __PRETTY_FUNCTION__);
             throw;

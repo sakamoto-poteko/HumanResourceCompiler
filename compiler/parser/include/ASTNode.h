@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "ASTNodeForward.h"
+#include "HRBox.h"
 #include "hrl_global.h"
 #include "parser_global.h"
 
@@ -264,6 +265,8 @@ public:
     ASTNodeType get_node_type() override { return ASTNodeType::Integer; }
 
     int &get_value() { return _value; }
+
+    HRBox get_hrbox() { return _is_char ? HRBox(static_cast<char>(_value)) : HRBox(_value); }
 
     bool get_is_char() const { return _is_char; }
 
