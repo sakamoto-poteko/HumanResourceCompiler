@@ -7,6 +7,7 @@
 #include <optional>
 #include <set>
 #include <string>
+#include <tuple>
 
 #include "IROps.h"
 #include "Operand.h"
@@ -36,13 +37,13 @@ public:
 
     const std::shared_ptr<parser::ASTNode> &get_ast_node() const { return _ast; }
 
-    void set_phi_incoming(const BasicBlockPtr &incoming, unsigned int var_id) { _phi_incoming[incoming] = var_id; }
+    void set_phi_incoming(const BasicBlockPtr &predecessor, unsigned int var_id, const BasicBlockPtr &var_def_block) { _phi_incoming[predecessor] = std::make_tuple(var_id, var_def_block); }
 
-    unsigned int &get_phi_incoming(const BasicBlockPtr incoming) { return _phi_incoming.at(incoming); }
+    std::tuple<unsigned int, BasicBlockPtr> &get_phi_incoming(const BasicBlockPtr incoming) { return _phi_incoming.at(incoming); }
 
-    std::map<BasicBlockPtr, unsigned int> &get_phi_incomings() { return _phi_incoming; }
+    std::map<BasicBlockPtr, std::tuple<unsigned int, BasicBlockPtr>> &get_phi_incomings() { return _phi_incoming; }
 
-    void set_phi_incomings(const std::map<BasicBlockPtr, unsigned int> &incomings) { _phi_incoming = incomings; }
+    void set_phi_incomings(const std::map<BasicBlockPtr, std::tuple<unsigned int, BasicBlockPtr>> &incomings) { _phi_incoming = incomings; }
 
     // get the variable(reg) use, which is useful in SSA
     std::set<Operand> get_variable_uses() const;
@@ -96,8 +97,8 @@ private:
     Operand _src1;
     Operand _src2;
     Operand _tgt;
-    // map<incoming block, var id in incoming block>
-    std::map<BasicBlockPtr, unsigned int> _phi_incoming;
+    // map<predecessor block, <var id, var def block>>
+    std::map<BasicBlockPtr, std::tuple<unsigned int, BasicBlockPtr>> _phi_incoming;
     std::shared_ptr<parser::ASTNode> _ast;
 };
 

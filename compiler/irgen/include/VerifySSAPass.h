@@ -38,8 +38,8 @@ protected:
         }
     }
 
-    static void verify_basic_block_assignments_and_uses(const BasicBlockPtr &basic_block, std::set<unsigned int> &_variable_assigned);
-    static void verify_basic_block_phi_incoming_branches(const BasicBlockPtr &basic_block, const std::set<unsigned int> &_variable_assigned);
+    static void verify_basic_block_assignments_and_uses(const BasicBlockPtr &basic_block, std::map<unsigned int, BasicBlockPtr> &_variable_assigned);
+    static void verify_basic_block_phi_incoming_branches(const BasicBlockPtr &basic_block, const std::map<unsigned int, BasicBlockPtr> &_variable_assigned);
 
 private:
 };

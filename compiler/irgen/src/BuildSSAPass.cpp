@@ -405,7 +405,7 @@ void BuildSSAPass::populate_phi_function(
 
                         if (tgt.get_register_id() == v_id) {
                             const BasicBlockPtr &predecessor = cfg[visit_history.back()];
-                            instr->set_phi_incoming(predecessor, v_id);
+                            instr->set_phi_incoming(predecessor, v_id, def_block);
                             // we already found the phi for this def. now exit
                             // there can only be one phi for one def
                             return;
@@ -548,17 +548,20 @@ void BuildSSAPass::rename_registers(const SubroutinePtr &subroutine, const std::
             Operand tgt = instruction->get_tgt();
             assert(tgt.get_type() == Operand::OperandType::VariableId);
 
-            for (const auto &[incoming_bb, incoming_var_id] : instruction->get_phi_incomings()) {
+            for (const auto &[incoming_predecessor_block, phi_branch_meta] : instruction->get_phi_incomings()) {
+                auto &[incoming_var_id, incoming_def_block] = phi_branch_meta;
                 assert(original_id_map.contains(incoming_var_id));
                 unsigned original_var_id = original_id_map[incoming_var_id];
                 assert(basic_block_renamed_id.contains(original_var_id));
-                if (basic_block_renamed_id[original_var_id].contains(incoming_bb)) {
-                    unsigned renamed_var_id_in_bb = basic_block_renamed_id[original_var_id][incoming_bb];
-                    instruction->set_phi_incoming(incoming_bb, renamed_var_id_in_bb);
+                if (basic_block_renamed_id[original_var_id].contains(incoming_def_block)) {
+                    unsigned renamed_var_id_in_bb = basic_block_renamed_id[original_var_id][incoming_def_block];
+                    instruction->set_phi_incoming(incoming_predecessor_block, renamed_var_id_in_bb, incoming_def_block);
                 } else {
                     // If the incoming block hasn't renamed the variable yet, use the current top
-                    spdlog::warn("[SSA Rename] Renamed id for '%{}' was not found. Current BB is '{}'.", original_var_id, current_basic_block->get_label());
-                    instruction->set_phi_incoming(incoming_bb, name_stacks[original_var_id].top());
+                    spdlog::error(
+                        "[SSA Rename] Renamed id for '%{}' was not found. Current BB is '{}'. This is likely a bug, consider report it",
+                        original_var_id, current_basic_block->get_label());
+                    instruction->set_phi_incoming(incoming_predecessor_block, name_stacks[original_var_id].top(), incoming_def_block);
                 }
             }
         }
