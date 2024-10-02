@@ -367,13 +367,13 @@ void IRInterpreter::move_data(irgen::IROperation op, const irgen::Operand &tgt, 
     case irgen::IROperation::LOAD:
         // either load from global or floor
         if (src1.get_type() == irgen::Operand::OperandType::ImmediateValue) {
-            floor_id = src1.get_constant();
+            floor_id = src1.get_constant().operator int();
         } else {
             // global, or indirect addressing
             if (src1.get_type() == irgen::Operand::OperandType::VariableId && src1.get_register_id() < 0) {
                 floor_id = src1.get_register_id();
             } else {
-                floor_id = get_variable(src1);
+                floor_id = get_variable(src1).operator int();
             }
         }
 
@@ -395,7 +395,7 @@ void IRInterpreter::move_data(irgen::IROperation op, const irgen::Operand &tgt, 
         // NOTE: STORE op has src1 and src2 and no tgt. src1 is the target address, src2 is the value
         // either store to global or floor
         if (src2.get_type() == irgen::Operand::OperandType::ImmediateValue) {
-            floor_id = src2.get_constant();
+            floor_id = src2.get_constant().operator int();
         } else {
             // global, or indirect addressing
             if (src1.get_type() == irgen::Operand::OperandType::VariableId && src1.get_register_id() < 0) {
@@ -403,7 +403,7 @@ void IRInterpreter::move_data(irgen::IROperation op, const irgen::Operand &tgt, 
             } else {
                 // get_variable will check if it's a variable id and raise if not
                 // no need to make another if here. ugly
-                floor_id = get_variable(src1);
+                floor_id = get_variable(src1).operator int();
             }
         }
 

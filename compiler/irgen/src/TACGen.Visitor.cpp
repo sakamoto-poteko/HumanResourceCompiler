@@ -156,9 +156,9 @@ int TACGen::visit(const parser::FloorBoxInitStatementASTNodePtr &node)
     auto flr_value = std::static_pointer_cast<parser::IntegerASTNode>(flr_value_node);
 
     if (flr_value->get_is_char()) {
-        _floor_inits.insert_or_assign(flr_id->get_value(), std::move(HRBox(static_cast<int>(flr_value->get_value()))));
-    } else {
         _floor_inits.insert_or_assign(flr_id->get_value(), std::move(HRBox(static_cast<char>(flr_value->get_value()))));
+    } else {
+        _floor_inits.insert_or_assign(flr_id->get_value(), std::move(HRBox(static_cast<int>(flr_value->get_value()))));
     }
 
     // setting no result

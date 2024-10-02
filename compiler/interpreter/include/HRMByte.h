@@ -5,6 +5,7 @@
 
 #include <spdlog/fmt/ostr.h>
 
+#include "HRBox.h"
 #include "InterpreterExceptions.h"
 #include "interpreter_global.h"
 
@@ -26,6 +27,15 @@ public:
     explicit HRMByte(char value)
     {
         set_value(value);
+    }
+
+    HRMByte(const HRBox &box)
+    {
+        if (box.is_char()) {
+            set_value(box.operator char());
+        } else {
+            set_value(box.operator int());
+        }
     }
 
     HRMByte(const HRMByte &copy)
