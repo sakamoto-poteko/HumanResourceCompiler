@@ -1,4 +1,3 @@
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -7,19 +6,16 @@
 #include <spdlog/sinks/ostream_sink.h>
 #include <spdlog/spdlog.h>
 
-#include "IntAccumulator.h"
-#include "IntIOManager.h"
-#include "IntMemoryManager.h"
-#include "Interpreter.h"
+#include "IRInterpreter.h"
 #include "InterpreterExceptions.h"
 #include "Tests.h"
-#include "WithSemanticAnalyzed.h"
+#include "WithIR.h"
 
-std::vector<TestCaseData> read_interpreter_test_cases()
+static std::vector<TestCaseData> read_ir_interpreter_test_cases()
 {
     std::vector<TestCaseData> result;
 
-    std::set<std::string> enabled_test_group { "semanalyzer", "solutions" };
+    std::set<std::string> enabled_test_group { "ir", "semanalyzer", "solutions" };
 
     for (const auto &[testgruop, cases] : __test_cases) {
         if (!enabled_test_group.contains(testgruop)) {
@@ -36,30 +32,25 @@ std::vector<TestCaseData> read_interpreter_test_cases()
     return result;
 }
 
-class InterpreterTests : public ::testing::TestWithParam<TestCaseData>, private WithSemanticAnalyzed {
+class IRInterpreterTests : public ::testing::TestWithParam<TestCaseData>, private WithIR {
 protected:
-    WithSemanticAnalyzed _test;
-    WithSemanticAnalyzed _opt_test;
+    WithIR _test;
+    WithIR _opt_test;
 };
 
-TEST_P(InterpreterTests, InterpreterCorrectnessTests)
+TEST_P(IRInterpreterTests, InterpreterCorrectnessTests)
 {
     const auto &data = GetParam();
     bool ok;
 
     // begin unoptimized
-    _test.setup_semantic_analyze(false, data, ok);
-    ASSERT_TRUE(ok) << "Failed in semantic analysis stages";
+    _test.setup_ir(false, data, ok);
+    ASSERT_TRUE(ok) << "Failed in IR optimization stages";
 
     hrl::interpreter::MemoryManager memman;
     hrl::interpreter::IOManager ioman;
 
-    hrl::interpreter::ASTInterpreter interpreter(
-        std::make_shared<std::string>(data.filename),
-        _test.get_ast(),
-        _test.get_symtbl(),
-        ioman,
-        memman);
+    hrl::interpreter::IRInterpreter interpreter(ioman, memman, _test.get_program(), true);
 
     for (hrl::interpreter::HRMByte input : data.program_inputs) {
         ioman.push_input(input);
@@ -74,18 +65,13 @@ TEST_P(InterpreterTests, InterpreterCorrectnessTests)
     });
 
     // begin optimized
-    _opt_test.setup_semantic_analyze(true, data, ok);
+    _opt_test.setup_ir(true, data, ok);
     ASSERT_TRUE(ok) << "Failed in semantic analysis stages with opt";
 
     hrl::interpreter::MemoryManager opt_memman;
     hrl::interpreter::IOManager opt_ioman;
 
-    hrl::interpreter::ASTInterpreter opt_interpreter(
-        std::make_shared<std::string>(data.filename),
-        _opt_test.get_ast(),
-        _opt_test.get_symtbl(),
-        opt_ioman,
-        opt_memman);
+    hrl::interpreter::IRInterpreter opt_interpreter(opt_ioman, opt_memman, _opt_test.get_program(), true);
 
     for (hrl::interpreter::HRMByte input : data.program_inputs) {
         opt_ioman.push_input(input);
@@ -103,25 +89,25 @@ TEST_P(InterpreterTests, InterpreterCorrectnessTests)
     int rc = 0;
     try {
         rc = interpreter.exec();
-        ASSERT_EQ(rc, 0) << "Interpreter did not return a success code";
+        ASSERT_EQ(rc, 0) << "IR interpreter did not return a success code";
     } catch (const hrl::interpreter::InterpreterException &ex) {
         ASSERT_EQ(ex.get_error_type(), hrl::interpreter::InterpreterException::ErrorType::EndOfInput)
-            << "Interpreter reported an error: " << ex.what();
+            << "IR interpreter reported an error: " << ex.what();
     }
 
     try {
         rc = opt_interpreter.exec();
-        ASSERT_EQ(rc, 0) << "Interpreter (opt) did not return a success code";
+        ASSERT_EQ(rc, 0) << "IR interpreter (opt) did not return a success code";
     } catch (const hrl::interpreter::InterpreterException &ex) {
         ASSERT_EQ(ex.get_error_type(), hrl::interpreter::InterpreterException::ErrorType::EndOfInput)
-            << "Interpreter (opt) reported an error: " << ex.what();
+            << "IR interpreter (opt) reported an error: " << ex.what();
     }
 
     EXPECT_EQ(outputs, data.expected_program_outputs)
-        << "The program output is incorrect";
+        << "IR interpreter: The program output is incorrect";
 
     EXPECT_EQ(outputs, opt_outputs)
-        << "Optimized program yields different output than unoptimized";
+        << "IR interpreter: Optimized program yields different output than unoptimized";
 }
 
-INSTANTIATE_TEST_SUITE_P(InterpreterOptTests, InterpreterTests, ::testing::ValuesIn(read_interpreter_test_cases()));
+INSTANTIATE_TEST_SUITE_P(IRInterpreterOptTests, IRInterpreterTests, ::testing::ValuesIn(read_ir_interpreter_test_cases()));
