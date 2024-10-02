@@ -3,8 +3,11 @@
 
 #include <spdlog/spdlog.h>
 
+#include "ASTInterpreter.h"
 #include "ASTNodeForward.h"
-#include "CompileAST.h"
+#include "Compile.h"
+#include "IRInterpreter.h"
+#include "IRProgramStructure.h"
 #include "IntAccumulator.h"
 #include "IntIOManager.h"
 #include "IntMemoryManager.h"
@@ -32,8 +35,13 @@ int main(int argc, char **argv)
     int rc = 0;
 
     hrl::parser::CompilationUnitASTNodePtr ast;
+    hrl::irgen::ProgramPtr program;
     hrl::semanalyzer::SymbolTablePtr symtbl;
-    rc = compile_to_ast(options, ast, symtbl);
+    rc = compile_to_ast_and_hir(options, ast, program, symtbl);
+    if (rc) {
+        exit(EXIT_FAILURE);
+    }
+    rc = transform_hir(options, program);
     if (rc) {
         exit(EXIT_FAILURE);
     }
@@ -41,7 +49,25 @@ int main(int argc, char **argv)
     MemoryManager memman;
     IOManager ioman;
 
-    ASTInterpreter interpreter(std::make_shared<std::string>(options.input_file), ast, symtbl, ioman, memman);
+    AbstractInterpreter *interpreter = nullptr;
+
+    bool enforce_ssa = false;
+    switch (options.compile_target) {
+    case CompileTarget::AST:
+        interpreter = new ASTInterpreter(std::make_shared<std::string>(options.input_file), ast, symtbl, ioman, memman);
+        break;
+    case CompileTarget::HIR_SSA:
+        enforce_ssa = true;
+    case CompileTarget::HIR:
+        interpreter = new IRInterpreter(ioman, memman, program, enforce_ssa);
+        break;
+    case CompileTarget::LIR_SSA:
+        spdlog::error("Not yet implemented for LIR SSA");
+        throw;
+    default:
+        spdlog::error("Unknown compile target. {}", __PRETTY_FUNCTION__);
+        throw;
+    }
 
     ioman.set_on_input_popped([](HRMByte val) {
         spdlog::info("<< {}", val);
@@ -55,7 +81,7 @@ int main(int argc, char **argv)
     }
 
     try {
-        rc = interpreter.exec();
+        rc = interpreter->exec();
         if (rc != 0) {
             spdlog::error("The interpreter returned a non-success code: {}", rc);
             exit(EXIT_FAILURE);
@@ -69,5 +95,6 @@ int main(int argc, char **argv)
         }
     }
 
+    delete interpreter;
     return 0;
 }

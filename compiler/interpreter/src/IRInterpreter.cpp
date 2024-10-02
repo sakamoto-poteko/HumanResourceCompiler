@@ -1,13 +1,16 @@
-#include "IRInterpreter.h"
+#include <cassert>
+#include <iterator>
+#include <string>
+
 #include "HRMByte.h"
+#include "IRInterpreter.h"
 #include "IROps.h"
 #include "IRProgramStructure.h"
 #include "InterpreterExceptions.h"
 #include "Operand.h"
 #include "ThreeAddressCode.h"
 #include "interpreter_global.h"
-#include <cassert>
-#include <string>
+#include "semanalyzer_global.h"
 
 OPEN_INTERPRETER_NAMESPACE
 
@@ -17,30 +20,51 @@ int IRInterpreter::exec()
         _subroutines[subroutine->get_func_name()] = subroutine;
     }
 
+    irgen::SubroutinePtr entry_point = _subroutines.at(semanalyzer::GLOBAL_SCOPE_ID);
+    exec_subroutine(entry_point);
+
     return 0;
 }
 
 void IRInterpreter::exec_subroutine(const irgen::SubroutinePtr &subroutine, HRMByte parameter)
 {
+    spdlog::debug("Entered subroutine '{}'", subroutine->get_func_name());
+
     _calling_stack.push_back({
         .subroutine_name = subroutine->get_func_name(),
         .variables = {},
-        .variable_assignment_history = {},
     });
 
     CallFrame &call_frame = _calling_stack.back();
 
     const irgen::ControlFlowGraph &cfg = *subroutine->get_cfg();
     irgen::BasicBlockPtr current_block = cfg[subroutine->get_start_block()];
+    irgen::BasicBlockPtr last_block = nullptr;
 
     std::map<std::string, irgen::BasicBlockPtr> basic_blocks;
+    // next bb in linear order
+    std::map<irgen::BasicBlockPtr, irgen::BasicBlockPtr> next_basic_block;
 
-    for (const irgen::BasicBlockPtr &basic_block : subroutine->get_basic_blocks()) {
+    const auto &subroutine_bb = subroutine->get_basic_blocks();
+    for (auto bb_it = subroutine->get_basic_blocks().begin(); bb_it != subroutine_bb.end(); ++bb_it) {
+        const irgen::BasicBlockPtr &basic_block = *bb_it;
         basic_blocks[basic_block->get_label()] = basic_block;
+
+        auto next = std::next(bb_it);
+        if (next != subroutine_bb.end()) {
+            next_basic_block[basic_block] = *next;
+        } else {
+            next_basic_block[basic_block] = nullptr;
+        }
     }
 
     while (current_block) {
+        spdlog::debug("Entered BB '{}'", current_block->get_label());
+        bool non_linear_control_flow = false;
+
         for (const irgen::TACPtr &instruction : current_block->get_instructions()) {
+            spdlog::debug("Executing {}", instruction->to_string(true));
+
             HRMByte op_result;
             const irgen::IROperation op = instruction->get_op();
             const irgen::Operand &tgt = instruction->get_tgt();
@@ -48,7 +72,7 @@ void IRInterpreter::exec_subroutine(const irgen::SubroutinePtr &subroutine, HRMB
             const irgen::Operand &src2 = instruction->get_src2();
             bool should_set_tgt_var = false;
             bool should_branch = false;
-            bool end_of_block = false;
+            bool is_return = false;
 
             switch (op) {
             case irgen::IROperation::STORE:
@@ -151,7 +175,7 @@ void IRInterpreter::exec_subroutine(const irgen::SubroutinePtr &subroutine, HRMB
 
             case irgen::IROperation::RET:
                 _return_value = src1;
-                end_of_block = true;
+                is_return = true;
                 break;
 
             case irgen::IROperation::HALT:
@@ -171,8 +195,9 @@ void IRInterpreter::exec_subroutine(const irgen::SubroutinePtr &subroutine, HRMB
                 break;
 
             case irgen::IROperation::PHI:
-                // instruction->get_phi_incomings().find();
-                // FIXME: the phi node definition is incorrect
+                spdlog::debug("Phi: last block is {}", last_block->get_label());
+                assert(instruction->get_phi_incomings().contains(last_block));
+                op_result = get_variable(instruction->get_phi_incomings().at(last_block));
                 should_set_tgt_var = true;
                 break;
 
@@ -181,8 +206,11 @@ void IRInterpreter::exec_subroutine(const irgen::SubroutinePtr &subroutine, HRMB
                 break;
             }
 
-            if (end_of_block) {
+            if (is_return) {
+                last_block = current_block;
                 current_block = nullptr;
+                non_linear_control_flow = true;
+
                 break;
             }
 
@@ -193,14 +221,189 @@ void IRInterpreter::exec_subroutine(const irgen::SubroutinePtr &subroutine, HRMB
             if (should_branch) {
                 assert(tgt.get_type() == irgen::Operand::OperandType::Label);
                 assert(basic_blocks.contains(tgt.get_label()));
+                last_block = current_block;
                 current_block = basic_blocks.at(tgt.get_label());
                 assert(current_block);
+
+                non_linear_control_flow = true;
                 break;
             }
+
+        } // for every instruction
+
+        // all instructions are visited
+        // if it's jmp, it's not natural end
+        if (current_block && !non_linear_control_flow) {
+            last_block = current_block;
+            current_block = next_basic_block.at(current_block);
         }
     }
 
     _calling_stack.pop_back();
+}
+
+HRMByte IRInterpreter::get_variable(const irgen::Operand &variable)
+{
+    if (variable.get_type() != irgen::Operand::OperandType::VariableId) {
+        spdlog::error("Tring to get variable for operand {} but it's not a variable id. This is likely a bug, consider report it. {}", std::string(variable), __PRETTY_FUNCTION__);
+        throw;
+    }
+
+    int reg_id = variable.get_register_id();
+    const auto &var_map = reg_id < 0 ? _global_variables : _calling_stack.back().variables;
+
+    auto var_it = var_map.find(reg_id);
+    if (var_it == var_map.end()) {
+        spdlog::error("The variable {} is accessed before assigned. This is likely a bug, consider report it. {}", std::string(variable), __PRETTY_FUNCTION__);
+        throw;
+    } else {
+        return var_it->second;
+    }
+}
+
+void IRInterpreter::set_variable(const irgen::Operand &variable, const HRMByte &value)
+{
+    if (variable.get_type() != irgen::Operand::OperandType::VariableId) {
+        spdlog::error("Tring to set variable for operand {} but it's not a variable id. This is likely a bug, consider report it. {}", std::string(variable), __PRETTY_FUNCTION__);
+        throw;
+    }
+
+    int reg_id = variable.get_register_id();
+    auto &var_map = reg_id < 0 ? _global_variables : _calling_stack.back().variables;
+
+    auto var_it = var_map.find(reg_id);
+    if (_enforce_ssa && var_it != var_map.end()) {
+        spdlog::error("Tring to set variable {} which is already set, which violates SSA rule. This is likely a bug, consider report it. {}", std::string(variable), __PRETTY_FUNCTION__);
+        throw;
+    } else {
+        var_map[reg_id] = value;
+    }
+}
+
+HRMByte IRInterpreter::evaluate_binary_op_instructions(irgen::IROperation op, const irgen::Operand &src1, const irgen::Operand &src2)
+{
+    HRMByte o1 = get_variable(src1);
+    HRMByte o2 = get_variable(src2);
+    HRMByte result;
+
+    switch (op) {
+    case irgen::IROperation::ADD:
+        return o1 + o2;
+    case irgen::IROperation::SUB:
+        return o1 - o2;
+    case irgen::IROperation::MUL:
+        return o1 * o2;
+    case irgen::IROperation::DIV:
+        return o1 / o2;
+    case irgen::IROperation::MOD:
+        return o1 % o2;
+    case irgen::IROperation::AND:
+        return HRMByte(static_cast<bool>(o1) && static_cast<bool>(o2) ? 1 : 0);
+    case irgen::IROperation::OR:
+        return HRMByte(static_cast<bool>(o1) || static_cast<bool>(o2) ? 1 : 0);
+    case irgen::IROperation::EQ:
+        return HRMByte(o1 == o2 ? 1 : 0);
+    case irgen::IROperation::NE:
+        return HRMByte(o1 != o2 ? 1 : 0);
+    case irgen::IROperation::LT:
+        return HRMByte(static_cast<int>(o1) > static_cast<int>(o2) ? 1 : 0);
+    case irgen::IROperation::LE:
+        return HRMByte(static_cast<int>(o1) >= static_cast<int>(o2) ? 1 : 0);
+    case irgen::IROperation::GT:
+        return HRMByte(static_cast<int>(o1) < static_cast<int>(o2) ? 1 : 0);
+    case irgen::IROperation::GE:
+        return HRMByte(static_cast<int>(o1) <= static_cast<int>(o2) ? 1 : 0);
+    default:
+        break;
+    }
+    spdlog::error("'{}' is not a binary op but called to evalute as binary expression. {}", irgen::irop_to_string(op), __PRETTY_FUNCTION__);
+    throw;
+}
+
+HRMByte IRInterpreter::evaluate_unary_op_instructions(irgen::IROperation op, const irgen::Operand &src1)
+{
+    HRMByte o1 = get_variable(src1);
+
+    switch (op) {
+    case irgen::IROperation::NEG:
+        return -o1;
+    case irgen::IROperation::NOT:
+        return HRMByte(o1.operator bool() ? 0 : 1);
+    default:
+        break;
+    }
+    spdlog::error("'{}' is not a unary op but called to evalute as unary expression. {}", irgen::irop_to_string(op), __PRETTY_FUNCTION__);
+    throw;
+}
+
+void IRInterpreter::move_data(irgen::IROperation op, const irgen::Operand &tgt, const irgen::Operand &src1)
+{
+    // bool ok = false;
+    HRMByte value;
+    int floor_id = 0;
+
+    switch (op) {
+    case irgen::IROperation::MOV:
+        set_variable(tgt, get_variable(src1));
+        return;
+    case irgen::IROperation::LOAD:
+        // either load from global or floor
+        if (src1.get_type() == irgen::Operand::OperandType::ImmediateValue) {
+            floor_id = src1.get_constant();
+        } else {
+            // global, or indirect addressing
+            if (src1.get_type() == irgen::Operand::OperandType::VariableId && src1.get_register_id() < 0) {
+                floor_id = src1.get_register_id();
+            } else {
+                floor_id = get_variable(src1);
+            }
+        }
+
+        if (floor_id < 0) {
+            auto glb_it = _global_variables.find(floor_id);
+            if (glb_it == _global_variables.end()) {
+                spdlog::error("Global variable %{} is used before assignment. {}", floor_id, __PRETTY_FUNCTION__);
+            } else {
+                value = glb_it->second;
+            }
+        } else {
+            if (_memory_manager.get_floor(floor_id, value)) {
+                throw InterpreterException(InterpreterException::ErrorType::FloorIsEmpty, "Floor is null");
+            }
+        }
+        set_variable(tgt, value);
+        return;
+    case irgen::IROperation::STORE:
+        // either store to global or floor
+        if (tgt.get_type() == irgen::Operand::OperandType::ImmediateValue) {
+            floor_id = tgt.get_constant();
+        } else {
+            // global, or indirect addressing
+            if (tgt.get_type() == irgen::Operand::OperandType::VariableId && tgt.get_register_id() < 0) {
+                floor_id = tgt.get_register_id();
+            } else {
+                floor_id = get_variable(tgt);
+            }
+        }
+
+        if (floor_id < 0) {
+            _global_variables[floor_id] = get_variable(src1);
+        } else {
+            _memory_manager.set_floor(floor_id, get_variable(src1));
+        }
+        return;
+    case irgen::IROperation::LOADI:
+        if (src1.get_type() != irgen::Operand::OperandType::ImmediateValue) {
+            spdlog::error("Trying to LOADI of an operand which is not an immediate value: {}. {}", std::string(src1), __PRETTY_FUNCTION__);
+            throw;
+        }
+        set_variable(tgt, HRMByte(src1.get_constant()));
+        return;
+    default:
+        break;
+    }
+    spdlog::error("'{}' is not a unary op but called to evalute as unary expression. {}", irgen::irop_to_string(op), __PRETTY_FUNCTION__);
+    throw;
 }
 
 CLOSE_INTERPRETER_NAMESPACE

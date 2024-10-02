@@ -3,7 +3,6 @@
 
 #include <list>
 #include <string>
-#include <vector>
 
 #include "AbstractInterpreter.h"
 #include "HRMByte.h"
@@ -16,8 +15,10 @@ OPEN_INTERPRETER_NAMESPACE
 
 class IRInterpreter : public AbstractInterpreter {
 public:
-    IRInterpreter(IOManager &ioman, MemoryManager &memman, const irgen::ProgramPtr &program)
+    IRInterpreter(IOManager &ioman, MemoryManager &memman, const irgen::ProgramPtr &program, bool enforce_ssa = true)
         : AbstractInterpreter(ioman, memman)
+        , _program(program)
+        , _enforce_ssa(enforce_ssa)
     {
     }
 
@@ -28,17 +29,16 @@ public:
 private:
     struct CallFrame {
         std::string subroutine_name;
-        std::map<unsigned int, HRMByte> variables;
-        std::map<unsigned int, std::string> variable_assignment_history;
+        std::map<int, HRMByte> variables;
     };
 
-    HRMByte _return_value;
-
     irgen::ProgramPtr _program;
-    std::map<unsigned int, HRMByte> _global_variables;
+    std::map<int, HRMByte> _global_variables;
     std::map<std::string, irgen::SubroutinePtr> _subroutines;
+    bool _enforce_ssa;
 
     std::list<CallFrame> _calling_stack;
+    HRMByte _return_value;
 
     void exec_subroutine(const irgen::SubroutinePtr &subroutine, HRMByte parameter = HRMByte());
     HRMByte get_variable(const irgen::Operand &variable);
@@ -46,7 +46,7 @@ private:
 
     HRMByte evaluate_binary_op_instructions(irgen::IROperation op, const irgen::Operand &src1, const irgen::Operand &src2);
     HRMByte evaluate_unary_op_instructions(irgen::IROperation op, const irgen::Operand &src1);
-    HRMByte move_data(irgen::IROperation op, const irgen::Operand &tgt, const irgen::Operand &src1);
+    void move_data(irgen::IROperation op, const irgen::Operand &tgt, const irgen::Operand &src1);
 };
 
 CLOSE_INTERPRETER_NAMESPACE

@@ -10,6 +10,7 @@ OPEN_INTERPRETER_NAMESPACE
 
 class AbstractInterpreter {
 public:
+    virtual ~AbstractInterpreter() = default;
     virtual int exec() = 0;
 
 protected:

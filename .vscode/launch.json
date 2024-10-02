@@ -12,7 +12,9 @@
             "args": [
                 "-i",
                 "design/lang.hrml",
-                "--verbose"
+                "--verbose",
+                "-c",
+                "HIR_SSA",
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

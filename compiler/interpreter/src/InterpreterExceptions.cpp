@@ -1,4 +1,4 @@
-#include "InterpreterExceptions.h"
+#include "InterpreterExceptions.h" // IWYU pragma: keep
 
 OPEN_INTERPRETER_NAMESPACE
 
