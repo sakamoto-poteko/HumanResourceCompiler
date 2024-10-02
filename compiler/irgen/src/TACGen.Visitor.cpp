@@ -107,9 +107,9 @@ int TACGen::visit(const parser::VariableAssignmentASTNodePtr &node)
 
     if (decl_operand.get_register_id() < 0) {
         // it's a global. for global, we store instead of mov
-        create_instr(ThreeAddressCode::create_data_movement(IROperation::STORE, decl_operand, expr_result, node));
+        create_instr(ThreeAddressCode::create_data_movement(IROperation::STORE, Operand(), decl_operand, expr_result, node));
     } else {
-        create_instr(ThreeAddressCode::create_data_movement(IROperation::MOV, decl_operand, expr_result, node));
+        create_instr(ThreeAddressCode::create_data_movement(IROperation::MOV, decl_operand, expr_result, Operand(), node));
     }
 
     _node_var_id_result[node] = _node_var_id_result[expr];
@@ -128,7 +128,7 @@ int TACGen::visit(const parser::VariableAccessASTNodePtr &node)
     if (result.get_register_id() < 0) {
         Operand src(result);
         result = Operand(take_var_id_numbering());
-        create_instr(ThreeAddressCode::create_data_movement(IROperation::LOAD, result, src));
+        create_instr(ThreeAddressCode::create_data_movement(IROperation::LOAD, result, src, Operand(), node));
     }
 
     _node_var_id_result[node] = result;
@@ -180,7 +180,7 @@ int TACGen::visit(const parser::FloorAssignmentASTNodePtr &node)
     assert(index);
 
     Operand var(take_var_id_numbering());
-    create_instr(ThreeAddressCode::create_data_movement(IROperation::STORE, index, value, node));
+    create_instr(ThreeAddressCode::create_data_movement(IROperation::STORE, Operand(), index, value, node));
     _node_var_id_result[node] = var;
 
     END_VISIT();
@@ -198,7 +198,7 @@ int TACGen::visit(const parser::FloorAccessASTNodePtr &node)
     assert(index);
 
     Operand var(take_var_id_numbering());
-    create_instr(ThreeAddressCode::create_data_movement(IROperation::LOAD, var, index, node));
+    create_instr(ThreeAddressCode::create_data_movement(IROperation::LOAD, var, index, Operand(), node));
     _node_var_id_result[node] = var;
 
     END_VISIT();

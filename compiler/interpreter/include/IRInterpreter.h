@@ -8,6 +8,7 @@
 #include "HRMByte.h"
 #include "IROps.h"
 #include "IRProgramStructure.h"
+#include "InsertionOrderedSet.h"
 #include "Operand.h"
 #include "interpreter_global.h"
 
@@ -30,6 +31,10 @@ private:
     struct CallFrame {
         std::string subroutine_name;
         std::map<int, HRMByte> variables;
+        // this is used to verify SSA. the variable may be defined multiples the block is revisited
+        InsertionOrderedSet<std::string> basic_block_visited;
+        // the current basic block executing
+        irgen::BasicBlockPtr current_basic_block;
     };
 
     irgen::ProgramPtr _program;
@@ -46,7 +51,7 @@ private:
 
     HRMByte evaluate_binary_op_instructions(irgen::IROperation op, const irgen::Operand &src1, const irgen::Operand &src2);
     HRMByte evaluate_unary_op_instructions(irgen::IROperation op, const irgen::Operand &src1);
-    void move_data(irgen::IROperation op, const irgen::Operand &tgt, const irgen::Operand &src1);
+    void move_data(irgen::IROperation op, const irgen::Operand &tgt, const irgen::Operand &src1, const irgen::Operand &src2);
 };
 
 CLOSE_INTERPRETER_NAMESPACE

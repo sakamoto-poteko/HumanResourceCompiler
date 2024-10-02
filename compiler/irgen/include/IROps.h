@@ -11,10 +11,10 @@ OPEN_IRGEN_NAMESPACE
 enum class IROperation : std::uint8_t {
     // High IR
     // Data Movement Operations (0x00 - 0x03)
-    MOV = 0x00, // mov a, b
-    LOAD = 0x01, // load a, [100] or load a, (r1)
-    STORE = 0x02, // store a, [100] or store a, (r1)
-    LOADI = 0x03, // loadi a, 10
+    MOV = 0x00, // mov a, b. a is tgt
+    LOAD = 0x01, // load a, [100] or load a, (r1). a is tgt
+    STORE = 0x02, // store a, [100] or store a, (r1). a is src1, the value is src2
+    LOADI = 0x03, // loadi a, 10. a is tgt
 
     // Arithmetic Operations (0x10 - 0x15)
     ADD = 0x10, // add a, b, c
@@ -49,9 +49,9 @@ enum class IROperation : std::uint8_t {
     JMP = 0x48, // jmp label
 
     // Call and Return (0x50 - 0x52)
-    CALL = 0x50, // call label, b, a
-    ENTER = 0x51, // on function called
-    RET = 0x52, // ret
+    CALL = 0x50, // call a, label, b. a is tgt which is return val, b is src2 which is arg
+    ENTER = 0x51, // on function called. enter a. a is tgt
+    RET = 0x52, // ret a. a is src1
 
     // IO (0x60 - 0x61)
     INPUT = 0x60, // input a

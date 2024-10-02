@@ -540,7 +540,20 @@ void BuildSSAPass::rename_registers(const SubroutinePtr &subroutine, const std::
             rename_block(imm_dominated);
         }
 
-        for (TACPtr &instruction : instructions) {
+        for (auto &[var_id, count] : push_count) {
+            assert(name_stacks.contains(var_id));
+            for (unsigned int i = 0; i < count; ++i) {
+                name_stacks[var_id].pop();
+            }
+            count = 0;
+            assert(!name_stacks[var_id].empty());
+        }
+    };
+
+    rename_block(start_block);
+
+    for (const BasicBlockPtr &current_basic_block : subroutine->get_basic_blocks()) {
+        for (TACPtr &instruction : current_basic_block->get_instructions()) {
             if (instruction->get_op() != IROperation::PHI) {
                 continue;
             }
@@ -557,23 +570,12 @@ void BuildSSAPass::rename_registers(const SubroutinePtr &subroutine, const std::
                     instruction->set_phi_incoming(incoming_bb, renamed_var_id_in_bb);
                 } else {
                     // If the incoming block hasn't renamed the variable yet, use the current top
-                    spdlog::warn("[SSA Rename] Renamed id for '%{}' was not found. Current BB is '{}'.", original_var_id, current_basic_block->get_label());
+                    spdlog::error("[SSA Rename Phi Branch] Renamed id for '%{}' was not found. Current BB is '{}'.", original_var_id, current_basic_block->get_label());
                     instruction->set_phi_incoming(incoming_bb, name_stacks[original_var_id].top());
                 }
             }
         }
-
-        for (auto &[var_id, count] : push_count) {
-            assert(name_stacks.contains(var_id));
-            for (unsigned int i = 0; i < count; ++i) {
-                name_stacks[var_id].pop();
-            }
-            count = 0;
-            assert(!name_stacks[var_id].empty());
-        }
-    };
-
-    rename_block(start_block);
+    }
 }
 
 CLOSE_IRGEN_NAMESPACE

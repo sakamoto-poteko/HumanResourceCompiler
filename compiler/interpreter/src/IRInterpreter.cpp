@@ -33,13 +33,16 @@ void IRInterpreter::exec_subroutine(const irgen::SubroutinePtr &subroutine, HRMB
     _calling_stack.push_back({
         .subroutine_name = subroutine->get_func_name(),
         .variables = {},
+        .basic_block_visited = {},
+        .current_basic_block = nullptr,
     });
 
     CallFrame &call_frame = _calling_stack.back();
+    irgen::BasicBlockPtr &current_block = call_frame.current_basic_block;
 
     const irgen::ControlFlowGraph &cfg = *subroutine->get_cfg();
-    irgen::BasicBlockPtr current_block = cfg[subroutine->get_start_block()];
-    irgen::BasicBlockPtr last_block = nullptr;
+    current_block = cfg[subroutine->get_start_block()];
+    irgen::BasicBlockPtr predecessor_block = nullptr;
 
     std::map<std::string, irgen::BasicBlockPtr> basic_blocks;
     // next bb in linear order
@@ -57,6 +60,12 @@ void IRInterpreter::exec_subroutine(const irgen::SubroutinePtr &subroutine, HRMB
             next_basic_block[basic_block] = nullptr;
         }
     }
+
+    auto set_next_block_to_exec = [&predecessor_block, &current_block, &call_frame](const irgen::BasicBlockPtr &basic_block) {
+        predecessor_block = current_block;
+        call_frame.basic_block_visited.insert(current_block->get_label());
+        current_block = basic_block;
+    };
 
     while (current_block) {
         spdlog::debug("Entered BB '{}'", current_block->get_label());
@@ -79,7 +88,7 @@ void IRInterpreter::exec_subroutine(const irgen::SubroutinePtr &subroutine, HRMB
             case irgen::IROperation::LOADI:
             case irgen::IROperation::MOV:
             case irgen::IROperation::LOAD:
-                move_data(op, tgt, src1);
+                move_data(op, tgt, src1, src2);
                 // move_data sets the tgt. no need to set in this func
                 break;
 
@@ -195,9 +204,9 @@ void IRInterpreter::exec_subroutine(const irgen::SubroutinePtr &subroutine, HRMB
                 break;
 
             case irgen::IROperation::PHI:
-                spdlog::debug("Phi: last block is {}", last_block->get_label());
-                assert(instruction->get_phi_incomings().contains(last_block));
-                op_result = get_variable(instruction->get_phi_incomings().at(last_block));
+                spdlog::debug("Phi: predecessor block is '{}'", predecessor_block->get_label());
+                assert(instruction->get_phi_incomings().contains(predecessor_block));
+                op_result = get_variable(instruction->get_phi_incomings().at(predecessor_block));
                 should_set_tgt_var = true;
                 break;
 
@@ -207,8 +216,7 @@ void IRInterpreter::exec_subroutine(const irgen::SubroutinePtr &subroutine, HRMB
             }
 
             if (is_return) {
-                last_block = current_block;
-                current_block = nullptr;
+                set_next_block_to_exec(nullptr);
                 non_linear_control_flow = true;
 
                 break;
@@ -221,21 +229,16 @@ void IRInterpreter::exec_subroutine(const irgen::SubroutinePtr &subroutine, HRMB
             if (should_branch) {
                 assert(tgt.get_type() == irgen::Operand::OperandType::Label);
                 assert(basic_blocks.contains(tgt.get_label()));
-                last_block = current_block;
-                current_block = basic_blocks.at(tgt.get_label());
-                assert(current_block);
-
+                set_next_block_to_exec(basic_blocks.at(tgt.get_label()));
                 non_linear_control_flow = true;
                 break;
             }
-
-        } // for every instruction
+        } // end of for loop: every instruction
 
         // all instructions are visited
         // if it's jmp, it's not natural end
         if (current_block && !non_linear_control_flow) {
-            last_block = current_block;
-            current_block = next_basic_block.at(current_block);
+            set_next_block_to_exec(next_basic_block.at(current_block));
         }
     }
 
@@ -273,8 +276,11 @@ void IRInterpreter::set_variable(const irgen::Operand &variable, const HRMByte &
 
     auto var_it = var_map.find(reg_id);
     if (_enforce_ssa && var_it != var_map.end()) {
-        spdlog::error("Tring to set variable {} which is already set, which violates SSA rule. This is likely a bug, consider report it. {}", std::string(variable), __PRETTY_FUNCTION__);
-        throw;
+        // only check if this block haven't be visited.
+        if (!_calling_stack.back().basic_block_visited.contains(_calling_stack.back().current_basic_block->get_label())) {
+            spdlog::error("Tring to set variable {} which is already set, which violates SSA rule. This is likely a bug, consider report it. {}", std::string(variable), __PRETTY_FUNCTION__);
+            throw;
+        }
     } else {
         var_map[reg_id] = value;
     }
@@ -336,7 +342,7 @@ HRMByte IRInterpreter::evaluate_unary_op_instructions(irgen::IROperation op, con
     throw;
 }
 
-void IRInterpreter::move_data(irgen::IROperation op, const irgen::Operand &tgt, const irgen::Operand &src1)
+void IRInterpreter::move_data(irgen::IROperation op, const irgen::Operand &tgt, const irgen::Operand &src1, const irgen::Operand &src2)
 {
     // bool ok = false;
     HRMByte value;
@@ -374,22 +380,25 @@ void IRInterpreter::move_data(irgen::IROperation op, const irgen::Operand &tgt, 
         set_variable(tgt, value);
         return;
     case irgen::IROperation::STORE:
+        // NOTE: STORE op has src1 and src2 and no tgt. src1 is the target address, src2 is the value
         // either store to global or floor
-        if (tgt.get_type() == irgen::Operand::OperandType::ImmediateValue) {
-            floor_id = tgt.get_constant();
+        if (src2.get_type() == irgen::Operand::OperandType::ImmediateValue) {
+            floor_id = src2.get_constant();
         } else {
             // global, or indirect addressing
-            if (tgt.get_type() == irgen::Operand::OperandType::VariableId && tgt.get_register_id() < 0) {
-                floor_id = tgt.get_register_id();
+            if (src1.get_type() == irgen::Operand::OperandType::VariableId && src1.get_register_id() < 0) {
+                floor_id = src1.get_register_id();
             } else {
-                floor_id = get_variable(tgt);
+                // get_variable will check if it's a variable id and raise if not
+                // no need to make another if here. ugly
+                floor_id = get_variable(src1);
             }
         }
 
         if (floor_id < 0) {
-            _global_variables[floor_id] = get_variable(src1);
+            _global_variables[floor_id] = get_variable(src2);
         } else {
-            _memory_manager.set_floor(floor_id, get_variable(src1));
+            _memory_manager.set_floor(floor_id, get_variable(src2));
         }
         return;
     case irgen::IROperation::LOADI:

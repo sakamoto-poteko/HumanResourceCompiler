@@ -15,6 +15,7 @@
                 "--verbose",
                 "-c",
                 "HIR_SSA",
+                "-I1,2,3,4,5,6",
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
