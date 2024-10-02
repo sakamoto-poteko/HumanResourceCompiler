@@ -71,9 +71,10 @@ void RenumberVariableIdPass::renumber_registers(const SubroutinePtr &subroutine)
     for (const BasicBlockPtr &basic_block : basic_blocks) {
         for (TACPtr &instr : basic_block->get_instructions()) {
             if (instr->get_op() == IROperation::PHI) {
-                for (const auto &[income_basic_block, var_id] : instr->get_phi_incomings()) {
+                for (const auto &[income_basic_block, phi_incoming_meta] : instr->get_phi_incomings()) {
+                    auto &[var_id, var_def_block] = phi_incoming_meta;
                     unsigned int new_id = get_new_reg_id(var_id);
-                    instr->set_phi_incoming(income_basic_block, new_id);
+                    instr->set_phi_incoming(income_basic_block, new_id, var_def_block);
                 }
             }
         }

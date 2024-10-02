@@ -15,7 +15,7 @@ int VerifySSAPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetada
     UNUSED(metadata);
     UNUSED(program);
 
-    std::set<unsigned int> variable_assigned;
+    std::map<unsigned int, BasicBlockPtr> variable_assigned;
     std::set<ControlFlowVertex> pass1, pass2;
 
     visit_basic_block(subroutine->get_start_block(), *subroutine->get_cfg(), pass1, [&](const BasicBlockPtr &basic_block) {
@@ -29,7 +29,7 @@ int VerifySSAPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetada
     return 0;
 }
 
-void VerifySSAPass::verify_basic_block_assignments_and_uses(const BasicBlockPtr &basic_block, std::set<unsigned int> &variable_assigned)
+void VerifySSAPass::verify_basic_block_assignments_and_uses(const BasicBlockPtr &basic_block, std::map<unsigned int, BasicBlockPtr> &variable_assigned)
 {
     for (const TACPtr &instruction : basic_block->get_instructions()) {
         // 1. it's assigned to a new variable
@@ -42,7 +42,7 @@ void VerifySSAPass::verify_basic_block_assignments_and_uses(const BasicBlockPtr 
                     spdlog::error("Variable '%{}' in block '{}' is defined already. This is likely the bug of SSA generator. Report this bug.", tgt_var_id, basic_block->get_label());
                     throw;
                 } else {
-                    variable_assigned.insert(tgt_var_id);
+                    variable_assigned[tgt_var_id] = basic_block;
                 }
             }
         }
@@ -68,13 +68,23 @@ void VerifySSAPass::verify_basic_block_assignments_and_uses(const BasicBlockPtr 
     }
 }
 
-void VerifySSAPass::verify_basic_block_phi_incoming_branches(const BasicBlockPtr &basic_block, const std::set<unsigned int> &variable_assigned)
+void VerifySSAPass::verify_basic_block_phi_incoming_branches(const BasicBlockPtr &basic_block, const std::map<unsigned int, BasicBlockPtr> &variable_assigned)
 {
     for (const TACPtr &instruction : basic_block->get_instructions()) {
         if (instruction->get_op() == IROperation::PHI) {
-            for (const auto &[incoming_basic_block, var_id] : instruction->get_phi_incomings()) {
-                if (!variable_assigned.contains(var_id)) {
-                    spdlog::error("Variable '%{}' in phi incoming of block '{}' is used before assignment. This is likely the bug of SSA generator. Report this bug.", var_id, incoming_basic_block->get_label());
+            for (const auto &[predecessor_basic_block, phi_incoming_meta] : instruction->get_phi_incomings()) {
+                auto &[var_id, var_def_block] = phi_incoming_meta;
+                auto var_asgn_it = variable_assigned.find(var_id);
+                if (var_asgn_it == variable_assigned.end()) {
+                    spdlog::error(
+                        "Variable '%{}' in phi incoming of block '{}' is used before assignment. This is likely the bug of SSA generator. Report this bug.",
+                        var_id, predecessor_basic_block->get_label());
+                    throw;
+                }
+                if (var_asgn_it->second != var_def_block) {
+                    spdlog::error(
+                        "Variable '%{}' in phi incoming of block '{}' should be defined in '{}', but actually defined in {}. This is likely the bug of SSA generator. Report this bug.",
+                        var_id, predecessor_basic_block->get_label(), var_def_block->get_label(), var_asgn_it->second->get_label());
                     throw;
                 }
             }
