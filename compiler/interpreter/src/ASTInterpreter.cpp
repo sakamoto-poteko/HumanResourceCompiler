@@ -112,7 +112,7 @@ int ASTInterpreter::visit(const parser::FloorAssignmentASTNodePtr &node)
 
     rc = traverse(node->get_floor_number());
     RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
-    int flrid = _accumulator.get_register();
+    int flrid = _accumulator.get_register().operator int();
 
     _accumulator.set_register(value);
     _accumulator.copy_to_floor(flrid);
@@ -127,7 +127,7 @@ int ASTInterpreter::visit(const parser::FloorAccessASTNodePtr &node)
 
     rc = traverse(node->get_index_expr());
     RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
-    int idx = _accumulator.get_register();
+    int idx = _accumulator.get_register().operator int();
 
     _accumulator.copy_from_floor(idx);
     spdlog::debug("loaded floor[{}] with value {}", idx, _accumulator.get_register());
@@ -273,11 +273,11 @@ int ASTInterpreter::visit_binary_expression(const parser::AbstractBinaryExpressi
         result = left * right;
         break;
     case parser::ASTBinaryOperator::DIV:
-        ensure_non_zero(right);
+        ensure_non_zero(right.operator int());
         result = left / right;
         break;
     case parser::ASTBinaryOperator::MOD:
-        ensure_non_zero(right);
+        ensure_non_zero(right.operator int());
         result = left % right;
         break;
     case parser::ASTBinaryOperator::AND:
