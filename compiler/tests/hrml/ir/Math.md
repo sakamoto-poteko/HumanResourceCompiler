@@ -6,7 +6,7 @@ Below are the revised math problems and corresponding code snippets tailored to 
 
 **Problem:** Compute the factorial of a given non-negative integer `n`.  
 **Known Solution:** `n! = n × (n-1) × ... × 1`  
-**Adjusted Example:** `6! = 720` (Since `7! = 5040` exceeds `999`)
+**Example:** `5! = 120`
 
 ```c
 // Factorial of a number
@@ -20,15 +20,15 @@ function factorial(n) {
 }
 
 function main() {
-    let number = 6;
+    let number = 5;
     let fact = factorial(number);
-    // Expected output: 720
+    // Expected output: 120
     return fact;
 }
 ```
 
 **Notes:**
-- **Input Constraint:** Use `n` such that `n! <= 999`. For example, `n` can be up to `6` since `6! = 720` and `7! = 5040` exceeds the limit.
+- **Input Constraint:** Ensure `n` is such that `n!` does not exceed `999`. For example, `n` can be up to `6` since `6! = 720` and `7! = 5040` exceeds the limit.
 
 ---
 
@@ -36,7 +36,7 @@ function main() {
 
 **Problem:** Compute the `n`-th Fibonacci number.  
 **Known Solution:** `F(n) = F(n-1) + F(n-2)` with `F(0)=0` and `F(1)=1`  
-**Adjusted Example:** `F(16) = 987` (Since `F(17) = 1597` exceeds `999`)
+**Example:** `F(10) = 55`
 
 ```c
 // Fibonacci sequence
@@ -60,15 +60,15 @@ function fibonacci(n) {
 }
 
 function main() {
-    let number = 16;
+    let number = 10;
     let fib = fibonacci(number);
-    // Expected output: 987
+    // Expected output: 55
     return fib;
 }
 ```
 
 **Notes:**
-- **Input Constraint:** Use `n` up to `16` to ensure `F(n)` does not exceed `999`.
+- **Input Constraint:** Use `n` up to `16` to ensure `F(n)` does not exceed `999` (since `F(16) = 987` and `F(17) = 1597` exceeds the limit).
 
 ---
 
@@ -102,7 +102,7 @@ function main() {
 ```
 
 **Notes:**
-- **Range Compliance:** Any `n` within `-999` to `+999` can be tested. Typically, primes are positive integers greater than `1`.
+- **Range Compliance:** Any `n` within `-999` to `+999` can be tested, but typically primes are positive integers greater than `1`.
 
 ---
 
@@ -110,7 +110,7 @@ function main() {
 
 **Problem:** Find the greatest common divisor of two integers `a` and `b`.  
 **Known Solution:** Using the Euclidean algorithm.  
-**Adjusted Example:** `GCD(48, 18) = 6`
+**Example:** `GCD(48, 18) = 6`
 
 ```c
 // GCD using Euclidean algorithm
@@ -133,7 +133,7 @@ function main() {
 ```
 
 **Notes:**
-- **Input Constraint:** Ensure that `a` and `b` are within `-999` to `+999`. The GCD function works correctly with positive integers; if negatives are used, the absolute values are typically considered.
+- **Input Constraint:** Ensure that `a` and `b` are within `-999` to `+999`. The GCD function works correctly with positive integers; if negatives are used, consider taking absolute values before processing.
 
 ---
 
@@ -141,7 +141,7 @@ function main() {
 
 **Problem:** Calculate the sum of the first `n` natural numbers.  
 **Known Solution:** `Sum = n*(n+1)/2`  
-**Adjusted Example:** Sum of first `44` natural numbers is `990` (Since `45*46/2 = 1035` exceeds `999`)
+**Example:** Sum of first `44` natural numbers is `990`
 
 ```c
 // Sum of first n natural numbers
@@ -170,8 +170,8 @@ function main() {
 ### 6. **Reverse a Number**
 
 **Problem:** Reverse the digits of an integer `n`.  
-**Known Solution:** Reversing the digits of `12345` yields `54321`  
-**Adjusted Example:** `Reverse(123) = 321`
+**Known Solution:** Reversing the digits of `1234` yields `4321`  
+**Example:** `Reverse(123) = 321`
 
 ```c
 // Reverse a number
@@ -198,128 +198,11 @@ function main() {
 
 ---
 
-### 7. **Greatest Common Divisor (GCD) using Recursive Approach**
-
-**Problem:** Find the GCD of two integers `a` and `b` using recursion.  
-**Known Solution:** Euclidean algorithm recursively.  
-**Adjusted Example:** `GCD(54, 24) = 6`
-
-```c
-// Recursive GCD
-function gcdRecursive(a, b) {
-    if (b == 0) {
-        return a;
-    }
-    return gcdRecursive(b, a % b);
-}
-
-function main() {
-    let num1 = 54;
-    let num2 = 24;
-    let result = gcdRecursive(num1, num2);
-    // Expected output: 6
-    return result;
-}
-```
-
-**Notes:**
-- **Input Constraint:** Similar to the iterative GCD, ensure `a` and `b` are within `-999` to `+999`.
-
----
-
-### 8. **Binary Search**
-
-**Problem:** Perform binary search on a sorted array to find the index of a target value.  
-**Known Solution:** Binary search algorithm returns the index if found, else `-1`.  
-**Adjusted Example:** Searching for `5` in `[1, 3, 5, 7, 9]` returns index `2`
-
-```c
-// Binary search
-function binarySearch(arr, size, target) {
-    let left = 0;
-    let right = size - 1;
-    while (left <= right) {
-        let mid = left + (right - left) / 2;
-        if (arr[mid] == target) {
-            return mid;
-        }
-        if (arr[mid] < target) {
-            left = mid + 1;
-        } else {
-            right = mid - 1;
-        }
-    }
-    return -1; // Not found
-}
-
-function main() {
-    let arr[5];
-    arr[0] = 1;
-    arr[1] = 3;
-    arr[2] = 5;
-    arr[3] = 7;
-    arr[4] = 9;
-    let size = 5;
-    let target = 5;
-    let index = binarySearch(arr, size, target);
-    // Expected output: 2
-    return index;
-}
-```
-
-**Notes:**
-- **Array Constraints:** Ensure all array elements and the target are within `-999` to `+999`.
-- **Division Handling:** The calculation `mid = left + (right - left) / 2` should perform integer division. If your compiler truncates decimals, it's fine; otherwise, adjust accordingly.
-
----
-
-### 9. **Bubble Sort**
-
-**Problem:** Sort an array of integers in ascending order using the Bubble Sort algorithm.  
-**Known Solution:** Repeatedly swapping adjacent elements if they are in the wrong order.  
-**Adjusted Example:** Sorting `[5, 3, 8, 4, 2]` results in `[2, 3, 4, 5, 8]`
-
-```c
-// Bubble Sort
-function bubbleSort(arr, size) {
-    let i, j;
-    for (i = 0; i < size - 1; i = i + 1) {
-        for (j = 0; j < size - i - 1; j = j + 1) {
-            if (arr[j] > arr[j + 1]) {
-                // Swap arr[j] and arr[j + 1]
-                let temp = arr[j];
-                arr[j] = arr[j + 1];
-                arr[j + 1] = temp;
-            }
-        }
-    }
-}
-
-function main() {
-    let arr[5];
-    arr[0] = 5;
-    arr[1] = 3;
-    arr[2] = 8;
-    arr[3] = 4;
-    arr[4] = 2;
-    let size = 5;
-    bubbleSort(arr, size);
-    // Expected sorted array: [2, 3, 4, 5, 8]
-    return arr[0]; // Return first element to verify sorting
-}
-```
-
-**Notes:**
-- **Array Constraints:** Ensure all elements are within `-999` to `+999`.
-- **Verification:** Since returning the entire array may not be supported, returning the first element (`arr[0]`) allows you to verify if the sort was successful (`2` in this example).
-
----
-
-### 10. **Sum of Digits**
+### 7. **Sum of Digits**
 
 **Problem:** Calculate the sum of the digits of an integer `n`.  
-**Known Solution:** Sum of digits of `1234` is `10`  
-**Adjusted Example:** `SumDigits(432) = 9`
+**Known Solution:** Sum of digits of `432` is `9`  
+**Example:** `SumDigits(432) = 9`
 
 ```c
 // Sum of digits
@@ -346,29 +229,170 @@ function main() {
 
 ---
 
-### Additional Testing Tips Considering the Integer Range:
+### 8. **Bubble Sort (Sorting Five Numbers Manually)**
 
-1. **Input Limits:** Always use inputs that, after computation, stay within `-999` to `+999`. For example:
-   - **Factorial:** Limit `n` to `6`.
-   - **Fibonacci:** Limit `n` to `16`.
-   - **Sum of Natural Numbers:** Limit `n` to `44`.
-   
-2. **Overflow Handling:** Test scenarios where intermediate calculations might approach the limits. For example, in the `reverseNumber` function, reversing `999` yields `999`, which is within range, but ensure that larger inputs aren't used.
+**Problem:** Sort five integers in ascending order using the Bubble Sort algorithm.  
+**Known Solution:** Repeatedly swapping adjacent elements if they are in the wrong order.  
+**Example:** Sorting `5, 3, 8, 4, 2` results in `2, 3, 4, 5, 8`
 
-3. **Negative Numbers:**
-   - If your compiler supports negative numbers, test functions like `isPrime`, `gcd`, and `sumDigits` with negative inputs to see how they behave.
-   - Adjust functions if necessary to handle negatives appropriately, such as taking absolute values where needed.
+**Note:** Since arrays are not supported, we'll handle five separate variables (`a`, `b`, `c`, `d`, `e`) and perform swaps manually.
 
-4. **Edge Cases:**
-   - **Zero:** Test functions with `0` as input where applicable, e.g., `factorial(0)`, `fibonacci(0)`, `gcd(a, 0)`, etc.
-   - **Maximum and Minimum Values:** Test with `999` and `-999` to ensure no overflow occurs and that the compiler correctly handles these extremes.
+```c
+// Bubble Sort for five variables without using arrays
+function bubbleSortFive(a, b, c, d, e) {
+    let swapped;
+    do {
+        swapped = 0;
+        // Compare and swap a and b
+        if (a > b) {
+            let temp = a;
+            a = b;
+            b = temp;
+            swapped = 1;
+        }
+        // Compare and swap b and c
+        if (b > c) {
+            let temp = b;
+            b = c;
+            c = temp;
+            swapped = 1;
+        }
+        // Compare and swap c and d
+        if (c > d) {
+            let temp = c;
+            c = d;
+            d = temp;
+            swapped = 1;
+        }
+        // Compare and swap d and e
+        if (d > e) {
+            let temp = d;
+            d = e;
+            e = temp;
+            swapped = 1;
+        }
+    } while (swapped == 1);
+    return a; // Returning the first element as a representative
+}
 
-5. **Control Structures:**
-   - Verify that loops (`for`, `while`) and conditionals (`if`) handle boundary conditions correctly. For example, a loop that should run `n` times with `n = 0`, `n = 1`, `n = 999`, etc.
+function main() {
+    let a = 5;
+    let b = 3;
+    let c = 8;
+    let d = 4;
+    let e = 2;
+    let first = bubbleSortFive(a, b, c, d, e);
+    // Expected first element after sorting: 2
+    return first;
+}
+```
 
-6. **Function Calls and Recursion:**
-   - Ensure that recursive functions like `gcdRecursive` do not exceed the maximum recursion depth due to the input size limitations.
-   - Test nested function calls to verify that the call stack is managed correctly within the compiler's constraints.
+**Explanation:**
+- The `bubbleSortFive` function manually swaps the variables `a`, `b`, `c`, `d`, and `e` if they are out of order.
+- The `do-while` loop continues until no swaps are needed, indicating that the numbers are sorted.
+- The function returns the first element (`a`) after sorting, which should be the smallest number (`2` in the example).
 
-7. **Variable Scope:**
-   - Test the differentiation between local and global variables by creating scenarios where variables with the same name exist in different scopes.
+**Notes:**
+- **Scalability:** This approach is limited to sorting exactly five numbers. For more numbers, additional variables and swap conditions would need to be added.
+- **Verification:** Since returning multiple values isn't straightforward without arrays, you can modify the function to return one or more sorted values or implement additional return statements as needed.
+
+---
+
+### 9. **Binary Search (Without Arrays)**
+
+**Problem:** Since arrays are not supported, implementing a binary search isn't feasible. Instead, we can perform a simple search for a target value among individual variables.
+
+**Alternative Example:** **Find the Maximum of Five Numbers**
+
+**Known Solution:** Identify the largest number among five given integers.
+
+**Example:** Maximum of `5, 3, 8, 4, 2` is `8`
+
+```c
+// Find the maximum of five numbers
+function findMax(a, b, c, d, e) {
+    let max = a;
+    if (b > max) {
+        max = b;
+    }
+    if (c > max) {
+        max = c;
+    }
+    if (d > max) {
+        max = d;
+    }
+    if (e > max) {
+        max = e;
+    }
+    return max;
+}
+
+function main() {
+    let a = 5;
+    let b = 3;
+    let c = 8;
+    let d = 4;
+    let e = 2;
+    let maximum = findMax(a, b, c, d, e);
+    // Expected output: 8
+    return maximum;
+}
+```
+
+**Notes:**
+- **Alternative to Binary Search:** Since arrays aren't available, searching within individual variables is limited. However, finding the maximum or minimum can still be tested.
+
+---
+
+### 10. **Palindrome Checker (Without Arrays)**
+
+**Problem:** Determine whether a given integer `n` is a palindrome (reads the same backward as forward).  
+**Known Solution:** Reverse the number and compare it with the original.
+
+**Example:** `121` is a palindrome, `123` is not.
+
+```c
+// Palindrome checker
+function isPalindrome(n) {
+    let original = n;
+    let reversed = 0;
+    while (n > 0) {
+        let digit = n % 10;
+        reversed = reversed * 10 + digit;
+        n = n / 10;
+    }
+    if (original == reversed) {
+        return 1; // True
+    } else {
+        return 0; // False
+    }
+}
+
+function main() {
+    let number = 121;
+    let palindrome = isPalindrome(number);
+    // Expected output: 1 (true)
+    return palindrome;
+}
+```
+
+**Notes:**
+- **Input Constraint:** Ensure `n` is within `-999` to `+999`. The function handles positive integers. For negative numbers, you might want to take the absolute value before processing.
+
+---
+
+### Tips for Testing Without Arrays:
+
+1. **Multiple Variables Handling:** When testing functions that traditionally use arrays (like sorting), manually handle a fixed number of variables. This helps verify your compiler's ability to manage multiple variables and nested control structures.
+
+2. **Edge Cases:** Test with edge cases such as `0`, `1`, and `999` to ensure correct handling within the specified range.
+
+3. **Control Structures:** Verify the correct implementation of `if`, `for`, and `while` by designing test cases that heavily utilize these constructs.
+
+4. **Function Calls and Recursion:** Test nested function calls and recursive functions to ensure proper call stack management. For example, the recursive GCD function is a good test case.
+
+5. **Variable Scope:** Create scenarios with variables of the same name in different scopes (global vs. local) to ensure that variable scope is correctly handled.
+
+6. **Arithmetic Operations:** Ensure that all basic arithmetic operations (`+`, `-`, `*`, `/`, `%`) work as expected within the integer range.
+
+7. **Overflow Handling:** Since the integer range is limited, test scenarios that approach the boundaries (e.g., operations resulting in `999` or `-999`) to verify that overflow is handled appropriately.
