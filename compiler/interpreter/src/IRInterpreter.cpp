@@ -260,7 +260,7 @@ HRMByte IRInterpreter::get_variable(const irgen::Operand &variable)
         spdlog::error("The variable {} is accessed before assigned. This is likely a bug, consider report it. {}", std::string(variable), __PRETTY_FUNCTION__);
         throw;
     } else {
-        spdlog::debug("Get variable {}: {}", std::string(variable), var_it->second);
+        spdlog::trace("Get variable {}: {}", std::string(variable), var_it->second);
         return var_it->second;
     }
 }
@@ -282,7 +282,7 @@ void IRInterpreter::set_variable(const irgen::Operand &variable, const HRMByte &
         spdlog::error("Tring to set variable {} which is already set, which violates SSA rule. This is likely a bug, consider report it. {}", std::string(variable), __PRETTY_FUNCTION__);
         throw;
     } else {
-        spdlog::debug("Set variable {} = {}", std::string(variable), value);
+        spdlog::trace("Set variable {} = {}", std::string(variable), value);
         var_map[reg_id] = value;
     }
 }
