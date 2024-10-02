@@ -1,6 +1,7 @@
 #ifndef WITHSEMANTICANALYZED_H
 #define WITHSEMANTICANALYZED_H
 
+#include "IRProgramStructure.h"
 #include "SymbolTable.h"
 #include "WithParsed.h"
 
@@ -12,8 +13,11 @@ public:
 
     hrl::semanalyzer::SymbolTablePtr get_symtbl() { return symtbl; }
 
+    hrl::irgen::ProgramPtr get_program() { return program; }
+
 protected:
     hrl::semanalyzer::SymbolTablePtr symtbl;
+    hrl::irgen::ProgramPtr program;
 };
 
 #endif

@@ -7,13 +7,15 @@ find_package(Boost CONFIG REQUIRED)
 add_executable(${PROJECT_NAME}
    Tests.cpp
    TestSemAnalyzer.cpp
-   TestInterpreter.cpp
+   TestASTInterpreter.cpp
+   TestIRInterpreter.cpp
    WithParsed.cpp
-   WithSemanticAnalyzed.cpp)
+   WithSemanticAnalyzed.cpp
+   WithIR.cpp)
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE FALLBACK_HRML_DIR="${CMAKE_CURRENT_SOURCE_DIR}/hrml")
 
-target_link_libraries(${PROJECT_NAME} PRIVATE hrc_interpreter hrc_semanalyzer hrc_parser hrc_lexer hrc_util)
+target_link_libraries(${PROJECT_NAME} PRIVATE hrc_interpreter hrc_irgen hrc_semanalyzer hrc_parser hrc_lexer hrc_util)
 target_link_libraries(${PROJECT_NAME} PRIVATE GTest::GTest GTest::Main)
 
 add_test(

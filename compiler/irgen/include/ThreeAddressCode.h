@@ -61,7 +61,7 @@ public:
     static std::shared_ptr<ThreeAddressCode> create_branching(IROperation op, const Operand &tgt, const Operand &src1, const Operand &src2, std::shared_ptr<parser::ASTNode> ast = nullptr);
     static std::shared_ptr<ThreeAddressCode> create_branching(IROperation op, const Operand &tgt, const Operand &src1, std::shared_ptr<parser::ASTNode> ast = nullptr);
     static std::shared_ptr<ThreeAddressCode> create_branching(const Operand &tgt, std::shared_ptr<parser::ASTNode> ast = nullptr);
-    static std::shared_ptr<ThreeAddressCode> create_data_movement(IROperation op, const Operand &tgt, const Operand &src1, std::shared_ptr<parser::ASTNode> ast = nullptr);
+    static std::shared_ptr<ThreeAddressCode> create_data_movement(IROperation op, const Operand &tgt, const Operand &src1, const Operand &src2, std::shared_ptr<parser::ASTNode> ast = nullptr);
     static std::shared_ptr<ThreeAddressCode> create_load_immediate(const Operand &tgt, HRBox imm, std::shared_ptr<parser::ASTNode> ast = nullptr);
     static std::shared_ptr<ThreeAddressCode> create_special(IROperation op, std::shared_ptr<parser::ASTNode> ast = nullptr);
     static std::shared_ptr<ThreeAddressCode> create_io(IROperation op, const Operand &val, std::shared_ptr<parser::ASTNode> ast = nullptr);

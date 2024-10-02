@@ -20,6 +20,7 @@ public:
         DivByZero,
         ModByZero,
         TypeMismatch,
+        HaltRequested,
     };
 
     InterpreterException(ErrorType err, const std::string &message = "")

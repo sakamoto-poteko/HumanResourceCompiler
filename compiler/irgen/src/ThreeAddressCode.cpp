@@ -37,7 +37,7 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_arithmetic(IROperatio
         }
         return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt, src1, Operand(), ast));
     } else {
-        throw std::invalid_argument("Invalid logical operation");
+        throw std::invalid_argument("Invalid NEG operation");
     }
 }
 
@@ -60,7 +60,7 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_logical(IROperation o
         }
         return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt, src1, Operand(), ast));
     } else {
-        throw std::invalid_argument("Invalid logical operation");
+        throw std::invalid_argument("Invalid NOT operation");
     }
 }
 
@@ -72,7 +72,7 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_logical(IROperation o
         }
         return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt, src1, src2, ast));
     } else {
-        throw std::invalid_argument("Invalid logical operation");
+        throw std::invalid_argument("Invalid AND/OR operation");
     }
 }
 
@@ -106,7 +106,7 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_branching(const Opera
     return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(IROperation::JMP, tgt, Operand(), Operand(), ast));
 }
 
-std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_data_movement(IROperation op, const Operand &tgt, const Operand &src1, std::shared_ptr<parser::ASTNode> ast)
+std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_data_movement(IROperation op, const Operand &tgt, const Operand &src1, const Operand &src2, std::shared_ptr<parser::ASTNode> ast)
 {
     if (op == IROperation::MOV) { // MOV requires both src1 and tgt to be variables
         if (src1.get_type() != Operand::OperandType::VariableId || tgt.get_type() != Operand::OperandType::VariableId) {
@@ -114,16 +114,16 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_data_movement(IROpera
         }
     } else if (op == IROperation::LOAD) { // LOAD can load from a constant or variable to a variable
         if ((src1.get_type() != Operand::OperandType::ImmediateValue && src1.get_type() != Operand::OperandType::VariableId) || tgt.get_type() != Operand::OperandType::VariableId) {
-            throw std::runtime_error("LOAD operation requires src1 to be a constant or variable, and tgt to be a variable");
+            throw std::runtime_error("LOAD operation requires src1 (where to load) to be a constant or variable, and tgt (load to where) to be a variable");
         }
     } else if (op == IROperation::STORE) { // STORE can store from a variable to a constant or variable
-        if (src1.get_type() != Operand::OperandType::VariableId || (tgt.get_type() != Operand::OperandType::ImmediateValue && tgt.get_type() != Operand::OperandType::VariableId)) {
-            throw std::runtime_error("STORE operation requires src1 to be a variable and tgt to be a constant or variable");
+        if ((src1.get_type() != Operand::OperandType::ImmediateValue && src1.get_type() != Operand::OperandType::VariableId) || src2.get_type() != Operand::OperandType::VariableId) {
+            throw std::runtime_error("STORE operation requires src1 (where to store) to be a constant or variable and src2 (what to store) to be a variable ");
         }
     } else {
         throw std::invalid_argument("Invalid data movement operation");
     }
-    return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt, src1, Operand(), ast));
+    return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt, src1, src2, ast));
 }
 
 std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_load_immediate(const Operand &tgt, HRBox imm, std::shared_ptr<parser::ASTNode> ast)

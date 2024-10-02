@@ -7,6 +7,7 @@
 #include "SemanticAnalysisPassManager.h"
 #include "StripAttributePass.h"
 #include "SymbolAnalysisPass.h"
+#include "TACGen.h"
 #include "UnusedSymbolAnalysisPass.h"
 #include "UseBeforeInitializationCheckPass.h"
 #include "WithParsed.h"
@@ -43,6 +44,7 @@ void WithSemanticAnalyzed::setup_semantic_analyze(bool optimize, const TestCaseD
     auto post_symtbl_analyzer = sem_passmgr.add_pass<hrl::semanalyzer::SymbolAnalysisPass>("FinalSemanticAnalysisSymbolTableAnalyzer");
     auto ubi_final = sem_passmgr.add_pass<hrl::semanalyzer::UseBeforeInitializationCheckPass>("FinalUseBeforeInitializationCheckPass");
     auto cfv = sem_passmgr.add_pass<hrl::semanalyzer::ControlFlowVerificationPass>("ControlFlowVerificationPass");
+    auto tacgen = sem_passmgr.add_pass<hrl::irgen::TACGen>("ControlFlowVerificationPass");
 
     int sema_result = sem_passmgr.run(true);
     ErrorManager::instance().print_all();
@@ -50,4 +52,5 @@ void WithSemanticAnalyzed::setup_semantic_analyze(bool optimize, const TestCaseD
     ASSERT_EQ(sema_result, 0) << "Expected semantic analysis to pass but it failed";
 
     symtbl = sem_passmgr.get_symbol_table();
+    program = tacgen->get_built_program();
 }
