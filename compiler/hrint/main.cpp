@@ -69,6 +69,7 @@ int main(int argc, char **argv)
         break;
     case CompileTarget::HIR_SSA:
         enforce_ssa = true;
+        [[fallthrough]];
     case CompileTarget::HIR:
         interpreter = new IRInterpreter(ioman, memman, program, enforce_ssa);
         break;
