@@ -6,6 +6,7 @@
 #include <boost/range.hpp>
 
 #include "ASTNode.h"
+#include "HRBox.h"
 #include "IROps.h"
 #include "IRProgramStructure.h"
 #include "Operand.h"
@@ -38,7 +39,7 @@ int TACGen::visit(const parser::IntegerASTNodePtr &node)
     BEGIN_VISIT();
 
     Operand result(take_var_id_numbering());
-    create_instr(ThreeAddressCode::create_load_immediate(result, node->get_value(), node));
+    create_instr(ThreeAddressCode::create_load_immediate(result, node->get_hrbox(), node));
     _node_var_id_result[node] = result;
     END_VISIT();
 }
@@ -48,7 +49,7 @@ int TACGen::visit(const parser::BooleanASTNodePtr &node)
     BEGIN_VISIT();
 
     Operand result(take_var_id_numbering());
-    create_instr(ThreeAddressCode::create_load_immediate(result, node->get_value() ? 1 : 0, node));
+    create_instr(ThreeAddressCode::create_load_immediate(result, HRBox(node->get_value() ? 1 : 0), node));
     _node_var_id_result[node] = result;
     END_VISIT();
 }
@@ -81,7 +82,7 @@ int TACGen::visit(const parser::VariableDeclarationASTNodePtr &node)
     } else {
         // it's a decl only
         // loadi v0, 0
-        create_instr(ThreeAddressCode::create_load_immediate(var, 0, node));
+        create_instr(ThreeAddressCode::create_load_immediate(var, HRBox(0), node));
     }
 
     _node_var_id_result[node] = var;
@@ -154,7 +155,11 @@ int TACGen::visit(const parser::FloorBoxInitStatementASTNodePtr &node)
     auto flr_id = std::static_pointer_cast<parser::IntegerASTNode>(flr_id_node);
     auto flr_value = std::static_pointer_cast<parser::IntegerASTNode>(flr_value_node);
 
-    _floor_inits[flr_id->get_value()] = flr_value->get_value();
+    if (flr_value->get_is_char()) {
+        _floor_inits.insert_or_assign(flr_id->get_value(), std::move(HRBox(static_cast<int>(flr_value->get_value()))));
+    } else {
+        _floor_inits.insert_or_assign(flr_id->get_value(), std::move(HRBox(static_cast<char>(flr_value->get_value()))));
+    }
 
     // setting no result
     END_VISIT();
@@ -246,7 +251,7 @@ int TACGen::visit(const parser::IncrementExpressionASTNodePtr &node)
     assert(original);
 
     Operand var(take_var_id_numbering());
-    create_instr(ThreeAddressCode::create_arithmetic(IROperation::ADD, var, original, Operand(1, true), node));
+    create_instr(ThreeAddressCode::create_arithmetic(IROperation::ADD, var, original, Operand(HRBox(1)), node));
     _node_var_id_result[node] = var;
     _symbol_to_var_map[symbol] = var;
 
@@ -263,7 +268,7 @@ int TACGen::visit(const parser::DecrementExpressionASTNodePtr &node)
     assert(original);
 
     Operand var(take_var_id_numbering());
-    create_instr(ThreeAddressCode::create_arithmetic(IROperation::SUB, var, original, Operand(1, true), node));
+    create_instr(ThreeAddressCode::create_arithmetic(IROperation::SUB, var, original, Operand(HRBox(1)), node));
     _node_var_id_result[node] = var;
     _symbol_to_var_map[symbol] = var;
 
@@ -375,7 +380,7 @@ int TACGen::visit(const parser::InvocationExpressionASTNodePtr &node)
 
         if (func_name == "outbox") {
             create_instr(ThreeAddressCode::create_io(IROperation::OUTPUT, param, node));
-            _node_var_id_result[node] = Operand(0, true);
+            _node_var_id_result[node] = Operand(HRBox(0));
         } else {
             create_instr(ThreeAddressCode::create_call(func_name, param, result, node));
             _node_var_id_result[node] = result;
@@ -629,7 +634,7 @@ int TACGen::visit_subroutine(const parser::AbstractSubroutineASTNodePtr &node)
 
     if (node->get_node_type() == parser::ASTNodeType::FunctionDefinition) {
         Operand var(take_var_id_numbering());
-        func_end = create_instr(ThreeAddressCode::create_load_immediate(var, 0, node));
+        func_end = create_instr(ThreeAddressCode::create_load_immediate(var, HRBox(0), node));
         create_instr(ThreeAddressCode::create_return(var));
     } else {
         // it's a subproc

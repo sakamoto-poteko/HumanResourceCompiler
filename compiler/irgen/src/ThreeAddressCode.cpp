@@ -8,6 +8,7 @@
 #include <boost/range/adaptors.hpp>
 #include <spdlog/spdlog.h>
 
+#include "HRBox.h"
 #include "IROps.h"
 #include "IRProgramStructure.h" // IWYU pragma: keep
 #include "Operand.h"
@@ -125,12 +126,12 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_data_movement(IROpera
     return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt, src1, Operand(), ast));
 }
 
-std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_load_immediate(const Operand &tgt, int imm, std::shared_ptr<parser::ASTNode> ast)
+std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_load_immediate(const Operand &tgt, HRBox imm, std::shared_ptr<parser::ASTNode> ast)
 {
     if (tgt.get_type() != Operand::OperandType::VariableId) {
         throw std::runtime_error("LOADI operation requires tgt to be a variable");
     }
-    return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(IROperation::LOADI, tgt, Operand(imm, true), Operand(), ast));
+    return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(IROperation::LOADI, tgt, Operand(imm), Operand(), ast));
 }
 
 std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_special(IROperation op, std::shared_ptr<parser::ASTNode> ast)

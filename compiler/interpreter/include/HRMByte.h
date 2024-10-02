@@ -115,11 +115,11 @@ public:
         return *this;
     }
 
-    operator int() const { return _value; }
+    explicit operator int() const { return _value; }
 
-    operator char() const { return static_cast<char>(_value); }
+    explicit operator char() const { return static_cast<char>(_value); }
 
-    operator bool() const { return _value == 0 ? false : true; }
+    explicit operator bool() const { return _value == 0 ? false : true; }
 
     void set_value(int value)
     {

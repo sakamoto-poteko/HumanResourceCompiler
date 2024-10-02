@@ -4,6 +4,7 @@
 #include <string>
 #include <variant>
 
+#include "HRBox.h"
 #include "irgen_global.h"
 
 OPEN_IRGEN_NAMESPACE
@@ -22,8 +23,14 @@ public:
     {
     }
 
-    Operand(int value, bool is_immediate = false)
-        : _type(is_immediate ? OperandType::ImmediateValue : OperandType::VariableId)
+    Operand(int value)
+        : _type(OperandType::VariableId)
+        , _value(value)
+    {
+    }
+
+    Operand(HRBox value)
+        : _type(OperandType::ImmediateValue)
         , _value(value)
     {
     }
@@ -45,7 +52,7 @@ public:
 
     int get_register_id() const { return std::get<int>(_value); }
 
-    int get_constant() const { return std::get<int>(_value); }
+    HRBox get_constant() const { return std::get<HRBox>(_value); }
 
     std::string get_label() const { return std::get<std::string>(_value); }
 
@@ -54,10 +61,10 @@ public:
 private:
     OperandType _type;
 
-    // imm value: the int value
+    // imm value: the HRBox value
     // reg: the int reg id. negative represents global
     // label: string
-    std::variant<int, std::string> _value;
+    std::variant<int, std::string, HRBox> _value;
 };
 
 CLOSE_IRGEN_NAMESPACE
