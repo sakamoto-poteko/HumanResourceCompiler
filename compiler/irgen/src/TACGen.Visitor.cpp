@@ -377,7 +377,7 @@ int TACGen::visit(const parser::InvocationExpressionASTNodePtr &node)
             create_instr(ThreeAddressCode::create_io(IROperation::OUTPUT, param, node));
             _node_var_id_result[node] = Operand(0, true);
         } else {
-            create_instr(ThreeAddressCode::create_call(func_name, param, result, node));
+            create_instr(ThreeAddressCode::create_call(Operand(func_name), param, result, node));
             _node_var_id_result[node] = result;
         }
     } else {
@@ -385,7 +385,7 @@ int TACGen::visit(const parser::InvocationExpressionASTNodePtr &node)
             create_instr(ThreeAddressCode::create_io(IROperation::INPUT, result, node));
             _node_var_id_result[node] = result;
         } else {
-            create_instr(ThreeAddressCode::create_call(func_name, result, node));
+            create_instr(ThreeAddressCode::create_call(Operand(func_name), result, node));
             _node_var_id_result[node] = result;
         }
     }

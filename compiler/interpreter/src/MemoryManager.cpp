@@ -1,6 +1,7 @@
 #include <string>
 
 #include <boost/format.hpp>
+#include <spdlog/spdlog.h>
 
 #include "HRMByte.h"
 #include "IntMemoryManager.h"
@@ -21,15 +22,18 @@ bool MemoryManager::get_variable(const hrl::semanalyzer::SymbolPtr &symbol, HRMB
 {
     auto found = _variables.find(symbol);
     if (found == _variables.end()) {
+        spdlog::trace("Variable '{}' does not exist", symbol->name);
         return false;
     } else {
         value = found->second;
+        spdlog::trace("Accessed variable '{}': {}", symbol->name, value);
         return true;
     }
 }
 
 void MemoryManager::set_variable(const hrl::semanalyzer::SymbolPtr &symbol, HRMByte value)
 {
+    spdlog::trace("Set variable '{}' = {}", symbol->name, value);
     _variables[symbol] = value;
 }
 
@@ -39,6 +43,7 @@ void MemoryManager::set_floor(int id, HRMByte value)
         auto errstr = boost::format("floor id %1% is out of range [0, %2%]") % id % _floormax;
         throw InterpreterException(InterpreterException::ErrorType::FloorOutOfRange, errstr.str());
     }
+    spdlog::trace("Set floor[{}] = {}", id, value);
     _floor[id] = value;
 }
 
@@ -51,9 +56,11 @@ bool MemoryManager::get_floor(int id, HRMByte &value)
 
     auto found = _floor.find(id);
     if (found == _floor.end()) {
+        spdlog::trace("floor[{}] does not exist", id);
         return false;
     } else {
         value = found->second;
+        spdlog::trace("Accessed floor[{}]: {}", id, value);
         return true;
     }
 }

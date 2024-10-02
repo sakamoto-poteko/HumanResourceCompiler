@@ -17,18 +17,18 @@ public:
         Label,
     };
 
-    Operand()
+    explicit Operand()
         : _type(OperandType::Null)
     {
     }
 
-    Operand(int value, bool is_immediate = false)
+    explicit Operand(int value, bool is_immediate = false)
         : _type(is_immediate ? OperandType::ImmediateValue : OperandType::VariableId)
         , _value(value)
     {
     }
 
-    Operand(const std::string &label)
+    explicit Operand(const std::string &label)
         : _type(OperandType::Label)
         , _value(label)
     {

@@ -574,7 +574,8 @@ void BuildSSAPass::rename_registers(const SubroutinePtr &subroutine, const std::
                     spdlog::error(
                         "[SSA Rename] Renamed id for '%{}' was not found. Current BB is '{}'. This is likely a bug, consider report it",
                         original_var_id, current_basic_block->get_label());
-                    instruction->set_phi_incoming(incoming_predecessor_block, name_stacks[original_var_id].top(), incoming_def_block);
+                    throw;
+                    // instruction->set_phi_incoming(incoming_predecessor_block, name_stacks[original_var_id].top(), incoming_def_block);
                 }
             }
         }

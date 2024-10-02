@@ -28,7 +28,7 @@ int IRInterpreter::exec()
 
 void IRInterpreter::exec_subroutine(const irgen::SubroutinePtr &subroutine, HRMByte parameter)
 {
-    spdlog::debug("Entered subroutine '{}'", subroutine->get_func_name());
+    spdlog::debug("[IRIntrExecSubroutine] Entered subroutine '{}'", subroutine->get_func_name());
 
     _calling_stack.push_back({
         .subroutine_name = subroutine->get_func_name(),
@@ -68,11 +68,11 @@ void IRInterpreter::exec_subroutine(const irgen::SubroutinePtr &subroutine, HRMB
     };
 
     while (current_block) {
-        spdlog::debug("Entered BB '{}'", current_block->get_label());
+        spdlog::debug("[IRIntrExecBB] Entered basic block '{}'", current_block->get_label());
         bool non_linear_control_flow = false;
 
         for (const irgen::TACPtr &instruction : current_block->get_instructions()) {
-            spdlog::debug("Executing {}", instruction->to_string(true));
+            spdlog::debug("[IRIntrExecInstr] Executing {}", instruction->to_string(true));
 
             HRMByte op_result;
             const irgen::IROperation op = instruction->get_op();
@@ -204,9 +204,9 @@ void IRInterpreter::exec_subroutine(const irgen::SubroutinePtr &subroutine, HRMB
                 break;
 
             case irgen::IROperation::PHI:
-                spdlog::debug("Phi: predecessor block is '{}'", predecessor_block->get_label());
+                spdlog::debug("[IRIntrExecInstr] Phi: predecessor block is '{}'", predecessor_block->get_label());
                 assert(instruction->get_phi_incomings().contains(predecessor_block));
-                op_result = get_variable(instruction->get_phi_incomings().at(predecessor_block));
+                op_result = get_variable(irgen::Operand(std::get<0>(instruction->get_phi_incomings().at(predecessor_block))));
                 should_set_tgt_var = true;
                 break;
 
@@ -260,6 +260,7 @@ HRMByte IRInterpreter::get_variable(const irgen::Operand &variable)
         spdlog::error("The variable {} is accessed before assigned. This is likely a bug, consider report it. {}", std::string(variable), __PRETTY_FUNCTION__);
         throw;
     } else {
+        spdlog::debug("Get variable {}: {}", std::string(variable), var_it->second);
         return var_it->second;
     }
 }
@@ -270,18 +271,18 @@ void IRInterpreter::set_variable(const irgen::Operand &variable, const HRMByte &
         spdlog::error("Tring to set variable for operand {} but it's not a variable id. This is likely a bug, consider report it. {}", std::string(variable), __PRETTY_FUNCTION__);
         throw;
     }
+    CallFrame &call_frame = _calling_stack.back();
 
     int reg_id = variable.get_register_id();
-    auto &var_map = reg_id < 0 ? _global_variables : _calling_stack.back().variables;
+    auto &var_map = reg_id < 0 ? _global_variables : call_frame.variables;
 
     auto var_it = var_map.find(reg_id);
-    if (_enforce_ssa && var_it != var_map.end()) {
-        // only check if this block haven't be visited.
-        if (!_calling_stack.back().basic_block_visited.contains(_calling_stack.back().current_basic_block->get_label())) {
-            spdlog::error("Tring to set variable {} which is already set, which violates SSA rule. This is likely a bug, consider report it. {}", std::string(variable), __PRETTY_FUNCTION__);
-            throw;
-        }
+    // only check if this block haven't be visited.
+    if (_enforce_ssa && var_it != var_map.end() && !call_frame.basic_block_visited.contains(call_frame.current_basic_block->get_label())) {
+        spdlog::error("Tring to set variable {} which is already set, which violates SSA rule. This is likely a bug, consider report it. {}", std::string(variable), __PRETTY_FUNCTION__);
+        throw;
     } else {
+        spdlog::debug("Set variable {} = {}", std::string(variable), value);
         var_map[reg_id] = value;
     }
 }
