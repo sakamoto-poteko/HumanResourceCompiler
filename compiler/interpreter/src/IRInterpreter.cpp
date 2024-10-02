@@ -16,12 +16,20 @@ OPEN_INTERPRETER_NAMESPACE
 
 int IRInterpreter::exec()
 {
+    irgen::ProgramMetadata &metadata = _program->get_metadata();
+    _memory_manager.set_floor_max(metadata.get_floor_max());
+    for (auto &[floor_id, floor_init_value] : _program->get_metadata().get_floor_inits()) {
+        _memory_manager.set_floor(floor_id, HRMByte(floor_init_value));
+    }
+
     for (const irgen::SubroutinePtr &subroutine : _program->get_subroutines()) {
         _subroutines[subroutine->get_func_name()] = subroutine;
     }
 
+    spdlog::debug("[IRIntrExec] Starting IR interpretation...");
     irgen::SubroutinePtr entry_point = _subroutines.at(semanalyzer::GLOBAL_SCOPE_ID);
     exec_subroutine(entry_point);
+    spdlog::debug("[IRIntrExec] IR reached the end");
 
     return 0;
 }
@@ -183,7 +191,10 @@ void IRInterpreter::exec_subroutine(const irgen::SubroutinePtr &subroutine, HRMB
                 break;
 
             case irgen::IROperation::RET:
-                _return_value = src1;
+                // return may be empty or has value
+                if (src1.get_type() == irgen::Operand::OperandType::VariableId) {
+                    _return_value = get_variable(src1);
+                }
                 is_return = true;
                 break;
 
@@ -313,13 +324,13 @@ HRMByte IRInterpreter::evaluate_binary_op_instructions(irgen::IROperation op, co
     case irgen::IROperation::NE:
         return HRMByte(o1 != o2 ? 1 : 0);
     case irgen::IROperation::LT:
-        return HRMByte(static_cast<int>(o1) > static_cast<int>(o2) ? 1 : 0);
-    case irgen::IROperation::LE:
-        return HRMByte(static_cast<int>(o1) >= static_cast<int>(o2) ? 1 : 0);
-    case irgen::IROperation::GT:
         return HRMByte(static_cast<int>(o1) < static_cast<int>(o2) ? 1 : 0);
-    case irgen::IROperation::GE:
+    case irgen::IROperation::LE:
         return HRMByte(static_cast<int>(o1) <= static_cast<int>(o2) ? 1 : 0);
+    case irgen::IROperation::GT:
+        return HRMByte(static_cast<int>(o1) > static_cast<int>(o2) ? 1 : 0);
+    case irgen::IROperation::GE:
+        return HRMByte(static_cast<int>(o1) >= static_cast<int>(o2) ? 1 : 0);
     default:
         break;
     }
@@ -374,7 +385,7 @@ void IRInterpreter::move_data(irgen::IROperation op, const irgen::Operand &tgt, 
                 value = glb_it->second;
             }
         } else {
-            if (_memory_manager.get_floor(floor_id, value)) {
+            if (!_memory_manager.get_floor(floor_id, value)) {
                 throw InterpreterException(InterpreterException::ErrorType::FloorIsEmpty, "Floor is null");
             }
         }

@@ -36,7 +36,7 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_arithmetic(IROperatio
         }
         return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt, src1, Operand(), ast));
     } else {
-        throw std::invalid_argument("Invalid logical operation");
+        throw std::invalid_argument("Invalid NEG operation");
     }
 }
 
@@ -59,7 +59,7 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_logical(IROperation o
         }
         return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt, src1, Operand(), ast));
     } else {
-        throw std::invalid_argument("Invalid logical operation");
+        throw std::invalid_argument("Invalid NOT operation");
     }
 }
 
@@ -71,7 +71,7 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_logical(IROperation o
         }
         return std::shared_ptr<ThreeAddressCode>(new ThreeAddressCode(op, tgt, src1, src2, ast));
     } else {
-        throw std::invalid_argument("Invalid logical operation");
+        throw std::invalid_argument("Invalid AND/OR operation");
     }
 }
 

@@ -17,32 +17,32 @@ void WithIR::setup_ir(bool optimize, const TestCaseData &data, bool &result)
     hrl::irgen::IROptimizationPassManager irop_passmgr(program);
     irop_passmgr.add_pass<hrl::irgen::StripUselessInstructionPass>(
         "StripNoOpPass",
-        "build/strnop.hrasm",
-        "build/strnop.dot");
+        data.filename + "-strnop.hrasm",
+        data.filename + "-strnop.dot");
     irop_passmgr.add_pass<hrl::irgen::StripEmptyBasicBlockPass>(
         "StripEmptyBasicBlockPass",
-        "build/strebb.hrasm",
-        "build/strebb.dot");
+        data.filename + "-strebb.hrasm",
+        data.filename + "-strebb.dot");
     irop_passmgr.add_pass<hrl::irgen::ControlFlowGraphBuilder>(
         "ControlFlowGraphBuilderPass",
-        "build/cfgbuilder.hrasm",
-        "build/cfgbuilder.dot");
+        data.filename + "-cfgbuilder.hrasm",
+        data.filename + "-cfgbuilder.dot");
     irop_passmgr.add_pass<hrl::irgen::MergeConditionalBranchPass>(
         "MergeCondBrPass",
-        "build/mgcondbr.hrasm",
-        "build/mgcondbr.dot");
+        data.filename + "-mgcondbr.hrasm",
+        data.filename + "-mgcondbr.dot");
     irop_passmgr.add_pass<hrl::irgen::EliminateDeadBasicBlockPass>(
         "EliminateDeadBasicBlockPass",
-        "build/edbb.hrasm",
-        "build/edbb.dot");
+        data.filename + "-edbb.hrasm",
+        data.filename + "-edbb.dot");
     irop_passmgr.add_pass<hrl::irgen::BuildSSAPass>(
         "BuildSSAPass",
-        "build/ssa.hrasm",
-        "build/ssa.dot");
+        data.filename + "-ssa.hrasm",
+        data.filename + "-ssa.dot");
     irop_passmgr.add_pass<hrl::irgen::RenumberVariableIdPass>(
         "SSARenumberVariableId",
-        "build/ssa-renum.hrasm",
-        "build/ssa-renum.dot");
+        data.filename + "-ssa-renum.hrasm",
+        data.filename + "-ssa-renum.dot");
     irop_passmgr.add_pass<hrl::irgen::VerifySSAPass>("VerifySSA");
 
     int irop_result = irop_passmgr.run(true);

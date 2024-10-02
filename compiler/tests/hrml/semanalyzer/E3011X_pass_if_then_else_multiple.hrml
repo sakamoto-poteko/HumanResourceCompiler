@@ -12,7 +12,7 @@ function test()
         return 0;
     }
 
-    return 2; // useless return
+    return 2;
 }
 
 function test2()

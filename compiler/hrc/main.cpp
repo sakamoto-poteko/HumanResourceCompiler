@@ -44,10 +44,19 @@ int main(int argc, char **argv)
     __tc.reset();
 
     CompilerOptions options = parse_arguments(argc, argv);
-    if (options.verbose) {
-        spdlog::set_level(spdlog::level::debug);
-    } else {
+    switch (options.verbosity) {
+    case VerbosityLevel::Normal:
         spdlog::set_level(spdlog::level::warn);
+        break;
+    case VerbosityLevel::Info:
+        spdlog::set_level(spdlog::level::info);
+        break;
+    case VerbosityLevel::Debug:
+        spdlog::set_level(spdlog::level::debug);
+        break;
+    case VerbosityLevel::Trace:
+        spdlog::set_level(spdlog::level::trace);
+        break;
     }
 
     FileManager fileManager(options.input_file, options.output_file, options.include_paths);

@@ -1,6 +1,8 @@
 #include <cstdlib>
+#include <iostream>
 #include <string>
 
+#include <boost/format.hpp>
 #include <spdlog/spdlog.h>
 
 #include "ASTInterpreter.h"
@@ -11,8 +13,6 @@
 #include "IntAccumulator.h"
 #include "IntIOManager.h"
 #include "IntMemoryManager.h"
-#include "IRInterpreter.h"
-#include "ASTInterpreter.h"
 #include "InterpreterExceptions.h"
 #include "InterpreterOptions.h"
 #include "SymbolTable.h"
@@ -27,10 +27,20 @@ int main(int argc, char **argv)
     __tc.reset();
 
     InterpreterOptions options = parse_arguments(argc, argv);
-    if (options.verbose) {
-        spdlog::set_level(spdlog::level::debug);
-    } else {
+    switch (options.verbosity) {
+
+    case VerbosityLevel::Normal:
+        spdlog::set_level(spdlog::level::warn);
+        break;
+    case VerbosityLevel::Info:
         spdlog::set_level(spdlog::level::info);
+        break;
+    case VerbosityLevel::Debug:
+        spdlog::set_level(spdlog::level::debug);
+        break;
+    case VerbosityLevel::Trace:
+        spdlog::set_level(spdlog::level::trace);
+        break;
     }
 
     int rc = 0;
@@ -71,10 +81,10 @@ int main(int argc, char **argv)
     }
 
     ioman.set_on_input_popped([](HRMByte val) {
-        spdlog::info("<< {}", val);
+        std::cout << __tc.C_BOLD << __tc.C_DARK_CYAN << boost::format("<< %1%") % val << __tc.C_RESET << std::endl;
     });
     ioman.set_on_output_pushed([](HRMByte val) {
-        spdlog::info("=> {}", val);
+        std::cout << __tc.C_BOLD << __tc.C_DARK_GREEN << boost::format("=> %1%") % val << __tc.C_RESET << std::endl;
     });
 
     for (HRMByte input : options.input_data) {

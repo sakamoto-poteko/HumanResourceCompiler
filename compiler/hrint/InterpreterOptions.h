@@ -13,11 +13,18 @@ enum class CompileTarget {
     LIR_SSA = 3,
 };
 
+enum class VerbosityLevel {
+    Normal = 0, // Default level
+    Info,
+    Debug,
+    Trace
+};
+
 struct InterpreterOptions {
     std::string input_file;
     std::vector<hrl::interpreter::HRMByte> input_data;
     bool enable_opt = true;
-    bool verbose = false;
+    VerbosityLevel verbosity = VerbosityLevel::Normal;
     CompileTarget compile_target;
 };
 

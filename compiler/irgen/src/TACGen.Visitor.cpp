@@ -245,10 +245,20 @@ int TACGen::visit(const parser::IncrementExpressionASTNodePtr &node)
     auto original = _symbol_to_var_map[symbol];
     assert(original);
 
+    Operand one_var(take_var_id_numbering());
+    create_instr(ThreeAddressCode::create_load_immediate(one_var, 1));
+
     Operand var(take_var_id_numbering());
-    create_instr(ThreeAddressCode::create_arithmetic(IROperation::ADD, var, original, Operand(1, true), node));
-    _node_var_id_result[node] = var;
-    _symbol_to_var_map[symbol] = var;
+    create_instr(ThreeAddressCode::create_arithmetic(IROperation::ADD, var, original, one_var, node));
+
+    if (original.get_register_id() < 0) {
+        // it's a global. for global, we store instead of mov
+        create_instr(ThreeAddressCode::create_data_movement(IROperation::STORE, Operand(), original, var, node));
+    } else {
+        create_instr(ThreeAddressCode::create_data_movement(IROperation::MOV, original, var, Operand(), node));
+    }
+
+    _node_var_id_result[node] = original;
 
     END_VISIT();
 }
@@ -259,13 +269,23 @@ int TACGen::visit(const parser::DecrementExpressionASTNodePtr &node)
 
     auto symbol = semanalyzer::Symbol::get_from(node);
     assert(symbol);
-    auto original = _symbol_to_var_map[symbol];
+    Operand original = _symbol_to_var_map[symbol];
     assert(original);
 
+    Operand one_var(take_var_id_numbering());
+    create_instr(ThreeAddressCode::create_load_immediate(one_var, 1));
+
     Operand var(take_var_id_numbering());
-    create_instr(ThreeAddressCode::create_arithmetic(IROperation::SUB, var, original, Operand(1, true), node));
-    _node_var_id_result[node] = var;
-    _symbol_to_var_map[symbol] = var;
+    create_instr(ThreeAddressCode::create_arithmetic(IROperation::SUB, var, original, one_var, node));
+
+    if (original.get_register_id() < 0) {
+        // it's a global. for global, we store instead of mov
+        create_instr(ThreeAddressCode::create_data_movement(IROperation::STORE, Operand(), original, var, node));
+    } else {
+        create_instr(ThreeAddressCode::create_data_movement(IROperation::MOV, original, var, Operand(), node));
+    }
+
+    _node_var_id_result[node] = original;
 
     END_VISIT();
 }
@@ -496,7 +516,7 @@ int TACGen::visit(const parser::ForStatementASTNodePtr &node)
     BEGIN_VISIT();
 
     std::string
-        for_block_id(take_block_label("for")),
+        init_block_id(take_block_label("for")),
         cond_block_id(take_block_label("cond")),
         loop_block_id(take_block_label("loop")),
         update_block_id(take_block_label("update")),
@@ -531,11 +551,11 @@ int TACGen::visit(const parser::ForStatementASTNodePtr &node)
     auto update_block_start(create_noop(node));
     rc = traverse(node->get_update());
     RETURN_IF_FAIL_IN_VISIT(rc);
-    create_jmp(for_block_id, node);
+    create_jmp(cond_block_id, node);
 
     // end loop
     auto end_for_block_start(create_noop(node));
-    _labels.insert({ for_block_id, for_block_start });
+    _labels.insert({ init_block_id, for_block_start });
     _labels.insert({ cond_block_id, cond_block_start });
     _labels.insert({ loop_block_id, loop_block_start });
     _labels.insert({ update_block_id, update_block_start });
