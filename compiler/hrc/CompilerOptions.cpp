@@ -31,18 +31,22 @@ CompilerOptions parse_arguments(int argc, char **argv)
     CompilerOptions options;
     po::options_description desc("Allowed options");
 
-    desc.add_options()("input,i", po::value<std::string>(), "Input file to compile") //
+    desc.add_options() //
+        ("input,i", po::value<std::string>(), "Input file to compile") //
         ("output,o", po::value<std::string>(), "Output file name") //
         ("optimization,O", po::value<std::string>(), "Optimization level (0-2 or 's' for size)") //
         ("include,I", po::value<std::vector<std::string>>()->multitoken(), "Include paths for header files") //
+        ("stage,s", po::value<std::string>()->implicit_value(""), "Run a specific compilation stage (lexer, parser, etc.)") //
         ("help,h", "Show help message") //
         ("version,V", "Show version information") //
-        ("verbose,v", po::value<std::string>()->implicit_value("debug") // Default level if no argument is provided
-                          ->value_name("LEVEL")
-                          ->notifier([&options](const std::string &level_str) {
-                              options.verbosity = string_to_verbosity_level(level_str);
-                          }),
-            "Enable verbose output with optional LEVEL (normal/info/debug/trace)")("stage,s", po::value<std::string>()->implicit_value(""), "Run a specific compilation stage (lexer, parser, etc.)");
+        ("verbose,v",
+            po::value<std::string>()
+                ->implicit_value("debug") // Default level if no argument is provided
+                ->value_name("LEVEL")
+                ->notifier([&options](const std::string &level_str) {
+                    options.verbosity = string_to_verbosity_level(level_str);
+                }),
+            "Enable verbose output with optional LEVEL (normal/info/debug/trace)");
 
     po::positional_options_description pos_desc;
     pos_desc.add("input", 1); // Allow input file as a positional argument

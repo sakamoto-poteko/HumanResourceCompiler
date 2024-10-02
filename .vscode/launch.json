@@ -11,11 +11,8 @@
             "program": "${command:cmake.launchTargetPath}",
             "args": [
                 "-i",
-                "compiler/tests/hrml/solutions/lvl3.hrml",
-                "--verbose",
-                "-c",
-                "HIR_SSA",
-                "-I1,2,3,4,5,6",
+                "design/lang.hrml",
+                "--verbose"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
