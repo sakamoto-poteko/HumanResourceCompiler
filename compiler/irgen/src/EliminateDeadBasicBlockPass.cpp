@@ -37,6 +37,7 @@ int EliminateDeadBasicBlockPass::run_subroutine(const SubroutinePtr &subroutine,
     auto &basic_blocks = subroutine->get_basic_blocks();
     for (ControlFlowVertex vertex : unvisited) {
         basic_blocks.remove(cfg[vertex]);
+        cfg.clear_vertex(vertex);
         cfg.remove_vertex(vertex);
     }
     cfg.renumber_vertex_indices();

@@ -47,6 +47,21 @@ static std::vector<hrl::interpreter::HRMByte> load_data_from_file(const std::str
     return parse_data(line);
 }
 
+static CompileTarget string_to_compile_target(const std::string &str)
+{
+    if (str == "AST") {
+        return CompileTarget::AST;
+    } else if (str == "HIR") {
+        return CompileTarget::HIR;
+    } else if (str == "HIR_SSA") {
+        return CompileTarget::HIR_SSA;
+    } else if (str == "LIR_SSA") {
+        return CompileTarget::LIR_SSA;
+    } else {
+        throw po::validation_error(po::validation_error::invalid_option_value, "compile-target", str);
+    }
+}
+
 InterpreterOptions parse_arguments(int argc, char **argv)
 {
     InterpreterOptions options;
@@ -57,8 +72,26 @@ InterpreterOptions parse_arguments(int argc, char **argv)
         ("version,V", "Show version information") //
         ("input,i", po::value<std::string>(&options.input_file)->required(), "Input source file") //
         ("input-data,I", po::value<std::string>(), "Input data as comma-separated values or a file") //
+        ("compile-target,c", po::value<std::string>()->default_value("AST"), "Compile target (AST, HIR, HIR_SSA, LIR_SSA)") //
         ("no-opt", po::bool_switch()->default_value(false), "Disable optimizations") //
-        ("verbose,v", po::bool_switch(&options.verbose), "Enable verbose output");
+        ("verbose,v",
+            po::value<std::string>()
+                ->implicit_value("debug")
+                ->value_name("LEVEL")
+                ->notifier([&options](const std::string &level_str) {
+                    if (level_str == "normal") {
+                        options.verbosity = VerbosityLevel::Normal;
+                    } else if (level_str == "info") {
+                        options.verbosity = VerbosityLevel::Info;
+                    } else if (level_str == "debug") {
+                        options.verbosity = VerbosityLevel::Debug;
+                    } else if (level_str == "trace") {
+                        options.verbosity = VerbosityLevel::Trace;
+                    } else {
+                        throw po::invalid_option_value("LEVEL must be one of normal, info, debug, trace");
+                    }
+                }),
+            "Enable verbose output with optional LEVEL (normal/info/debug/trace)");
 
     po::positional_options_description pos_desc;
     pos_desc.add("input", 1);
@@ -73,18 +106,30 @@ InterpreterOptions parse_arguments(int argc, char **argv)
 
         if (vm.count("help")) {
             std::cout << "Usage: " << argv[0] << " [options] [input_file]\n";
-            std::cout << desc << std::endl;
+            std::cout << desc
+                      << "Verbose Levels:\n"
+                      << "  normal   - Standard output\n"
+                      << "  info     - Informational messages\n"
+                      << "  debug    - Debugging messages (default if -v is used without LEVEL)\n"
+                      << "  trace    - Detailed trace messages\n"
+                      << std::endl;
             exit(EXIT_SUCCESS);
         }
 
         if (vm.count("version")) {
             std::cout << "hrint interpreter " << git_tag() << std::endl;
             std::cout << "built with " << compiler_version() << " (" << build_type() << ") on " << build_timestamp() << std::endl;
-            std::cout << "    Report bugs in https://github.com/sakamoto-poteko/HumanResourceCompiler" << std::endl;
+            std::cout << "    Report bugs at https://github.com/sakamoto-poteko/HumanResourceCompiler" << std::endl;
             exit(EXIT_SUCCESS);
         }
 
         po::notify(vm);
+
+        // Set default verbosity if not provided
+        if (!vm.count("verbose")) {
+            options.verbosity = VerbosityLevel::Normal; // Default verbosity level
+        }
+
     } catch (const po::error &e) {
         std::cerr << "Error: " << e.what() << "\n";
         std::cerr << "Usage: " << argv[0] << " [options] [input_file]\n";
@@ -93,6 +138,12 @@ InterpreterOptions parse_arguments(int argc, char **argv)
     }
 
     options.enable_opt = !vm["no-opt"].as<bool>();
+
+    if (vm.count("compile-target")) {
+        std::string target_str = vm["compile-target"].as<std::string>();
+        boost::to_upper(target_str);
+        options.compile_target = string_to_compile_target(target_str);
+    }
 
     // Handle input-data option
     if (vm.count("input-data")) {

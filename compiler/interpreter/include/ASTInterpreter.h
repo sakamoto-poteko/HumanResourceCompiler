@@ -1,30 +1,62 @@
-#ifndef INTERPRETER_H
-#define INTERPRETER_H
+#ifndef AST_INTERPRETER_H
+#define AST_INTERPRETER_H
 
 #include <stack>
 
 #include "ASTNodeForward.h"
+#include "AbstractInterpreter.h"
 #include "IntAccumulator.h"
+#include "IntIOManager.h"
 #include "IntMemoryManager.h"
 #include "SemanticAnalysisPass.h"
+#include "SymbolTable.h"
 #include "WithSymbolTable.h"
 #include "hrl_global.h"
 #include "interpreter_global.h"
 
 OPEN_INTERPRETER_NAMESPACE
 
-class Interpreter : public hrl::semanalyzer::SemanticAnalysisPass, public semanalyzer::WithSymbolTable {
+class ASTInterpreter : public AbstractInterpreter, private hrl::semanalyzer::SemanticAnalysisPass, private semanalyzer::WithSymbolTable {
 public:
-    Interpreter(StringPtr filename, hrl::parser::CompilationUnitASTNodePtr root, Accumulator &accumulator, MemoryManager &memman)
-        : hrl::semanalyzer::SemanticAnalysisPass(std::move(filename), std::move(root))
-        , _accumulator(accumulator)
-        , _memory_manager(memman)
+    ASTInterpreter(
+        StringPtr filename,
+        hrl::parser::CompilationUnitASTNodePtr root,
+        semanalyzer::SymbolTablePtr symbol_table,
+        IOManager &ioman,
+        MemoryManager &memman)
+        : AbstractInterpreter(ioman, memman)
+        , hrl::semanalyzer::SemanticAnalysisPass(std::move(filename), std::move(root))
+        , _accumulator(memman, ioman)
     {
+        semanalyzer::WithSymbolTable::set_symbol_table(symbol_table);
     }
 
-    ~Interpreter();
+    ~ASTInterpreter() = default;
 
+    int exec() override;
+
+private:
+    enum ControlFlowState : int {
+        CF_Normal = 0,
+        CF_ReturnRequested = -1,
+        CF_ContinueRequested = -2,
+        CF_BreakRequested = -3,
+    };
+
+    Accumulator _accumulator;
+    std::stack<parser::AbstractSubroutineASTNodePtr> _call_stack;
+
+    void ensure_non_zero(int value);
+
+    int invoke_library_function(const std::string &name);
+    int invoke_inbox();
+    int invoke_outbox();
+
+    // [Group] SemanticAnalysisPass
     int run() override;
+
+    void enter_node(const parser::ASTNodePtr &node) override;
+    void leave_node() override;
 
     int visit(const hrl::parser::IntegerASTNodePtr &node) override;
     int visit(const hrl::parser::BooleanASTNodePtr &node) override;
@@ -64,31 +96,9 @@ public:
     int visit(const hrl::parser::FunctionDefinitionASTNodePtr &node) override;
     int visit(const hrl::parser::CompilationUnitASTNodePtr &node) override;
 
-protected:
-    void enter_node(const parser::ASTNodePtr &node) override;
-    void leave_node() override;
-
-private:
-    Accumulator &_accumulator;
-    MemoryManager &_memory_manager;
-
-    enum ControlFlowState : int {
-        CF_Normal = 0,
-        CF_ReturnRequested = -1,
-        CF_ContinueRequested = -2,
-        CF_BreakRequested = -3,
-    };
-
-    int invoke_library_function(const std::string &name);
-
-    int invoke_inbox();
-    int invoke_outbox();
-
     int visit_binary_expression(const parser::AbstractBinaryExpressionASTNodePtr &node);
     int visit_subroutine(const parser::AbstractSubroutineASTNodePtr &node);
-    void ensure_non_zero(int value);
-
-    std::stack<parser::AbstractSubroutineASTNodePtr> _call_stack;
+    // [End Group]
 };
 
 CLOSE_INTERPRETER_NAMESPACE

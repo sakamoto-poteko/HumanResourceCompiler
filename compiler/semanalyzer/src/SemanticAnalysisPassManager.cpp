@@ -38,6 +38,7 @@ int SemanticAnalysisPassManager::run(bool fail_fast)
         const auto &pass_path = _pass_graph_filepaths.at(i);
         const auto &pass_attr = _pass_graph_enabled_attrs.at(i);
 
+        spdlog::info("Running semantic analysis pass {}...", pass_name);
         int rc = pass->run();
         if (!pass_path.empty()) {
             parser::ASTNodeGraphvizBuilder graph_builder(_root);

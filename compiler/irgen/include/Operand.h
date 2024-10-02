@@ -18,24 +18,24 @@ public:
         Label,
     };
 
-    Operand()
+    explicit Operand()
         : _type(OperandType::Null)
     {
     }
 
-    Operand(int value)
+    explicit Operand(int value)
         : _type(OperandType::VariableId)
         , _value(value)
     {
     }
 
-    Operand(HRBox value)
+    explicit Operand(const HRBox &value)
         : _type(OperandType::ImmediateValue)
         , _value(value)
     {
     }
 
-    Operand(const std::string &label)
+    explicit Operand(const std::string &label)
         : _type(OperandType::Label)
         , _value(label)
     {
