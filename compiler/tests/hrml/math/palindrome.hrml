@@ -1,0 +1,24 @@
+function is_palindrome(n) {
+    let original = n;
+    let reversed = 0;
+    while (n > 0) {
+        let digit = n % 10;
+        reversed = reversed * 10 + digit;
+        n = n / 10;
+    }
+    if (original == reversed) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+sub start() {
+    while (true){
+        let number = inbox();
+        outbox(is_palindrome(number));
+    }
+}
+
+// Input: 123,456,999,100,789,888,464,1,23,22
+// Output: 0,0,1,0,0,1,1,1,0,1

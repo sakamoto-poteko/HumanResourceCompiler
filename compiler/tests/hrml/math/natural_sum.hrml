@@ -1,0 +1,20 @@
+// Sum of first n natural numbers
+function sum_of_natural(n) {
+    let sum = 0;
+    let i;
+    for (i = 1, i <= n, ++i) {
+        sum = sum + i;
+    }
+    return sum;
+}
+
+sub start() {
+    while (true){
+        let number = inbox();
+        let sum = sum_of_natural(number);
+        outbox(sum);
+    }
+}
+
+// Input: 10,25,44
+// Output: 55,325,990

@@ -1,0 +1,20 @@
+function reverseNumber(n) {
+    let reversed = 0;
+    while (n > 0) {
+        let digit = n % 10;
+        reversed = reversed * 10 + digit;
+        n = n / 10;
+    }
+    return reversed;
+}
+
+sub start() {
+    while (true){
+        let number = inbox();
+        let reversed = reverseNumber(number);
+        outbox(reversed);
+    }
+}
+
+// Input: 10,123,121,555,852
+// Output: 1,321,121,555,258
