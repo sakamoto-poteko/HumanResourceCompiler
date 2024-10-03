@@ -1,24 +1,39 @@
-function is_prime(n) {
-    if (n <= 1) {
-        return false; // Not prime
-    }
-    let i;
-    for (i = 2, i * i <= n, ++i) {
-        if (n % i == 0) {
-            return false; // Not prime
-        }
-    }
-    return true; // Prime
-}
+init floor[0] = 0;
+init floor[1] = 1;
+init floor_max = 2;
 
-sub start() {
+let glbvar = 12;
+
+sub start()
+{
+    let out_of_loop_var = 99;
     while (true) {
-        let number = inbox();
-        // let prime = ;
-        outbox(is_prime(number));
+        let i1 = inbox();
+        let i2 = inbox();
+        let r = 0;
+        if (i1 > i2 && i1 > 0) {
+            r = mul2(i1);
+            r = r + 1;
+            outbox(r);
+            if (i1 > 0) {
+                outbox(r + glbvar);
+            }
+            floor[1] = r;
+        } else {
+            glbvar = glbvar + i2;
+            r = i2;
+            outbox(r);
+            floor[0] = r;
+        }
+        outbox(r);
+        out_of_loop_var = out_of_loop_var + 1;
+        dummy();
     }
 }
 
+function mul2(num)
+{
+    return num + num;
+}
 
-// Input: -999,-998,-997,-996,-995,-994,-993,-992,-991,-990,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,480,481,482,483,484,485,486,487,488,489,490,491,492,493,494,495,496,497,498,499,500,501,502,503,504,505,506,507,508,509,510,511,512,513,514,515,516,517,518,519,520
-// Output: 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0
+sub dummy() {}
