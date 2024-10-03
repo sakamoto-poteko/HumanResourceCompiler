@@ -19,7 +19,7 @@ static std::vector<TestCaseData> read_ast_interpreter_test_cases()
 {
     std::vector<TestCaseData> result;
 
-    std::set<std::string> enabled_test_group { "semanalyzer", "solutions" };
+    std::set<std::string> enabled_test_group { "math", "semanalyzer", "solutions" };
 
     for (const auto &[testgruop, cases] : __test_cases) {
         if (!enabled_test_group.contains(testgruop)) {
@@ -42,7 +42,7 @@ protected:
     WithSemanticAnalyzed _opt_test;
 };
 
-TEST_P(ASTInterpreterTests, InterpreterCorrectnessTests)
+TEST_P(ASTInterpreterTests, ASTCorrectnessTests)
 {
     const auto &data = GetParam();
     bool ok;

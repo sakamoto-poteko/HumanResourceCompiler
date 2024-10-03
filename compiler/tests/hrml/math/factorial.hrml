@@ -1,0 +1,17 @@
+function factorial(n) {
+    let result = 1;
+    let i;
+    for (i = 1, i <= n, ++i) {
+        result = result * i;
+    }
+    return result;
+}
+
+sub start() {
+    let number = inbox();
+    let fact = factorial(number);
+    outbox(fact);
+}
+
+// Input: 5
+// Output: 120

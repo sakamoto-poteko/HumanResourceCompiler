@@ -15,7 +15,7 @@ static std::vector<TestCaseData> read_ir_interpreter_test_cases()
 {
     std::vector<TestCaseData> result;
 
-    std::set<std::string> enabled_test_group { "ir", "semanalyzer", "solutions" };
+    std::set<std::string> enabled_test_group { "math", "semanalyzer", "solutions" };
 
     for (const auto &[testgruop, cases] : __test_cases) {
         if (!enabled_test_group.contains(testgruop)) {
@@ -38,7 +38,7 @@ protected:
     WithIR _opt_test;
 };
 
-TEST_P(IRInterpreterTests, InterpreterCorrectnessTests)
+TEST_P(IRInterpreterTests, IRCorrectnessTests)
 {
     const auto &data = GetParam();
     bool ok;

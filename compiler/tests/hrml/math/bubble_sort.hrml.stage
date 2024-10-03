@@ -1,0 +1,67 @@
+// It seems that there's a bigger problem in SSA gen. We'll check later.
+let a = 0;
+let b = 0;
+let c = 0;
+let d = 0;
+let e = 0;
+
+function bubble_sort() {
+    let swapped = 1; // Initialize swapped to enter the loop
+
+    while (swapped == 1) {
+        swapped = 0;
+
+        // Compare and swap a and b
+        if (a > b) {
+            let temp = a;
+            a = b;
+            b = temp;
+            swapped = 1;
+        }
+
+        // Compare and swap b and c
+        if (b > c) {
+            let temp = b;
+            b = c;
+            c = temp;
+            swapped = 1;
+        }
+
+        // Compare and swap c and d
+        if (c > d) {
+            let temp = c;
+            c = d;
+            d = temp;
+            swapped = 1;
+        }
+
+        // Compare and swap d and e
+        if (d > e) {
+            let temp = d;
+            d = e;
+            e = temp;
+            swapped = 1;
+        }
+    }
+
+    return a; // Returning the first element as a representative
+}
+
+sub start() {
+    a = inbox();
+    b = inbox();
+    c = inbox();
+    d = inbox();
+    e = inbox();
+
+    bubble_sort();
+
+    outbox(a);
+    outbox(b);
+    outbox(c);
+    outbox(d);
+    outbox(e);
+}
+
+// Input: 123,3,999,100,789
+// Output: 3,100,123,789,999

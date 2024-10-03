@@ -409,7 +409,7 @@ int ASTInterpreter::visit(const parser::WhileStatementASTNodePtr &node)
 
         // condition is true
         rc = traverse(node->get_body());
-        RETURN_IF_FAIL_IN_VISIT(rc);
+        RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
 
         if (rc == CF_BreakRequested) {
             // for hit break
@@ -450,7 +450,7 @@ int ASTInterpreter::visit(const parser::ForStatementASTNodePtr &node)
 
         // condition is true
         rc = traverse(node->get_body());
-        RETURN_IF_FAIL_IN_VISIT(rc);
+        RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
 
         if (rc == CF_BreakRequested) {
             // for hit break
@@ -475,7 +475,7 @@ int ASTInterpreter::visit(const parser::ForStatementASTNodePtr &node)
 int ASTInterpreter::visit(const parser::ReturnStatementASTNodePtr &node)
 {
     BEGIN_VISIT();
-    auto &retexpr = node->get_expression();
+    parser::AbstractExpressionASTNodePtr &retexpr = node->get_expression();
     if (retexpr) {
         rc = traverse(retexpr);
         RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
