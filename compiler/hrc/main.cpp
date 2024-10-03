@@ -100,7 +100,7 @@ int main(int argc, char **argv)
         abort();
     }
     hrl::parser::ParseTreeNodeGraphvizBuilder graphviz(compilation_unit);
-    graphviz.generate_graphviz("build/pt.dot");
+    graphviz.generate_graphviz("build/ir/pt.dot");
 
     hrl::parser::CompilationUnitASTNodePtr ast;
     hrl::parser::ASTBuilder builder(compilation_unit);
@@ -111,7 +111,7 @@ int main(int argc, char **argv)
     }
 
     hrl::parser::ASTNodeGraphvizBuilder graphviz_ast(ast);
-    graphviz_ast.generate_graphviz("build/ast.dot");
+    graphviz_ast.generate_graphviz("build/ir/ast.dot");
 
     hrl::semanalyzer::SemanticAnalysisPassManager sem_passmgr(ast, std::make_shared<std::string>(options.input_file));
 
@@ -147,32 +147,32 @@ int main(int argc, char **argv)
     hrl::irgen::IROptimizationPassManager irop_passmgr(prog);
     irop_passmgr.add_pass<hrl::irgen::StripUselessInstructionPass>(
         "StripNoOpPass",
-        "build/strnop.hrasm",
-        "build/strnop.dot");
+        "build/ir/strnop.hrasm",
+        "build/ir/strnop.dot");
     irop_passmgr.add_pass<hrl::irgen::StripEmptyBasicBlockPass>(
         "StripEmptyBasicBlockPass",
-        "build/strebb.hrasm",
-        "build/strebb.dot");
+        "build/ir/strebb.hrasm",
+        "build/ir/strebb.dot");
     irop_passmgr.add_pass<hrl::irgen::ControlFlowGraphBuilder>(
         "ControlFlowGraphBuilderPass",
-        "build/cfgbuilder.hrasm",
-        "build/cfgbuilder.dot");
+        "build/ir/cfgbuilder.hrasm",
+        "build/ir/cfgbuilder.dot");
     irop_passmgr.add_pass<hrl::irgen::MergeConditionalBranchPass>(
         "MergeCondBrPass",
-        "build/mgcondbr.hrasm",
-        "build/mgcondbr.dot");
+        "build/ir/mgcondbr.hrasm",
+        "build/ir/mgcondbr.dot");
     irop_passmgr.add_pass<hrl::irgen::EliminateDeadBasicBlockPass>(
         "EliminateDeadBasicBlockPass",
-        "build/edbb.hrasm",
-        "build/edbb.dot");
+        "build/ir/edbb.hrasm",
+        "build/ir/edbb.dot");
     irop_passmgr.add_pass<hrl::irgen::BuildSSAPass>(
         "BuildSSAPass",
-        "build/ssa.hrasm",
-        "build/ssa.dot");
+        "build/ir/ssa.hrasm",
+        "build/ir/ssa.dot");
     irop_passmgr.add_pass<hrl::irgen::RenumberVariableIdPass>(
         "SSARenumberVariableId",
-        "build/ssa-renum.hrasm",
-        "build/ssa-renum.dot");
+        "build/ir/ssa-renum.hrasm",
+        "build/ir/ssa-renum.dot");
     irop_passmgr.add_pass<hrl::irgen::VerifySSAPass>("VerifySSA");
 
     if (irop_passmgr.run(true) != 0) {

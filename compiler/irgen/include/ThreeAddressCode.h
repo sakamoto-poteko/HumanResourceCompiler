@@ -46,6 +46,8 @@ public:
 
     void set_phi_incomings(const std::map<BasicBlockPtr, std::tuple<unsigned int, BasicBlockPtr>> &incomings) { _phi_incoming = incomings; }
 
+    void remove_phi_incoming(const BasicBlockPtr &predecessor);
+
     // get the variable(reg) use, which is useful in SSA
     std::set<Operand> get_variable_uses() const;
     // get the variable(reg) def, which is useful in SSA

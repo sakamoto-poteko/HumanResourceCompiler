@@ -2,6 +2,7 @@
 #include <functional>
 #include <list>
 #include <map>
+#include <ranges>
 #include <stack>
 #include <string>
 #include <tuple>
@@ -130,7 +131,7 @@ std::pair<std::map<ControlFlowVertex, ControlFlowVertex>, std::map<ControlFlowVe
 
     for (const auto &[vertex, vertex_children] : strict_dom_tree_children) {
         spdlog::debug(
-            "[SSA DOM] '{}': {}",
+            "[SSA DOM] '{}': {{{}}}",
             cfg[vertex]->get_label(),
             boost::join(
                 vertex_children | boost::adaptors::transformed([&cfg](const ControlFlowVertex &v) {
@@ -274,6 +275,8 @@ int BuildSSAPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadat
     populate_phi_function(def_map, cfg);
     remove_redundant_phi(subroutine->get_basic_blocks());
     rename_registers(subroutine, immediate_dom_tree_map);
+    // rename registers may clean up some phi incoming
+    remove_redundant_phi(subroutine->get_basic_blocks());
     return 0;
 }
 
@@ -371,58 +374,132 @@ void BuildSSAPass::populate_phi_function(
         basic_block_to_vertex[cfg[vert]] = vert;
     }
 
+    std::map<int, std::set<BasicBlockPtr>> def_map_without_phi;
+    std::map<int, std::set<BasicBlockPtr>> def_map_phi;
+
     for (const auto &[v_id, v_def_raw] : def_map) {
+        // Ensure v_id is non-negative
+        assert(v_id >= 0);
+
+        // Make a map of <var id, var def blocks> of non phi nodes
+        // FIXME: exclude phi?
+        auto v_def_info = v_def_raw
+            | std::views::transform([](const std::tuple<InstructionListIter, BasicBlockPtr> &def_info) {
+                  return std::get<1>(def_info);
+              });
+        def_map_without_phi.emplace(v_id, std::set<BasicBlockPtr>(v_def_info.begin(), v_def_info.end()));
+
+        // Make a map of <var id, var def blocks> of phi nodes
+        std::set<BasicBlockPtr> phi_bb_set;
+        // for every BB, find if this node has phi defined in it.
+        for (ControlFlowVertex vert : boost::make_iterator_range(boost::vertices(cfg))) {
+            const BasicBlockPtr &basic_block_to_check = cfg[vert];
+            for (const TACPtr &instruction : basic_block_to_check->get_instructions()) {
+                if (instruction->get_op() == IROperation::PHI) {
+                    const Operand &tgt = instruction->get_tgt();
+                    assert(tgt.get_type() == Operand::OperandType::VariableId);
+                    // this variable is redefined in phi. add it to variable definition
+                    if (tgt.get_register_id() == v_id) {
+                        phi_bb_set.insert(basic_block_to_check);
+                    }
+                }
+            }
+        }
+
+        // Construct a set from the transformed range and assign it to the map
+        def_map_phi.emplace(v_id, std::move(phi_bb_set));
+    }
+
+    for (const auto &[v_id, _] : def_map) {
         // v_id < 0 is global. it's not supposed to be defined nor accessed
         assert(v_id >= 0);
-        auto v_def_info = v_def_raw | boost::adaptors::transformed([](const std::tuple<InstructionListIter, BasicBlockPtr> &def_info) {
-            return std::get<1>(def_info);
-        });
-        std::set v_def_basic_blocks(v_def_info.begin(), v_def_info.end());
+        const std::set<BasicBlockPtr> &v_def_basic_blocks_without_phi = def_map_without_phi.at(v_id);
+        const std::set<BasicBlockPtr> &v_def_basic_blocks_phi_only = def_map_phi.at(v_id);
 
-        for (const BasicBlockPtr &def_block : v_def_basic_blocks) {
-            ControlFlowVertex def_vert = basic_block_to_vertex.at(def_block);
+        std::function<void(const BasicBlockPtr &, const BasicBlockPtr &, bool, std::set<ControlFlowVertex> &, std::vector<ControlFlowVertex> &)>
+            populate_phi_in_block = [&](const BasicBlockPtr &visit_block,
+                                        const BasicBlockPtr &v_defined_basic_block,
+                                        bool is_phi_map,
+                                        std::set<ControlFlowVertex> &block_visited,
+                                        std::vector<ControlFlowVertex> &visit_history) {
+                ControlFlowVertex visit_vertex = basic_block_to_vertex.at(visit_block);
+                ControlFlowVertex v_defined_vertex = basic_block_to_vertex.at(v_defined_basic_block);
 
-            std::set<ControlFlowVertex> populate_phi_in_block_visited;
-            std::vector<ControlFlowVertex> visit_history;
-            std::function<void(ControlFlowVertex)> populate_phi_in_block = [&](ControlFlowVertex v) {
-                if (populate_phi_in_block_visited.contains(v)) {
+                if (block_visited.contains(visit_vertex)) {
                     return;
                 }
-                populate_phi_in_block_visited.insert(v);
+                block_visited.insert(visit_vertex);
 
                 // if there is another def of v_id on the way, return.
                 // phi branch should be added by that def's traversal
-                if (v != def_vert && v_def_basic_blocks.contains(cfg[v])) {
+                if (visit_vertex != v_defined_vertex && v_def_basic_blocks_without_phi.contains(cfg[visit_vertex])) {
                     return;
                 }
-                const BasicBlockPtr basic_block = cfg[v];
+                const BasicBlockPtr basic_block = cfg[visit_vertex];
 
                 for (TACPtr &instr : basic_block->get_instructions()) {
                     if (instr->get_op() == IROperation::PHI) {
-                        const Operand &tgt = instr->get_tgt();
-                        assert(tgt.get_type() == Operand::OperandType::VariableId);
-                        assert(tgt.get_register_id() >= 0);
+                        // The def map include phi may include this basic block, since this block defines a phi.
+                        // That's our def map is constructed after the phi node insertion.
+                        // This will pull all newly insered phi nodes too.
+                        // We should skip it if def_block is current block, and the defined var is this var
+                        if (v_defined_basic_block == basic_block && instr->get_tgt().get_register_id() == v_id) {
+                            spdlog::trace(
+                                "[SSA Phi Population] Skipped phi '{}' in '{}', def blk '{}'",
+                                std::string(instr->get_tgt()),
+                                basic_block->get_label(),
+                                v_defined_basic_block->get_label());
+                        } else {
+                            const Operand &tgt = instr->get_tgt();
+                            assert(tgt.get_type() == Operand::OperandType::VariableId);
+                            assert(tgt.get_register_id() >= 0);
 
-                        if (tgt.get_register_id() == v_id) {
-                            const BasicBlockPtr &predecessor = cfg[visit_history.back()];
-                            instr->set_phi_incoming(predecessor, v_id, def_block);
-                            // we already found the phi for this def. now exit
-                            // there can only be one phi for one def
-                            return;
+                            // check if the target is the var id we're working on
+                            // if yes, we've met a phi where def block's defined var is used
+                            if (tgt.get_register_id() == v_id) {
+                                const BasicBlockPtr &predecessor = cfg[visit_history.back()];
+                                instr->set_phi_incoming(predecessor, v_id, v_defined_basic_block);
+                                // we already found the phi for this def. now exit
+                                // there can only be one phi for one def
+                                // we haven't renamed yet. the incoming var id is all the same
+                                spdlog::trace(
+                                    "[SSA Phi Population] Add phi '{}' in '{}' with pred blk '{}', def blk '{}'",
+                                    std::string(instr->get_tgt()),
+                                    basic_block->get_label(),
+                                    predecessor->get_label(),
+                                    v_defined_basic_block->get_label());
+                                return;
+                            }
                         }
                     }
                 }
 
-                for (ControlFlowEdge edge : boost::make_iterator_range(boost::out_edges(v, cfg))) {
+                for (ControlFlowEdge edge : boost::make_iterator_range(boost::out_edges(visit_vertex, cfg))) {
                     ControlFlowVertex child = boost::target(edge, cfg);
-                    visit_history.push_back(v);
-                    populate_phi_in_block(child);
+                    visit_history.push_back(visit_vertex);
+                    populate_phi_in_block(cfg[child], v_defined_basic_block, is_phi_map, block_visited, visit_history);
                     visit_history.pop_back();
                 }
             };
 
-            visit_history.push_back(def_vert);
-            populate_phi_in_block(def_vert);
+        // For all ordinary defs
+        for (const BasicBlockPtr &def_block : v_def_basic_blocks_without_phi) {
+            std::set<ControlFlowVertex> block_visited;
+            std::vector<ControlFlowVertex> visit_history;
+            visit_history.push_back(basic_block_to_vertex.at(def_block));
+            // start traverse from def_block
+            populate_phi_in_block(def_block, def_block, false, block_visited, visit_history);
+            visit_history.pop_back();
+            assert(visit_history.empty());
+        }
+
+        // For all phi defs
+        for (const BasicBlockPtr &def_block : v_def_basic_blocks_phi_only) {
+            std::set<ControlFlowVertex> block_visited;
+            std::vector<ControlFlowVertex> visit_history;
+            visit_history.push_back(basic_block_to_vertex.at(def_block));
+            // start traverse from def_block
+            populate_phi_in_block(def_block, def_block, true, block_visited, visit_history);
             visit_history.pop_back();
             assert(visit_history.empty());
         }
@@ -437,18 +514,19 @@ void BuildSSAPass::rename_registers(const SubroutinePtr &subroutine, const std::
     const unsigned int max_used = subroutine->get_max_reg_id();
     unsigned int current_number = max_used + 1;
 
+    // The key is the original variable id. stack is the renamed id
     std::map<unsigned int, std::stack<unsigned int>> name_stacks;
-    // map<new id, old id>
+    // map<new id, old id>. This maps the new id to original id, so it can be used to lookup name_stacks, basic_block_renamed_id, etc.
     std::map<unsigned int, unsigned int> original_id_map;
     for (unsigned i = 0; i <= max_used; ++i) {
         name_stacks[i].push(i);
         original_id_map[i] = i;
     }
 
-    // map<old id, map<bb, new id in bb>
+    // map<old id, map<bb, new id in bb>. This maps the original variable id to the Basic Block <=> New Variable Id pairs
     std::map<unsigned int, std::map<BasicBlockPtr, unsigned int>> basic_block_renamed_id;
 
-    // map<node, node imm doms>
+    // map<node, node imm doms>. Node <=> Immediate Dominanated Nodes
     std::map<ControlFlowVertex, std::set<ControlFlowVertex>> imm_doms;
     for (const auto &[vert, dom_by_vert] : imm_dom_by_tree_map) {
         imm_doms[dom_by_vert].insert(vert);
@@ -459,7 +537,9 @@ void BuildSSAPass::rename_registers(const SubroutinePtr &subroutine, const std::
         std::map<unsigned int, unsigned int> push_count;
         const BasicBlockPtr current_basic_block = cfg[block_vertex];
         std::list<TACPtr> &instructions = current_basic_block->get_instructions();
+        spdlog::trace("[SSA Rename] Traversing BB '{}'", current_basic_block->get_label());
 
+        // For each instruction, rename the phi node's target first
         for (TACPtr &instruction : instructions) {
             if (instruction->get_op() != IROperation::PHI) {
                 continue;
@@ -480,8 +560,10 @@ void BuildSSAPass::rename_registers(const SubroutinePtr &subroutine, const std::
             TACPtr new_phi = ThreeAddressCode::create_phi(new_phi_id, instruction->get_ast_node());
             new_phi->set_phi_incomings(instruction->get_phi_incomings());
             instruction = new_phi;
+            spdlog::trace("[SSA Rename] Renaming Phi node target '%{}' to '%{}', in BB '{}'", tgt.get_register_id(), new_phi_id, current_basic_block->get_label());
         }
 
+        // Then rename other instructions
         for (TACPtr &instr : instructions) {
             if (instr->get_op() == IROperation::PHI) {
                 continue;
@@ -492,7 +574,8 @@ void BuildSSAPass::rename_registers(const SubroutinePtr &subroutine, const std::
             Operand src2 = instr->get_src2();
             bool mutated = false;
 
-            // if assert fails, consider skip phi nodes here
+            // For source operands, we simply map the id to original one,
+            // then we look up the stack's top to find it's current id
             if (src1.get_type() == Operand::OperandType::VariableId && src1.get_register_id() >= 0) {
                 assert(original_id_map.contains(src1.get_register_id()));
                 unsigned original_id = original_id_map[src1.get_register_id()];
@@ -509,6 +592,7 @@ void BuildSSAPass::rename_registers(const SubroutinePtr &subroutine, const std::
                 mutated = true;
             }
 
+            // For target operand, we map the id to original one, then assign it a new id.
             if (tgt.get_type() == Operand::OperandType::VariableId && tgt.get_register_id() >= 0) {
                 unsigned cur_tgt_id = tgt.get_register_id();
                 assert(original_id_map.contains(cur_tgt_id));
@@ -528,18 +612,18 @@ void BuildSSAPass::rename_registers(const SubroutinePtr &subroutine, const std::
 
             if (mutated) {
                 TACPtr new_instr = ThreeAddressCode::create(instr->get_op(), tgt, src1, src2, instr->get_ast_node());
-                if (instr->get_op() == IROperation::PHI) {
-                    new_instr->set_phi_incomings(instr->get_phi_incomings());
-                }
-
+                spdlog::trace("[SSA Rename] Renaming ordinary node '{}' to '{}'", instr->to_string(true), new_instr->to_string(true));
                 instr = new_instr;
             }
         }
 
+        // Traverse the dominator tree
         for (const ControlFlowVertex &imm_dominated : imm_doms[block_vertex]) {
             rename_block(imm_dominated);
         }
 
+        // Now the dominated nodes have been renamed.
+        // Clean up the stack
         for (auto &[var_id, count] : push_count) {
             assert(name_stacks.contains(var_id));
             for (unsigned int i = 0; i < count; ++i) {
@@ -552,6 +636,7 @@ void BuildSSAPass::rename_registers(const SubroutinePtr &subroutine, const std::
 
     rename_block(start_block);
 
+    // Now all nodes' operands have been renamed. We now rename phi's incoming branch
     for (const BasicBlockPtr &current_basic_block : subroutine->get_basic_blocks()) {
         for (TACPtr &instruction : current_basic_block->get_instructions()) {
             if (instruction->get_op() != IROperation::PHI) {
@@ -561,21 +646,34 @@ void BuildSSAPass::rename_registers(const SubroutinePtr &subroutine, const std::
             Operand tgt = instruction->get_tgt();
             assert(tgt.get_type() == Operand::OperandType::VariableId);
 
-            for (const auto &[incoming_predecessor_block, phi_branch_meta] : instruction->get_phi_incomings()) {
+            // For each incoming branch, we look up the original id of the branch's incoming var
+            // Then we look at the map to find it's renamed id in the block which is defined
+            auto &phi_incomings = instruction->get_phi_incomings();
+            for (auto incoming_it = phi_incomings.begin(); incoming_it != phi_incomings.end();) {
+                const auto &[incoming_predecessor_block, phi_branch_meta] = *incoming_it;
                 auto &[incoming_var_id, incoming_def_block] = phi_branch_meta;
                 assert(original_id_map.contains(incoming_var_id));
                 unsigned original_var_id = original_id_map[incoming_var_id];
                 assert(basic_block_renamed_id.contains(original_var_id));
+
+                // look up the incoming def block against original variable id, so we can get the renamed variable id in that def block
                 if (basic_block_renamed_id[original_var_id].contains(incoming_def_block)) {
                     unsigned renamed_var_id_in_bb = basic_block_renamed_id[original_var_id][incoming_def_block];
                     instruction->set_phi_incoming(incoming_predecessor_block, renamed_var_id_in_bb, incoming_def_block);
+                    ++incoming_it;
                 } else {
-                    // If the incoming block hasn't renamed the variable yet, use the current top
+                    // We should be able to find the renamed var id according to original var id and def block
+                    // When performing a rename against target (both phi and ordinary), we've already recorded that
+                    // What happened here?
+                    // The phi branch is redundant because all non-redundant incomings are already renamed.
+                    // If the map doesn't have it, it's probably rougue phi introduced in that phi def extraction.
                     spdlog::error(
-                        "[SSA Rename] Renamed id for '%{}' was not found. Current BB is '{}'. This is likely a bug, consider report it",
-                        original_var_id, current_basic_block->get_label());
-                    throw;
-                    // instruction->set_phi_incoming(incoming_predecessor_block, name_stacks[original_var_id].top(), incoming_def_block);
+                        "[SSA Rename] Renamed id for '%{}' (original) was not found. Traversing BB '{}', incoming def block '{}'. This is likely a bug, consider report it.\n"
+                        "New idea: probably a redundant phi which is already cleaned up. Trying to remove this branch...",
+                        original_var_id, current_basic_block->get_label(), incoming_def_block->get_label());
+                    incoming_it = phi_incomings.erase(incoming_it);
+                    // throw;
+                    // FIXME:
                 }
             }
         }
