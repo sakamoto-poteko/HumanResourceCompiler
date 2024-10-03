@@ -6,7 +6,6 @@
 
 #include "ASTInterpreter.h"
 #include "ASTNode.h"
-#include "ASTNodeForward.h"
 #include "HRMByte.h"
 #include "InterpreterExceptions.h"
 #include "SemanticAnalysisPass.h"
