@@ -232,28 +232,13 @@ int BuildSSAPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadat
     UNUSED(program);
 
     const ControlFlowGraph &cfg = *subroutine->get_cfg();
+    const ControlFlowVertex entry_vertex = subroutine->get_start_block();
 
-    // build def-use chain
-    std::map<int, std::set<std::tuple<InstructionListIter, BasicBlockPtr>>> def_map;
-    std::map<int, std::set<std::tuple<InstructionListIter, BasicBlockPtr>>> use_map;
-    const auto &bbs = subroutine->get_basic_blocks();
-    for (const auto &bb : bbs) {
-        auto &instrs = bb->get_instructions();
-        for (auto instr_it = instrs.begin(); instr_it != instrs.end(); ++instr_it) {
-            const auto &instr = *instr_it;
-            auto def = instr->get_variable_def();
-            auto use = instr->get_variable_uses();
-            if (def) {
-                def_map[def->get_register_id()].insert({ instr_it, bb });
-            }
-            for (const auto &operand : use) {
-                use_map[operand.get_register_id()].insert({ instr_it, bb });
-            }
-        }
-    }
+    // build the map where variables are defined in basic blocks
+    std::map<unsigned int, std::set<BasicBlockPtr>> def_map = subroutine->get_def_variables();
 
     auto [immediate_dom_tree_map, strict_dom_tree_children] = build_dominance_tree(cfg, subroutine->get_start_block());
-    auto dom_frontiers_vert = build_dominance_frontiers(cfg, subroutine->get_start_block(), immediate_dom_tree_map, strict_dom_tree_children);
+    auto dom_frontiers_vert = build_dominance_frontiers(cfg, entry_vertex, immediate_dom_tree_map, strict_dom_tree_children);
     // convert Vertex to BBPtr
     std::map<BasicBlockPtr, std::set<BasicBlockPtr>> dom_frontiers;
     for (const auto &[vert, df_set_vert] : dom_frontiers_vert) {
@@ -278,7 +263,7 @@ int BuildSSAPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadat
 }
 
 void BuildSSAPass::insert_phi_functions(
-    const std::map<int, std::set<std::tuple<InstructionListIter, BasicBlockPtr>>> &def_map,
+    const std::map<unsigned int, std::set<BasicBlockPtr>> &def_map,
     const std::map<BasicBlockPtr, std::set<BasicBlockPtr>> &dominance_frontiers_map)
 {
     /*
@@ -301,15 +286,11 @@ void BuildSSAPass::insert_phi_functions(
     */
 
     // Repeat for all variables
-    for (const auto &[v_id, v_def_raw] : def_map) {
+    for (const auto &[v_id, def] : def_map) {
         // v_id < 0 is global. it's not supposed to be defined nor accessed
-        assert(v_id >= 0);
-        auto v_def_info = v_def_raw | boost::adaptors::transformed([](const std::tuple<InstructionListIter, BasicBlockPtr> &def_info) {
-            return std::get<1>(def_info);
-        });
 
         // Let `Def(v)` be the set of basic blocks where `v` is defined.
-        std::set<BasicBlockPtr> def(v_def_info.begin(), v_def_info.end());
+        // def is from for loop
         // Initialize `Work(v)` as a copy of `Def(v)`.
         std::set<BasicBlockPtr> work(def);
         // Initialize `Phi(v)` as empty.
@@ -363,7 +344,7 @@ void BuildSSAPass::remove_redundant_phi(const std::list<BasicBlockPtr> &basic_bl
 }
 
 void BuildSSAPass::populate_phi_function(
-    const std::map<int, std::set<std::tuple<InstructionListIter, BasicBlockPtr>>> &def_map,
+    const std::map<unsigned int, std::set<BasicBlockPtr>> &def_map,
     const ControlFlowGraph &cfg)
 {
     std::map<BasicBlockPtr, ControlFlowVertex> basic_block_to_vertex;
@@ -371,13 +352,9 @@ void BuildSSAPass::populate_phi_function(
         basic_block_to_vertex[cfg[vert]] = vert;
     }
 
-    for (const auto &[v_id, v_def_raw] : def_map) {
+    for (const auto &[v_id, v_def_basic_blocks] : def_map) {
         // v_id < 0 is global. it's not supposed to be defined nor accessed
         assert(v_id >= 0);
-        auto v_def_info = v_def_raw | boost::adaptors::transformed([](const std::tuple<InstructionListIter, BasicBlockPtr> &def_info) {
-            return std::get<1>(def_info);
-        });
-        std::set v_def_basic_blocks(v_def_info.begin(), v_def_info.end());
 
         for (const BasicBlockPtr &def_block : v_def_basic_blocks) {
             ControlFlowVertex def_vert = basic_block_to_vertex.at(def_block);

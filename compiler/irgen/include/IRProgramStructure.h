@@ -39,9 +39,71 @@ public:
 
     unsigned int get_max_reg_id() const;
 
+    /**
+     * @brief Get the IN set: the set of variables that must be live at the entry of the block, either because they are used in the block or needed by its successors.
+     *
+     * @return const std::set<unsigned int>&
+     */
+    const std::set<unsigned int> &get_in_variables() const { return _in_variables; }
+
+    /**
+     * \copybrief get_in_variables
+     *
+     * @return std::set<unsigned int>&
+     */
+    std::set<unsigned int> &get_in_variables() { return _in_variables; }
+
+    /**
+     * @brief Get the OUT set: the set of variables that must be live at the exit of the block, meaning they are needed by its successor blocks.
+     *
+     * @return const std::set<unsigned int>&
+     */
+    const std::set<unsigned int> &get_out_variables() const { return _out_variables; }
+
+    /**
+     * \copybrief get_out_variables
+     *
+     * @return std::set<unsigned int>&
+     */
+    std::set<unsigned int> &get_out_variables() { return _out_variables; }
+
+    /**
+     * @brief Get the DEF set: The set of variables that are assigned values within the block.
+     *
+     * @return std::set<unsigned int>&
+     */
+    std::set<unsigned int> &get_def_variables() { return _def_variables; }
+
+    /**
+     * \copybrief get_def_variables
+     *
+     * @return const std::set<unsigned int>&
+     */
+    const std::set<unsigned int> &get_def_variables() const { return _def_variables; }
+
+    /**
+     * @brief Get the USE set: The set of variables that are used before being defined in the block.
+     *
+     * @return std::set<unsigned int>&
+     */
+    std::set<unsigned int> &get_use_variables() { return _use_variables; }
+
+    /**
+     * \copybrief get_use_variables
+     *
+     * @return const std::set<unsigned int>&
+     */
+    const std::set<unsigned int> &get_use_variables() const { return _use_variables; }
+
 private:
     std::string _label;
     std::list<TACPtr> _instructions;
+
+    std::set<unsigned int> _in_variables;
+    std::set<unsigned int> _out_variables;
+
+    std::set<unsigned int> _def_variables;
+    std::set<unsigned int> _use_variables;
 };
 
 using BasicBlockPtr = std::shared_ptr<BasicBlock>;
@@ -94,6 +156,14 @@ public:
 
     std::string generate_graphviz_cfg();
 
+    std::map<unsigned int, std::set<BasicBlockPtr>> &get_def_variables() { return _def_variables; }
+
+    const std::map<unsigned int, std::set<BasicBlockPtr>> &get_def_variables() const { return _def_variables; }
+
+    std::map<unsigned int, std::set<BasicBlockPtr>> &get_use_variables() { return _use_variables; }
+
+    const std::map<unsigned int, std::set<BasicBlockPtr>> &get_use_variables() const { return _use_variables; }
+
 private:
     std::string _func_name;
     std::list<BasicBlockPtr> _basic_blocks;
@@ -101,6 +171,9 @@ private:
     bool _has_return;
     ControlFlowGraphPtr _cfg;
     ControlFlowVertex _start_block;
+
+    std::map<unsigned int, std::set<BasicBlockPtr>> _def_variables;
+    std::map<unsigned int, std::set<BasicBlockPtr>> _use_variables;
 };
 
 using SubroutinePtr = std::shared_ptr<Subroutine>;
