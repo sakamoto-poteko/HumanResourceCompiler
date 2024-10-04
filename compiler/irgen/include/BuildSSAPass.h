@@ -12,9 +12,7 @@
 
 OPEN_IRGEN_NAMESPACE
 
-// Prereq: eliminate dead bb
-// We're really supposed to perform IN/OUT analysis here when inserting phi
-// But I'm too lazy. Removing single branch and zero branch phi seems to be fine here.
+// Depends: CFG, Liveness
 class BuildSSAPass : public IROptimizationPass {
 public:
     BuildSSAPass(const ProgramPtr &program)

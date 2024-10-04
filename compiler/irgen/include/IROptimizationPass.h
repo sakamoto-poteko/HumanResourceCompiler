@@ -14,6 +14,11 @@ public:
 
     virtual int run();
 
+    virtual int save_as(unsigned int task_index, const std::string &path)
+    {
+        return 0;
+    }
+
 protected:
     IROptimizationPass(const ProgramPtr &program)
         : _program(program)

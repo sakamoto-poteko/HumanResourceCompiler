@@ -36,7 +36,7 @@ void WithIR::setup_ir(bool optimize, const TestCaseData &data, bool &result)
         "EliminateDeadBasicBlockPass",
         data.filename + "-edbb.hrasm",
         data.filename + "-edbb.dot");
-    irop_passmgr.add_pass<hrl::irgen::AnalyzeLivenessPass>("AnalyzeLivenessPass");
+    irop_passmgr.add_pass<hrl::irgen::AnalyzeLivenessPass>("AnalyzeLivenessPreSSAPass");
     irop_passmgr.add_pass<hrl::irgen::BuildSSAPass>(
         "BuildSSAPass",
         data.filename + "-ssa.hrasm",
@@ -45,6 +45,7 @@ void WithIR::setup_ir(bool optimize, const TestCaseData &data, bool &result)
         "SSARenumberVariableId",
         data.filename + "-ssa-renum.hrasm",
         data.filename + "-ssa-renum.dot");
+    irop_passmgr.add_pass<hrl::irgen::AnalyzeLivenessPass>("AnalyzeLivenessPostSSAPass");
     irop_passmgr.add_pass<hrl::irgen::VerifySSAPass>("VerifySSA");
 
     int irop_result = irop_passmgr.run(true);

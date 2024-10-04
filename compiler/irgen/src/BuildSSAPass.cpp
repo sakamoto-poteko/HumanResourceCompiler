@@ -278,7 +278,7 @@ void BuildSSAPass::insert_phi_functions(
         2. Iterate until `Work(v)` is empty:
             - Remove a block `X` from `Work(v)`.
             - For each block `Y` in DF(X):
-                - If `v` does not already have a phi function in `Y`:
+                - If `v` does not already have a phi function in `Y`, and `v` is live in `Y`:
                     - Insert a phi function for `v` in `Y`.
                     - Add `Y` to `Phi(v)`.
                     - If `v` is not already in `Def(v)` for `Y`, add `Y` to `Work(v)`.
@@ -311,7 +311,7 @@ void BuildSSAPass::insert_phi_functions(
                 std::list<TACPtr> &instr_list_bb_y = y_basic_block->get_instructions();
 
                 // If `v` does not already have a phi function in `Y`
-                if (!phi.contains(y_basic_block)) {
+                if (!phi.contains(y_basic_block) && y_basic_block->get_in_variables().contains(v_id)) {
                     // Insert a phi function for `v` in `Y`.
                     TACPtr phi_instr = ThreeAddressCode::create_phi(v_id);
                     instr_list_bb_y.push_front(phi_instr);
@@ -612,9 +612,9 @@ void BuildSSAPass::rename_and_populate_phi(
             TACPtr new_phi = ThreeAddressCode::create_phi(new_tgt_id, phi_instr->get_ast_node());
             new_phi->set_phi_incomings(phi_instr->get_phi_incomings());
             spdlog::trace(
-                "[SSA Rename] In BB '{}': Renaming phi instruction {} to {}",
+                "[SSA Rename] In BB '{}': Renaming phi instruction for %{} to {}",
                 visiting_basic_block->get_label(),
-                phi_instr->to_string(true),
+                original_tgt_id, 
                 new_phi->to_string(true));
             phi_instr = new_phi;
         }
@@ -675,7 +675,7 @@ void BuildSSAPass::rename_and_populate_phi(
             if (mutated) {
                 TACPtr new_instr = ThreeAddressCode::create(instruction->get_op(), tgt, src1, src2, instruction->get_ast_node());
                 spdlog::trace(
-                    "[SSA Rename] In BB '{}': Renaming ordinary instruction {} to {}",
+                    "[SSA Rename] In BB '{}': Renaming ordinary instruction '{}' to '{}'",
                     visiting_basic_block->get_label(),
                     instruction->to_string(true),
                     new_instr->to_string(true));
@@ -723,7 +723,7 @@ void BuildSSAPass::rename_and_populate_phi(
                     phi_instr_in_succ_blk->set_phi_incoming(visiting_basic_block, new_id, new_id_def_block);
 
                     spdlog::trace(
-                        "[SSA Rename] In BB '{}', succ of '{}': Set phi {}'s ({}) incoming: %{}, defined in '{}'",
+                        "[SSA Rename] In BB '{}', succ of '{}': Setting phi %{}'s (original %{}) incoming: %{}, defined in '{}'",
                         successor_block->get_label(),
                         visiting_basic_block->get_label(),
                         tgt_new_id,
