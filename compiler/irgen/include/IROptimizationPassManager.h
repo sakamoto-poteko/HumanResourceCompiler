@@ -19,7 +19,7 @@ public:
     ~IROptimizationPassManager() = default;
 
     template <typename PassT, typename... StringArgs>
-        requires(std::is_base_of_v<IROptimizationPass, PassT> && (std::is_same_v<const std::string &, StringArgs> && ...))
+        requires(std::is_base_of_v<IROptimizationPass, PassT> && ((std::is_same_v<const std::string &, StringArgs> || std::is_convertible_v<StringArgs, std::string>) && ...))
     std::shared_ptr<PassT> add_pass(
         const std::string &pass_name,
         const std::string &after_pass_asm_path = "",
@@ -32,7 +32,9 @@ public:
         _pass_names.push_back(pass_name);
         _pass_asm_filepaths.push_back(after_pass_asm_path);
         _pass_graph_filepaths.push_back(after_pass_graph_path);
-        _additional_save_paths.emplace_back(std::forward<StringArgs>(additional_save_paths)...);
+        std::vector<std::string> add_paths;
+        add_paths.emplace_back(std::forward<StringArgs>(additional_save_paths)...);
+        _additional_save_paths.push_back(std::move(add_paths));
 
         return pass;
     }

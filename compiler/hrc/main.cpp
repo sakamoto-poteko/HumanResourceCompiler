@@ -6,11 +6,11 @@
 #include "ASTBuilder.h"
 #include "ASTNodeGraphvizBuilder.h"
 #include "AnalyzeLivenessPass.h"
+#include "BuildControlFlowGraphPass.h"
 #include "BuildSSAPass.h"
 #include "ClearSymbolTablePass.h"
 #include "CompilerOptions.h"
 #include "ConstantFoldingPass.h"
-#include "BuildControlFlowGraphPass.h"
 #include "ControlFlowVerificationPass.h"
 #include "DeadCodeEliminationPass.h"
 #include "EliminateDeadBasicBlockPass.h"
@@ -173,7 +173,8 @@ int main(int argc, char **argv)
     irop_passmgr.add_pass<hrl::irgen::BuildSSAPass>(
         "BuildSSAPass",
         "build/ssa.hrasm",
-        "build/ssa.dot");
+        "build/ssa.dot",
+        "build/ssa.domtree.dot");
     irop_passmgr.add_pass<hrl::irgen::RenumberVariableIdPass>(
         "SSARenumberVariableId",
         "build/ssa-renum.hrasm",

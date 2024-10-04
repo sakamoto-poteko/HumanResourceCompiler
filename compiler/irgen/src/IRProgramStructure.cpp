@@ -11,12 +11,11 @@
 #include <boost/range/adaptors.hpp>
 #include <spdlog/spdlog.h>
 
-#include "EscapeGraphviz.h"
+#include "GraphvizGenerator.h"
 #include "IRProgramStructure.h"
 #include "Operand.h"
 #include "TerminalColor.h"
 #include "ThreeAddressCode.h"
-#include "hrl_global.h"
 #include "irgen_global.h"
 
 OPEN_IRGEN_NAMESPACE
@@ -37,75 +36,11 @@ bool ProgramMetadata::get_label_alias(const std::string &src, std::string &tgt)
     }
 }
 
-std::string Subroutine::generate_graphviz_cfg()
-{
-    boost::dynamic_properties dp;
-
-    dp.property("label", boost::make_function_property_map<ControlFlowVertex>([this](const ControlFlowVertex &v) {
-        const BasicBlockPtr &node = _cfg->operator[](v);
-
-        auto instrs = boost::join(
-            node->get_instructions() | boost::adaptors::transformed([](const TACPtr &instr) {
-                return (boost::format("<TR><TD ALIGN='LEFT'>%1%</TD></TR>")
-                    % escape_graphviz_html(boost::algorithm::trim_copy(instr->to_string())))
-                    .str();
-            }),
-            "");
-
-        boost::format xlabel;
-        xlabel = boost::format(R"(<<TABLE BORDER='0' CELLBORDER='0'><TR><TD ALIGN='LEFT'><FONT COLOR='#8B4513'>%1%:</FONT></TD></TR>%2%</TABLE>>)")
-            % escape_graphviz_html(node->get_label())
-            % instrs;
-        return xlabel.str();
-    }));
-
-    int lbl_id = 0;
-    std::map<ControlFlowVertex, std::string> lbl_map;
-    dp.property("node_id", boost::make_function_property_map<ControlFlowVertex>([this, &lbl_id, &lbl_map](const ControlFlowVertex &v) {
-        auto lblit = lbl_map.find(v);
-        if (lblit == lbl_map.end()) {
-            auto id = get_func_name() + std::to_string(lbl_id++);
-            lbl_map[v] = id;
-            return id;
-        } else {
-            return lblit->second;
-        }
-    }));
-
-    dp.property("shape", boost::make_function_property_map<ControlFlowVertex>([](const ControlFlowVertex &v) {
-        UNUSED(v);
-        return "rect";
-    }));
-
-    dp.property("fillcolor", boost::make_function_property_map<ControlFlowVertex>([this](const ControlFlowVertex &v) {
-        UNUSED(v);
-        assert(_start_block != _cfg->null_vertex());
-        return v == _start_block ? "lightyellow" : "white";
-    }));
-
-    dp.property("style", boost::make_function_property_map<ControlFlowVertex>([](const ControlFlowVertex &v) {
-        UNUSED(v);
-        return "filled";
-    }));
-
-    dp.property("fontname", boost::make_function_property_map<ControlFlowVertex>([](const ControlFlowVertex &v) {
-        UNUSED(v);
-        return "Courier";
-    }));
-
-    std::stringstream dotfile;
-    boost::write_graphviz_dp(dotfile, *_cfg, dp);
-    std::string str = dotfile.str();
-    boost::replace_all(str, "\"<<", "<<");
-    boost::replace_all(str, ">>\"", ">>");
-    return str;
-}
-
 std::string Program::generaet_graphviz()
 {
     std::vector<std::string> subroutine_cfgs;
     for (const auto &subroutine : _subroutines) {
-        auto graphviz_str = subroutine->generate_graphviz_cfg();
+        auto graphviz_str = GraphvizGenerator::generate_graphviz_cfg_for_subroutine(*subroutine->get_cfg(), subroutine->get_start_block(), subroutine->get_func_name());
         auto fmt = boost::format("subgraph %1% {\nlabel=\"%1%\";")
             % subroutine->get_func_name();
         boost::replace_head(

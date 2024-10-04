@@ -20,6 +20,7 @@ add_library(${PROJECT_NAME}
     src/VerifySSAPass.cpp
     src/RenumberVariableIdPass.cpp
     src/AnalyzeLivenessPass.cpp
+    src/GraphvizGenerator.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

@@ -23,21 +23,21 @@ int IROptimizationPassManager::run(bool fail_fast)
         spdlog::info("Running IR opt pass {}...", pass_name);
         int rc = pass->run();
         if (!pass_asm_path.empty()) {
-            std::string asm_str(_program->to_string(false));
             std::ofstream out(pass_asm_path);
-            out << asm_str;
+            out << _program->to_string(false);
             out.close();
         }
 
         if (!pass_graph_path.empty()) {
-            std::string graphviz_str(_program->generaet_graphviz());
             std::ofstream out(pass_graph_path);
-            out << graphviz_str;
+            out << _program->generaet_graphviz();
             out.close();
         }
 
-        for (std::size_t i = 0; i < additional_path.size(); ++i) {
-            pass->save_as(i, additional_path.at(i));
+        for (std::size_t j = 0; j < additional_path.size(); ++j) {
+            std::ofstream out(additional_path.at(j));
+            out << pass->get_additional_metadata_text(static_cast<unsigned int>(j), additional_path.at(j));
+            out.close();
         }
 
         if (rc != 0) {
