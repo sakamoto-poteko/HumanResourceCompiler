@@ -18,6 +18,7 @@ int IROptimizationPassManager::run(bool fail_fast)
         const auto &pass_name = _pass_names.at(i);
         const auto &pass_asm_path = _pass_asm_filepaths.at(i);
         const auto &pass_graph_path = _pass_graph_filepaths.at(i);
+        const auto &additional_path = _additional_save_paths.at(i);
 
         spdlog::info("Running IR opt pass {}...", pass_name);
         int rc = pass->run();
@@ -33,6 +34,10 @@ int IROptimizationPassManager::run(bool fail_fast)
             std::ofstream out(pass_graph_path);
             out << graphviz_str;
             out.close();
+        }
+
+        for (std::size_t i = 0; i < additional_path.size(); ++i) {
+            pass->save_as(i, additional_path.at(i));
         }
 
         if (rc != 0) {

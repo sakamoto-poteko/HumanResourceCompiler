@@ -768,9 +768,5 @@ void BuildSSAPass::rename_and_populate_phi(
     rename_basic_block(entry);
 }
 
-int BuildSSAPass::save_as(unsigned int task_index, const std::string &path)
-{
-}
-
 CLOSE_IRGEN_NAMESPACE
 // end

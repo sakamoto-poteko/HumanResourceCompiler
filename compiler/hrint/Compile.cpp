@@ -9,7 +9,7 @@
 #include "BuildSSAPass.h"
 #include "ClearSymbolTablePass.h"
 #include "ConstantFoldingPass.h"
-#include "ControlFlowGraphBuilder.h"
+#include "BuildControlFlowGraphPass.h"
 #include "ControlFlowVerificationPass.h"
 #include "DeadCodeEliminationPass.h"
 #include "EliminateDeadBasicBlockPass.h"
@@ -109,7 +109,7 @@ int transform_hir(const InterpreterOptions &options, const irgen::ProgramPtr &pr
         "StripEmptyBasicBlockPass",
         "build/strebb.hrasm",
         "build/strebb.dot");
-    irop_passmgr.add_pass<hrl::irgen::ControlFlowGraphBuilder>(
+    irop_passmgr.add_pass<hrl::irgen::BuildControlFlowGraphPass>(
         "ControlFlowGraphBuilderPass",
         "build/cfgbuilder.hrasm",
         "build/cfgbuilder.dot");
