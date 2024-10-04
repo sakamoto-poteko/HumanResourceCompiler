@@ -46,7 +46,7 @@ private:
         const std::map<ControlFlowVertex, std::set<ControlFlowVertex>> &dominance_frontiers);
 
     void insert_phi_functions(
-        const std::map<int, std::set<std::tuple<InstructionListIter, BasicBlockPtr>>> &def_map,
+        const std::map<unsigned int, std::set<BasicBlockPtr>> &def_map,
         const std::map<BasicBlockPtr, std::set<BasicBlockPtr>> &dominance_frontiers);
 
     void populate_phi_function(
@@ -56,6 +56,12 @@ private:
     void remove_redundant_phi(const std::list<BasicBlockPtr> &basic_blocks);
 
     void rename_registers(const SubroutinePtr &subroutine, const std::map<ControlFlowVertex, ControlFlowVertex> &dom_tree_map);
+
+    void rename_and_populate_phi(
+        const std::map<unsigned int, std::set<BasicBlockPtr>> &def_map,
+        const std::map<ControlFlowVertex, std::set<ControlFlowVertex>> &strict_dom_tree_children,
+        const ControlFlowGraph &cfg,
+        ControlFlowVertex entry);
     // [End Group]
 };
 

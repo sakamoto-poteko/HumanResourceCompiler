@@ -169,11 +169,11 @@ int main(int argc, char **argv)
         "BuildSSAPass",
         "build/ssa.hrasm",
         "build/ssa.dot");
-    irop_passmgr.add_pass<hrl::irgen::RenumberVariableIdPass>(
-        "SSARenumberVariableId",
-        "build/ssa-renum.hrasm",
-        "build/ssa-renum.dot");
-    irop_passmgr.add_pass<hrl::irgen::VerifySSAPass>("VerifySSA");
+    // irop_passmgr.add_pass<hrl::irgen::RenumberVariableIdPass>(
+    //     "SSARenumberVariableId",
+    //     "build/ssa-renum.hrasm",
+    //     "build/ssa-renum.dot");
+    // irop_passmgr.add_pass<hrl::irgen::VerifySSAPass>("VerifySSA");
 
     if (irop_passmgr.run(true) != 0) {
         errmgr.print_all();

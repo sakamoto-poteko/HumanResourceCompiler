@@ -172,6 +172,8 @@ bool is_control_transfer_operation(IROperation op)
     case IROperation::OUTPUT:
     case IROperation::NOP:
     case IROperation::PHI:
+    // call is not for now
+    case IROperation::CALL:
         return false;
 
     case IROperation::JE:
@@ -183,7 +185,6 @@ bool is_control_transfer_operation(IROperation op)
     case IROperation::JZ:
     case IROperation::JNZ:
     case IROperation::JMP:
-    case IROperation::CALL:
     case IROperation::ENTER:
     case IROperation::RET:
     case IROperation::HALT:
