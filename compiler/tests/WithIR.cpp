@@ -1,4 +1,5 @@
 #include "WithIR.h"
+#include "AnalyzeLivenessPass.h"
 #include "BuildSSAPass.h"
 #include "ControlFlowGraphBuilder.h"
 #include "EliminateDeadBasicBlockPass.h"
@@ -35,6 +36,7 @@ void WithIR::setup_ir(bool optimize, const TestCaseData &data, bool &result)
         "EliminateDeadBasicBlockPass",
         data.filename + "-edbb.hrasm",
         data.filename + "-edbb.dot");
+    irop_passmgr.add_pass<hrl::irgen::AnalyzeLivenessPass>("AnalyzeLivenessPass");
     irop_passmgr.add_pass<hrl::irgen::BuildSSAPass>(
         "BuildSSAPass",
         data.filename + "-ssa.hrasm",

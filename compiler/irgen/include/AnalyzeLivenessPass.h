@@ -14,7 +14,7 @@ OPEN_IRGEN_NAMESPACE
 class AnalyzeLivenessPass : public IROptimizationPass {
 public:
     AnalyzeLivenessPass(const ProgramPtr &program);
-    ~AnalyzeLivenessPass();
+    ~AnalyzeLivenessPass() = default;
 
 protected:
     int run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program) override;
@@ -22,7 +22,7 @@ protected:
 private:
     static void traverse_cfg(ControlFlowVertex vertex, const ControlFlowGraph &cfg, std::set<ControlFlowVertex> &visited, std::vector<ControlFlowVertex> &result);
     void calculate_in_out(const ControlFlowGraph &cfg, const std::vector<ControlFlowVertex> &rpo);
-    void calculate_def_use(const std::list<BasicBlockPtr> &basic_blocks);
+    void calculate_def_use(const SubroutinePtr &subroutine);
 };
 
 CLOSE_IRGEN_NAMESPACE
