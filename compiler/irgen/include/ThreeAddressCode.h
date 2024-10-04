@@ -46,11 +46,6 @@ public:
 
     void set_phi_incomings(const std::map<BasicBlockPtr, std::tuple<unsigned int, BasicBlockPtr>> &incomings) { _phi_incoming = incomings; }
 
-    // get the variable(reg) use, which is useful in SSA
-    std::set<Operand> get_variable_uses() const;
-    // get the variable(reg) def, which is useful in SSA
-    std::optional<Operand> get_variable_def() const;
-
     std::string to_string(bool with_color = false) const;
 
     static std::shared_ptr<ThreeAddressCode> create_arithmetic(IROperation op, const Operand &tgt, const Operand &src1, const Operand &src2, std::shared_ptr<parser::ASTNode> ast = nullptr);

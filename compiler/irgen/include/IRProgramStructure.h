@@ -39,9 +39,31 @@ public:
 
     unsigned int get_max_reg_id() const;
 
+    const std::set<unsigned int> &get_in_variables() const { return _in_variables; }
+
+    const std::set<unsigned int> &get_out_variables() const { return _out_variables; }
+
+    std::set<unsigned int> &get_in_variables() { return _in_variables; }
+
+    std::set<unsigned int> &get_out_variables() { return _out_variables; }
+
+    std::map<unsigned int, std::set<BasicBlockPtr>> get_def_variables() { return _def_variables; }
+
+    const std::map<unsigned int, std::set<BasicBlockPtr>> &get_def_variables() const { return _def_variables; }
+
+    std::map<unsigned int, std::set<BasicBlockPtr>> get_use_variables() { return _use_variables; }
+
+    const std::map<unsigned int, std::set<BasicBlockPtr>> &get_use_variables() const { return _use_variables; }
+
 private:
     std::string _label;
     std::list<TACPtr> _instructions;
+
+    std::set<unsigned int> _in_variables;
+    std::set<unsigned int> _out_variables;
+
+    std::map<unsigned int, std::set<BasicBlockPtr>> _def_variables;
+    std::map<unsigned int, std::set<BasicBlockPtr>> _use_variables;
 };
 
 using BasicBlockPtr = std::shared_ptr<BasicBlock>;
