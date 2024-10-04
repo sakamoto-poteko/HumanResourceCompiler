@@ -44,7 +44,7 @@ The project is located in the `compiler/` directory. You can build it using CMak
     To install dependencies on Debian and derivations, use the following commands:
     
     ```bash
-    sudo apt-get install -y cmake ninja-build flex bison libspdlog-dev libboost-dev libboost-graph-dev libboost-program-options-dev libgtest-dev
+    sudo apt-get install -y cmake ninja-build flex bison libspdlog-dev libboost-dev libboost-graph-dev libboost-program-options-dev libgtest-dev libyaml-cpp-dev
     ```
     
     *macOS*
@@ -53,7 +53,7 @@ The project is located in the `compiler/` directory. You can build it using CMak
     
     ```bash
     brew update
-    brew install cmake ninja boost spdlog flex bison googletest
+    brew install cmake ninja boost spdlog flex bison googletest yaml-cpp
     ```
     
     *Windows*

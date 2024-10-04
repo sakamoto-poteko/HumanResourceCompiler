@@ -169,7 +169,8 @@ int main(int argc, char **argv)
     irop_passmgr.add_pass<hrl::irgen::AnalyzeLivenessPass>(
         "AnalyzeLivenessPassPreSSA",
         "build/liveness.hrasm",
-        "build/liveness.dot");
+        "build/liveness.dot",
+        "build/liveness.yml");
     irop_passmgr.add_pass<hrl::irgen::BuildSSAPass>(
         "BuildSSAPass",
         "build/ssa.hrasm",
@@ -181,8 +182,9 @@ int main(int argc, char **argv)
         "build/ssa-renum.dot");
     irop_passmgr.add_pass<hrl::irgen::AnalyzeLivenessPass>(
         "AnalyzeLivenessPassPostSSA",
-        "build/liveness.hrasm",
-        "build/liveness.dot");
+        "build/liveness-ssa.hrasm",
+        "build/liveness-ssa.dot",
+        "build/liveness-ssa.yml");
     irop_passmgr.add_pass<hrl::irgen::VerifySSAPass>("VerifySSA");
 
     if (irop_passmgr.run(true) != 0) {

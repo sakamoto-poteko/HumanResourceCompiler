@@ -558,13 +558,12 @@ void BuildSSAPass::rename_and_populate_phi(
 
 std::string BuildSSAPass::get_additional_metadata_text(unsigned int task_index, const std::string &path)
 {
-    if (task_index == 0) {
-        return generate_dominance_tree_graphviz(path);
-    }
-    return std::string();
+    UNUSED(task_index);
+    UNUSED(path);
+    return generate_dominance_tree_graphviz();
 }
 
-std::string BuildSSAPass::generate_dominance_tree_graphviz(const std::string &path)
+std::string BuildSSAPass::generate_dominance_tree_graphviz()
 {
     std::vector<std::string> subroutine_cfgs;
     for (const auto &[subroutine, tree] : _dominance_trees) {

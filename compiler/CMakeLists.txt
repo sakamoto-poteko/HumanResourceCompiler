@@ -25,6 +25,7 @@ add_custom_target(
 # Compiler
 find_package(spdlog CONFIG REQUIRED)
 find_package(Boost CONFIG REQUIRED COMPONENTS graph)
+find_package(yaml-cpp REQUIRED)
 
 if(WIN32)
     list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")

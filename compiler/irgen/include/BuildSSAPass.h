@@ -58,7 +58,7 @@ private:
     // [End Group]
 
     std::map<SubroutinePtr, ControlFlowGraph> _dominance_trees;
-    std::string generate_dominance_tree_graphviz(const std::string &path);
+    std::string generate_dominance_tree_graphviz();
 };
 
 CLOSE_IRGEN_NAMESPACE

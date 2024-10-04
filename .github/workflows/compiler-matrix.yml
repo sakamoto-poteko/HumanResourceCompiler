@@ -73,7 +73,7 @@ jobs:
         if: matrix.os == 'deb'
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build flex bison libspdlog-dev libboost-dev libboost-graph-dev libboost-program-options-dev libgtest-dev ${{ matrix.c_compiler }}
+          sudo apt-get install -y cmake ninja-build flex bison libspdlog-dev libboost-dev libboost-graph-dev libboost-program-options-dev libgtest-dev libyaml-cpp-dev ${{ matrix.c_compiler }}
           git config --global --add safe.directory ${GITHUB_WORKSPACE}
 
       - name: Prepare (macOS)
