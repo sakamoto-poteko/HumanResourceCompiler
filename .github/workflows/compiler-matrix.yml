@@ -94,7 +94,7 @@ jobs:
 
       - name: Cache winflexbison
         if: matrix.os == 'windows-latest'
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: compiler/build/tools/winflexbison/src/win_flex_bison-2.5.25.zip
           key: winflexbison-${{ matrix.os }}-${{ hashFiles('compiler/build/tools/winflexbison/src/win_flex_bison-2.5.25.zip') }}

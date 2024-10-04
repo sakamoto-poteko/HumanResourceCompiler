@@ -1,9 +1,9 @@
 #ifndef BUILDSSAPASS_H
 #define BUILDSSAPASS_H
 
-#include <list>
 #include <map>
 #include <set>
+#include <string>
 
 #include "IROptimizationPass.h"
 #include "IRProgramStructure.h"
@@ -12,9 +12,7 @@
 
 OPEN_IRGEN_NAMESPACE
 
-// Prereq: eliminate dead bb
-// We're really supposed to perform IN/OUT analysis here when inserting phi
-// But I'm too lazy. Removing single branch and zero branch phi seems to be fine here.
+// Depends: CFG, Liveness
 class BuildSSAPass : public IROptimizationPass {
 public:
     BuildSSAPass(const ProgramPtr &program)
@@ -23,6 +21,8 @@ public:
     }
 
     ~BuildSSAPass();
+
+    std::string get_additional_metadata_text(unsigned int task_index, const std::string &path) override;
 
 protected:
     int run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program) override;
@@ -49,14 +49,16 @@ private:
         const std::map<unsigned int, std::set<BasicBlockPtr>> &def_map,
         const std::map<BasicBlockPtr, std::set<BasicBlockPtr>> &dominance_frontiers);
 
-    void populate_phi_function(
+    void rename_and_populate_phi(
         const std::map<unsigned int, std::set<BasicBlockPtr>> &def_map,
-        const ControlFlowGraph &cfg);
+        const std::map<ControlFlowVertex, std::set<ControlFlowVertex>> &strict_dom_tree_children,
+        const ControlFlowGraph &cfg,
+        ControlFlowVertex entry);
 
-    void remove_redundant_phi(const std::list<BasicBlockPtr> &basic_blocks);
-
-    void rename_registers(const SubroutinePtr &subroutine, const std::map<ControlFlowVertex, ControlFlowVertex> &dom_tree_map);
     // [End Group]
+
+    std::map<SubroutinePtr, ControlFlowGraph> _dominance_trees;
+    std::string generate_dominance_tree_graphviz(const std::string &path);
 };
 
 CLOSE_IRGEN_NAMESPACE

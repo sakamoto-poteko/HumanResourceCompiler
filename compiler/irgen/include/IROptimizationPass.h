@@ -2,6 +2,7 @@
 #define IROPTIMIZATIONPASS_H
 
 #include <memory>
+#include <string>
 
 #include "IRProgramStructure.h"
 #include "hrl_global.h"
@@ -15,12 +16,12 @@ public:
 
     virtual int run();
 
-    virtual int save_as(unsigned int task_index, const std::string &path)
+    virtual std::string get_additional_metadata_text(unsigned int task_index, const std::string &path)
     {
         UNUSED(task_index);
         UNUSED(path);
 
-        return 0;
+        return std::string();
     }
 
 protected:
