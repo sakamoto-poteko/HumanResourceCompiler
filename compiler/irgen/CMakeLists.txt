@@ -14,7 +14,7 @@ add_library(${PROJECT_NAME}
     src/MergeConditionalBranchPass.cpp
     src/StripUselessInstructionPass.cpp
     src/StripEmptyBasicBlockPass.cpp
-    src/ControlFlowGraphBuilder.cpp
+    src/BuildControlFlowGraphPass.cpp
     src/BuildSSAPass.cpp
     src/EliminateDeadBasicBlockPass.cpp
     src/VerifySSAPass.cpp
