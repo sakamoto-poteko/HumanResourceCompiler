@@ -1,5 +1,4 @@
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 
@@ -256,27 +255,6 @@ std::string ThreeAddressCode::to_string(bool with_color) const
         oss << std::string(_tgt) << ", " << boost::join(incoming_strs, ", ");
     }
     return oss.str();
-}
-
-std::set<Operand> ThreeAddressCode::get_variable_uses() const
-{
-    std::set<Operand> result;
-    if (_src1.get_type() == Operand::OperandType::VariableId) {
-        result.insert(_src1);
-    }
-    if (_src2.get_type() == Operand::OperandType::VariableId) {
-        result.insert(_src2);
-    }
-    return result;
-}
-
-std::optional<Operand> ThreeAddressCode::get_variable_def() const
-{
-    if (_tgt.get_type() == Operand::OperandType::VariableId && _tgt.get_register_id() >= 0) {
-        return _tgt;
-    } else {
-        return std::nullopt;
-    }
 }
 
 bool operator<(const InstructionListIter &it1, const InstructionListIter &it2)

@@ -4,8 +4,6 @@
 #include <list>
 #include <map>
 #include <memory>
-#include <optional>
-#include <set>
 #include <string>
 #include <tuple>
 
@@ -45,11 +43,6 @@ public:
     std::map<BasicBlockPtr, std::tuple<unsigned int, BasicBlockPtr>> &get_phi_incomings() { return _phi_incoming; }
 
     void set_phi_incomings(const std::map<BasicBlockPtr, std::tuple<unsigned int, BasicBlockPtr>> &incomings) { _phi_incoming = incomings; }
-
-    // get the variable(reg) use, which is useful in SSA
-    std::set<Operand> get_variable_uses() const;
-    // get the variable(reg) def, which is useful in SSA
-    std::optional<Operand> get_variable_def() const;
 
     std::string to_string(bool with_color = false) const;
 

@@ -5,6 +5,7 @@
 
 #include "ASTBuilder.h"
 #include "ASTNodeGraphvizBuilder.h"
+#include "AnalyzeLivenessPass.h"
 #include "BuildSSAPass.h"
 #include "ClearSymbolTablePass.h"
 #include "CompilerOptions.h"
@@ -165,6 +166,10 @@ int main(int argc, char **argv)
         "EliminateDeadBasicBlockPass",
         "build/edbb.hrasm",
         "build/edbb.dot");
+    irop_passmgr.add_pass<hrl::irgen::AnalyzeLivenessPass>(
+        "AnalyzeLivenessPass",
+        "build/liveness.hrasm",
+        "build/liveness.dot");
     irop_passmgr.add_pass<hrl::irgen::BuildSSAPass>(
         "BuildSSAPass",
         "build/ssa.hrasm",
