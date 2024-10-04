@@ -21,7 +21,7 @@ protected:
 
 private:
     static void traverse_cfg(ControlFlowVertex vertex, const ControlFlowGraph &cfg, std::set<ControlFlowVertex> &visited, std::vector<ControlFlowVertex> &result);
-    void calculate_in_out(const ControlFlowGraph &cfg, const std::vector<ControlFlowVertex> &rpo);
+    void calculate_in_out(const ControlFlowGraph &cfg, const std::vector<ControlFlowVertex> &vertices);
     void calculate_def_use(const SubroutinePtr &subroutine);
 };
 

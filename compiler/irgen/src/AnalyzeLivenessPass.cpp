@@ -75,9 +75,9 @@ void AnalyzeLivenessPass::traverse_cfg(const ControlFlowVertex vertex, const Con
     result.push_back(vertex);
 }
 
-void AnalyzeLivenessPass::calculate_in_out(const ControlFlowGraph &cfg, const std::vector<ControlFlowVertex> &order)
+void AnalyzeLivenessPass::calculate_in_out(const ControlFlowGraph &cfg, const std::vector<ControlFlowVertex> &vertices)
 {
-    for (const ControlFlowVertex vert : order) {
+    for (const ControlFlowVertex vert : vertices) {
         cfg[vert]->get_in_variables().clear();
         cfg[vert]->get_out_variables().clear();
     }
@@ -125,7 +125,7 @@ void AnalyzeLivenessPass::calculate_in_out(const ControlFlowGraph &cfg, const st
     while (changed) {
         changed = false;
 
-        for (const ControlFlowVertex vert : order) {
+        for (const ControlFlowVertex vert : vertices) {
             const BasicBlockPtr &block = cfg[vert];
 
             const std::set<unsigned int> &block_use = block->get_use_variables();
