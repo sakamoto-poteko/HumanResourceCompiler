@@ -26,7 +26,15 @@ add_custom_target(
 # Compiler
 find_package(spdlog CONFIG REQUIRED)
 find_package(Boost CONFIG REQUIRED COMPONENTS graph)
-find_package(yaml-cpp CONFIG REQUIRED)
+
+include(FetchContent)
+
+FetchContent_Declare(
+    yaml-cpp
+    GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+    GIT_TAG 0.8.0
+)
+FetchContent_MakeAvailable(yaml-cpp)
 
 if(WIN32)
     list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
@@ -35,11 +43,6 @@ if(WIN32)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 else()
     find_package(FLEX 2.6 REQUIRED)
-endif()
-
-if(NOT TARGET yaml-cpp)
-    add_library(yaml-cpp INTERFACE IMPORTED)
-    # workaround
 endif()
 
 include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/include)
