@@ -614,7 +614,7 @@ void BuildSSAPass::rename_and_populate_phi(
             spdlog::trace(
                 "[SSA Rename] In BB '{}': Renaming phi instruction for %{} to {}",
                 visiting_basic_block->get_label(),
-                original_tgt_id, 
+                original_tgt_id,
                 new_phi->to_string(true));
             phi_instr = new_phi;
         }
@@ -766,6 +766,10 @@ void BuildSSAPass::rename_and_populate_phi(
     };
 
     rename_basic_block(entry);
+}
+
+int BuildSSAPass::save_as(unsigned int task_index, const std::string &path)
+{
 }
 
 CLOSE_IRGEN_NAMESPACE
