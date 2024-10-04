@@ -1,18 +1,18 @@
 #include <memory>
 #include <spdlog/spdlog.h>
 
-#include "ControlFlowGraphBuilder.h"
+#include "BuildControlFlowGraphPass.h"
 #include "IROptimizationPass.h"
 #include "IRProgramStructure.h"
 #include "irgen_global.h"
 
 OPEN_IRGEN_NAMESPACE
 
-ControlFlowGraphBuilder::~ControlFlowGraphBuilder()
+BuildControlFlowGraphPass::~BuildControlFlowGraphPass()
 {
 }
 
-int hrl::irgen::ControlFlowGraphBuilder::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program)
+int hrl::irgen::BuildControlFlowGraphPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program)
 {
     UNUSED(metadata);
     UNUSED(program);
@@ -110,7 +110,7 @@ int hrl::irgen::ControlFlowGraphBuilder::run_subroutine(const SubroutinePtr &sub
     return 0;
 }
 
-int ControlFlowGraphBuilder::run()
+int BuildControlFlowGraphPass::run()
 {
     return IROptimizationPass::run();
 }

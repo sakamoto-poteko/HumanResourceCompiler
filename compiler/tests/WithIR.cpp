@@ -1,7 +1,7 @@
 #include "WithIR.h"
 #include "AnalyzeLivenessPass.h"
 #include "BuildSSAPass.h"
-#include "ControlFlowGraphBuilder.h"
+#include "BuildControlFlowGraphPass.h"
 #include "EliminateDeadBasicBlockPass.h"
 #include "ErrorManager.h"
 #include "IROptimizationPassManager.h"
@@ -24,7 +24,7 @@ void WithIR::setup_ir(bool optimize, const TestCaseData &data, bool &result)
         "StripEmptyBasicBlockPass",
         data.filename + "-strebb.hrasm",
         data.filename + "-strebb.dot");
-    irop_passmgr.add_pass<hrl::irgen::ControlFlowGraphBuilder>(
+    irop_passmgr.add_pass<hrl::irgen::BuildControlFlowGraphPass>(
         "ControlFlowGraphBuilderPass",
         data.filename + "-cfgbuilder.hrasm",
         data.filename + "-cfgbuilder.dot");
