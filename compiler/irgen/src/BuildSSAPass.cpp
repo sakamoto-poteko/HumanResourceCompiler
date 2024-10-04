@@ -770,6 +770,9 @@ void BuildSSAPass::rename_and_populate_phi(
 
 int BuildSSAPass::save_as(unsigned int task_index, const std::string &path)
 {
+    if (task_index == 0) {
+        
+    }
 }
 
 CLOSE_IRGEN_NAMESPACE

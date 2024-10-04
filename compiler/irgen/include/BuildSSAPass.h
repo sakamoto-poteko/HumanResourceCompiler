@@ -22,6 +22,8 @@ public:
 
     ~BuildSSAPass();
 
+    int save_as(unsigned int task_index, const std::string &path) override;
+
 protected:
     int run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program) override;
 
