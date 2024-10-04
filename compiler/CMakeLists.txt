@@ -6,8 +6,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED YES)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     add_compile_options(-Wall -Wextra -Wpedantic)
-    # add_compile_options(-fsanitize=address)
-    # add_link_options(-fsanitize=address)
+
+# add_compile_options(-fsanitize=address)
+# add_link_options(-fsanitize=address)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     add_compile_options(/W4 /Zc:preprocessor)
 endif()
@@ -25,7 +26,7 @@ add_custom_target(
 # Compiler
 find_package(spdlog CONFIG REQUIRED)
 find_package(Boost CONFIG REQUIRED COMPONENTS graph)
-find_package(yaml-cpp REQUIRED)
+find_package(yaml-cpp CONFIG REQUIRED)
 
 if(WIN32)
     list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
@@ -34,6 +35,11 @@ if(WIN32)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 else()
     find_package(FLEX 2.6 REQUIRED)
+endif()
+
+if(NOT TARGET yaml-cpp)
+    add_library(yaml-cpp INTERFACE IMPORTED)
+    # workaround
 endif()
 
 include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/include)
