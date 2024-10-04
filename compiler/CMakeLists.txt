@@ -36,6 +36,19 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(yaml-cpp)
 
+if(TARGET yaml-cpp)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(yaml-cpp PRIVATE
+            -Wno-unused-variable # Suppress specific warning
+            -Wno-sign-compare
+        )
+    elseif(MSVC)
+        target_compile_options(yaml-cpp PRIVATE
+            /wd4244 # Suppress specific warning (e.g., 'conversion from...')
+        )
+    endif()
+endif()
+
 if(WIN32)
     list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
     find_package(FlexBison REQUIRED)
