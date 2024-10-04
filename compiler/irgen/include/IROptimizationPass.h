@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "IRProgramStructure.h"
+#include "hrl_global.h"
 #include "irgen_global.h"
 
 OPEN_IRGEN_NAMESPACE
@@ -13,6 +14,14 @@ public:
     virtual ~IROptimizationPass() = default;
 
     virtual int run();
+
+    virtual int save_as(unsigned int task_index, const std::string &path)
+    {
+        UNUSED(task_index);
+        UNUSED(path);
+
+        return 0;
+    }
 
 protected:
     IROptimizationPass(const ProgramPtr &program)

@@ -1,5 +1,5 @@
-#ifndef CONTROLFLOWGRAPHBUILDER_H
-#define CONTROLFLOWGRAPHBUILDER_H
+#ifndef BUILD_CONTROL_FLOW_GRAPH_PASS_H
+#define BUILD_CONTROL_FLOW_GRAPH_PASS_H
 
 #include "IROptimizationPass.h"
 #include "IRProgramStructure.h"
@@ -7,14 +7,14 @@
 
 OPEN_IRGEN_NAMESPACE
 
-class ControlFlowGraphBuilder : public IROptimizationPass {
+class BuildControlFlowGraphPass : public IROptimizationPass {
 public:
-    ControlFlowGraphBuilder(const ProgramPtr &program)
+    BuildControlFlowGraphPass(const ProgramPtr &program)
         : IROptimizationPass(program)
     {
     }
 
-    ~ControlFlowGraphBuilder();
+    ~BuildControlFlowGraphPass();
 
     int run() override;
     int run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program) override;

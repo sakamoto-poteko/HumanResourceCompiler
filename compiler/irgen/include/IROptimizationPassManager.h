@@ -4,6 +4,8 @@
 #include "IROptimizationPass.h"
 #include "IRProgramStructure.h"
 #include "irgen_global.h"
+#include <string>
+#include <vector>
 
 OPEN_IRGEN_NAMESPACE
 
@@ -16,12 +18,13 @@ public:
 
     ~IROptimizationPassManager() = default;
 
-    template <typename PassT>
-        requires std::is_base_of_v<IROptimizationPass, PassT>
+    template <typename PassT, typename... StringArgs>
+        requires(std::is_base_of_v<IROptimizationPass, PassT> && (std::is_same_v<const std::string &, StringArgs> && ...))
     std::shared_ptr<PassT> add_pass(
         const std::string &pass_name,
         const std::string &after_pass_asm_path = "",
-        const std::string &after_pass_graph_path = "")
+        const std::string &after_pass_graph_path = "",
+        StringArgs &&...additional_save_paths)
     {
         std::shared_ptr<PassT> pass = std::make_shared<PassT>(_program);
 
@@ -29,6 +32,8 @@ public:
         _pass_names.push_back(pass_name);
         _pass_asm_filepaths.push_back(after_pass_asm_path);
         _pass_graph_filepaths.push_back(after_pass_graph_path);
+        _additional_save_paths.emplace_back(std::forward<StringArgs>(additional_save_paths)...);
+
         return pass;
     }
 
@@ -39,6 +44,7 @@ private:
     std::vector<std::string> _pass_asm_filepaths;
     std::vector<std::string> _pass_graph_filepaths;
     std::vector<std::string> _pass_names;
+    std::vector<std::vector<std::string>> _additional_save_paths;
     std::vector<IROptimizationPassPtr> _passes;
 };
 
