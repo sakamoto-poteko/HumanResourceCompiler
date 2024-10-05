@@ -10,7 +10,7 @@ OPEN_IRGEN_NAMESPACE
 
 class GraphvizGenerator {
 public:
-    static std::string generate_graphviz_cfg_for_subroutine(const ControlFlowGraph &cfg, const ControlFlowVertex start_block, const std::string &func_name);
+    static std::string generate_graphviz_cfg_for_subroutine(const BBGraph &cfg, const BBGraphVertex start_block, const std::string &func_name);
 
 private:
 };

@@ -112,7 +112,7 @@ int TACGen::build_ir_program()
             has_return = function_symbol->has_return();
         }
 
-        ControlFlowGraph empty;
+        BBGraph empty;
         SubroutinePtr subroutine = std::make_shared<Subroutine>(subroutine_name, has_param, has_return, basic_blocks);
         subroutines.push_back(subroutine);
     }

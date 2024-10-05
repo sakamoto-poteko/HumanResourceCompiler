@@ -30,20 +30,20 @@ protected:
 private:
     // [Group] These are SSA-building steps
     // pair<imm_dom_tree, strict_dom_map>
-    std::pair<std::map<ControlFlowVertex, ControlFlowVertex>, std::map<ControlFlowVertex, std::set<ControlFlowVertex>>> build_dominance_tree(
-        const ControlFlowGraph &cfg,
-        const ControlFlowVertex &start_block);
+    std::pair<std::map<BBGraphVertex, BBGraphVertex>, std::map<BBGraphVertex, std::set<BBGraphVertex>>> build_dominance_tree(
+        const BBGraph &cfg,
+        const BBGraphVertex &start_block);
 
-    std::map<ControlFlowVertex, std::set<ControlFlowVertex>> build_dominance_frontiers(
-        const ControlFlowGraph &cfg,
-        const ControlFlowVertex &start_block,
-        std::map<ControlFlowVertex, ControlFlowVertex> immediate_dom_tree_map,
-        std::map<ControlFlowVertex, std::set<ControlFlowVertex>> strict_dom_tree_children);
+    std::map<BBGraphVertex, std::set<BBGraphVertex>> build_dominance_frontiers(
+        const BBGraph &cfg,
+        const BBGraphVertex &start_block,
+        std::map<BBGraphVertex, BBGraphVertex> immediate_dom_tree_map,
+        std::map<BBGraphVertex, std::set<BBGraphVertex>> strict_dom_tree_children);
 
     bool verify_dominance_frontiers(
-        const ControlFlowGraph &cfg,
-        const std::map<ControlFlowVertex, ControlFlowVertex> &dom_tree_map,
-        const std::map<ControlFlowVertex, std::set<ControlFlowVertex>> &dominance_frontiers);
+        const BBGraph &cfg,
+        const std::map<BBGraphVertex, BBGraphVertex> &dom_tree_map,
+        const std::map<BBGraphVertex, std::set<BBGraphVertex>> &dominance_frontiers);
 
     void insert_phi_functions(
         const std::map<unsigned int, std::set<BasicBlockPtr>> &def_map,
@@ -51,13 +51,12 @@ private:
 
     void rename_and_populate_phi(
         const std::map<unsigned int, std::set<BasicBlockPtr>> &def_map,
-        const std::map<ControlFlowVertex, std::set<ControlFlowVertex>> &strict_dom_tree_children,
-        const ControlFlowGraph &cfg,
-        ControlFlowVertex entry);
+        const std::map<BBGraphVertex, std::set<BBGraphVertex>> &strict_dom_tree_children,
+        const BBGraph &cfg,
+        BBGraphVertex entry);
 
     // [End Group]
 
-    std::map<SubroutinePtr, ControlFlowGraph> _dominance_trees;
     std::string generate_dominance_tree_graphviz();
 };
 

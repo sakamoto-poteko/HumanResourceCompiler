@@ -48,8 +48,8 @@ void IRInterpreter::exec_subroutine(const irgen::SubroutinePtr &subroutine, HRMB
     CallFrame &call_frame = _calling_stack.back();
     irgen::BasicBlockPtr &current_block = call_frame.current_basic_block;
 
-    const irgen::ControlFlowGraph &cfg = *subroutine->get_cfg();
-    current_block = cfg[subroutine->get_start_block()];
+    const irgen::BBGraph &cfg = *subroutine->get_cfg();
+    current_block = cfg[subroutine->get_cfg_entry()];
     irgen::BasicBlockPtr predecessor_block = nullptr;
 
     std::map<std::string, irgen::BasicBlockPtr> basic_blocks;
