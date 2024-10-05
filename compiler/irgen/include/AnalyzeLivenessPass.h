@@ -16,6 +16,8 @@ public:
     AnalyzeLivenessPass(const ProgramPtr &program);
     ~AnalyzeLivenessPass() = default;
 
+    std::string get_additional_metadata_text(unsigned int task_index, const std::string &path) override;
+
 protected:
     int run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program) override;
 

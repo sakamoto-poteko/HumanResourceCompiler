@@ -390,7 +390,6 @@ void BuildSSAPass::rename_and_populate_phi(
             const Operand &tgt = phi_instr->get_tgt();
             // it's not possible that phi's target is global
             const unsigned int original_tgt_id = tgt.get_register_id();
-            assert(original_tgt_id >= 0);
             const unsigned int new_tgt_id = current_assignable_var_id++;
             stacks.at(original_tgt_id).push_back({ new_tgt_id, visiting_basic_block });
             new_id_to_original_id[new_tgt_id] = original_tgt_id;
@@ -548,7 +547,6 @@ void BuildSSAPass::rename_and_populate_phi(
         for (const auto &[var_id, count] : push_count) {
             auto &vec = stacks.at(var_id);
             std::size_t new_size = vec.size() - count;
-            assert(new_size >= 0);
             vec.resize(new_size);
         }
     };
@@ -558,13 +556,12 @@ void BuildSSAPass::rename_and_populate_phi(
 
 std::string BuildSSAPass::get_additional_metadata_text(unsigned int task_index, const std::string &path)
 {
-    if (task_index == 0) {
-        return generate_dominance_tree_graphviz(path);
-    }
-    return std::string();
+    UNUSED(task_index);
+    UNUSED(path);
+    return generate_dominance_tree_graphviz();
 }
 
-std::string BuildSSAPass::generate_dominance_tree_graphviz(const std::string &path)
+std::string BuildSSAPass::generate_dominance_tree_graphviz()
 {
     std::vector<std::string> subroutine_cfgs;
     for (const auto &[subroutine, tree] : _dominance_trees) {

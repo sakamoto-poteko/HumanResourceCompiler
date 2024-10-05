@@ -6,10 +6,11 @@
 
 #include "ASTBuilder.h"
 #include "ASTNodeForward.h"
+#include "AnalyzeLivenessPass.h"
+#include "BuildControlFlowGraphPass.h"
 #include "BuildSSAPass.h"
 #include "ClearSymbolTablePass.h"
 #include "ConstantFoldingPass.h"
-#include "BuildControlFlowGraphPass.h"
 #include "ControlFlowVerificationPass.h"
 #include "DeadCodeEliminationPass.h"
 #include "EliminateDeadBasicBlockPass.h"
@@ -121,6 +122,11 @@ int transform_hir(const InterpreterOptions &options, const irgen::ProgramPtr &pr
         "EliminateDeadBasicBlockPass",
         "build/edbb.hrasm",
         "build/edbb.dot");
+    irop_passmgr.add_pass<hrl::irgen::AnalyzeLivenessPass>(
+        "AnalyzeLivenessPassPreSSA",
+        "build/liveness.hrasm",
+        "build/liveness.dot",
+        "build/liveness.yml");
 
     if (options.compile_target >= CompileTarget::HIR_SSA) {
         irop_passmgr.add_pass<hrl::irgen::BuildSSAPass>(
@@ -132,6 +138,11 @@ int transform_hir(const InterpreterOptions &options, const irgen::ProgramPtr &pr
             "build/ssa-renum.hrasm",
             "build/ssa-renum.dot");
         irop_passmgr.add_pass<hrl::irgen::VerifySSAPass>("VerifySSA");
+        irop_passmgr.add_pass<hrl::irgen::AnalyzeLivenessPass>(
+            "AnalyzeLivenessPassPostSSA",
+            "build/liveness-ssa.hrasm",
+            "build/liveness-ssa.dot",
+            "build/liveness-ssa.yml");
         // there's no opt passes yet
     }
 

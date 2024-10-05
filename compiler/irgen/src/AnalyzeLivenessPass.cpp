@@ -1,11 +1,16 @@
 #include <algorithm>
 #include <cstddef>
 #include <iterator>
+#include <map>
+#include <ranges>
 #include <set>
+#include <string>
+#include <vector>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/range/adaptors.hpp>
 #include <spdlog/spdlog.h>
+#include <yaml-cpp/yaml.h>
 
 #include "AnalyzeLivenessPass.h"
 #include "IROptimizationPass.h"
@@ -207,6 +212,50 @@ void AnalyzeLivenessPass::calculate_def_use(const SubroutinePtr &subroutine)
 
     subroutine->get_def_variables().swap(subroutine_def_map);
     subroutine->get_use_variables().swap(subroutine_use_map);
+}
+
+std::string AnalyzeLivenessPass::get_additional_metadata_text(unsigned int task_index, const std::string &path)
+{
+    UNUSED(task_index);
+    UNUSED(path);
+
+    std::map<std::string, std::map<std::string, std::map<std::string, std::vector<std::string>>>> data;
+
+    for (const SubroutinePtr &subroutine : _program->get_subroutines()) {
+        const std::string &func_name = subroutine->get_func_name();
+        auto &subroutine_data = data[func_name];
+
+        for (const BasicBlockPtr &basic_block : subroutine->get_basic_blocks()) {
+            const std::string &label = basic_block->get_label();
+            auto &bb_data = subroutine_data[label];
+
+            auto instrs = basic_block->get_instructions() | std::views::transform([](const TACPtr &instr) { return instr->to_string(false); });
+            std::vector<std::string> instrs_vec(instrs.begin(), instrs.end());
+            bb_data.emplace("Instructions", std::move(instrs_vec));
+
+            auto uses = basic_block->get_use_variables() | std::views::transform([](const unsigned int var) { return "%" + std::to_string(var); });
+            std::vector<std::string> uses_vec(uses.begin(), uses.end());
+            bb_data.emplace("USE", std::move(uses_vec));
+
+            auto defs = basic_block->get_def_variables() | std::views::transform([](const unsigned int var) { return "%" + std::to_string(var); });
+            std::vector<std::string> defs_vec(defs.begin(), defs.end());
+            bb_data.emplace("DEF", std::move(defs_vec));
+
+            auto ins = basic_block->get_in_variables() | std::views::transform([](const unsigned int var) { return "%" + std::to_string(var); });
+            std::vector<std::string> ins_vec(ins.begin(), ins.end());
+            bb_data.emplace("IN", std::move(ins_vec));
+
+            auto outs = basic_block->get_use_variables() | std::views::transform([](const unsigned int var) { return "%" + std::to_string(var); });
+            std::vector<std::string> outs_vec(outs.begin(), outs.end());
+            bb_data.emplace("OUT", std::move(outs_vec));
+        }
+    }
+
+    YAML::Emitter yml;
+    // yml.SetStringFormat(YAML::EMITTER_MANIP::DoubleQuoted);
+    yml << data;
+
+    return std::string(yml.c_str());
 }
 
 CLOSE_IRGEN_NAMESPACE
