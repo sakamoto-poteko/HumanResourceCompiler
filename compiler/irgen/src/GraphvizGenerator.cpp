@@ -19,7 +19,7 @@
 
 OPEN_IRGEN_NAMESPACE
 
-std::string GraphvizGenerator::generate_graphviz_cfg_for_subroutine(const BBGraph &cfg, const BBGraphVertex start_block, const std::string &func_name)
+std::string GraphvizGenerator::generate_graphviz_bb_graph(const BBGraph &cfg, const BBGraphVertex start_block, const std::string &func_name)
 {
     boost::dynamic_properties dp;
 

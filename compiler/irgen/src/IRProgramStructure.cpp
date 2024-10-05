@@ -40,7 +40,7 @@ std::string Program::generaet_graphviz()
 {
     std::vector<std::string> subroutine_cfgs;
     for (const auto &subroutine : _subroutines) {
-        auto graphviz_str = GraphvizGenerator::generate_graphviz_cfg_for_subroutine(*subroutine->get_cfg(), subroutine->get_cfg_entry(), subroutine->get_func_name());
+        auto graphviz_str = GraphvizGenerator::generate_graphviz_bb_graph(*subroutine->get_cfg(), subroutine->get_cfg_entry(), subroutine->get_func_name());
         auto fmt = boost::format("subgraph %1% {\nlabel=\"%1%\";")
             % subroutine->get_func_name();
         boost::replace_head(

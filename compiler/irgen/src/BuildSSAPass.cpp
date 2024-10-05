@@ -263,17 +263,17 @@ int BuildSSAPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadat
 
     // write dom tree
     BBGraphPtr dom_tree_ptr = std::make_shared<BBGraph>();
-    BBGraph dom_tree_bgl = *dom_tree_ptr;
+    BBGraph &dom_tree_bbg = *dom_tree_ptr;
     std::map<BBGraphVertex, BBGraphVertex> cfg_vertex_to_dom_tree_bgl;
     for (const auto &[node, children] : strict_dom_tree_children) {
-        BBGraphVertex vert = dom_tree_bgl.add_vertex(cfg[node]);
+        BBGraphVertex vert = dom_tree_bbg.add_vertex(cfg[node]);
         cfg_vertex_to_dom_tree_bgl[node] = vert;
     }
 
     for (const auto &[node, children] : strict_dom_tree_children) {
         BBGraphVertex vert = cfg_vertex_to_dom_tree_bgl.at(node);
         for (BBGraphVertex child : children) {
-            dom_tree_bgl.add_edge(vert, cfg_vertex_to_dom_tree_bgl[child]);
+            dom_tree_bbg.add_edge(vert, cfg_vertex_to_dom_tree_bgl[child]);
         }
     }
 
@@ -568,7 +568,7 @@ std::string BuildSSAPass::generate_dominance_tree_graphviz()
     std::vector<std::string> subroutine_cfgs;
     for (const SubroutinePtr &subroutine : _program->get_subroutines()) {
         const BBGraph &dom_tree = *subroutine->get_dominance_tree();
-        auto graphviz_str = GraphvizGenerator::generate_graphviz_cfg_for_subroutine(dom_tree, subroutine->get_dominance_root(), subroutine->get_func_name());
+        auto graphviz_str = GraphvizGenerator::generate_graphviz_bb_graph(dom_tree, subroutine->get_dominance_root(), subroutine->get_func_name());
         auto fmt = boost::format("subgraph %1% {\nlabel=\"%1%\";")
             % subroutine->get_func_name();
         boost::replace_head(
