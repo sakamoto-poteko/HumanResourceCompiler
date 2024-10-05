@@ -19,11 +19,11 @@
 
 OPEN_IRGEN_NAMESPACE
 
-std::string GraphvizGenerator::generate_graphviz_cfg_for_subroutine(const ControlFlowGraph &cfg, const ControlFlowVertex start_block, const std::string &func_name)
+std::string GraphvizGenerator::generate_graphviz_bb_graph(const BBGraph &cfg, const BBGraphVertex start_block, const std::string &func_name)
 {
     boost::dynamic_properties dp;
 
-    dp.property("label", boost::make_function_property_map<ControlFlowVertex>([&cfg](const ControlFlowVertex &v) {
+    dp.property("label", boost::make_function_property_map<BBGraphVertex>([&cfg](const BBGraphVertex &v) {
         const BasicBlockPtr &node = cfg[v];
 
         auto instrs = boost::join(
@@ -42,8 +42,8 @@ std::string GraphvizGenerator::generate_graphviz_cfg_for_subroutine(const Contro
     }));
 
     int lbl_id = 0;
-    std::map<ControlFlowVertex, std::string> lbl_map;
-    dp.property("node_id", boost::make_function_property_map<ControlFlowVertex>([&lbl_id, &lbl_map, &func_name](const ControlFlowVertex &v) {
+    std::map<BBGraphVertex, std::string> lbl_map;
+    dp.property("node_id", boost::make_function_property_map<BBGraphVertex>([&lbl_id, &lbl_map, &func_name](const BBGraphVertex &v) {
         auto lblit = lbl_map.find(v);
         if (lblit == lbl_map.end()) {
             auto id = func_name + std::to_string(lbl_id++);
@@ -54,22 +54,22 @@ std::string GraphvizGenerator::generate_graphviz_cfg_for_subroutine(const Contro
         }
     }));
 
-    dp.property("shape", boost::make_function_property_map<ControlFlowVertex>([](const ControlFlowVertex &v) {
+    dp.property("shape", boost::make_function_property_map<BBGraphVertex>([](const BBGraphVertex &v) {
         UNUSED(v);
         return "rect";
     }));
 
-    dp.property("fillcolor", boost::make_function_property_map<ControlFlowVertex>([&start_block](const ControlFlowVertex &v) {
+    dp.property("fillcolor", boost::make_function_property_map<BBGraphVertex>([&start_block](const BBGraphVertex &v) {
         UNUSED(v);
         return v == start_block ? "lightyellow" : "white";
     }));
 
-    dp.property("style", boost::make_function_property_map<ControlFlowVertex>([](const ControlFlowVertex &v) {
+    dp.property("style", boost::make_function_property_map<BBGraphVertex>([](const BBGraphVertex &v) {
         UNUSED(v);
         return "filled";
     }));
 
-    dp.property("fontname", boost::make_function_property_map<ControlFlowVertex>([](const ControlFlowVertex &v) {
+    dp.property("fontname", boost::make_function_property_map<BBGraphVertex>([](const BBGraphVertex &v) {
         UNUSED(v);
         return "Courier";
     }));

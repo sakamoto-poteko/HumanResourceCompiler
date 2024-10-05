@@ -16,13 +16,13 @@ int VerifySSAPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetada
     UNUSED(program);
 
     std::map<unsigned int, BasicBlockPtr> variable_assigned;
-    std::set<ControlFlowVertex> pass1, pass2;
+    std::set<BBGraphVertex> pass1, pass2;
 
-    visit_basic_block(subroutine->get_start_block(), *subroutine->get_cfg(), pass1, [&](const BasicBlockPtr &basic_block) {
+    visit_basic_block(subroutine->get_cfg_entry(), *subroutine->get_cfg(), pass1, [&](const BasicBlockPtr &basic_block) {
         verify_basic_block_assignments_and_uses(basic_block, variable_assigned);
     });
 
-    visit_basic_block(subroutine->get_start_block(), *subroutine->get_cfg(), pass2, [&](const BasicBlockPtr &basic_block) {
+    visit_basic_block(subroutine->get_cfg_entry(), *subroutine->get_cfg(), pass2, [&](const BasicBlockPtr &basic_block) {
         verify_basic_block_phi_incoming_branches(basic_block, variable_assigned);
     });
 

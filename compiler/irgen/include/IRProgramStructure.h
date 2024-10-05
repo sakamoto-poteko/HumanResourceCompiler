@@ -107,10 +107,10 @@ private:
 };
 
 using BasicBlockPtr = std::shared_ptr<BasicBlock>;
-using ControlFlowGraph = boost::directed_graph<BasicBlockPtr>;
-using ControlFlowGraphPtr = std::shared_ptr<ControlFlowGraph>;
-using ControlFlowVertex = ControlFlowGraph::vertex_descriptor;
-using ControlFlowEdge = ControlFlowGraph::edge_descriptor;
+using BBGraph = boost::directed_graph<BasicBlockPtr>;
+using BBGraphPtr = std::shared_ptr<BBGraph>;
+using BBGraphVertex = BBGraph::vertex_descriptor;
+using BBGraphEdge = BBGraph::edge_descriptor;
 
 class Subroutine : public std::enable_shared_from_this<Subroutine> {
 public:
@@ -119,8 +119,8 @@ public:
         , _basic_blocks(basic_blocks)
         , _has_param(has_param)
         , _has_return(has_return)
-        , _cfg(std::make_shared<ControlFlowGraph>())
-        , _start_block(_cfg->null_vertex())
+        , _cfg(std::make_shared<BBGraph>())
+        , _cfg_entry(_cfg->null_vertex())
     {
     }
 
@@ -129,8 +129,8 @@ public:
         , _basic_blocks(std::move(basic_blocks))
         , _has_param(has_param)
         , _has_return(has_return)
-        , _cfg(std::make_shared<ControlFlowGraph>())
-        , _start_block(_cfg->null_vertex())
+        , _cfg(std::make_shared<BBGraph>())
+        , _cfg_entry(_cfg->null_vertex())
     {
     }
 
@@ -140,13 +140,25 @@ public:
 
     const std::list<BasicBlockPtr> &get_basic_blocks() const { return _basic_blocks; }
 
-    void set_cfg(const ControlFlowGraphPtr &cfg) { _cfg = cfg; }
+    void set_cfg(const BBGraphPtr &cfg, const BBGraphVertex entry_node)
+    {
+        _cfg = cfg;
+        _cfg_entry = entry_node;
+    }
 
-    const ControlFlowGraphPtr &get_cfg() const { return _cfg; }
+    const BBGraphPtr &get_cfg() const { return _cfg; }
 
-    void set_start_block(const ControlFlowVertex &start_block) { _start_block = start_block; }
+    const BBGraphVertex &get_cfg_entry() const { return _cfg_entry; }
 
-    const ControlFlowVertex &get_start_block() const { return _start_block; }
+    void set_dominance_tree(const BBGraphPtr &dom_tree, const BBGraphVertex root_node)
+    {
+        _domtree = dom_tree;
+        _dom_tree_root = root_node;
+    }
+
+    const BBGraphPtr &get_dominance_tree() const { return _domtree; }
+
+    const BBGraphVertex &get_dominance_root() const { return _dom_tree_root; }
 
     bool has_param() const { return _has_param; }
 
@@ -169,8 +181,10 @@ private:
     std::list<BasicBlockPtr> _basic_blocks;
     bool _has_param;
     bool _has_return;
-    ControlFlowGraphPtr _cfg;
-    ControlFlowVertex _start_block;
+    BBGraphPtr _cfg;
+    BBGraphPtr _domtree;
+    BBGraphVertex _cfg_entry = nullptr;
+    BBGraphVertex _dom_tree_root = nullptr;
 
     std::map<unsigned int, std::set<BasicBlockPtr>> _def_variables;
     std::map<unsigned int, std::set<BasicBlockPtr>> _use_variables;
