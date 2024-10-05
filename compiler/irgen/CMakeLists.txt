@@ -21,6 +21,7 @@ add_library(${PROJECT_NAME}
     src/RenumberVariableIdPass.cpp
     src/AnalyzeLivenessPass.cpp
     src/GraphvizGenerator.cpp
+    src/LowerMulPass.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

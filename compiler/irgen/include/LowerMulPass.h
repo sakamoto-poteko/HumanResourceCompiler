@@ -21,6 +21,7 @@ protected:
     int run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program) override;
 
 private:
+    int lower_opt_speed(TACPtr &instr);
 };
 
 CLOSE_IRGEN_NAMESPACE
