@@ -7,7 +7,7 @@
 #include "lexer_global.h"
 #include "lexer_helper.h"
 
-extern int yycolno;
+extern unsigned int yycolno;
 
 OPEN_LEXER_NAMESPACE
 
