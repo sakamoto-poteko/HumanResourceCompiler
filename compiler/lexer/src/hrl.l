@@ -8,7 +8,7 @@
 
 using namespace hrl::lexer;
 
-int yycolno = 0;
+unsigned int yycolno = 0;
 bool last_token_newline = false;
 
 // YY_USER_ACTION is executed before the rule codes
