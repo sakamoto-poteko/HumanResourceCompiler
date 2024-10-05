@@ -13,7 +13,11 @@ OPEN_IRGEN_NAMESPACE
 // produces: IN, OUT, DEF, USE
 class AnalyzeLivenessPass : public IROptimizationPass {
 public:
-    AnalyzeLivenessPass(const ProgramPtr &program);
+    AnalyzeLivenessPass(const ProgramPtr &program, const IRGenOptions &options)
+        : IROptimizationPass(program, options)
+    {
+    }
+
     ~AnalyzeLivenessPass() = default;
 
     std::string get_additional_metadata_text(unsigned int task_index, const std::string &path) override;

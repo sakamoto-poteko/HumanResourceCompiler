@@ -13,7 +13,6 @@
 #include <yaml-cpp/yaml.h>
 
 #include "AnalyzeLivenessPass.h"
-#include "IROptimizationPass.h"
 #include "IRProgramStructure.h"
 #include "Operand.h"
 #include "ThreeAddressCode.h"
@@ -21,11 +20,6 @@
 #include "irgen_global.h"
 
 OPEN_IRGEN_NAMESPACE
-
-AnalyzeLivenessPass::AnalyzeLivenessPass(const ProgramPtr &program)
-    : IROptimizationPass(program)
-{
-}
 
 int AnalyzeLivenessPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program)
 {

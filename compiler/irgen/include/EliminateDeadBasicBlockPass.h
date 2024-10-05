@@ -9,8 +9,8 @@ OPEN_IRGEN_NAMESPACE
 
 class EliminateDeadBasicBlockPass : public IROptimizationPass {
 public:
-    EliminateDeadBasicBlockPass(const ProgramPtr &program)
-        : IROptimizationPass(program)
+    EliminateDeadBasicBlockPass(const ProgramPtr &program, const IRGenOptions &options)
+        : IROptimizationPass(program, options)
     {
     }
 

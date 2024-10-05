@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 
+#include "IRGenOptions.h"
 #include "IRProgramStructure.h"
 #include "hrl_global.h"
 #include "irgen_global.h"
@@ -25,12 +26,14 @@ public:
     }
 
 protected:
-    IROptimizationPass(const ProgramPtr &program)
+    IROptimizationPass(const ProgramPtr &program, const IRGenOptions &options)
         : _program(program)
+        , _options(options)
     {
     }
 
     ProgramPtr _program;
+    const IRGenOptions &_options;
 
     virtual int run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program) = 0;
 

@@ -9,8 +9,8 @@ OPEN_IRGEN_NAMESPACE
 
 class BuildControlFlowGraphPass : public IROptimizationPass {
 public:
-    BuildControlFlowGraphPass(const ProgramPtr &program)
-        : IROptimizationPass(program)
+    BuildControlFlowGraphPass(const ProgramPtr &program, const IRGenOptions &options)
+        : IROptimizationPass(program, options)
     {
     }
 
@@ -19,6 +19,7 @@ public:
     int run() override;
     int run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program) override;
 
+protected:
 private:
 };
 

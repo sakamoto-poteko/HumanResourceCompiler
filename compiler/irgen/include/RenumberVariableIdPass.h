@@ -9,8 +9,8 @@ OPEN_IRGEN_NAMESPACE
 
 class RenumberVariableIdPass : public IROptimizationPass {
 public:
-    RenumberVariableIdPass(const ProgramPtr &program)
-        : IROptimizationPass(program)
+    RenumberVariableIdPass(const ProgramPtr &program, const IRGenOptions &options)
+        : IROptimizationPass(program, options)
     {
     }
 

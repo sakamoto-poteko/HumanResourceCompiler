@@ -17,6 +17,7 @@
 #include "ErrorManager.h"
 #include "FileManager.h"
 #include "HRLLexer.h"
+#include "IRGenOptions.h"
 #include "IROptimizationPassManager.h"
 #include "IRProgramStructure.h"
 #include "MergeConditionalBranchPass.h"
@@ -145,7 +146,8 @@ int main(int argc, char **argv)
 
     hrl::irgen::ProgramPtr prog = tacgen->get_built_program();
 
-    hrl::irgen::IROptimizationPassManager irop_passmgr(prog);
+    hrl::irgen::IRGenOptions irgen_options;
+    hrl::irgen::IROptimizationPassManager irop_passmgr(prog, irgen_options);
     irop_passmgr.add_pass<hrl::irgen::StripUselessInstructionPass>(
         "StripNoOpPass",
         "build/strnop.hrasm",

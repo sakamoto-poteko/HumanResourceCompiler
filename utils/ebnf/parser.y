@@ -9,7 +9,7 @@
 
 extern char *yytext;
 extern int yylex();
-extern int yycolno;
+extern unsigned int yycolno;
 extern int yylineno;
 void yyerror(const char *s);
 std::shared_ptr<SyntaxNode> root; // This will hold the root of the AST

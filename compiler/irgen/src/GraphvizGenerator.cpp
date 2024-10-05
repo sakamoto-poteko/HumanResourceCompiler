@@ -59,7 +59,7 @@ std::string GraphvizGenerator::generate_graphviz_cfg_for_subroutine(const Contro
         return "rect";
     }));
 
-    dp.property("fillcolor", boost::make_function_property_map<ControlFlowVertex>([&start_block, &cfg](const ControlFlowVertex &v) {
+    dp.property("fillcolor", boost::make_function_property_map<ControlFlowVertex>([&start_block](const ControlFlowVertex &v) {
         UNUSED(v);
         return v == start_block ? "lightyellow" : "white";
     }));

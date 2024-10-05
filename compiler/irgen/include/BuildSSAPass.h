@@ -15,8 +15,8 @@ OPEN_IRGEN_NAMESPACE
 // Depends: CFG, Liveness
 class BuildSSAPass : public IROptimizationPass {
 public:
-    BuildSSAPass(const ProgramPtr &program)
-        : IROptimizationPass(program)
+    BuildSSAPass(const ProgramPtr &program, const IRGenOptions &options)
+        : IROptimizationPass(program, options)
     {
     }
 

@@ -9,8 +9,8 @@ OPEN_IRGEN_NAMESPACE
 
 class MergeConditionalBranchPass : public IROptimizationPass {
 public:
-    MergeConditionalBranchPass(const ProgramPtr &program)
-        : IROptimizationPass(program)
+    MergeConditionalBranchPass(const ProgramPtr &program, const IRGenOptions &options)
+        : IROptimizationPass(program, options)
     {
     }
 

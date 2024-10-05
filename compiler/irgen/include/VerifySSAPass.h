@@ -10,8 +10,8 @@ OPEN_IRGEN_NAMESPACE
 
 class VerifySSAPass : public IROptimizationPass {
 public:
-    VerifySSAPass(const ProgramPtr &program)
-        : IROptimizationPass(program)
+    VerifySSAPass(const ProgramPtr &program, const IRGenOptions &options)
+        : IROptimizationPass(program, options)
     {
     }
 

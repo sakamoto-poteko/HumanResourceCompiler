@@ -1,13 +1,11 @@
 %{
 
 #include <cstdio>
-#include "ASTNode.h"
 
+#include "ASTNode.h"
 #include "parser.h"
 
-using namespace std;
-
-int yycolno = 0;
+unsigned int yycolno = 0;
 bool last_token_newline = false;
 
 // YY_USER_ACTION is executed before the rule codes
@@ -16,10 +14,12 @@ bool last_token_newline = false;
 #define YY_USER_ACTION \
 if (last_token_newline) { yycolno = 0; last_token_newline = false; } \
 yycolno += yyleng;  \
-for (int i = 0; i < yyleng; ++i) { if (yytext[i] == '\n') { last_token_newline = true; break; } } \
+for (std::size_t i = 0; i < yyleng; ++i) { if (yytext[i] == '\n') { last_token_newline = true; break; } } \
 yylloc.first_line = yylineno; \
 yylloc.first_column = yycolno - yyleng + 1; 
 
+#define YY_NO_UNPUT
+#define YY_NO_INPUT
 %}
 
 %option nounistd

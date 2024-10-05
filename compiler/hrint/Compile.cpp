@@ -16,6 +16,7 @@
 #include "EliminateDeadBasicBlockPass.h"
 #include "ErrorManager.h"
 #include "HRLLexer.h"
+#include "IRGenOptions.h"
 #include "IROptimizationPassManager.h"
 #include "InterpreterOptions.h"
 #include "MergeConditionalBranchPass.h"
@@ -101,7 +102,8 @@ int transform_hir(const InterpreterOptions &options, const irgen::ProgramPtr &pr
         return 0;
     }
 
-    hrl::irgen::IROptimizationPassManager irop_passmgr(program);
+    hrl::irgen::IRGenOptions irgen_opt;
+    hrl::irgen::IROptimizationPassManager irop_passmgr(program, irgen_opt);
     irop_passmgr.add_pass<hrl::irgen::StripUselessInstructionPass>(
         "StripNoOpPass",
         "build/strnop.hrasm",

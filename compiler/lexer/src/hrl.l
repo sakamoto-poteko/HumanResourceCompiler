@@ -1,15 +1,14 @@
 %{
 
 #include <cstdio>
+
 #include "lexer_global.h"
 #include "lexer_helper.h"
-
 #include "HRLToken.h"
 
-using namespace std;
 using namespace hrl::lexer;
 
-int yycolno = 0;
+unsigned int yycolno = 0;
 bool last_token_newline = false;
 
 // YY_USER_ACTION is executed before the rule codes
@@ -18,7 +17,10 @@ bool last_token_newline = false;
 #define YY_USER_ACTION \
 if (last_token_newline) { yycolno = 0; last_token_newline = false; } \
 yycolno += yyleng;  \
-for (int i = 0; i < yyleng; ++i) { if (yytext[i] == '\n') { last_token_newline = true; break; } }
+for (std::size_t i = 0; i < yyleng; ++i) { if (yytext[i] == '\n') { last_token_newline = true; break; } }
+
+#define YY_NO_UNPUT
+#define YY_NO_INPUT
 
 %}
 
