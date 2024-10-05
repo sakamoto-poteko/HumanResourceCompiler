@@ -156,14 +156,14 @@ int main(int argc, char **argv)
         "StripEmptyBasicBlockPass",
         "build/strebb.hrasm",
         "build/strebb.dot");
-    irop_passmgr.add_pass<hrl::irgen::BuildControlFlowGraphPass>(
-        "ControlFlowGraphBuilderPass",
-        "build/cfgbuilder.hrasm",
-        "build/cfgbuilder.dot");
     irop_passmgr.add_pass<hrl::irgen::MergeConditionalBranchPass>(
         "MergeCondBrPass",
         "build/mgcondbr.hrasm",
         "build/mgcondbr.dot");
+    irop_passmgr.add_pass<hrl::irgen::BuildControlFlowGraphPass>(
+        "ControlFlowGraphBuilderPass",
+        "build/cfgbuilder.hrasm",
+        "build/cfgbuilder.dot");
     irop_passmgr.add_pass<hrl::irgen::EliminateDeadBasicBlockPass>(
         "EliminateDeadBasicBlockPass",
         "build/edbb.hrasm",
