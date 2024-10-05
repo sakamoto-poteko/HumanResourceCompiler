@@ -8,8 +8,8 @@ OPEN_IRGEN_NAMESPACE
 
 class StripEmptyBasicBlockPass : public IROptimizationPass {
 public:
-    StripEmptyBasicBlockPass(const ProgramPtr &program)
-        : IROptimizationPass(program)
+    StripEmptyBasicBlockPass(const ProgramPtr &program, const IRGenOptions &options)
+        : IROptimizationPass(program, options)
     {
     }
 

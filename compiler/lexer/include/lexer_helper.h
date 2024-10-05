@@ -14,8 +14,8 @@ struct TokenMetadata {
         Comment,
     };
 
-    Type type;
-    StringPtr value;
+    Type type = Newline;
+    StringPtr value = nullptr;
 };
 
 struct CurrentToken {

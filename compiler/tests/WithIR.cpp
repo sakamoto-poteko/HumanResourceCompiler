@@ -1,9 +1,10 @@
 #include "WithIR.h"
 #include "AnalyzeLivenessPass.h"
-#include "BuildSSAPass.h"
 #include "BuildControlFlowGraphPass.h"
+#include "BuildSSAPass.h"
 #include "EliminateDeadBasicBlockPass.h"
 #include "ErrorManager.h"
+#include "IRGenOptions.h"
 #include "IROptimizationPassManager.h"
 #include "MergeConditionalBranchPass.h"
 #include "RenumberVariableIdPass.h"
@@ -15,7 +16,8 @@ void WithIR::setup_ir(bool optimize, const TestCaseData &data, bool &result)
 {
     setup_semantic_analyze(optimize, data, result);
 
-    hrl::irgen::IROptimizationPassManager irop_passmgr(program);
+    hrl::irgen::IRGenOptions irgen_opt;
+    hrl::irgen::IROptimizationPassManager irop_passmgr(program, irgen_opt);
     irop_passmgr.add_pass<hrl::irgen::StripUselessInstructionPass>(
         "StripNoOpPass",
         data.filename + "-strnop.hrasm",

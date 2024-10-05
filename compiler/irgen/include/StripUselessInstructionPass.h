@@ -8,8 +8,8 @@ OPEN_IRGEN_NAMESPACE
 
 class StripUselessInstructionPass : public IROptimizationPass {
 public:
-    StripUselessInstructionPass(const ProgramPtr &program)
-        : IROptimizationPass(program)
+    StripUselessInstructionPass(const ProgramPtr &program, const IRGenOptions &options)
+        : IROptimizationPass(program, options)
     {
     }
 

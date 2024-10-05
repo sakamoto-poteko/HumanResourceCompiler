@@ -1,18 +1,21 @@
 #ifndef IROPTIMIZATIONPASSMANAGER_H
 #define IROPTIMIZATIONPASSMANAGER_H
 
+#include <string>
+#include <vector>
+
+#include "IRGenOptions.h"
 #include "IROptimizationPass.h"
 #include "IRProgramStructure.h"
 #include "irgen_global.h"
-#include <string>
-#include <vector>
 
 OPEN_IRGEN_NAMESPACE
 
 class IROptimizationPassManager {
 public:
-    IROptimizationPassManager(const ProgramPtr &program)
+    IROptimizationPassManager(const ProgramPtr &program, const IRGenOptions &options)
         : _program(program)
+        , _options(options)
     {
     }
 
@@ -26,7 +29,7 @@ public:
         const std::string &after_pass_graph_path = "",
         StringArgs &&...additional_save_paths)
     {
-        std::shared_ptr<PassT> pass = std::make_shared<PassT>(_program);
+        std::shared_ptr<PassT> pass = std::make_shared<PassT>(_program, _options);
 
         _passes.push_back(pass);
         _pass_names.push_back(pass_name);
@@ -48,6 +51,7 @@ private:
     std::vector<std::string> _pass_names;
     std::vector<std::vector<std::string>> _additional_save_paths;
     std::vector<IROptimizationPassPtr> _passes;
+    const IRGenOptions &_options;
 };
 
 CLOSE_IRGEN_NAMESPACE
