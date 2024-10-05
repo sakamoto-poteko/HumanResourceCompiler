@@ -34,7 +34,8 @@ int LowerMulPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadat
         for (TACPtr &instr : basic_block->get_instructions()) {
             if (instr->get_op() == IROperation::MUL) {
                 if (opt_for_speed) {
-
+                    // FIXME: we need to first find out if the operand is imm.
+                    // That'll depends on a pass eliminating useless assignment
                 } else {
                 }
             }
