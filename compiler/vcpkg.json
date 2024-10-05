@@ -4,7 +4,6 @@
     "boost-graph",
     "boost-program-options",
     "boost-format",
-    "gtest",
-    "yaml-cpp"
+    "gtest"
   ]
 }

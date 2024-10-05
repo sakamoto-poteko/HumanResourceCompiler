@@ -4,29 +4,8 @@ project(hrlc)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    add_compile_options(-Wall -Wextra -Wpedantic)
-
-# add_compile_options(-fsanitize=address)
-# add_link_options(-fsanitize=address)
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    add_compile_options(/W4 /Zc:preprocessor)
-endif()
-
-enable_testing()
-
-# EBNF Tool
-add_subdirectory(${CMAKE_SOURCE_DIR}/../utils/ebnf ebnf-tool)
-
-add_custom_target(
-    EbnfTool ALL
-    DEPENDS ebnf
-)
-
 # Compiler
-find_package(spdlog CONFIG REQUIRED)
-find_package(Boost CONFIG REQUIRED COMPONENTS graph)
-
+# YAML-CPP
 include(FetchContent)
 
 FetchContent_Declare(
@@ -35,19 +14,6 @@ FetchContent_Declare(
     GIT_TAG 0.8.0
 )
 FetchContent_MakeAvailable(yaml-cpp)
-
-if(TARGET yaml-cpp)
-    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-        target_compile_options(yaml-cpp PRIVATE
-            -Wno-unused-variable # Suppress specific warning
-            -Wno-sign-compare
-        )
-    elseif(MSVC)
-        target_compile_options(yaml-cpp PRIVATE
-            /wd4244 # Suppress specific warning (e.g., 'conversion from...')
-        )
-    endif()
-endif()
 
 if(WIN32)
     list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
@@ -58,8 +24,29 @@ else()
     find_package(FLEX 2.6 REQUIRED)
 endif()
 
+# SPDLOG
+find_package(spdlog CONFIG REQUIRED)
+
+# Boost
+find_package(Boost CONFIG REQUIRED COMPONENTS graph)
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    add_compile_options(-Wall -Wextra -Wpedantic)
+# add_compile_options(-fsanitize=address)
+# add_link_options(-fsanitize=address)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    add_compile_options(/W4 /Zc:preprocessor)
+endif()
+
 include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
+enable_testing()
+
+# EBNF Tool
+add_subdirectory(${CMAKE_SOURCE_DIR}/../utils/ebnf ebnf-tool)
+add_custom_target(EbnfTool ALL DEPENDS ebnf)
+
+# Compiler projects
 add_subdirectory(util)
 add_subdirectory(lexer)
 add_subdirectory(parser)
