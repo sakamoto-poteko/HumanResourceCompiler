@@ -35,7 +35,7 @@ jobs:
       matrix:
         include:
           # Linux with GCC
-          - os: deb
+          - os: ubuntu-latest
             c_compiler: gcc
             cpp_compiler: g++
             container: mcr.microsoft.com/devcontainers/cpp:debian-12
@@ -43,7 +43,7 @@ jobs:
             nproc: 22
             ccache: ccache
           # Linux with Clang
-          - os: deb
+          - os: ubuntu-latest
             c_compiler: clang-16
             cpp_compiler: clang++-16
             container: mcr.microsoft.com/devcontainers/cpp:debian-12
