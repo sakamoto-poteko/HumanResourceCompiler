@@ -61,7 +61,7 @@ std::list<BasicBlockPtr> TACGen::build_subroutine_split_tacs_to_basic_blocks(con
         current_basic_block.push_back(*tac_it);
 
         // mark if this one is control flow
-        if (is_control_transfer_operation((*tac_it)->get_op())) {
+        if (IROperationMetadata::is_control_transfer((*tac_it)->get_op())) {
             seen_control_flow = true;
         }
     }

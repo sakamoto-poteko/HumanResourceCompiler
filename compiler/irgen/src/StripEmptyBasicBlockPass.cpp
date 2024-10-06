@@ -40,7 +40,7 @@ int StripEmptyBasicBlockPass::run_subroutine(const SubroutinePtr &subroutine, Pr
             // we're jumping to somewhere
             IROperation op = instr->get_op();
             const Operand &tgt = instr->get_tgt();
-            if (is_branch_operation(op) && tgt.get_type() == Operand::OperandType::Label) {
+            if (IROperationMetadata::is_branch(op) && tgt.get_type() == Operand::OperandType::Label) {
                 auto erased_valid_pair = label_map.find(tgt.get_label());
                 // and this jumps to somewhere it's erased already
                 if (erased_valid_pair != label_map.end()) {

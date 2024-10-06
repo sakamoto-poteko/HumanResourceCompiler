@@ -49,7 +49,7 @@ int MergeConditionalBranchPass::run_basic_block(const BasicBlockPtr &basic_block
 
         auto cur_op = cur_instr->get_op();
 
-        if (is_comparison_operation(cur_op)) {
+        if (IROperationMetadata::is_comparison(cur_op)) {
             IROperation merged_op = IROperation::HALT;
 
             if (is_jz) {

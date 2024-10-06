@@ -11,12 +11,12 @@
 | PropagateCopyPass            | SSA, DOM             | None                | IN, OUT, DEF, USE   |         |
 | RenumberVariableIdPass       | None                 | None                | IN, OUT, DEF, USE   |         |
 | StripEmptyBasicBlockPass     | None                 | None                | CFG, DOM            |         |
-| StripUselessInstructionPass  | None                 | None                | None                |         |
+| RemoveDeadInstructionsPass   | None                 | None                | IN, OUT, DEF, USE   |         |
 | VerifySSAPass                | SSA                  | None                | None                |         |
 
 ## Pass Order
 
-1. Remove NOPs and empty basic blocks (`StripUselessInstructionPass`, `StripEmptyBasicBlockPass`).
+1. Remove NOPs and empty basic blocks (`RemoveDeadInstructionsPass`, `StripEmptyBasicBlockPass`).
 2. Merge conditional branch instructions (`MergeConditionalBranchPass`).
 3. Construct the Control Flow Graph (CFG) (`BuildControlFlowGraphPass`). Valid: CFG.
 4. Remove dead basic blocks (`EliminateDeadBasicBlockPass`). Valid: CFG.
