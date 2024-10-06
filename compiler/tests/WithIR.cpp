@@ -1,54 +1,20 @@
 #include "WithIR.h"
-#include "AnalyzeLivenessPass.h"
-#include "BuildControlFlowGraphPass.h"
-#include "BuildSSAPass.h"
-#include "EliminateDeadBasicBlockPass.h"
 #include "ErrorManager.h"
 #include "IRGenOptions.h"
 #include "IROptimizationPassManager.h"
-#include "MergeConditionalBranchPass.h"
-#include "RenumberVariableIdPass.h"
-#include "StripEmptyBasicBlockPass.h"
-#include "StripUselessInstructionPass.h"
-#include "VerifySSAPass.h"
 
-void WithIR::setup_ir(bool optimize, const TestCaseData &data, bool &result)
+void WithIR::setup_ir(int optimize, const TestCaseData &data, bool &result)
 {
-    setup_semantic_analyze(optimize, data, result);
+    setup_semantic_analyze(optimize != 0, data, result);
 
     hrl::irgen::IRGenOptions irgen_opt;
-    hrl::irgen::IROptimizationPassManager irop_passmgr(program, irgen_opt);
-    irop_passmgr.add_pass<hrl::irgen::StripUselessInstructionPass>(
-        "StripNoOpPass",
-        data.filename + "-strnop.hrasm",
-        data.filename + "-strnop.dot");
-    irop_passmgr.add_pass<hrl::irgen::StripEmptyBasicBlockPass>(
-        "StripEmptyBasicBlockPass",
-        data.filename + "-strebb.hrasm",
-        data.filename + "-strebb.dot");
-    irop_passmgr.add_pass<hrl::irgen::BuildControlFlowGraphPass>(
-        "ControlFlowGraphBuilderPass",
-        data.filename + "-cfgbuilder.hrasm",
-        data.filename + "-cfgbuilder.dot");
-    irop_passmgr.add_pass<hrl::irgen::MergeConditionalBranchPass>(
-        "MergeCondBrPass",
-        data.filename + "-mgcondbr.hrasm",
-        data.filename + "-mgcondbr.dot");
-    irop_passmgr.add_pass<hrl::irgen::EliminateDeadBasicBlockPass>(
-        "EliminateDeadBasicBlockPass",
-        data.filename + "-edbb.hrasm",
-        data.filename + "-edbb.dot");
-    irop_passmgr.add_pass<hrl::irgen::AnalyzeLivenessPass>("AnalyzeLivenessPreSSAPass");
-    irop_passmgr.add_pass<hrl::irgen::BuildSSAPass>(
-        "BuildSSAPass",
-        data.filename + "-ssa.hrasm",
-        data.filename + "-ssa.dot");
-    irop_passmgr.add_pass<hrl::irgen::RenumberVariableIdPass>(
-        "SSARenumberVariableId",
-        data.filename + "-ssa-renum.hrasm",
-        data.filename + "-ssa-renum.dot");
-    irop_passmgr.add_pass<hrl::irgen::AnalyzeLivenessPass>("AnalyzeLivenessPostSSAPass");
-    irop_passmgr.add_pass<hrl::irgen::VerifySSAPass>("VerifySSA");
+    if (optimize > 0) {
+        irgen_opt = hrl::irgen::IRGenOptions::ForSpeed();
+    } else if (optimize < 0) {
+        irgen_opt = hrl::irgen::IRGenOptions::ForCodeSize();
+    }
+
+    auto irop_passmgr = hrl::irgen::IROptimizationPassManager::create_with_default_pass_configuration(program, irgen_opt, true, "build/ir/");
 
     int irop_result = irop_passmgr.run(true);
     ErrorManager::instance().print_all();

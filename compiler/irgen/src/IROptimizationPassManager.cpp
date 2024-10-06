@@ -2,7 +2,17 @@
 
 #include <spdlog/spdlog.h>
 
+#include "AnalyzeLivenessPass.h"
+#include "BuildControlFlowGraphPass.h"
+#include "BuildSSAPass.h"
+#include "EliminateDeadBasicBlockPass.h"
 #include "IROptimizationPassManager.h"
+#include "MergeConditionalBranchPass.h"
+#include "PropagateCopyPass.h"
+#include "RenumberVariableIdPass.h"
+#include "StripEmptyBasicBlockPass.h"
+#include "StripUselessInstructionPass.h"
+#include "VerifySSAPass.h"
 #include "irgen_global.h"
 
 OPEN_IRGEN_NAMESPACE
@@ -51,6 +61,61 @@ int IROptimizationPassManager::run(bool fail_fast)
     }
 
     return result;
+}
+
+IROptimizationPassManager IROptimizationPassManager::create_with_default_pass_configuration(
+    const ProgramPtr &program,
+    const IRGenOptions &options,
+    bool enable_output,
+    const std::string &output_file_prefix)
+{
+    IROptimizationPassManager irop_passmgr(program, options);
+    irop_passmgr.add_pass<StripUselessInstructionPass>(
+        "StripNoOpPass",
+        enable_output ? output_file_prefix + "nonop.hrasm" : "",
+        enable_output ? output_file_prefix + "nonop.dot" : "");
+    irop_passmgr.add_pass<StripEmptyBasicBlockPass>(
+        "StripEmptyBasicBlockPass",
+        enable_output ? output_file_prefix + "noebb.hrasm" : "",
+        enable_output ? output_file_prefix + "noebb.dot" : "");
+    irop_passmgr.add_pass<MergeConditionalBranchPass>(
+        "MergeCondBrPass",
+        enable_output ? output_file_prefix + "mgcondbr.hrasm" : "",
+        enable_output ? output_file_prefix + "mgcondbr.dot" : "");
+    irop_passmgr.add_pass<BuildControlFlowGraphPass>(
+        "ControlFlowGraphBuilderPass",
+        enable_output ? output_file_prefix + "cfgbuilder.hrasm" : "",
+        enable_output ? output_file_prefix + "cfgbuilder.dot" : "");
+    irop_passmgr.add_pass<EliminateDeadBasicBlockPass>(
+        "EliminateDeadBasicBlockPass",
+        enable_output ? output_file_prefix + "edbb.hrasm" : "",
+        enable_output ? output_file_prefix + "edbb.dot" : "");
+    irop_passmgr.add_pass<AnalyzeLivenessPass>(
+        "AnalyzeLivenessPreSSAPass",
+        enable_output ? output_file_prefix + "liveness.hrasm" : "",
+        enable_output ? output_file_prefix + "liveness.dot" : "",
+        enable_output ? output_file_prefix + "liveness.yml" : "");
+    irop_passmgr.add_pass<BuildSSAPass>(
+        "BuildSSAPass",
+        enable_output ? output_file_prefix + "ssa.hrasm" : "",
+        enable_output ? output_file_prefix + "ssa.dot" : "",
+        enable_output ? output_file_prefix + "ssa.domtree.dot" : "");
+    irop_passmgr.add_pass<RenumberVariableIdPass>(
+        "RenumberVariableIdPostSSAPass",
+        enable_output ? output_file_prefix + "renum-ssa.hrasm" : "",
+        enable_output ? output_file_prefix + "renum-ssa.dot" : "");
+    irop_passmgr.add_pass<VerifySSAPass>("VerifySSA");
+    irop_passmgr.add_pass<PropagateCopyPass>(
+        "PropagateCopyHighIRSSAPass",
+        enable_output ? output_file_prefix + "propcopy-hirssa.hrasm" : "",
+        enable_output ? output_file_prefix + "propcopy-hirssa.dot" : "");
+    irop_passmgr.add_pass<AnalyzeLivenessPass>(
+        "AnalyzeLivenessPostSSAPass",
+        enable_output ? output_file_prefix + "liveness-ssa.hrasm" : "",
+        enable_output ? output_file_prefix + "liveness-ssa.dot" : "",
+        enable_output ? output_file_prefix + "liveness-ssa.yml" : "");
+
+    return irop_passmgr;
 }
 
 CLOSE_IRGEN_NAMESPACE
