@@ -1,3 +1,7 @@
+#include <algorithm>
+#include <iterator>
+#include <ranges>
+
 #include <spdlog/spdlog.h>
 
 #include "IRGenOptions.h"
@@ -13,59 +17,78 @@ int RemoveDeadInstructionsPass::run_subroutine(const SubroutinePtr &subroutine, 
     UNUSED(metadata);
     UNUSED(program);
 
+    // Dead code elimination:
+    // Pg.24 of https://www.cs.princeton.edu/courses/archive/spring15/cos320/lectures/13-SSA.pdf
+
+    bool enable_dead_assignment_elimination = subroutine->is_ssa();
+    if (!enable_dead_assignment_elimination) {
+        spdlog::debug("[RmDeadInstr] IR for subroutine '{}' is not SSA. Skipping dead assignment elimination.", subroutine->get_func_name());
+    }
+
+    std::set<unsigned int> defined_vars;
+    std::set<unsigned int> used_vars;
+
     const std::list<BasicBlockPtr> &basic_blocks = subroutine->get_basic_blocks();
     for (const BasicBlockPtr &basic_block : basic_blocks) {
         std::list<TACPtr> &instrs = basic_block->get_instructions();
 
         instrs.remove_if([&](const TACPtr &instr) {
-            switch (instr->get_op()) {
-            case IROperation::MOV:
-            case IROperation::LOAD:
-            case IROperation::STORE:
-            case IROperation::LOADI:
-            case IROperation::ADD:
-            case IROperation::SUB:
-            case IROperation::MUL:
-            case IROperation::DIV:
-            case IROperation::MOD:
-            case IROperation::NEG:
-            case IROperation::AND:
-            case IROperation::OR:
-            case IROperation::NOT:
-            case IROperation::EQ:
-            case IROperation::NE:
-            case IROperation::LT:
-            case IROperation::LE:
-            case IROperation::GT:
-            case IROperation::GE:
-            case IROperation::JE:
-            case IROperation::JNE:
-            case IROperation::JGT:
-            case IROperation::JLT:
-            case IROperation::JGE:
-            case IROperation::JLE:
-            case IROperation::JZ:
-            case IROperation::JNZ:
-            case IROperation::JMP:
-            case IROperation::CALL:
-            case IROperation::RET:
-            case IROperation::INPUT:
-            case IROperation::OUTPUT:
-            case IROperation::HALT:
-            case IROperation::PHI:
-                return false;
-            case IROperation::ENTER:
+            const IROperation op = instr->get_op();
+
+            if (enable_dead_assignment_elimination) {
+                if (!IROperationMetadata::has_side_effect(op) && instr->get_tgt().is_local_register()) {
+                    defined_vars.insert(instr->get_tgt().get_register_id());
+                }
+
+                if (instr->get_src1().is_local_register()) {
+                    used_vars.insert(instr->get_src1().get_register_id());
+                }
+
+                if (instr->get_src2().is_local_register()) {
+                    used_vars.insert(instr->get_src2().get_register_id());
+                }
+
+                if (op == IROperation::PHI) {
+                    auto phi_incoming_uses = instr->get_phi_incomings() | std::views::transform([](const auto &phi_pair) {
+                        auto &[var_id, _] = phi_pair.second;
+                        return var_id;
+                    });
+                    used_vars.insert(phi_incoming_uses.begin(), phi_incoming_uses.end());
+                }
+            }
+
+            // Pass 1: eliminate
+            if (op == IROperation::ENTER) {
                 // Strip useless enter
                 return _options.EliminateEnter >= IROptimizationFor::OptForSpeed && !subroutine->has_param();
-            case IROperation::NOP:
-                // Strip nop
+            }
+
+            if (op == IROperation::NOP) {
                 return _options.EliminateNop >= IROptimizationFor::OptForSpeed && true;
             }
-            spdlog::critical("Unknown op: {}. {}", static_cast<int>(instr->get_op()), __PRETTY_FUNCTION__);
-            throw;
-        });
 
+            return false;
+        });
+    } // end pass 1 loop for BB
+
+    if (enable_dead_assignment_elimination) {
         // Find out the useless var defined
+        std::set<unsigned int> unused_var;
+        std::ranges::set_difference(defined_vars, used_vars, std::inserter(unused_var, unused_var.begin()));
+
+        for (const BasicBlockPtr &basic_block : basic_blocks) {
+            // remove unused var
+            basic_block->get_instructions().remove_if([&](const TACPtr &instruction) {
+                bool dead = instruction->get_tgt().is_local_register() && unused_var.contains(instruction->get_tgt().get_register_id());
+                if (dead) {
+                    spdlog::trace("[RmDeadInstr] '{}' is never used. Removing this instruction.", instruction->to_string(true));
+                    assert(!IROperationMetadata::has_side_effect(instruction->get_op()));
+                    return true;
+                } else {
+                    return false;
+                }
+            });
+        }
     }
 
     return 0;

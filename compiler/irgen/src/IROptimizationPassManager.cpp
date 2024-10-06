@@ -9,9 +9,9 @@
 #include "IROptimizationPassManager.h"
 #include "MergeConditionalBranchPass.h"
 #include "PropagateCopyPass.h"
+#include "RemoveDeadInstructionsPass.h"
 #include "RenumberVariableIdPass.h"
 #include "StripEmptyBasicBlockPass.h"
-#include "RemoveDeadInstructionsPass.h"
 #include "VerifySSAPass.h"
 #include "irgen_global.h"
 
@@ -71,9 +71,9 @@ IROptimizationPassManager IROptimizationPassManager::create_with_default_pass_co
 {
     IROptimizationPassManager irop_passmgr(program, options);
     irop_passmgr.add_pass<RemoveDeadInstructionsPass>(
-        "StripNoOpPass",
-        enable_output ? output_file_prefix + "nonop.hrasm" : "",
-        enable_output ? output_file_prefix + "nonop.dot" : "");
+        "StripNoOpAndEnterPass",
+        enable_output ? output_file_prefix + "nonopenter.hrasm" : "",
+        enable_output ? output_file_prefix + "nonopenter.dot" : "");
     irop_passmgr.add_pass<StripEmptyBasicBlockPass>(
         "StripEmptyBasicBlockPass",
         enable_output ? output_file_prefix + "noebb.hrasm" : "",
@@ -109,6 +109,10 @@ IROptimizationPassManager IROptimizationPassManager::create_with_default_pass_co
         "PropagateCopyHighIRSSAPass",
         enable_output ? output_file_prefix + "propcopy-hirssa.hrasm" : "",
         enable_output ? output_file_prefix + "propcopy-hirssa.dot" : "");
+    irop_passmgr.add_pass<RemoveDeadInstructionsPass>(
+        "RemoveDeadInstructionPass",
+        enable_output ? output_file_prefix + "nodeadinstr.hrasm" : "",
+        enable_output ? output_file_prefix + "nodeadinstr.dot" : "");
     irop_passmgr.add_pass<AnalyzeLivenessPass>(
         "AnalyzeLivenessPostSSAPass",
         enable_output ? output_file_prefix + "liveness-ssa.hrasm" : "",

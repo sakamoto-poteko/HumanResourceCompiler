@@ -121,6 +121,7 @@ public:
         , _has_return(has_return)
         , _cfg(std::make_shared<BBGraph>())
         , _cfg_entry(_cfg->null_vertex())
+        , _is_ssa(false)
     {
     }
 
@@ -131,6 +132,7 @@ public:
         , _has_return(has_return)
         , _cfg(std::make_shared<BBGraph>())
         , _cfg_entry(_cfg->null_vertex())
+        , _is_ssa(false)
     {
     }
 
@@ -176,6 +178,10 @@ public:
 
     const std::map<unsigned int, std::set<BasicBlockPtr>> &get_use_variables() const { return _use_variables; }
 
+    bool is_ssa() const { return _is_ssa; }
+
+    void set_is_ssa(bool is_ssa) { _is_ssa = is_ssa; }
+
 private:
     std::string _func_name;
     std::list<BasicBlockPtr> _basic_blocks;
@@ -185,6 +191,7 @@ private:
     BBGraphPtr _domtree;
     BBGraphVertex _cfg_entry = nullptr;
     BBGraphVertex _dom_tree_root = nullptr;
+    bool _is_ssa;
 
     std::map<unsigned int, std::set<BasicBlockPtr>> _def_variables;
     std::map<unsigned int, std::set<BasicBlockPtr>> _use_variables;
