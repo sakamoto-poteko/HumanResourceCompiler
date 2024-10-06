@@ -1,16 +1,54 @@
 #include <algorithm>
 #include <iterator>
+#include <list>
 #include <ranges>
 
 #include <spdlog/spdlog.h>
 
 #include "IRGenOptions.h"
 #include "IROps.h"
+#include "IRProgramStructure.h"
 #include "RemoveDeadInstructionsPass.h"
 #include "ThreeAddressCode.h"
 #include "irgen_global.h"
 
 OPEN_IRGEN_NAMESPACE
+
+void RemoveDeadInstructionsPass::dce_dom_tree_visit(const BBGraphVertex vertex, const BBGraph &dom_tree, std::set<unsigned int> &live_variables)
+{
+    const BasicBlockPtr &basic_block = dom_tree[vertex];
+    std::list<TACPtr> &instructions = basic_block->get_instructions();
+
+    // Traverse children
+    for (const BBGraphEdge out_edge : boost::make_iterator_range(boost::out_edges(vertex, dom_tree))) {
+        dce_dom_tree_visit(boost::target(out_edge, dom_tree), dom_tree, live_variables);
+    }
+
+    // Mark other variables reversely, and remove unneeded instruction
+    for (auto instr_rit = instructions.rbegin(); instr_rit != instructions.rend();) {
+        const TACPtr &instruction = *instr_rit;
+
+        if (IROperationMetadata::has_side_effect(instruction->get_op()) && instruction->get_tgt().is_local_register()) {
+            live_variables.insert(instruction->get_tgt().get_register_id());
+        }
+
+        if (instruction->get_src1().is_local_register()) {
+            live_variables.insert(instruction->get_src1().get_register_id());
+        }
+
+        if (instruction->get_src2().is_local_register()) {
+            live_variables.insert(instruction->get_src2().get_register_id());
+        }
+
+        if (instruction->get_tgt().is_local_register() && !live_variables.contains(instruction->get_tgt().get_register_id())) {
+            spdlog::trace("[RmDeadInstr] Removing '{}'.", instruction->to_string(true));
+            assert(!IROperationMetadata::has_side_effect(instruction->get_op()));
+            instr_rit = std::list<TACPtr>::reverse_iterator(instructions.erase(std::next(instr_rit).base()));
+        } else {
+            ++instr_rit;
+        }
+    }
+}
 
 int RemoveDeadInstructionsPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program)
 {
@@ -50,56 +88,22 @@ int RemoveDeadInstructionsPass::run_subroutine(const SubroutinePtr &subroutine, 
         });
     } // end pass 1 loop for BB
 
-    while (enable_dead_assignment_elimination) {
-        std::set<unsigned int> defined_vars;
-        std::set<unsigned int> used_vars;
+    if (enable_dead_assignment_elimination) {
+        std::set<unsigned int> live_variables;
 
-        spdlog::info("Pass");
-        for (const BasicBlockPtr &basic_block : basic_blocks) {
+        // Mark phi incoming as live first, as they are out of dominance tree order
+        for (const BasicBlockPtr &basic_block : subroutine->get_basic_blocks()) {
             for (const TACPtr &instruction : basic_block->get_instructions()) {
-                if (!IROperationMetadata::has_side_effect(instruction->get_op()) && instruction->get_tgt().is_local_register()) {
-                    defined_vars.insert(instruction->get_tgt().get_register_id());
-                }
-
-                if (instruction->get_src1().is_local_register()) {
-                    used_vars.insert(instruction->get_src1().get_register_id());
-                }
-
-                if (instruction->get_src2().is_local_register()) {
-                    used_vars.insert(instruction->get_src2().get_register_id());
-                }
-
                 if (instruction->get_op() == IROperation::PHI) {
                     auto phi_incoming_uses = instruction->get_phi_incomings() | std::views::transform([](const auto &phi_pair) {
-                        auto &[var_id, _] = phi_pair.second;
-                        return var_id;
+                        return std::get<0>(phi_pair.second);
                     });
-                    used_vars.insert(phi_incoming_uses.begin(), phi_incoming_uses.end());
+                    live_variables.insert(phi_incoming_uses.begin(), phi_incoming_uses.end());
                 }
             }
         }
 
-        // Find out the useless var defined
-        std::set<unsigned int> unused_var;
-        std::ranges::set_difference(defined_vars, used_vars, std::inserter(unused_var, unused_var.begin()));
-
-        if (unused_var.empty()) {
-            break;
-        }
-
-        for (const BasicBlockPtr &basic_block : basic_blocks) {
-            // remove unused var
-            basic_block->get_instructions().remove_if([&](const TACPtr &instruction) {
-                bool dead = instruction->get_tgt().is_local_register() && unused_var.contains(instruction->get_tgt().get_register_id());
-                if (dead) {
-                    spdlog::trace("[RmDeadInstr] '{}' is never used. Removing this instruction.", instruction->to_string(true));
-                    assert(!IROperationMetadata::has_side_effect(instruction->get_op()));
-                    return true;
-                } else {
-                    return false;
-                }
-            });
-        }
+        dce_dom_tree_visit(subroutine->get_dominance_root(), *subroutine->get_dominance_tree(), live_variables);
     }
 
     return 0;
