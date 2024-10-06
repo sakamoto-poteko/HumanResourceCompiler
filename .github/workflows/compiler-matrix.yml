@@ -117,7 +117,6 @@ jobs:
           echo "TOOLCHAIN=${{ github.workspace }}\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake" >> $env:GITHUB_ENV
 
       - name: Set up ccache/sccache
-        if: matrix.os == 'windows-latest'
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           variant: ${{ matrix.ccache }}
