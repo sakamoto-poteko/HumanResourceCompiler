@@ -30,34 +30,42 @@ jobs:
     runs-on: ${{ matrix.os }}
     container:
       image: ${{ matrix.container }}
-      options: --user root -v "/etc/apt/sources.list:/etc/apt/sources.list:ro" -v "/etc/apt/sources.list.d:/etc/apt/sources.list.d:ro"
+      # Use below line only for hosted runner
+      # options: --user root -v "/etc/apt/sources.list:/etc/apt/sources.list:ro" -v "/etc/apt/sources.list.d:/etc/apt/sources.list.d:ro"
+      options: --user root
     strategy:
       matrix:
         include:
           # Linux with GCC
-          - os: deb
+          # - os: deb # for self-hosted
+          - os: ubuntu-latest
             c_compiler: gcc
             cpp_compiler: g++
             container: mcr.microsoft.com/devcontainers/cpp:debian-12
             toolchain: null
-            nproc: 22
+            nproc: 4
+            # nproc: 22 # 22 for self-hosted
+            ccache: ccache
           # Linux with Clang
-          - os: deb
+          - os: ubuntu-latest
             c_compiler: clang-16
             cpp_compiler: clang++-16
             container: mcr.microsoft.com/devcontainers/cpp:debian-12
-            nproc: 22
+            nproc: 4
+            ccache: ccache
           # macOS with Clang
           - os: macos-latest
             c_compiler: clang
             cpp_compiler: clang++
             container: null
             nproc: 3
+            ccache: ccache
           - os: windows-latest
             c_compiler: cl
             cpp_compiler: cl
             container: null
             nproc: 4
+            ccache: sccache
 
     steps:
       - name: Export GitHub Actions cache environment variables
@@ -70,7 +78,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Prepare (Linux)
-        if: matrix.os == 'deb'
+        if: matrix.os == 'deb' || matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake ninja-build flex bison libspdlog-dev libboost-dev libboost-graph-dev libboost-program-options-dev libgtest-dev ${{ matrix.c_compiler }}
@@ -112,12 +120,18 @@ jobs:
           echo "VCPKG_DEFAULT_TRIPLET=x64-windows" >> $env:GITHUB_ENV
           echo "TOOLCHAIN=${{ github.workspace }}\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake" >> $env:GITHUB_ENV
 
+      - name: Set up ccache/sccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          variant: ${{ matrix.ccache }}
+          key: ${{ github.job }}-${{ matrix.os }}-${{ matrix.cpp_compiler }}
+
       - uses: ilammy/msvc-dev-cmd@v1
         if: matrix.os == 'windows-latest'
 
       - name: Configure CMake
         run: |
-          cmake -B compiler/build -S compiler -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_TOOLCHAIN_FILE=${{ env.TOOLCHAIN }} -G Ninja
+          cmake -B compiler/build -S compiler -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_TOOLCHAIN_FILE=${{ env.TOOLCHAIN }} -DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.ccache }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.ccache }} -G Ninja
 
       - name: Build
         run: cmake --build compiler/build --config ${{env.BUILD_TYPE}} -- -j${{ matrix.nproc }}
