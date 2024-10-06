@@ -23,6 +23,7 @@
 #include "MergeConditionalBranchPass.h"
 #include "ParseTreeNodeForward.h"
 #include "ParseTreeNodeGraphvizBuilder.h"
+#include "PropagateCopyPass.h"
 #include "RecursiveDescentParser.h"
 #include "RenumberVariableIdPass.h"
 #include "SemanticAnalysisPassManager.h"
@@ -182,12 +183,16 @@ int main(int argc, char **argv)
         "SSARenumberVariableId",
         "build/ssa-renum.hrasm",
         "build/ssa-renum.dot");
+    irop_passmgr.add_pass<hrl::irgen::VerifySSAPass>("VerifySSA");
+    irop_passmgr.add_pass<hrl::irgen::PropagateCopyPass>(
+        "PropagateCopyHighIRPass",
+        "build/propcopy-hir.hrasm",
+        "build/propcopy-hir.dot");
     irop_passmgr.add_pass<hrl::irgen::AnalyzeLivenessPass>(
         "AnalyzeLivenessPassPostSSA",
         "build/liveness-ssa.hrasm",
         "build/liveness-ssa.dot",
         "build/liveness-ssa.yml");
-    irop_passmgr.add_pass<hrl::irgen::VerifySSAPass>("VerifySSA");
 
     if (irop_passmgr.run(true) != 0) {
         errmgr.print_all();

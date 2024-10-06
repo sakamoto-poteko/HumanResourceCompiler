@@ -18,6 +18,7 @@ add_library(${PROJECT_NAME}
     src/BuildSSAPass.cpp
     src/EliminateDeadBasicBlockPass.cpp
     src/VerifySSAPass.cpp
+    src/PropagateCopyPass.cpp
     src/RenumberVariableIdPass.cpp
     src/AnalyzeLivenessPass.cpp
     src/GraphvizGenerator.cpp
