@@ -59,6 +59,8 @@ int RemoveDeadInstructionsPass::run_subroutine(const SubroutinePtr &subroutine, 
 
     // Opt for speed, opt for code size, either ways it's eliminate
     bool enable_dead_assignment_elimination = subroutine->is_ssa() && _options.EliminateDeadAssignment != IROptimizationFor::NoOpt;
+    std::set<unsigned int> live_variables;
+
     if (!subroutine->is_ssa()) {
         spdlog::debug("[RmDeadInstr] IR for subroutine '{}' is not SSA. Skipping dead assignment elimination.", subroutine->get_func_name());
     }
@@ -67,13 +69,24 @@ int RemoveDeadInstructionsPass::run_subroutine(const SubroutinePtr &subroutine, 
     }
 
     const std::list<BasicBlockPtr> &basic_blocks = subroutine->get_basic_blocks();
+
+    // Pass 1
     for (const BasicBlockPtr &basic_block : basic_blocks) {
         std::list<TACPtr> &instrs = basic_block->get_instructions();
 
         instrs.remove_if([&](const TACPtr &instr) {
             const IROperation op = instr->get_op();
 
-            // Pass 1: eliminate
+            // Mark phi incoming as live first, as they are out of dominance tree order
+            if (op == IROperation::PHI) {
+                if (enable_dead_assignment_elimination) {
+                    auto phi_incoming_uses = instr->get_phi_incomings() | std::views::transform([](const auto &phi_pair) {
+                        return std::get<0>(phi_pair.second);
+                    });
+                    live_variables.insert(phi_incoming_uses.begin(), phi_incoming_uses.end());
+                }
+            }
+
             if (op == IROperation::ENTER) {
                 // Strip useless enter
                 return _options.EliminateEnter >= IROptimizationFor::OptForSpeed && !subroutine->has_param();
@@ -88,20 +101,6 @@ int RemoveDeadInstructionsPass::run_subroutine(const SubroutinePtr &subroutine, 
     } // end pass 1 loop for BB
 
     if (enable_dead_assignment_elimination) {
-        std::set<unsigned int> live_variables;
-
-        // Mark phi incoming as live first, as they are out of dominance tree order
-        for (const BasicBlockPtr &basic_block : subroutine->get_basic_blocks()) {
-            for (const TACPtr &instruction : basic_block->get_instructions()) {
-                if (instruction->get_op() == IROperation::PHI) {
-                    auto phi_incoming_uses = instruction->get_phi_incomings() | std::views::transform([](const auto &phi_pair) {
-                        return std::get<0>(phi_pair.second);
-                    });
-                    live_variables.insert(phi_incoming_uses.begin(), phi_incoming_uses.end());
-                }
-            }
-        }
-
         dce_dom_tree_visit(subroutine->get_dominance_root(), *subroutine->get_dominance_tree(), live_variables);
     }
 
