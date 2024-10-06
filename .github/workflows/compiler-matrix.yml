@@ -35,19 +35,21 @@ jobs:
       matrix:
         include:
           # Linux with GCC
+          # - os: deb # for self-hosted
           - os: ubuntu-latest
             c_compiler: gcc
             cpp_compiler: g++
             container: mcr.microsoft.com/devcontainers/cpp:debian-12
             toolchain: null
-            nproc: 22
+            nproc: 4
+            # nproc: 22 # 22 for self-hosted
             ccache: ccache
           # Linux with Clang
           - os: ubuntu-latest
             c_compiler: clang-16
             cpp_compiler: clang++-16
             container: mcr.microsoft.com/devcontainers/cpp:debian-12
-            nproc: 22
+            nproc: 4
             ccache: ccache
           # macOS with Clang
           - os: macos-latest
