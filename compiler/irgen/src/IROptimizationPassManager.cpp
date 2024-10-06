@@ -11,7 +11,7 @@
 #include "PropagateCopyPass.h"
 #include "RenumberVariableIdPass.h"
 #include "StripEmptyBasicBlockPass.h"
-#include "StripUselessInstructionPass.h"
+#include "RemoveDeadInstructionsPass.h"
 #include "VerifySSAPass.h"
 #include "irgen_global.h"
 
@@ -70,7 +70,7 @@ IROptimizationPassManager IROptimizationPassManager::create_with_default_pass_co
     const std::string &output_file_prefix)
 {
     IROptimizationPassManager irop_passmgr(program, options);
-    irop_passmgr.add_pass<StripUselessInstructionPass>(
+    irop_passmgr.add_pass<RemoveDeadInstructionsPass>(
         "StripNoOpPass",
         enable_output ? output_file_prefix + "nonop.hrasm" : "",
         enable_output ? output_file_prefix + "nonop.dot" : "");

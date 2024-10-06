@@ -5,7 +5,7 @@
 
 OPEN_IRGEN_NAMESPACE
 
-std::string irop_to_string(IROperation op)
+std::string IROperationMetadata::to_string(IROperation op)
 {
     switch (op) {
     // arithmetic operations
@@ -98,7 +98,7 @@ std::string irop_to_string(IROperation op)
     throw;
 }
 
-bool is_branch_operation(IROperation op)
+bool IROperationMetadata::is_branch(IROperation op)
 {
     switch (op) {
     case IROperation::MOV:
@@ -146,7 +146,7 @@ bool is_branch_operation(IROperation op)
     throw;
 }
 
-bool is_control_transfer_operation(IROperation op)
+bool IROperationMetadata::is_control_transfer(IROperation op)
 {
     switch (op) {
     case IROperation::MOV:
@@ -195,9 +195,56 @@ bool is_control_transfer_operation(IROperation op)
     throw;
 }
 
-bool is_comparison_operation(IROperation op)
+bool IROperationMetadata::is_comparison(IROperation op)
 {
     return op >= IROperation::EQ && op <= IROperation::GE;
+}
+
+bool IROperationMetadata::has_side_effect(IROperation op)
+{
+    switch (op) {
+    case IROperation::LOAD:
+    case IROperation::STORE:
+    case IROperation::RET:
+    case IROperation::INPUT:
+    case IROperation::OUTPUT:
+    case IROperation::HALT:
+    case IROperation::JE:
+    case IROperation::JNE:
+    case IROperation::JGT:
+    case IROperation::JLT:
+    case IROperation::JGE:
+    case IROperation::JLE:
+    case IROperation::JZ:
+    case IROperation::JNZ:
+    case IROperation::JMP:
+    case IROperation::CALL:
+        return true;
+
+    case IROperation::MOV:
+    case IROperation::LOADI:
+    case IROperation::ADD:
+    case IROperation::SUB:
+    case IROperation::MUL:
+    case IROperation::DIV:
+    case IROperation::MOD:
+    case IROperation::NEG:
+    case IROperation::AND:
+    case IROperation::OR:
+    case IROperation::NOT:
+    case IROperation::EQ:
+    case IROperation::NE:
+    case IROperation::LT:
+    case IROperation::LE:
+    case IROperation::GT:
+    case IROperation::GE:
+    case IROperation::ENTER:
+    case IROperation::NOP:
+    case IROperation::PHI:
+        return false;
+    }
+    spdlog::critical("Unknown IR Op {}. {}", static_cast<int>(op), __PRETTY_FUNCTION__);
+    throw;
 }
 
 CLOSE_IRGEN_NAMESPACE

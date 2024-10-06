@@ -208,7 +208,7 @@ std::shared_ptr<ThreeAddressCode> ThreeAddressCode::create_phi(int var_id, std::
 
 std::string ThreeAddressCode::to_string(bool with_color) const
 {
-    auto instr = irop_to_string(_op);
+    auto instr = IROperationMetadata::to_string(_op);
     instr.resize(4, ' ');
 
     std::ostringstream oss;
