@@ -243,6 +243,8 @@ bool IROperationMetadata::has_side_effect(IROperation op)
     case IROperation::PHI:
         return false;
     }
+    spdlog::critical("Unknown IR Op {}. {}", static_cast<int>(op), __PRETTY_FUNCTION__);
+    throw;
 }
 
 CLOSE_IRGEN_NAMESPACE
