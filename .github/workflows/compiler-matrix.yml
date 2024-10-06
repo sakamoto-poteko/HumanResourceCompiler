@@ -30,7 +30,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     container:
       image: ${{ matrix.container }}
-      options: --user root -v "/etc/apt/sources.list:/etc/apt/sources.list:ro" -v "/etc/apt/sources.list.d:/etc/apt/sources.list.d:ro"
+      # Use below line only for hosted runner
+      # options: --user root -v "/etc/apt/sources.list:/etc/apt/sources.list:ro" -v "/etc/apt/sources.list.d:/etc/apt/sources.list.d:ro"
+      options: --user root
     strategy:
       matrix:
         include:
@@ -123,7 +125,6 @@ jobs:
         with:
           variant: ${{ matrix.ccache }}
           key: ${{ github.job }}-${{ matrix.os }}-${{ matrix.cpp_compiler }}
-
 
       - uses: ilammy/msvc-dev-cmd@v1
         if: matrix.os == 'windows-latest'
