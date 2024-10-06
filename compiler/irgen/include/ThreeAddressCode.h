@@ -44,6 +44,8 @@ public:
 
     void set_phi_incomings(const std::map<BasicBlockPtr, std::tuple<unsigned int, BasicBlockPtr>> &incomings) { _phi_incoming = incomings; }
 
+    void remove_phi_incomings(const BasicBlockPtr &predecessor) { _phi_incoming.erase(predecessor); }
+
     std::string to_string(bool with_color = false) const;
 
     static std::shared_ptr<ThreeAddressCode> create_arithmetic(IROperation op, const Operand &tgt, const Operand &src1, const Operand &src2, std::shared_ptr<parser::ASTNode> ast = nullptr);

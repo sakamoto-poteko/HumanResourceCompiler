@@ -52,6 +52,8 @@ public:
 
     int get_register_id() const { return std::get<int>(_value); }
 
+    bool is_local_register() const { return _type == OperandType::VariableId && std::get<int>(_value) >= 0; }
+
     HRBox get_constant() const { return std::get<HRBox>(_value); }
 
     std::string get_label() const { return std::get<std::string>(_value); }

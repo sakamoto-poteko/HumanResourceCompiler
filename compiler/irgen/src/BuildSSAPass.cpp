@@ -105,7 +105,7 @@ std::pair<std::map<BBGraphVertex, BBGraphVertex>, std::map<BBGraphVertex, std::s
 
     for (const auto &[vert, idom] : immediate_dom_by_tree_map) {
         const auto &node = cfg[vert];
-        spdlog::debug("[SSA IDOM] '{}': by '{}'", node->get_label(), cfg[idom]->get_label());
+        spdlog::trace("[SSA IDOM] '{}': by '{}'", node->get_label(), cfg[idom]->get_label());
     }
 
     // Step 2: Build Dominator Tree Adjacency List
@@ -132,7 +132,7 @@ std::pair<std::map<BBGraphVertex, BBGraphVertex>, std::map<BBGraphVertex, std::s
     }
 
     for (const auto &[vertex, vertex_children] : strict_dom_tree_children) {
-        spdlog::debug(
+        spdlog::trace(
             "[SSA DOM] '{}': {{{}}}",
             cfg[vertex]->get_label(),
             boost::join(
@@ -221,7 +221,7 @@ std::map<BBGraphVertex, std::set<BBGraphVertex>> BuildSSAPass::build_dominance_f
                   }),
             ", ");
 
-        spdlog::debug("[SSA DF] '{}': {}", cfg[vert]->get_label(), df_lbls);
+        spdlog::trace("[SSA DF] '{}': {}", cfg[vert]->get_label(), df_lbls);
     }
 
     assert(verify_dominance_frontiers(cfg, immediate_dom_by_tree_map, dominator_frontiers));
