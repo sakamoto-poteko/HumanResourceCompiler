@@ -30,9 +30,9 @@ BuildSSAPass::~BuildSSAPass()
 }
 
 bool BuildSSAPass::verify_dominance_frontiers(
-    const ControlFlowGraph &cfg,
-    const std::map<ControlFlowVertex, ControlFlowVertex> &dom_tree_map,
-    const std::map<ControlFlowVertex, std::set<ControlFlowVertex>> &dominance_frontiers)
+    const BBGraph &cfg,
+    const std::map<BBGraphVertex, BBGraphVertex> &dom_tree_map,
+    const std::map<BBGraphVertex, std::set<BBGraphVertex>> &dominance_frontiers)
 {
     bool valid = true;
 
@@ -43,9 +43,9 @@ bool BuildSSAPass::verify_dominance_frontiers(
             bool dominates_predecessor = false;
 
             for (const auto &in_edge : boost::make_iterator_range(boost::in_edges(v, cfg))) {
-                ControlFlowVertex pred = boost::source(in_edge, cfg);
+                BBGraphVertex pred = boost::source(in_edge, cfg);
                 // Check if b dominates pred
-                ControlFlowVertex current = pred;
+                BBGraphVertex current = pred;
                 while (dom_tree_map.contains(current) && current != dom_tree_map.at(current)) { // Traverse up the dominator tree
                     if (current == b) {
                         dominates_predecessor = true;
@@ -71,7 +71,7 @@ bool BuildSSAPass::verify_dominance_frontiers(
             // 2. Check that b does not strictly dominate v
             auto it = dom_tree_map.find(v);
             if (it != dom_tree_map.end()) {
-                ControlFlowVertex idom = it->second;
+                BBGraphVertex idom = it->second;
                 if (idom == b) {
                     spdlog::error(
                         "Property Violation: Node {} strictly dominates node {} but is in DF({}).",
@@ -94,26 +94,26 @@ bool BuildSSAPass::verify_dominance_frontiers(
     return valid;
 }
 
-std::pair<std::map<ControlFlowVertex, ControlFlowVertex>, std::map<ControlFlowVertex, std::set<ControlFlowVertex>>> BuildSSAPass::build_dominance_tree(const ControlFlowGraph &cfg, const ControlFlowVertex &start_block)
+std::pair<std::map<BBGraphVertex, BBGraphVertex>, std::map<BBGraphVertex, std::set<BBGraphVertex>>> BuildSSAPass::build_dominance_tree(const BBGraph &cfg, const BBGraphVertex &start_block)
 {
     // Step 1: Compute Dominator Tree
 
     // map <vert, imm dom of vert>
-    std::map<ControlFlowVertex, ControlFlowVertex> immediate_dom_by_tree_map;
-    boost::associative_property_map<std::map<ControlFlowVertex, ControlFlowVertex>> dom_tree_pmap(immediate_dom_by_tree_map);
+    std::map<BBGraphVertex, BBGraphVertex> immediate_dom_by_tree_map;
+    boost::associative_property_map<std::map<BBGraphVertex, BBGraphVertex>> dom_tree_pmap(immediate_dom_by_tree_map);
     boost::lengauer_tarjan_dominator_tree(cfg, start_block, dom_tree_pmap);
 
     for (const auto &[vert, idom] : immediate_dom_by_tree_map) {
         const auto &node = cfg[vert];
-        spdlog::debug("[SSA IDOM] '{}': by '{}'", node->get_label(), cfg[idom]->get_label());
+        spdlog::trace("[SSA IDOM] '{}': by '{}'", node->get_label(), cfg[idom]->get_label());
     }
 
     // Step 2: Build Dominator Tree Adjacency List
     // Map each node to its children in the dominator tree.
     // The set doesn't include the vert itself so it's strict dom
-    std::map<ControlFlowVertex, std::set<ControlFlowVertex>> strict_dom_tree_children;
+    std::map<BBGraphVertex, std::set<BBGraphVertex>> strict_dom_tree_children;
 
-    for (const ControlFlowVertex &vertex : boost::make_iterator_range(boost::vertices(cfg))) {
+    for (const BBGraphVertex &vertex : boost::make_iterator_range(boost::vertices(cfg))) {
         auto _ = strict_dom_tree_children[vertex]; // make sure every vertex is in the map
 
         // Skip the start node which has no immediate dominator
@@ -123,7 +123,7 @@ std::pair<std::map<ControlFlowVertex, ControlFlowVertex>, std::map<ControlFlowVe
         // Find the immediate dominator of v
         auto it = immediate_dom_by_tree_map.find(vertex);
         if (it != immediate_dom_by_tree_map.end()) {
-            ControlFlowVertex idom = it->second;
+            BBGraphVertex idom = it->second;
             // Avoid self-loop in dominator tree
             if (idom != vertex) {
                 strict_dom_tree_children[idom].insert(vertex);
@@ -132,11 +132,11 @@ std::pair<std::map<ControlFlowVertex, ControlFlowVertex>, std::map<ControlFlowVe
     }
 
     for (const auto &[vertex, vertex_children] : strict_dom_tree_children) {
-        spdlog::debug(
+        spdlog::trace(
             "[SSA DOM] '{}': {{{}}}",
             cfg[vertex]->get_label(),
             boost::join(
-                vertex_children | boost::adaptors::transformed([&cfg](const ControlFlowVertex &v) {
+                vertex_children | boost::adaptors::transformed([&cfg](const BBGraphVertex &v) {
                     return "'" + cfg[v]->get_label() + "'";
                 }),
                 ", "));
@@ -145,16 +145,16 @@ std::pair<std::map<ControlFlowVertex, ControlFlowVertex>, std::map<ControlFlowVe
     return std::make_pair(immediate_dom_by_tree_map, strict_dom_tree_children);
 }
 
-std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dominance_frontiers(
-    const ControlFlowGraph &cfg,
-    const ControlFlowVertex &start_block,
-    std::map<ControlFlowVertex, ControlFlowVertex> immediate_dom_by_tree_map,
-    std::map<ControlFlowVertex, std::set<ControlFlowVertex>> strict_dom_tree_children)
+std::map<BBGraphVertex, std::set<BBGraphVertex>> BuildSSAPass::build_dominance_frontiers(
+    const BBGraph &cfg,
+    const BBGraphVertex &start_block,
+    std::map<BBGraphVertex, BBGraphVertex> immediate_dom_by_tree_map,
+    std::map<BBGraphVertex, std::set<BBGraphVertex>> strict_dom_tree_children)
 {
     // Step 3: Initialize Dominator Frontiers
-    std::map<ControlFlowVertex, std::set<ControlFlowVertex>> dominator_frontiers;
-    for (const ControlFlowVertex &vertex : boost::make_iterator_range(boost::vertices(cfg))) {
-        dominator_frontiers[vertex] = std::set<ControlFlowVertex>();
+    std::map<BBGraphVertex, std::set<BBGraphVertex>> dominator_frontiers;
+    for (const BBGraphVertex &vertex : boost::make_iterator_range(boost::vertices(cfg))) {
+        dominator_frontiers[vertex] = std::set<BBGraphVertex>();
     }
 
     // Step 4: Implement the Dominator Frontier Algorithm
@@ -170,11 +170,11 @@ std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dom
     */
 
     // We'll use a depth-first traversal of the dominator tree
-    std::function<void(ControlFlowVertex)> compute_df = [&](ControlFlowVertex b) {
+    std::function<void(BBGraphVertex)> compute_df = [&](BBGraphVertex b) {
         // Step 4a: For each successor s of b
         // keep this way of iteration. it's recursive.
         for (const auto &out_edge : boost::make_iterator_range(boost::out_edges(b, cfg))) {
-            ControlFlowVertex s = boost::target(out_edge, cfg);
+            BBGraphVertex s = boost::target(out_edge, cfg);
             // If b does not strictly dominate s (s is b's successor so it's not immediate neither), then s is in DF[b]
             auto idom_it = immediate_dom_by_tree_map.find(s);
             if (idom_it != immediate_dom_by_tree_map.end() && idom_it->second != b) {
@@ -186,11 +186,11 @@ std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dom
         // Step 4b: For each child c of b in the dominator tree
         auto children_it = strict_dom_tree_children.find(b);
         if (children_it != strict_dom_tree_children.end()) {
-            for (ControlFlowVertex c : children_it->second) {
+            for (BBGraphVertex c : children_it->second) {
                 compute_df(c); // Recursive call
 
                 // Step 4c: For each w in DF[c]
-                for (ControlFlowVertex w : dominator_frontiers[c]) {
+                for (BBGraphVertex w : dominator_frontiers[c]) {
                     // Check if b does not strictly dominate w
                     auto idom_w_it = immediate_dom_by_tree_map.find(w);
                     if (idom_w_it == immediate_dom_by_tree_map.end()) {
@@ -216,12 +216,12 @@ std::map<ControlFlowVertex, std::set<ControlFlowVertex>> BuildSSAPass::build_dom
     for (const auto &[vert, df] : dominator_frontiers) {
         std::string df_lbls = boost::join(
             df
-                | boost::adaptors::transformed([&cfg](const ControlFlowVertex &vert) {
+                | boost::adaptors::transformed([&cfg](const BBGraphVertex &vert) {
                       return cfg[vert]->get_label();
                   }),
             ", ");
 
-        spdlog::debug("[SSA DF] '{}': {}", cfg[vert]->get_label(), df_lbls);
+        spdlog::trace("[SSA DF] '{}': {}", cfg[vert]->get_label(), df_lbls);
     }
 
     assert(verify_dominance_frontiers(cfg, immediate_dom_by_tree_map, dominator_frontiers));
@@ -234,14 +234,14 @@ int BuildSSAPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadat
     UNUSED(metadata);
     UNUSED(program);
 
-    const ControlFlowGraph &cfg = *subroutine->get_cfg();
-    const ControlFlowVertex entry_vertex = subroutine->get_start_block();
+    const BBGraph &cfg = *subroutine->get_cfg();
+    const BBGraphVertex cfg_entry_vertex = subroutine->get_cfg_entry();
 
     // build the map where variables are defined in basic blocks
     std::map<unsigned int, std::set<BasicBlockPtr>> def_map = subroutine->get_def_variables();
 
-    auto [immediate_dom_tree_map, strict_dom_tree_children] = build_dominance_tree(cfg, subroutine->get_start_block());
-    auto dom_frontiers_vert = build_dominance_frontiers(cfg, entry_vertex, immediate_dom_tree_map, strict_dom_tree_children);
+    auto [immediate_dom_tree_map, strict_dom_tree_children] = build_dominance_tree(cfg, subroutine->get_cfg_entry());
+    auto dom_frontiers_vert = build_dominance_frontiers(cfg, cfg_entry_vertex, immediate_dom_tree_map, strict_dom_tree_children);
     // convert Vertex to BBPtr
     std::map<BasicBlockPtr, std::set<BasicBlockPtr>> dom_frontiers;
     for (const auto &[vert, df_set_vert] : dom_frontiers_vert) {
@@ -253,30 +253,33 @@ int BuildSSAPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadat
     }
 
     // build BBPtr to Vertex map
-    std::map<BasicBlockPtr, ControlFlowVertex> bb_vert_map;
-    for (ControlFlowVertex vert : boost::make_iterator_range(boost::vertices(cfg))) {
+    std::map<BasicBlockPtr, BBGraphVertex> bb_vert_map;
+    for (BBGraphVertex vert : boost::make_iterator_range(boost::vertices(cfg))) {
         bb_vert_map[cfg[vert]] = vert;
     }
 
     insert_phi_functions(def_map, dom_frontiers);
-    rename_and_populate_phi(def_map, strict_dom_tree_children, cfg, entry_vertex);
+    rename_and_populate_phi(def_map, strict_dom_tree_children, cfg, cfg_entry_vertex);
 
     // write dom tree
-    ControlFlowGraph dom_tree_bgl;
-    std::map<ControlFlowVertex, ControlFlowVertex> cfg_vertex_to_dom_tree_bgl;
+    BBGraphPtr dom_tree_ptr = std::make_shared<BBGraph>();
+    BBGraph &dom_tree_bbg = *dom_tree_ptr;
+    std::map<BBGraphVertex, BBGraphVertex> cfg_vertex_to_dom_tree_bgl;
     for (const auto &[node, children] : strict_dom_tree_children) {
-        ControlFlowVertex vert = dom_tree_bgl.add_vertex(cfg[node]);
+        BBGraphVertex vert = dom_tree_bbg.add_vertex(cfg[node]);
         cfg_vertex_to_dom_tree_bgl[node] = vert;
     }
 
     for (const auto &[node, children] : strict_dom_tree_children) {
-        ControlFlowVertex vert = cfg_vertex_to_dom_tree_bgl.at(node);
-        for (ControlFlowVertex child : children) {
-            dom_tree_bgl.add_edge(vert, cfg_vertex_to_dom_tree_bgl[child]);
+        BBGraphVertex vert = cfg_vertex_to_dom_tree_bgl.at(node);
+        for (BBGraphVertex child : children) {
+            dom_tree_bbg.add_edge(vert, cfg_vertex_to_dom_tree_bgl[child]);
         }
     }
 
-    _dominance_trees.insert_or_assign(subroutine, std::move(dom_tree_bgl));
+    subroutine->set_dominance_tree(dom_tree_ptr, cfg_vertex_to_dom_tree_bgl.at(cfg_entry_vertex));
+    subroutine->set_is_ssa(true);
+
     return 0;
 }
 
@@ -350,9 +353,9 @@ void BuildSSAPass::insert_phi_functions(
 
 void BuildSSAPass::rename_and_populate_phi(
     const std::map<unsigned int, std::set<BasicBlockPtr>> &def_map,
-    const std::map<ControlFlowVertex, std::set<ControlFlowVertex>> &strict_dom_tree_children,
-    const ControlFlowGraph &cfg,
-    ControlFlowVertex entry)
+    const std::map<BBGraphVertex, std::set<BBGraphVertex>> &strict_dom_tree_children,
+    const BBGraph &cfg,
+    BBGraphVertex entry)
 {
     // the renaming stacks
     std::map<unsigned int, std::vector<std::tuple<unsigned int, BasicBlockPtr>>> stacks;
@@ -370,7 +373,7 @@ void BuildSSAPass::rename_and_populate_phi(
     }
     unsigned int current_assignable_var_id = max_original_id + 1;
 
-    std::function<void(ControlFlowVertex)> rename_basic_block = [&](const ControlFlowVertex &visiting_block_vertex) {
+    std::function<void(BBGraphVertex)> rename_basic_block = [&](const BBGraphVertex &visiting_block_vertex) {
         const BasicBlockPtr &visiting_basic_block = cfg[visiting_block_vertex];
         std::map<unsigned int, unsigned int> push_count;
 
@@ -481,8 +484,8 @@ void BuildSSAPass::rename_and_populate_phi(
                     incomingVersion = "undef_" + v  # Handle undefined as needed
                 phi.addIncoming(v + str(incomingVersion), block)
         */
-        for (ControlFlowEdge successor_edge : boost::make_iterator_range(boost::out_edges(visiting_block_vertex, cfg))) {
-            ControlFlowVertex successor_vertex = boost::target(successor_edge, cfg);
+        for (BBGraphEdge successor_edge : boost::make_iterator_range(boost::out_edges(visiting_block_vertex, cfg))) {
+            BBGraphVertex successor_vertex = boost::target(successor_edge, cfg);
             const BasicBlockPtr &successor_block = cfg[successor_vertex];
             for (const TACPtr &phi_instr_in_succ_blk : successor_block->get_instructions()) {
                 if (phi_instr_in_succ_blk->get_op() != IROperation::PHI) {
@@ -530,8 +533,8 @@ void BuildSSAPass::rename_and_populate_phi(
         // it's possible this node has no dominatee. if it does not exist, we skip
         auto dom_children_set_it = strict_dom_tree_children.find(visiting_block_vertex);
         if (dom_children_set_it != strict_dom_tree_children.end()) {
-            const std::set<ControlFlowVertex> &dom_children = strict_dom_tree_children.at(visiting_block_vertex);
-            for (ControlFlowVertex dom_child : dom_children) {
+            const std::set<BBGraphVertex> &dom_children = strict_dom_tree_children.at(visiting_block_vertex);
+            for (BBGraphVertex dom_child : dom_children) {
                 rename_basic_block(dom_child);
             }
         }
@@ -564,8 +567,9 @@ std::string BuildSSAPass::get_additional_metadata_text(unsigned int task_index, 
 std::string BuildSSAPass::generate_dominance_tree_graphviz()
 {
     std::vector<std::string> subroutine_cfgs;
-    for (const auto &[subroutine, tree] : _dominance_trees) {
-        auto graphviz_str = GraphvizGenerator::generate_graphviz_cfg_for_subroutine(tree, tree.null_vertex(), subroutine->get_func_name());
+    for (const SubroutinePtr &subroutine : _program->get_subroutines()) {
+        const BBGraph &dom_tree = *subroutine->get_dominance_tree();
+        auto graphviz_str = GraphvizGenerator::generate_graphviz_bb_graph(dom_tree, subroutine->get_dominance_root(), subroutine->get_func_name());
         auto fmt = boost::format("subgraph %1% {\nlabel=\"%1%\";")
             % subroutine->get_func_name();
         boost::replace_head(

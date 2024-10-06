@@ -67,10 +67,13 @@ enum class IROperation : std::uint8_t {
     // Low IR
 };
 
-std::string irop_to_string(IROperation op);
-bool is_control_transfer_operation(IROperation op);
-bool is_branch_operation(IROperation op);
-bool is_comparison_operation(IROperation op);
+struct IROperationMetadata {
+    static std::string to_string(IROperation op);
+    static bool is_control_transfer(IROperation op);
+    static bool is_branch(IROperation op);
+    static bool is_comparison(IROperation op);
+    static bool has_side_effect(IROperation op);
+};
 
 CLOSE_IRGEN_NAMESPACE
 #endif

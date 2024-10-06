@@ -44,6 +44,12 @@ public:
 
     int run(bool fail_fast = true);
 
+    static IROptimizationPassManager create_with_default_pass_configuration(
+        const ProgramPtr &program,
+        const IRGenOptions &options,
+        bool enable_output,
+        const std::string &output_file_prefix = "");
+
 private:
     ProgramPtr _program;
     std::vector<std::string> _pass_asm_filepaths;

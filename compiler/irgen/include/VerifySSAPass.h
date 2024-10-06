@@ -21,7 +21,7 @@ protected:
     int run_subroutine(const SubroutinePtr &subroutine, ProgramMetadata &metadata, const ProgramPtr &program) override;
 
     template <typename VerifyFunc>
-    void visit_basic_block(ControlFlowVertex vertex, const ControlFlowGraph &cfg, std::set<ControlFlowVertex> &visited, VerifyFunc verify_func)
+    void visit_basic_block(BBGraphVertex vertex, const BBGraph &cfg, std::set<BBGraphVertex> &visited, VerifyFunc verify_func)
     {
         if (visited.contains(vertex)) {
             return;
@@ -32,8 +32,8 @@ protected:
 
         verify_func(basic_block);
 
-        for (ControlFlowEdge edge : boost::make_iterator_range(boost::out_edges(vertex, cfg))) {
-            ControlFlowVertex target = boost::target(edge, cfg);
+        for (BBGraphEdge edge : boost::make_iterator_range(boost::out_edges(vertex, cfg))) {
+            BBGraphVertex target = boost::target(edge, cfg);
             visit_basic_block(target, cfg, visited, verify_func);
         }
     }

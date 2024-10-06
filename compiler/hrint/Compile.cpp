@@ -25,7 +25,7 @@
 #include "SemanticAnalysisPassManager.h"
 #include "StripAttributePass.h"
 #include "StripEmptyBasicBlockPass.h"
-#include "StripUselessInstructionPass.h"
+#include "RemoveDeadInstructionsPass.h"
 #include "SymbolAnalysisPass.h"
 #include "SymbolTable.h"
 #include "TACGen.h"
@@ -104,7 +104,7 @@ int transform_hir(const InterpreterOptions &options, const irgen::ProgramPtr &pr
 
     hrl::irgen::IRGenOptions irgen_opt;
     hrl::irgen::IROptimizationPassManager irop_passmgr(program, irgen_opt);
-    irop_passmgr.add_pass<hrl::irgen::StripUselessInstructionPass>(
+    irop_passmgr.add_pass<hrl::irgen::RemoveDeadInstructionsPass>(
         "StripNoOpPass",
         "build/strnop.hrasm",
         "build/strnop.dot");

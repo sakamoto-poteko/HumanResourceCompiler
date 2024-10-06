@@ -48,8 +48,8 @@ void IRInterpreter::exec_subroutine(const irgen::SubroutinePtr &subroutine, HRMB
     CallFrame &call_frame = _calling_stack.back();
     irgen::BasicBlockPtr &current_block = call_frame.current_basic_block;
 
-    const irgen::ControlFlowGraph &cfg = *subroutine->get_cfg();
-    current_block = cfg[subroutine->get_start_block()];
+    const irgen::BBGraph &cfg = *subroutine->get_cfg();
+    current_block = cfg[subroutine->get_cfg_entry()];
     irgen::BasicBlockPtr predecessor_block = nullptr;
 
     std::map<std::string, irgen::BasicBlockPtr> basic_blocks;
@@ -334,7 +334,7 @@ HRMByte IRInterpreter::evaluate_binary_op_instructions(irgen::IROperation op, co
     default:
         break;
     }
-    spdlog::error("'{}' is not a binary op but called to evalute as binary expression. {}", irgen::irop_to_string(op), __PRETTY_FUNCTION__);
+    spdlog::error("'{}' is not a binary op but called to evalute as binary expression. {}", irgen::IROperationMetadata::to_string(op), __PRETTY_FUNCTION__);
     throw;
 }
 
@@ -350,7 +350,7 @@ HRMByte IRInterpreter::evaluate_unary_op_instructions(irgen::IROperation op, con
     default:
         break;
     }
-    spdlog::error("'{}' is not a unary op but called to evalute as unary expression. {}", irgen::irop_to_string(op), __PRETTY_FUNCTION__);
+    spdlog::error("'{}' is not a unary op but called to evalute as unary expression. {}", irgen::IROperationMetadata::to_string(op), __PRETTY_FUNCTION__);
     throw;
 }
 
@@ -423,7 +423,7 @@ void IRInterpreter::move_data(irgen::IROperation op, const irgen::Operand &tgt, 
     default:
         break;
     }
-    spdlog::error("'{}' is not a unary op but called to evalute as unary expression. {}", irgen::irop_to_string(op), __PRETTY_FUNCTION__);
+    spdlog::error("'{}' is not a unary op but called to evalute as unary expression. {}", irgen::IROperationMetadata::to_string(op), __PRETTY_FUNCTION__);
     throw;
 }
 

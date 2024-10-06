@@ -26,10 +26,10 @@ int AnalyzeLivenessPass::run_subroutine(const SubroutinePtr &subroutine, Program
     UNUSED(metadata);
     UNUSED(program);
 
-    const ControlFlowGraph &cfg = *subroutine->get_cfg();
-    std::set<ControlFlowVertex> cfg_visited;
-    std::vector<ControlFlowVertex> visit_order;
-    traverse_cfg(subroutine->get_start_block(), cfg, cfg_visited, visit_order);
+    const BBGraph &cfg = *subroutine->get_cfg();
+    std::set<BBGraphVertex> cfg_visited;
+    std::vector<BBGraphVertex> visit_order;
+    traverse_cfg(subroutine->get_cfg_entry(), cfg, cfg_visited, visit_order);
     // std::ranges::reverse(rpo);
 
     calculate_def_use(subroutine);
@@ -60,23 +60,23 @@ int AnalyzeLivenessPass::run_subroutine(const SubroutinePtr &subroutine, Program
     return 0;
 }
 
-void AnalyzeLivenessPass::traverse_cfg(const ControlFlowVertex vertex, const ControlFlowGraph &cfg, std::set<ControlFlowVertex> &visited, std::vector<ControlFlowVertex> &result)
+void AnalyzeLivenessPass::traverse_cfg(const BBGraphVertex vertex, const BBGraph &cfg, std::set<BBGraphVertex> &visited, std::vector<BBGraphVertex> &result)
 {
     if (visited.contains(vertex)) {
         return;
     }
     visited.insert(vertex);
 
-    for (const ControlFlowEdge edge : boost::make_iterator_range(boost::out_edges(vertex, cfg))) {
+    for (const BBGraphEdge edge : boost::make_iterator_range(boost::out_edges(vertex, cfg))) {
         traverse_cfg(boost::target(edge, cfg), cfg, visited, result);
     }
 
     result.push_back(vertex);
 }
 
-void AnalyzeLivenessPass::calculate_in_out(const ControlFlowGraph &cfg, const std::vector<ControlFlowVertex> &vertices)
+void AnalyzeLivenessPass::calculate_in_out(const BBGraph &cfg, const std::vector<BBGraphVertex> &vertices)
 {
-    for (const ControlFlowVertex vert : vertices) {
+    for (const BBGraphVertex vert : vertices) {
         cfg[vert]->get_in_variables().clear();
         cfg[vert]->get_out_variables().clear();
     }
@@ -124,7 +124,7 @@ void AnalyzeLivenessPass::calculate_in_out(const ControlFlowGraph &cfg, const st
     while (changed) {
         changed = false;
 
-        for (const ControlFlowVertex vert : vertices) {
+        for (const BBGraphVertex vert : vertices) {
             const BasicBlockPtr &block = cfg[vert];
 
             const std::set<unsigned int> &block_use = block->get_use_variables();
@@ -135,7 +135,7 @@ void AnalyzeLivenessPass::calculate_in_out(const ControlFlowGraph &cfg, const st
             std::set<unsigned int> new_OUT;
 
             // Compute OUT[B] as union of IN sets of successors
-            for (const ControlFlowEdge out_edge : boost::make_iterator_range(boost::out_edges(vert, cfg))) {
+            for (const BBGraphEdge out_edge : boost::make_iterator_range(boost::out_edges(vert, cfg))) {
                 // OUT[block] = OUT[block] ∪ IN[successor]
                 const BasicBlockPtr &successor = cfg[boost::target(out_edge, cfg)];
                 const std::set<unsigned int> &successor_IN = successor->get_in_variables();

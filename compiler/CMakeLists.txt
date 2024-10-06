@@ -3,9 +3,13 @@ project(hrlc)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Compiler
 # YAML-CPP
+set(YAML_CPP_BUILD_CONTRIB OFF CACHE BOOL "Disable YAML-CPP contrib")
+set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "Disable YAML-CPP tools")
+
 include(FetchContent)
 
 FetchContent_Declare(

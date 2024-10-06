@@ -19,10 +19,10 @@ int hrl::irgen::BuildControlFlowGraphPass::run_subroutine(const SubroutinePtr &s
 
     const std::list<BasicBlockPtr> &basic_blocks = subroutine->get_basic_blocks();
 
-    ControlFlowGraphPtr cfgptr = std::make_shared<ControlFlowGraph>();
-    ControlFlowGraph &cfg = *cfgptr;
-    std::map<std::string, ControlFlowVertex> label_to_block;
-    ControlFlowVertex start_block = ControlFlowGraph::null_vertex();
+    BBGraphPtr cfgptr = std::make_shared<BBGraph>();
+    BBGraph &cfg = *cfgptr;
+    std::map<std::string, BBGraphVertex> label_to_block;
+    BBGraphVertex start_block = BBGraph::null_vertex();
 
     // 1st pass: map label to bb vert
     // 2nd pass: build cfg
@@ -33,7 +33,7 @@ int hrl::irgen::BuildControlFlowGraphPass::run_subroutine(const SubroutinePtr &s
 
     for (auto bb_it = basic_blocks.begin(); bb_it != basic_blocks.end(); ++bb_it) {
         const auto &bb = *bb_it;
-        ControlFlowVertex bb_vert = label_to_block[bb->get_label()];
+        BBGraphVertex bb_vert = label_to_block[bb->get_label()];
 
         bool connect_next = false;
         bool connect_target = false;
@@ -105,8 +105,7 @@ int hrl::irgen::BuildControlFlowGraphPass::run_subroutine(const SubroutinePtr &s
         assert(cfg[start_block]);
     }
 
-    subroutine->set_cfg(cfgptr);
-    subroutine->set_start_block(start_block);
+    subroutine->set_cfg(cfgptr, start_block);
     return 0;
 }
 

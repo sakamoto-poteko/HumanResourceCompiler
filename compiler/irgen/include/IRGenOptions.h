@@ -6,15 +6,39 @@
 OPEN_IRGEN_NAMESPACE
 
 enum class IROptimizationFor {
+    OptForCodeSize,
     NoOpt,
     OptForSpeed,
-    OptForCodeSize,
 };
 
 struct IRGenOptions {
     IROptimizationFor MultiplyLowering = IROptimizationFor::NoOpt;
     IROptimizationFor DivisionLowering = IROptimizationFor::NoOpt;
     IROptimizationFor ModulusLowering = IROptimizationFor::NoOpt;
+    IROptimizationFor EliminateNop = IROptimizationFor::OptForSpeed;
+    IROptimizationFor EliminateEnter = IROptimizationFor::OptForSpeed;
+
+    static IRGenOptions ForSpeed()
+    {
+        return IRGenOptions {
+            .MultiplyLowering = IROptimizationFor::OptForSpeed,
+            .DivisionLowering = IROptimizationFor::OptForSpeed,
+            .ModulusLowering = IROptimizationFor::OptForSpeed,
+            .EliminateNop = IROptimizationFor::OptForSpeed,
+            .EliminateEnter = IROptimizationFor::OptForSpeed,
+        };
+    }
+
+    static IRGenOptions ForCodeSize()
+    {
+        return IRGenOptions {
+            .MultiplyLowering = IROptimizationFor::OptForCodeSize,
+            .DivisionLowering = IROptimizationFor::OptForCodeSize,
+            .ModulusLowering = IROptimizationFor::OptForCodeSize,
+            .EliminateNop = IROptimizationFor::OptForSpeed,
+            .EliminateEnter = IROptimizationFor::OptForSpeed,
+        };
+    }
 };
 
 CLOSE_IRGEN_NAMESPACE

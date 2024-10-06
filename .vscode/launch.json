@@ -12,7 +12,7 @@
             "args": [
                 "-i",
                 "design/lang.hrml",
-                "--verbose"
+                "-vtrace"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

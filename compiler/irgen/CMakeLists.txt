@@ -12,12 +12,13 @@ add_library(${PROJECT_NAME}
     src/IROptimizationPass.cpp
     src/IROptimizationPassManager.cpp
     src/MergeConditionalBranchPass.cpp
-    src/StripUselessInstructionPass.cpp
+    src/RemoveDeadInstructionsPass.cpp
     src/StripEmptyBasicBlockPass.cpp
     src/BuildControlFlowGraphPass.cpp
     src/BuildSSAPass.cpp
     src/EliminateDeadBasicBlockPass.cpp
     src/VerifySSAPass.cpp
+    src/PropagateCopyPass.cpp
     src/RenumberVariableIdPass.cpp
     src/AnalyzeLivenessPass.cpp
     src/GraphvizGenerator.cpp

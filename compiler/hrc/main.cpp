@@ -5,37 +5,28 @@
 
 #include "ASTBuilder.h"
 #include "ASTNodeGraphvizBuilder.h"
-#include "AnalyzeLivenessPass.h"
-#include "BuildControlFlowGraphPass.h"
-#include "BuildSSAPass.h"
 #include "ClearSymbolTablePass.h"
 #include "CompilerOptions.h"
 #include "ConstantFoldingPass.h"
 #include "ControlFlowVerificationPass.h"
 #include "DeadCodeEliminationPass.h"
-#include "EliminateDeadBasicBlockPass.h"
 #include "ErrorManager.h"
 #include "FileManager.h"
 #include "HRLLexer.h"
 #include "IRGenOptions.h"
 #include "IROptimizationPassManager.h"
 #include "IRProgramStructure.h"
-#include "MergeConditionalBranchPass.h"
 #include "ParseTreeNodeForward.h"
 #include "ParseTreeNodeGraphvizBuilder.h"
 #include "RecursiveDescentParser.h"
-#include "RenumberVariableIdPass.h"
 #include "SemanticAnalysisPassManager.h"
 #include "StripAttributePass.h"
-#include "StripEmptyBasicBlockPass.h"
-#include "StripUselessInstructionPass.h"
 #include "SymbolAnalysisPass.h"
 #include "TACGen.h"
 #include "TerminalColor.h"
 #include "UnusedSymbolAnalysisPass.h"
 #include "UseBeforeInitializationCheckPass.h"
 #include "Utilities.h"
-#include "VerifySSAPass.h"
 
 using namespace hrl::lexer;
 using namespace hrl::hrc;
@@ -146,48 +137,8 @@ int main(int argc, char **argv)
 
     hrl::irgen::ProgramPtr prog = tacgen->get_built_program();
 
-    hrl::irgen::IRGenOptions irgen_options;
-    hrl::irgen::IROptimizationPassManager irop_passmgr(prog, irgen_options);
-    irop_passmgr.add_pass<hrl::irgen::StripUselessInstructionPass>(
-        "StripNoOpPass",
-        "build/strnop.hrasm",
-        "build/strnop.dot");
-    irop_passmgr.add_pass<hrl::irgen::StripEmptyBasicBlockPass>(
-        "StripEmptyBasicBlockPass",
-        "build/strebb.hrasm",
-        "build/strebb.dot");
-    irop_passmgr.add_pass<hrl::irgen::BuildControlFlowGraphPass>(
-        "ControlFlowGraphBuilderPass",
-        "build/cfgbuilder.hrasm",
-        "build/cfgbuilder.dot");
-    irop_passmgr.add_pass<hrl::irgen::MergeConditionalBranchPass>(
-        "MergeCondBrPass",
-        "build/mgcondbr.hrasm",
-        "build/mgcondbr.dot");
-    irop_passmgr.add_pass<hrl::irgen::EliminateDeadBasicBlockPass>(
-        "EliminateDeadBasicBlockPass",
-        "build/edbb.hrasm",
-        "build/edbb.dot");
-    irop_passmgr.add_pass<hrl::irgen::AnalyzeLivenessPass>(
-        "AnalyzeLivenessPassPreSSA",
-        "build/liveness.hrasm",
-        "build/liveness.dot",
-        "build/liveness.yml");
-    irop_passmgr.add_pass<hrl::irgen::BuildSSAPass>(
-        "BuildSSAPass",
-        "build/ssa.hrasm",
-        "build/ssa.dot",
-        "build/ssa.domtree.dot");
-    irop_passmgr.add_pass<hrl::irgen::RenumberVariableIdPass>(
-        "SSARenumberVariableId",
-        "build/ssa-renum.hrasm",
-        "build/ssa-renum.dot");
-    irop_passmgr.add_pass<hrl::irgen::AnalyzeLivenessPass>(
-        "AnalyzeLivenessPassPostSSA",
-        "build/liveness-ssa.hrasm",
-        "build/liveness-ssa.dot",
-        "build/liveness-ssa.yml");
-    irop_passmgr.add_pass<hrl::irgen::VerifySSAPass>("VerifySSA");
+    auto irgen_options = hrl::irgen::IRGenOptions::ForSpeed();
+    auto irop_passmgr = hrl::irgen::IROptimizationPassManager::create_with_default_pass_configuration(prog, irgen_options, true, "build/ir/");
 
     if (irop_passmgr.run(true) != 0) {
         errmgr.print_all();
