@@ -1,6 +1,8 @@
-#include "RemoveDeadInstructionsPass.h"
+#include <spdlog/spdlog.h>
+
 #include "IRGenOptions.h"
 #include "IROps.h"
+#include "RemoveDeadInstructionsPass.h"
 #include "ThreeAddressCode.h"
 #include "irgen_global.h"
 
@@ -59,6 +61,8 @@ int RemoveDeadInstructionsPass::run_subroutine(const SubroutinePtr &subroutine, 
                 // Strip nop
                 return _options.EliminateNop >= IROptimizationFor::OptForSpeed && true;
             }
+            spdlog::critical("Unknown op: {}. {}", static_cast<int>(instr->get_op()), __PRETTY_FUNCTION__);
+            throw;
         });
 
         // Find out the useless var defined
