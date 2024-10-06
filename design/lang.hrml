@@ -16,6 +16,11 @@ function bubble_sort() {
         }
     }
 
+    let x = a;
+    let y = b;
+    let z = x + y;
+    let kk = z + 1;
+    let zzz = kk + 10;
     return a; // Returning the first element as a representative
 }
 

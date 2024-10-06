@@ -17,6 +17,7 @@ struct IRGenOptions {
     IROptimizationFor ModulusLowering = IROptimizationFor::NoOpt;
     IROptimizationFor EliminateNop = IROptimizationFor::OptForSpeed;
     IROptimizationFor EliminateEnter = IROptimizationFor::OptForSpeed;
+    IROptimizationFor EliminateDeadAssignment = IROptimizationFor::NoOpt;
 
     static IRGenOptions ForSpeed()
     {
@@ -26,6 +27,7 @@ struct IRGenOptions {
             .ModulusLowering = IROptimizationFor::OptForSpeed,
             .EliminateNop = IROptimizationFor::OptForSpeed,
             .EliminateEnter = IROptimizationFor::OptForSpeed,
+            .EliminateDeadAssignment = IROptimizationFor::OptForSpeed,
         };
     }
 
@@ -37,6 +39,7 @@ struct IRGenOptions {
             .ModulusLowering = IROptimizationFor::OptForCodeSize,
             .EliminateNop = IROptimizationFor::OptForSpeed,
             .EliminateEnter = IROptimizationFor::OptForSpeed,
+            .EliminateDeadAssignment = IROptimizationFor::OptForCodeSize,
         };
     }
 };

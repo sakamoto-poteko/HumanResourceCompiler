@@ -45,12 +45,13 @@ Static Single Assignment (SSA) form is widely used in compilers because it simpl
    - **Benefit from SSA**: SSA allows the compiler to more easily reason about expressions that are redundant across multiple paths, which can then be optimized globally rather than locally.
 
 ### 9. **Phi-Node Elimination**
-   - [ ] Implemented?
+   - [x] Dead code elimination implemented?
+   - [ ] SCCP implemented?
    - **What it does**: In some cases, after other optimizations (like dead code elimination or constant propagation), certain `phi` nodes become redundant and can be removed.
    - **Benefit from SSA**: `phi` nodes are a fundamental part of SSA, and simplifying or eliminating them can lead to further simplifications in the IR.
 
 ### 10. **Copy Propagation**
-   - [ ] Implemented?
+   - [x] Implemented?
    - **What it does**: Eliminates assignments where one variable is simply a copy of another, replacing the use of the copied variable with the original.
    - **Benefit from SSA**: In SSA, each variable is assigned only once, making it trivial to replace uses of copied variables with their original definitions.
 
