@@ -112,12 +112,17 @@ jobs:
           echo "VCPKG_DEFAULT_TRIPLET=x64-windows" >> $env:GITHUB_ENV
           echo "TOOLCHAIN=${{ github.workspace }}\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake" >> $env:GITHUB_ENV
 
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.job }}-${{ matrix.os }}-${{ matrix.cpp_compiler }}
+
       - uses: ilammy/msvc-dev-cmd@v1
         if: matrix.os == 'windows-latest'
 
       - name: Configure CMake
         run: |
-          cmake -B compiler/build -S compiler -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_TOOLCHAIN_FILE=${{ env.TOOLCHAIN }} -G Ninja
+          cmake -B compiler/build -S compiler -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_TOOLCHAIN_FILE=${{ env.TOOLCHAIN }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -G Ninja
 
       - name: Build
         run: cmake --build compiler/build --config ${{env.BUILD_TYPE}} -- -j${{ matrix.nproc }}
