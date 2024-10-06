@@ -41,23 +41,27 @@ jobs:
             container: mcr.microsoft.com/devcontainers/cpp:debian-12
             toolchain: null
             nproc: 22
+            ccache: ccache
           # Linux with Clang
           - os: deb
             c_compiler: clang-16
             cpp_compiler: clang++-16
             container: mcr.microsoft.com/devcontainers/cpp:debian-12
             nproc: 22
+            ccache: ccache
           # macOS with Clang
           - os: macos-latest
             c_compiler: clang
             cpp_compiler: clang++
             container: null
             nproc: 3
+            ccache: ccache
           - os: windows-latest
             c_compiler: cl
             cpp_compiler: cl
             container: null
             nproc: 4
+            ccache: sccache
 
     steps:
       - name: Export GitHub Actions cache environment variables
@@ -112,17 +116,11 @@ jobs:
           echo "VCPKG_DEFAULT_TRIPLET=x64-windows" >> $env:GITHUB_ENV
           echo "TOOLCHAIN=${{ github.workspace }}\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake" >> $env:GITHUB_ENV
 
-      - name: Set up ccache for *nix
-        if: matrix.os != 'windows-latest'
-        uses: hendrikmuhs/ccache-action@v1.2
-        with:
-          key: ${{ github.job }}-${{ matrix.os }}-${{ matrix.cpp_compiler }}
-
-      - name: Set up ccache for Windows
+      - name: Set up ccache/sccache
         if: matrix.os == 'windows-latest'
         uses: hendrikmuhs/ccache-action@v1.2
         with:
-          variant: sccache
+          variant: ${{ matrix.ccache }}
           key: ${{ github.job }}-${{ matrix.os }}-${{ matrix.cpp_compiler }}
 
 
@@ -131,7 +129,7 @@ jobs:
 
       - name: Configure CMake
         run: |
-          cmake -B compiler/build -S compiler -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_TOOLCHAIN_FILE=${{ env.TOOLCHAIN }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -G Ninja
+          cmake -B compiler/build -S compiler -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_TOOLCHAIN_FILE=${{ env.TOOLCHAIN }} -DCMAKE_C_COMPILER_LAUNCHER=${{ matrix.ccache }} -DCMAKE_CXX_COMPILER_LAUNCHER=${{ matrix.ccache }} -G Ninja
 
       - name: Build
         run: cmake --build compiler/build --config ${{env.BUILD_TYPE}} -- -j${{ matrix.nproc }}
