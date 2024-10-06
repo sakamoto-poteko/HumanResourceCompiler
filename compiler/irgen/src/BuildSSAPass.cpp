@@ -278,6 +278,7 @@ int BuildSSAPass::run_subroutine(const SubroutinePtr &subroutine, ProgramMetadat
     }
 
     subroutine->set_dominance_tree(dom_tree_ptr, cfg_vertex_to_dom_tree_bgl.at(cfg_entry_vertex));
+    subroutine->set_is_ssa(true);
 
     return 0;
 }
