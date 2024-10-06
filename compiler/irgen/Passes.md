@@ -11,7 +11,7 @@
 | PropagateCopyPass            | SSA, DOM             | None                | IN, OUT, DEF, USE   |         |
 | RenumberVariableIdPass       | None                 | None                | IN, OUT, DEF, USE   |         |
 | StripEmptyBasicBlockPass     | None                 | None                | CFG, DOM            |         |
-| RemoveDeadInstructionsPass   | None                 | None                | IN, OUT, DEF, USE   |         |
+| RemoveDeadInstructionsPass   | None                 | None                | IN, OUT, DEF, USE   | Does not eliminate dead ssignment if it's not SSA |
 | VerifySSAPass                | SSA                  | None                | None                |         |
 
 ## Pass Order
@@ -25,5 +25,5 @@
 7. Renumber variables (`RenumberVariableIdPass`). Valid: CFG, SSA, DOM.
 8. Verify the correctness of SSA (`VerifySSAPass`). Valid: CFG, SSA, DOM.
 9. Propagate register copy (`PropagateCopyPass`). Valid: CFG, SSA, DOM.
-10. Eliminate dead assignments (`EliminateDeadAssignmentPass`). Valid: CFG, SSA, DOM
-11. Perform liveness analysis for SSA (`AnalyzeLivenessPass`). Valid: CFG, SSA, DOM, IN, OUT, DEF, USE
+10. Eliminate dead assignments (`RemoveDeadInstructionsPass`). Valid: CFG, SSA, DOM
+11. Perform liveness analysis for SSA (`AnalyzeLivenessPass`). Valid: CFG, SSA, DOM, IN, OUT, DEF, USE.
