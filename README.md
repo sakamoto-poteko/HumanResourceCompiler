@@ -18,6 +18,7 @@ Ensure you have the following dependencies installed before building the project
 - **Flex** and **Bison** (for lexical analysis and parsing)
 - **spdlog** (for logging)
 - **Boost** (for various utilities)
+- **YAML-CPP** (for writing yaml in intermediate steps)
 - **Google Test** (for testing)
 
 ### Build Instructions
@@ -131,7 +132,7 @@ Once installed, the extension will provide:
 The Human Resource Machine LazyCoder Language (HRML) is designed to simplify the process of solving levels in Human Resource Machine. Key features include:
 
 - **Simple Arithmetic Operations:** `+`, `-`, `*`, `/`, `%`
-- **Logical Operations:** `&`, `|`, `>`, `<`, `==`, `!=`, etc.
+- **Logical Operations:** `&&`, `||`, `>`, `<`, `==`, `!=`, etc.
 - **Control Structures:** `if`, `while`, `for`
 - **Memory Access:** Direct access to "floor" slots with the `floor[]` syntax.
 - **Basic Subprograms:** Supports simplified `function` and `sub` constructs.
@@ -144,6 +145,9 @@ This project is licensed under the MIT License. See the `LICENSE` file for more 
 
 For more details on the project, including the design process and language features, check out the following articles:
 
-1. [Building a Human Resource Machine Compiler - Preface](#)
-2. [Building a Human Resource Machine Compiler - Language Design](#)
-3. [Building a Human Resource Machine Compiler - Lexical Analysis](#)
+1. [Building a Human Resource Machine Compiler - Preface](https://farm.poteko.moe/en/HumanResourceCompiler/hrc0.html)
+2. [Building a Human Resource Machine Compiler - Language Design](https://farm.poteko.moe/en/HumanResourceCompiler/hrc1.html)
+3. [Building a Human Resource Machine Compiler - Lexical Analysis](https://farm.poteko.moe/en/HumanResourceCompiler/hrc2.html)
+4. [Building a Human Resource Machine Compiler - Syntax Parser (1)](https://farm.poteko.moe/en/HumanResourceCompiler/hrc3.html)
+
+More on the way.
