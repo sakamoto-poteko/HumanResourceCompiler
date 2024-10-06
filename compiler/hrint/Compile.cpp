@@ -1,8 +1,9 @@
-#include "Compile.h"
-
-#include <spdlog/spdlog.h>
+#include <cerrno>
+#include <cstring>
 #include <string>
 #include <vector>
+
+#include <spdlog/spdlog.h>
 
 #include "ASTBuilder.h"
 #include "ASTNodeForward.h"
@@ -10,6 +11,7 @@
 #include "BuildControlFlowGraphPass.h"
 #include "BuildSSAPass.h"
 #include "ClearSymbolTablePass.h"
+#include "Compile.h"
 #include "ConstantFoldingPass.h"
 #include "ControlFlowVerificationPass.h"
 #include "DeadCodeEliminationPass.h"
@@ -21,11 +23,11 @@
 #include "InterpreterOptions.h"
 #include "MergeConditionalBranchPass.h"
 #include "RecursiveDescentParser.h"
+#include "RemoveDeadInstructionsPass.h"
 #include "RenumberVariableIdPass.h"
 #include "SemanticAnalysisPassManager.h"
 #include "StripAttributePass.h"
 #include "StripEmptyBasicBlockPass.h"
-#include "RemoveDeadInstructionsPass.h"
 #include "SymbolAnalysisPass.h"
 #include "SymbolTable.h"
 #include "TACGen.h"
@@ -45,6 +47,11 @@ OPEN_HRINT_NAMESPACE
 int compile_to_ast_and_hir(const InterpreterOptions &options, hrl::parser::CompilationUnitASTNodePtr &ast, irgen::ProgramPtr &program, semanalyzer::SymbolTablePtr &symtbl)
 {
     FILE *file = std::fopen(options.input_file.c_str(), "r");
+
+    if (file == nullptr) {
+        spdlog::error("Cannot open input file: '{}': {}", options.input_file, std::strerror(errno));
+        return -1;
+    }
 
     // Lexing
     hrl::lexer::HRLLexer lexer;

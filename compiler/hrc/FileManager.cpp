@@ -50,7 +50,7 @@ FILE *FileManager::open_file(const std::string &path, const char *mode)
     }
 
     _open_files[path] = file;
-    spdlog::info("Successfully opened file: {}", path);
+    spdlog::debug("Successfully opened file: {}", path);
     return file;
 }
 
