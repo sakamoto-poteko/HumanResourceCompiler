@@ -18,7 +18,6 @@
 #include "IRProgramStructure.h"
 #include "ParseTreeNodeForward.h"
 #include "ParseTreeNodeGraphvizBuilder.h"
-#include "PropagateCopyPass.h"
 #include "RecursiveDescentParser.h"
 #include "SemanticAnalysisPassManager.h"
 #include "StripAttributePass.h"
