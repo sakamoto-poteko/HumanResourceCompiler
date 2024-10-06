@@ -8,7 +8,7 @@ public:
     WithIR() = default;
     virtual ~WithIR() = default;
 
-    virtual void setup_ir(bool optimize, const TestCaseData &data, bool &result);
+    virtual void setup_ir(int optimize, const TestCaseData &data, bool &result);
 
 private:
 };

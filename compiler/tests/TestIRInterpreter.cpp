@@ -35,7 +35,7 @@ static std::vector<TestCaseData> read_ir_interpreter_test_cases()
 class IRInterpreterTests : public ::testing::TestWithParam<TestCaseData>, private WithIR {
 protected:
     WithIR _test;
-    WithIR _opt_test;
+    WithIR _opt_speed_test;
 };
 
 TEST_P(IRInterpreterTests, IRCorrectnessTests)
@@ -44,7 +44,7 @@ TEST_P(IRInterpreterTests, IRCorrectnessTests)
     bool ok;
 
     // begin unoptimized
-    _test.setup_ir(false, data, ok);
+    _test.setup_ir(0, data, ok);
     ASSERT_TRUE(ok) << "Failed in IR optimization stages";
 
     hrl::interpreter::MemoryManager memman;
@@ -64,14 +64,14 @@ TEST_P(IRInterpreterTests, IRCorrectnessTests)
         outputs.push_back(val);
     });
 
-    // begin optimized
-    _opt_test.setup_ir(true, data, ok);
+    // begin optimized for speed
+    _opt_speed_test.setup_ir(1, data, ok);
     ASSERT_TRUE(ok) << "Failed in semantic analysis stages with opt";
 
     hrl::interpreter::MemoryManager opt_memman;
     hrl::interpreter::IOManager opt_ioman;
 
-    hrl::interpreter::IRInterpreter opt_interpreter(opt_ioman, opt_memman, _opt_test.get_program(), true);
+    hrl::interpreter::IRInterpreter opt_interpreter(opt_ioman, opt_memman, _opt_speed_test.get_program(), true);
 
     for (hrl::interpreter::HRMByte input : data.program_inputs) {
         opt_ioman.push_input(input);
