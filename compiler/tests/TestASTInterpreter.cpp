@@ -8,9 +8,9 @@
 #include <spdlog/spdlog.h>
 
 #include "ASTInterpreter.h"
-#include "IntAccumulator.h"
-#include "IntIOManager.h"
-#include "IntMemoryManager.h"
+#include "InterpreterAccumulator.h"
+#include "InterpreterIOManager.h"
+#include "InterpreterMemoryManager.h"
 #include "InterpreterExceptions.h"
 #include "Tests.h"
 #include "WithSemanticAnalyzed.h"
@@ -51,8 +51,8 @@ TEST_P(ASTInterpreterTests, ASTCorrectnessTests)
     _test.setup_semantic_analyze(false, data, ok);
     ASSERT_TRUE(ok) << "Failed in semantic analysis stages";
 
-    hrl::interpreter::MemoryManager memman;
-    hrl::interpreter::IOManager ioman;
+    hrl::interpreter::InterpreterMemoryManager memman;
+    hrl::interpreter::InterpreterIOManager ioman;
 
     hrl::interpreter::ASTInterpreter interpreter(
         std::make_shared<std::string>(data.filename),
@@ -77,8 +77,8 @@ TEST_P(ASTInterpreterTests, ASTCorrectnessTests)
     _opt_test.setup_semantic_analyze(true, data, ok);
     ASSERT_TRUE(ok) << "Failed in semantic analysis stages with opt";
 
-    hrl::interpreter::MemoryManager opt_memman;
-    hrl::interpreter::IOManager opt_ioman;
+    hrl::interpreter::InterpreterMemoryManager opt_memman;
+    hrl::interpreter::InterpreterIOManager opt_ioman;
 
     hrl::interpreter::ASTInterpreter opt_interpreter(
         std::make_shared<std::string>(data.filename),

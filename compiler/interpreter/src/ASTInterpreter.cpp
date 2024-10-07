@@ -1,7 +1,11 @@
 #include <algorithm>
 #include <cassert>
 #include <memory>
+#include <ranges>
+#include <string>
+#include <tuple>
 
+#include <boost/format.hpp>
 #include <spdlog/spdlog.h>
 
 #include "ASTInterpreter.h"
@@ -75,7 +79,7 @@ int ASTInterpreter::visit(const parser::VariableAssignmentASTNodePtr &node)
     RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
 
     spdlog::debug("assigned variable '{}' with value {}", symbol->name, _accumulator.get_register());
-    _accumulator.copy_to(symbol);
+    set_variable(symbol, _accumulator.get_register());
 
     END_VISIT();
 }
@@ -85,7 +89,13 @@ int ASTInterpreter::visit(const parser::VariableAccessASTNodePtr &node)
     BEGIN_VISIT();
 
     auto symbol = semanalyzer::Symbol::get_from(node);
-    _accumulator.copy_from(symbol);
+
+    HRMByte value;
+    bool ok = get_variable(symbol, value);
+    if (!ok) {
+        throw InterpreterException(InterpreterException::ErrorType::FloorIsEmpty, "Variable is null");
+    }
+    _accumulator.set_register(value);
 
     spdlog::debug("loaded variable '{}' with value {}", symbol->name, _accumulator.get_register());
 
@@ -115,7 +125,7 @@ int ASTInterpreter::visit(const parser::FloorAssignmentASTNodePtr &node)
     int flrid = _accumulator.get_register().operator int();
 
     _accumulator.set_register(value);
-    _accumulator.copy_to_floor(flrid);
+    _memory_manager.set_floor(flrid, value);
     spdlog::debug("set floor[{}] with value {}", flrid, value);
 
     END_VISIT();
@@ -129,7 +139,13 @@ int ASTInterpreter::visit(const parser::FloorAccessASTNodePtr &node)
     RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
     int idx = _accumulator.get_register().operator int();
 
-    _accumulator.copy_from_floor(idx);
+    HRMByte value;
+    bool ok = _memory_manager.get_floor(idx, value);
+    if (!ok) {
+        throw InterpreterException(InterpreterException::ErrorType::FloorIsEmpty, "Floor is null");
+    }
+    _accumulator.set_register(value);
+
     spdlog::debug("loaded floor[{}] with value {}", idx, _accumulator.get_register());
 
     END_VISIT();
@@ -166,7 +182,17 @@ int ASTInterpreter::visit(const parser::IncrementExpressionASTNodePtr &node)
     BEGIN_VISIT();
     auto symbol = semanalyzer::Symbol::get_from(node);
     assert(symbol);
-    _accumulator.bumpup(symbol);
+
+    HRMByte val;
+    bool ok = get_variable(symbol, val);
+    if (!ok) {
+        spdlog::critical("Variable '{}' is not found.", symbol->to_string());
+        throw;
+    }
+    ++val;
+    set_variable(symbol, val);
+    _accumulator.set_register(val);
+
     spdlog::debug("bumped up {} to {}", symbol->name, _accumulator.get_register());
     END_VISIT();
 }
@@ -176,7 +202,18 @@ int ASTInterpreter::visit(const parser::DecrementExpressionASTNodePtr &node)
     BEGIN_VISIT();
     auto symbol = semanalyzer::Symbol::get_from(node);
     assert(symbol);
-    _accumulator.bumpdn(symbol);
+
+    // NOTE: We don't have --floor[id] logic here.
+    HRMByte val;
+    bool ok = get_variable(symbol, val);
+    if (!ok) {
+        spdlog::critical("Variable '{}' is not found.", symbol->to_string());
+        throw;
+    }
+    --val;
+    set_variable(symbol, val);
+    _accumulator.set_register(val);
+
     spdlog::debug("bumped down {} to {}", symbol->name, _accumulator.get_register());
     END_VISIT();
 }
@@ -343,19 +380,27 @@ int ASTInterpreter::visit(const parser::InvocationExpressionASTNodePtr &node)
         if (type == parser::ASTNodeType::FunctionDefinition) {
             spdlog::debug("invoking function {}", symbol->name);
             auto func = std::dynamic_pointer_cast<parser::FunctionDefinitionASTNode>(subroutine_node);
-            _call_stack.push(func);
+            _call_stack.push_back(CallFrame {
+                .subroutine_node = func,
+                .invocation_node = node,
+                .variables = {},
+            });
             rc = visit(func);
         } else if (type == parser::ASTNodeType::SubprocDefinition) {
             spdlog::debug("invoking subproc {}", symbol->name);
             auto sub = std::dynamic_pointer_cast<parser::SubprocDefinitionASTNode>(subroutine_node);
-            _call_stack.push(sub);
+            _call_stack.push_back(CallFrame {
+                .subroutine_node = sub,
+                .invocation_node = node,
+                .variables = {},
+            });
             rc = visit(sub);
         } else {
             spdlog::critical("Unknwon ASTNode type {}. {}", static_cast<int>(type), __PRETTY_FUNCTION__);
             throw;
         }
         RETURN_IF_ABNORMAL_RC_IN_VISIT(rc);
-        _call_stack.pop();
+        _call_stack.pop_back();
         spdlog::debug("return from invocation to {}", *node->get_func_name());
     }
 
@@ -524,7 +569,7 @@ int ASTInterpreter::visit_subroutine(const parser::AbstractSubroutineASTNodePtr 
         // store the parameter value
         semanalyzer::SymbolPtr sym = semanalyzer::Symbol::get_from(param);
         assert(sym);
-        _accumulator.copy_to(sym);
+        set_variable(sym, _accumulator.get_register());
     }
     rc = traverse(node->get_body());
     RETURN_IF_FAIL_IN_VISIT(rc);
@@ -615,14 +660,71 @@ int ASTInterpreter::exec()
 
 int ASTInterpreter::invoke_inbox()
 {
-    _accumulator.inbox();
+    HRMByte value;
+    bool ok = _io_manager.pop_input(value);
+    if (!ok) {
+        throw InterpreterException(InterpreterException::ErrorType::EndOfInput, "End of input reached");
+    }
+    _accumulator.set_register(value);
+
     return 0;
 }
 
 int ASTInterpreter::invoke_outbox()
 {
-    _accumulator.outbox();
+    _io_manager.push_output(_accumulator.get_register());
+    _accumulator.reset_register();
+
     return 0;
+}
+
+void ASTInterpreter::set_variable(const semanalyzer::SymbolPtr &symbol, HRMByte value)
+{
+    if (_call_stack.empty()) {
+        spdlog::trace("Set global variable '{}' = {}", symbol->name, value);
+        _global_variables[symbol] = value;
+    } else {
+        CallFrame &callframe = _call_stack.back();
+        auto glbvar_it = _global_variables.find(symbol);
+        if (glbvar_it == _global_variables.end()) {
+            spdlog::trace("Set local variable '{}' = {} in subroutine {}", symbol->name, value, *callframe.subroutine_node->get_name());
+            callframe.variables[symbol] = value;
+        } else {
+            spdlog::trace("Set global variable '{}' = {} in subroutine {}", symbol->name, value, *callframe.subroutine_node->get_name());
+            glbvar_it->second = value;
+        }
+    }
+}
+
+bool ASTInterpreter::get_variable(const semanalyzer::SymbolPtr &symbol, HRMByte &value)
+{
+    auto found_it = _global_variables.find(symbol);
+    if (found_it == _global_variables.end()) {
+        if (_call_stack.empty()) {
+            spdlog::trace("Global variable '{}' does not exist", symbol->name);
+            return false;
+        } else {
+            CallFrame &callframe = _call_stack.back();
+            found_it = callframe.variables.find(symbol);
+            if (found_it == callframe.variables.end()) {
+                spdlog::trace("Local variable '{}' in subroutine {} does not exist", symbol->name, *callframe.subroutine_node->get_name());
+                return false;
+            }
+        }
+    }
+
+    value = found_it->second;
+    spdlog::trace("Accessed variable '{}': {}", symbol->name, value);
+    return true;
+}
+
+std::vector<std::tuple<parser::InvocationExpressionASTNodePtr, parser::AbstractSubroutineASTNodePtr>> ASTInterpreter::get_call_stack() const
+{
+    auto call_stack = _call_stack | std::views::transform([](const CallFrame &callframe) {
+        return std::make_tuple(callframe.invocation_node, callframe.subroutine_node);
+    });
+
+    return std::vector(call_stack.begin(), call_stack.end());
 }
 
 CLOSE_INTERPRETER_NAMESPACE

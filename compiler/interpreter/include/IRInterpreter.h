@@ -16,7 +16,7 @@ OPEN_INTERPRETER_NAMESPACE
 
 class IRInterpreter : public AbstractInterpreter {
 public:
-    IRInterpreter(IOManager &ioman, MemoryManager &memman, const irgen::ProgramPtr &program, bool enforce_ssa = true)
+    IRInterpreter(InterpreterIOManager &ioman, InterpreterMemoryManager &memman, const irgen::ProgramPtr &program, bool enforce_ssa = true)
         : AbstractInterpreter(ioman, memman)
         , _program(program)
         , _enforce_ssa(enforce_ssa)

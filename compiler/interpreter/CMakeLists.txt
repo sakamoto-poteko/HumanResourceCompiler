@@ -2,12 +2,12 @@ cmake_minimum_required(VERSION 3.5)
 project(hrc_interpreter)
 
 add_library(${PROJECT_NAME}
-    src/Accumulator.cpp
+    src/InterpreterAccumulator.cpp
     src/ASTInterpreter.cpp
     src/AbstractInterpreter.cpp
     src/IRInterpreter.cpp
-    src/IOManager.cpp
-    src/MemoryManager.cpp
+    src/InterpreterIOManager.cpp
+    src/InterpreterMemoryManager.cpp
     src/InterpreterExceptions.cpp
     src/HRMByte.cpp
 )

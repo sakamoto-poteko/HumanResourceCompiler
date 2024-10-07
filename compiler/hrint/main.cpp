@@ -10,9 +10,9 @@
 #include "Compile.h"
 #include "IRInterpreter.h"
 #include "IRProgramStructure.h"
-#include "IntAccumulator.h"
-#include "IntIOManager.h"
-#include "IntMemoryManager.h"
+#include "InterpreterAccumulator.h"
+#include "InterpreterIOManager.h"
+#include "InterpreterMemoryManager.h"
 #include "InterpreterExceptions.h"
 #include "InterpreterOptions.h"
 #include "SymbolTable.h"
@@ -57,8 +57,8 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
-    MemoryManager memman;
-    IOManager ioman;
+    InterpreterMemoryManager memman;
+    InterpreterIOManager ioman;
 
     AbstractInterpreter *interpreter = nullptr;
 

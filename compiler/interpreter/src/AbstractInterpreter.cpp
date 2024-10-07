@@ -3,18 +3,18 @@
 
 OPEN_INTERPRETER_NAMESPACE
 
-AbstractInterpreter::AbstractInterpreter(IOManager &ioman, MemoryManager &memman)
+AbstractInterpreter::AbstractInterpreter(InterpreterIOManager &ioman, InterpreterMemoryManager &memman)
     : _io_manager(ioman)
     , _memory_manager(memman)
 {
 }
 
-IOManager &AbstractInterpreter::get_io_manager()
+InterpreterIOManager &AbstractInterpreter::get_io_manager()
 {
     return _io_manager;
 }
 
-MemoryManager &AbstractInterpreter::get_memory_manager()
+InterpreterMemoryManager &AbstractInterpreter::get_memory_manager()
 {
     return _memory_manager;
 }
