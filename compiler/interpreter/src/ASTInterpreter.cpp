@@ -1,8 +1,12 @@
 #include <algorithm>
 #include <cassert>
 #include <memory>
+#include <ranges>
+#include <string>
 
+#include <boost/format.hpp>
 #include <spdlog/spdlog.h>
+#include <tuple>
 
 #include "ASTInterpreter.h"
 #include "ASTNode.h"
@@ -377,7 +381,8 @@ int ASTInterpreter::visit(const parser::InvocationExpressionASTNodePtr &node)
             spdlog::debug("invoking function {}", symbol->name);
             auto func = std::dynamic_pointer_cast<parser::FunctionDefinitionASTNode>(subroutine_node);
             _call_stack.push_back(CallFrame {
-                .ast_node = func,
+                .subroutine_node = func,
+                .invocation_node = node,
                 .variables = {},
             });
             rc = visit(func);
@@ -385,7 +390,8 @@ int ASTInterpreter::visit(const parser::InvocationExpressionASTNodePtr &node)
             spdlog::debug("invoking subproc {}", symbol->name);
             auto sub = std::dynamic_pointer_cast<parser::SubprocDefinitionASTNode>(subroutine_node);
             _call_stack.push_back(CallFrame {
-                .ast_node = sub,
+                .subroutine_node = sub,
+                .invocation_node = node,
                 .variables = {},
             });
             rc = visit(sub);
@@ -681,10 +687,10 @@ void ASTInterpreter::set_variable(const semanalyzer::SymbolPtr &symbol, HRMByte 
         CallFrame &callframe = _call_stack.back();
         auto glbvar_it = _global_variables.find(symbol);
         if (glbvar_it == _global_variables.end()) {
-            spdlog::trace("Set local variable '{}' = {} in subroutine {}", symbol->name, value, *callframe.ast_node->get_name());
+            spdlog::trace("Set local variable '{}' = {} in subroutine {}", symbol->name, value, *callframe.subroutine_node->get_name());
             callframe.variables[symbol] = value;
         } else {
-            spdlog::trace("Set global variable '{}' = {} in subroutine {}", symbol->name, value, *callframe.ast_node->get_name());
+            spdlog::trace("Set global variable '{}' = {} in subroutine {}", symbol->name, value, *callframe.subroutine_node->get_name());
             glbvar_it->second = value;
         }
     }
@@ -701,7 +707,7 @@ bool ASTInterpreter::get_variable(const semanalyzer::SymbolPtr &symbol, HRMByte 
             CallFrame &callframe = _call_stack.back();
             found_it = callframe.variables.find(symbol);
             if (found_it == callframe.variables.end()) {
-                spdlog::trace("Local variable '{}' in subroutine {} does not exist", symbol->name, *callframe.ast_node->get_name());
+                spdlog::trace("Local variable '{}' in subroutine {} does not exist", symbol->name, *callframe.subroutine_node->get_name());
                 return false;
             }
         }
@@ -710,6 +716,15 @@ bool ASTInterpreter::get_variable(const semanalyzer::SymbolPtr &symbol, HRMByte 
     value = found_it->second;
     spdlog::trace("Accessed variable '{}': {}", symbol->name, value);
     return true;
+}
+
+std::vector<std::tuple<parser::InvocationExpressionASTNodePtr, parser::AbstractSubroutineASTNodePtr>> ASTInterpreter::get_call_stack() const
+{
+    auto call_stack = _call_stack | std::views::transform([](const CallFrame &callframe) {
+        return std::make_tuple(callframe.invocation_node, callframe.subroutine_node);
+    });
+
+    return std::vector(call_stack.begin(), call_stack.end());
 }
 
 CLOSE_INTERPRETER_NAMESPACE

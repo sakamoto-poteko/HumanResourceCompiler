@@ -2,6 +2,8 @@
 #define AST_INTERPRETER_H
 
 #include <list>
+#include <string>
+#include <vector>
 
 #include "ASTNodeForward.h"
 #include "AbstractInterpreter.h"
@@ -33,6 +35,9 @@ public:
     ~ASTInterpreter() = default;
 
     int exec() override;
+
+    // tuple<invoking statement, invoked function>, left is bottom
+    std::vector<std::tuple<parser::InvocationExpressionASTNodePtr, parser::AbstractSubroutineASTNodePtr>> get_call_stack() const;
 
 private:
     enum ControlFlowState : int {
@@ -100,7 +105,8 @@ private:
     // [End Group]
 
     struct CallFrame {
-        parser::AbstractSubroutineASTNodePtr ast_node;
+        parser::AbstractSubroutineASTNodePtr subroutine_node;
+        parser::InvocationExpressionASTNodePtr invocation_node;
         std::map<semanalyzer::SymbolPtr, HRMByte> variables;
     };
 
