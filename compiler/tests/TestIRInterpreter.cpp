@@ -47,8 +47,8 @@ TEST_P(IRInterpreterTests, IRCorrectnessTests)
     _test.setup_ir(0, data, ok);
     ASSERT_TRUE(ok) << "Failed in IR optimization stages";
 
-    hrl::interpreter::MemoryManager memman;
-    hrl::interpreter::IOManager ioman;
+    hrl::interpreter::InterpreterMemoryManager memman;
+    hrl::interpreter::InterpreterIOManager ioman;
 
     hrl::interpreter::IRInterpreter interpreter(ioman, memman, _test.get_program(), true);
 
@@ -68,8 +68,8 @@ TEST_P(IRInterpreterTests, IRCorrectnessTests)
     _opt_speed_test.setup_ir(1, data, ok);
     ASSERT_TRUE(ok) << "Failed in semantic analysis stages with opt";
 
-    hrl::interpreter::MemoryManager opt_memman;
-    hrl::interpreter::IOManager opt_ioman;
+    hrl::interpreter::InterpreterMemoryManager opt_memman;
+    hrl::interpreter::InterpreterIOManager opt_ioman;
 
     hrl::interpreter::IRInterpreter opt_interpreter(opt_ioman, opt_memman, _opt_speed_test.get_program(), true);
 

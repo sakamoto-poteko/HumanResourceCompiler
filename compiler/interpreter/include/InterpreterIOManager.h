@@ -1,5 +1,5 @@
-#ifndef INT_IOMANAGER_H
-#define INT_IOMANAGER_H
+#ifndef INTERPRETER_IOMANAGER_H
+#define INTERPRETER_IOMANAGER_H
 
 #include <functional>
 #include <queue>
@@ -9,10 +9,10 @@
 
 OPEN_INTERPRETER_NAMESPACE
 
-class IOManager {
+class InterpreterIOManager {
 public:
-    IOManager();
-    ~IOManager();
+    InterpreterIOManager();
+    ~InterpreterIOManager();
 
     void push_input(HRMByte value);
     bool pop_input(HRMByte &value);

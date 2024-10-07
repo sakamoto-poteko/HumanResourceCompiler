@@ -1,22 +1,22 @@
-#include "IntIOManager.h"
+#include "InterpreterIOManager.h"
 #include "interpreter_global.h"
 
 OPEN_INTERPRETER_NAMESPACE
 
-IOManager::IOManager()
+InterpreterIOManager::InterpreterIOManager()
 {
 }
 
-IOManager::~IOManager()
+InterpreterIOManager::~InterpreterIOManager()
 {
 }
 
-void IOManager::push_input(HRMByte value)
+void InterpreterIOManager::push_input(HRMByte value)
 {
     _input.push(value);
 }
 
-bool IOManager::pop_input(HRMByte &value)
+bool InterpreterIOManager::pop_input(HRMByte &value)
 {
     if (_input.empty()) {
         return false;
@@ -30,7 +30,7 @@ bool IOManager::pop_input(HRMByte &value)
     }
 }
 
-void IOManager::push_output(HRMByte value)
+void InterpreterIOManager::push_output(HRMByte value)
 {
     _output.push(value);
     if (_on_output_pushed) {
@@ -38,7 +38,7 @@ void IOManager::push_output(HRMByte value)
     }
 }
 
-bool IOManager::pop_output(HRMByte &value)
+bool InterpreterIOManager::pop_output(HRMByte &value)
 {
     if (_output.empty()) {
         return false;
@@ -49,12 +49,12 @@ bool IOManager::pop_output(HRMByte &value)
     }
 }
 
-void IOManager::set_on_input_popped(std::function<void(HRMByte)> hook)
+void InterpreterIOManager::set_on_input_popped(std::function<void(HRMByte)> hook)
 {
     _on_input_popped = hook;
 }
 
-void IOManager::set_on_output_pushed(std::function<void(HRMByte)> hook)
+void InterpreterIOManager::set_on_output_pushed(std::function<void(HRMByte)> hook)
 {
     _on_output_pushed = hook;
 }
