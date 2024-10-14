@@ -36,7 +36,11 @@ find_package(Boost CONFIG REQUIRED COMPONENTS graph)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     add_compile_options(-Wall -Wextra -Wpedantic)
+# add_compile_options(-fsanitize=undefined)
+# add_compile_options(-fsanitize=memory) # not yet supported in Apple Clang
 # add_compile_options(-fsanitize=address)
+# add_link_options(-fsanitize=undefined)
+# add_link_options(-fsanitize=memory)
 # add_link_options(-fsanitize=address)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     add_compile_options(/W4 /Zc:preprocessor)
